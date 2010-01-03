@@ -1,0 +1,996 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>buildbot.changes.changes</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="buildbot-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.sourceforge.net/">BuildBot 0.7.12rc1</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="buildbot-module.html">Package&nbsp;buildbot</a> ::
+        <a href="buildbot.changes-module.html">Package&nbsp;changes</a> ::
+        Module&nbsp;changes
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="buildbot.changes.changes-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="buildbot.changes.changes-module.html">Module buildbot.changes.changes</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">sys</tt><tt class="py-op">,</tt> <tt class="py-name">os</tt><tt class="py-op">,</tt> <tt class="py-name">time</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">cPickle</tt> <tt class="py-keyword">import</tt> <tt class="py-name">dump</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">zope</tt><tt class="py-op">.</tt><tt class="py-name">interface</tt> <tt class="py-keyword">import</tt> <tt class="py-name">implements</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt id="link-0" class="py-name" targets="Module buildbot.steps.python=buildbot.steps.python-module.html,Variable buildbot.steps.python_twisted.Trial.python=buildbot.steps.python_twisted.Trial-class.html#python"><a title="buildbot.steps.python
+buildbot.steps.python_twisted.Trial.python" class="py-name" href="#" onclick="return doclink('link-0', 'python', 'link-0');">python</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Method buildbot.changes.monotone.Monotone.log()=buildbot.changes.monotone.Monotone-class.html#log,Method buildbot.status.words.IrcStatusBot.log()=buildbot.status.words.IrcStatusBot-class.html#log"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-1', 'log', 'link-1');">log</a></tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt class="py-name">internet</tt> <tt class="py-keyword">import</tt> <tt class="py-name">defer</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt class="py-name">application</tt> <tt class="py-keyword">import</tt> <tt class="py-name">service</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Package buildbot.status.web=buildbot.status.web-module.html"><a title="buildbot.status.web" class="py-name" href="#" onclick="return doclink('link-2', 'web', 'link-2');">web</a></tt> <tt class="py-keyword">import</tt> <tt id="link-3" class="py-name" targets="Method buildbot.process.step_twisted2.OneJellyTest.html()=buildbot.process.step_twisted2.OneJellyTest-class.html#html,Module buildbot.status.html=buildbot.status.html-module.html,Method buildbot.status.tests.OneTest.html()=buildbot.status.tests.OneTest-class.html#html,Method buildbot.status.tests.TestResults.html()=buildbot.status.tests.TestResults-class.html#html"><a title="buildbot.process.step_twisted2.OneJellyTest.html
+buildbot.status.html
+buildbot.status.tests.OneTest.html
+buildbot.status.tests.TestResults.html" class="py-name" href="#" onclick="return doclink('link-3', 'html', 'link-3');">html</a></tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-4" class="py-name" targets="Package buildbot=buildbot-module.html"><a title="buildbot" class="py-name" href="#" onclick="return doclink('link-4', 'buildbot', 'link-4');">buildbot</a></tt> <tt class="py-keyword">import</tt> <tt id="link-5" class="py-name" targets="Module buildbot.interfaces=buildbot.interfaces-module.html,Module buildbot.slave.interfaces=buildbot.slave.interfaces-module.html"><a title="buildbot.interfaces
+buildbot.slave.interfaces" class="py-name" href="#" onclick="return doclink('link-5', 'interfaces', 'link-5');">interfaces</a></tt><tt class="py-op">,</tt> <tt id="link-6" class="py-name" targets="Module buildbot.util=buildbot.util-module.html"><a title="buildbot.util" class="py-name" href="#" onclick="return doclink('link-6', 'util', 'link-6');">util</a></tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-7" class="py-name"><a title="buildbot" class="py-name" href="#" onclick="return doclink('link-7', 'buildbot', 'link-4');">buildbot</a></tt><tt class="py-op">.</tt><tt id="link-8" class="py-name" targets="Package buildbot.process=buildbot.process-module.html"><a title="buildbot.process" class="py-name" href="#" onclick="return doclink('link-8', 'process', 'link-8');">process</a></tt><tt class="py-op">.</tt><tt id="link-9" class="py-name" targets="Variable buildbot.master.BuildMaster.properties=buildbot.master.BuildMaster-class.html#properties,Module buildbot.process.properties=buildbot.process.properties-module.html"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-9', 'properties', 'link-9');">properties</a></tt> <tt class="py-keyword">import</tt> <tt id="link-10" class="py-name" targets="Class buildbot.process.properties.Properties=buildbot.process.properties.Properties-class.html"><a title="buildbot.process.properties.Properties" class="py-name" href="#" onclick="return doclink('link-10', 'Properties', 'link-10');">Properties</a></tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt id="link-11" class="py-name" targets="Variable buildbot.changes.changes.html_tmpl=buildbot.changes.changes-module.html#html_tmpl"><a title="buildbot.changes.changes.html_tmpl" class="py-name" href="#" onclick="return doclink('link-11', 'html_tmpl', 'link-11');">html_tmpl</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"""</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-string">&lt;p&gt;Changed by: &lt;b&gt;%(who)s&lt;/b&gt;&lt;br /&gt;</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-string">Changed at: &lt;b&gt;%(at)s&lt;/b&gt;&lt;br /&gt;</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-string">%(branch)s</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-string">%(revision)s</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-string">&lt;br /&gt;</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-string">Changed files:</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-string">%(files)s</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-string">Comments:</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-string">%(comments)s</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-string">Properties:</tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-string">%(properties)s</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"><tt class="py-string">&lt;/p&gt;</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-string">"""</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"> </tt>
+<a name="Change"></a><div id="Change-def"><a name="L31"></a><tt class="py-lineno"> 31</tt> <a class="py-toggle" href="#" id="Change-toggle" onclick="return toggle('Change');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildbot.changes.changes.Change-class.html">Change</a><tt class="py-op">:</tt> </tt>
+</div><div id="Change-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="Change-expanded"><a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line">    <tt class="py-docstring">"""I represent a single change to the source tree. This may involve</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"><tt class="py-docstring">    several files, but they are all changed by the same person, and there is</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"><tt class="py-docstring">    a change comment for the group as a whole.</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"><tt class="py-docstring">    If the version control system supports sequential repository- (or</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line"><tt class="py-docstring">    branch-) wide change numbers (like SVN, P4, and Arch), then revision=</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"><tt class="py-docstring">    should be set to that number. The highest such number will be used at</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"><tt class="py-docstring">    checkout time to get the correct set of files.</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line"><tt class="py-docstring">    If it does not (like CVS), when= should be set to the timestamp (seconds</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"><tt class="py-docstring">    since epoch, as returned by time.time()) when the change was made. when=</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"><tt class="py-docstring">    will be filled in for you (to the current time) if you omit it, which is</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"><tt class="py-docstring">    suitable for ChangeSources which have no way of getting more accurate</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"><tt class="py-docstring">    timestamps.</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"><tt class="py-docstring">    Changes should be submitted to ChangeMaster.addChange() in</tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"><tt class="py-docstring">    chronologically increasing order. Out-of-order changes will probably</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"><tt class="py-docstring">    cause the html.Waterfall display to be corrupted."""</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">    <tt class="py-name">implements</tt><tt class="py-op">(</tt><tt id="link-12" class="py-name"><a title="buildbot.interfaces
+buildbot.slave.interfaces" class="py-name" href="#" onclick="return doclink('link-12', 'interfaces', 'link-5');">interfaces</a></tt><tt class="py-op">.</tt><tt id="link-13" class="py-name" targets="Class buildbot.interfaces.IStatusEvent=buildbot.interfaces.IStatusEvent-class.html"><a title="buildbot.interfaces.IStatusEvent" class="py-name" href="#" onclick="return doclink('link-13', 'IStatusEvent', 'link-13');">IStatusEvent</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">    <tt id="link-14" class="py-name" targets="Variable buildbot.changes.changes.Change.number=buildbot.changes.changes.Change-class.html#number"><a title="buildbot.changes.changes.Change.number" class="py-name" href="#" onclick="return doclink('link-14', 'number', 'link-14');">number</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">    <tt id="link-15" class="py-name" targets="Variable buildbot.changes.changes.Change.branch=buildbot.changes.changes.Change-class.html#branch,Variable buildbot.sourcestamp.SourceStamp.branch=buildbot.sourcestamp.SourceStamp-class.html#branch,Variable buildbot.steps.source.Source.branch=buildbot.steps.source.Source-class.html#branch"><a title="buildbot.changes.changes.Change.branch
+buildbot.sourcestamp.SourceStamp.branch
+buildbot.steps.source.Source.branch" class="py-name" href="#" onclick="return doclink('link-15', 'branch', 'link-15');">branch</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">    <tt id="link-16" class="py-name" targets="Variable buildbot.changes.changes.Change.category=buildbot.changes.changes.Change-class.html#category,Variable buildbot.status.builder.BuilderStatus.category=buildbot.status.builder.BuilderStatus-class.html#category"><a title="buildbot.changes.changes.Change.category
+buildbot.status.builder.BuilderStatus.category" class="py-name" href="#" onclick="return doclink('link-16', 'category', 'link-16');">category</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">    <tt id="link-17" class="py-name" targets="Variable buildbot.changes.changes.Change.revision=buildbot.changes.changes.Change-class.html#revision,Variable buildbot.sourcestamp.SourceStamp.revision=buildbot.sourcestamp.SourceStamp-class.html#revision"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-17', 'revision', 'link-17');">revision</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> <tt class="py-comment"># used to create a source-stamp</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line"> </tt>
+<a name="Change.__init__"></a><div id="Change.__init__-def"><a name="L59"></a><tt class="py-lineno"> 59</tt> <a class="py-toggle" href="#" id="Change.__init__-toggle" onclick="return toggle('Change.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.Change-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">who</tt><tt class="py-op">,</tt> <tt class="py-param">files</tt><tt class="py-op">,</tt> <tt class="py-param">comments</tt><tt class="py-op">,</tt> <tt class="py-param">isdir</tt><tt class="py-op">=</tt><tt class="py-number">0</tt><tt class="py-op">,</tt> <tt class="py-param">links</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">                 <tt class="py-param">revision</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">when</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">branch</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">category</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">                 <tt class="py-param">revlink</tt><tt class="py-op">=</tt><tt class="py-string">''</tt><tt class="py-op">,</tt> <tt class="py-param">properties</tt><tt class="py-op">=</tt><tt class="py-op">{</tt><tt class="py-op">}</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Change.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Change.__init__-expanded"><a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">who</tt> <tt class="py-op">=</tt> <tt class="py-name">who</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">comments</tt> <tt class="py-op">=</tt> <tt class="py-name">comments</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">isdir</tt> <tt class="py-op">=</tt> <tt class="py-name">isdir</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">links</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">            <tt class="py-name">links</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">links</tt> <tt class="py-op">=</tt> <tt class="py-name">links</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-18" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-18', 'revision', 'link-17');">revision</a></tt> <tt class="py-op">=</tt> <tt id="link-19" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-19', 'revision', 'link-17');">revision</a></tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">when</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">            <tt class="py-name">when</tt> <tt class="py-op">=</tt> <tt id="link-20" class="py-name"><a title="buildbot.util" class="py-name" href="#" onclick="return doclink('link-20', 'util', 'link-6');">util</a></tt><tt class="py-op">.</tt><tt id="link-21" class="py-name" targets="Function buildbot.util.now()=buildbot.util-module.html#now"><a title="buildbot.util.now" class="py-name" href="#" onclick="return doclink('link-21', 'now', 'link-21');">now</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">when</tt> <tt class="py-op">=</tt> <tt class="py-name">when</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="buildbot.changes.changes.Change.branch
+buildbot.sourcestamp.SourceStamp.branch
+buildbot.steps.source.Source.branch" class="py-name" href="#" onclick="return doclink('link-22', 'branch', 'link-15');">branch</a></tt> <tt class="py-op">=</tt> <tt id="link-23" class="py-name"><a title="buildbot.changes.changes.Change.branch
+buildbot.sourcestamp.SourceStamp.branch
+buildbot.steps.source.Source.branch" class="py-name" href="#" onclick="return doclink('link-23', 'branch', 'link-15');">branch</a></tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-24" class="py-name"><a title="buildbot.changes.changes.Change.category
+buildbot.status.builder.BuilderStatus.category" class="py-name" href="#" onclick="return doclink('link-24', 'category', 'link-16');">category</a></tt> <tt class="py-op">=</tt> <tt id="link-25" class="py-name"><a title="buildbot.changes.changes.Change.category
+buildbot.status.builder.BuilderStatus.category" class="py-name" href="#" onclick="return doclink('link-25', 'category', 'link-16');">category</a></tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">revlink</tt> <tt class="py-op">=</tt> <tt class="py-name">revlink</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-26" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-26', 'properties', 'link-9');">properties</a></tt> <tt class="py-op">=</tt> <tt id="link-27" class="py-name"><a title="buildbot.process.properties.Properties" class="py-name" href="#" onclick="return doclink('link-27', 'Properties', 'link-10');">Properties</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-28" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-28', 'properties', 'link-9');">properties</a></tt><tt class="py-op">.</tt><tt id="link-29" class="py-name" targets="Method buildbot.buildslave.AbstractBuildSlave.update()=buildbot.buildslave.AbstractBuildSlave-class.html#update,Method buildbot.clients.gtkPanes.Box.update()=buildbot.clients.gtkPanes.Box-class.html#update,Method buildbot.process.properties.Properties.update()=buildbot.process.properties.Properties-class.html#update,Method buildbot.status.progress.Expectations.update()=buildbot.status.progress.Expectations-class.html#update"><a title="buildbot.buildslave.AbstractBuildSlave.update
+buildbot.clients.gtkPanes.Box.update
+buildbot.process.properties.Properties.update
+buildbot.status.progress.Expectations.update" class="py-name" href="#" onclick="return doclink('link-29', 'update', 'link-29');">update</a></tt><tt class="py-op">(</tt><tt id="link-30" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-30', 'properties', 'link-9');">properties</a></tt><tt class="py-op">,</tt> <tt class="py-string">"Change"</tt><tt class="py-op">)</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line"> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">        <tt class="py-comment"># keep a sorted list of the files, for easier display</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">files</tt> <tt class="py-op">=</tt> <tt class="py-name">files</tt><tt class="py-op">[</tt><tt class="py-op">:</tt><tt class="py-op">]</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">files</tt><tt class="py-op">.</tt><tt class="py-name">sort</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line"> </tt>
+<a name="Change.__setstate__"></a><div id="Change.__setstate__-def"><a name="L82"></a><tt class="py-lineno"> 82</tt> <a class="py-toggle" href="#" id="Change.__setstate__-toggle" onclick="return toggle('Change.__setstate__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.Change-class.html#__setstate__">__setstate__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">dict</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Change.__setstate__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Change.__setstate__-expanded"><a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__dict__</tt> <tt class="py-op">=</tt> <tt class="py-name">dict</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">        <tt class="py-comment"># Older Changes won't have a 'properties' attribute in them</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">hasattr</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt> <tt class="py-string">'properties'</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-31" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-31', 'properties', 'link-9');">properties</a></tt> <tt class="py-op">=</tt> <tt id="link-32" class="py-name"><a title="buildbot.process.properties.Properties" class="py-name" href="#" onclick="return doclink('link-32', 'Properties', 'link-10');">Properties</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line"> </tt>
+<a name="Change.asText"></a><div id="Change.asText-def"><a name="L88"></a><tt class="py-lineno"> 88</tt> <a class="py-toggle" href="#" id="Change.asText-toggle" onclick="return toggle('Change.asText');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.Change-class.html#asText">asText</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Change.asText-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Change.asText-expanded"><a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">        <tt class="py-name">data</tt> <tt class="py-op">=</tt> <tt class="py-string">""</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">        <tt class="py-name">data</tt> <tt class="py-op">+=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-33" class="py-name" targets="Method buildbot.changes.changes.Change.getFileContents()=buildbot.changes.changes.Change-class.html#getFileContents"><a title="buildbot.changes.changes.Change.getFileContents" class="py-name" href="#" onclick="return doclink('link-33', 'getFileContents', 'link-33');">getFileContents</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">        <tt class="py-name">data</tt> <tt class="py-op">+=</tt> <tt class="py-string">"At: %s\n"</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-34" class="py-name" targets="Method buildbot.changes.changes.Change.getTime()=buildbot.changes.changes.Change-class.html#getTime"><a title="buildbot.changes.changes.Change.getTime" class="py-name" href="#" onclick="return doclink('link-34', 'getTime', 'link-34');">getTime</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">        <tt class="py-name">data</tt> <tt class="py-op">+=</tt> <tt class="py-string">"Changed By: %s\n"</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">who</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">        <tt class="py-name">data</tt> <tt class="py-op">+=</tt> <tt class="py-string">"Comments: %s"</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">comments</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">        <tt class="py-name">data</tt> <tt class="py-op">+=</tt> <tt class="py-string">"Properties: \n%s\n\n"</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-35" class="py-name" targets="Method buildbot.buildset.BuildSet.getProperties()=buildbot.buildset.BuildSet-class.html#getProperties,Method buildbot.changes.changes.Change.getProperties()=buildbot.changes.changes.Change-class.html#getProperties,Method buildbot.process.base.Build.getProperties()=buildbot.process.base.Build-class.html#getProperties,Method buildbot.status.builder.BuildStatus.getProperties()=buildbot.status.builder.BuildStatus-class.html#getProperties"><a title="buildbot.buildset.BuildSet.getProperties
+buildbot.changes.changes.Change.getProperties
+buildbot.process.base.Build.getProperties
+buildbot.status.builder.BuildStatus.getProperties" class="py-name" href="#" onclick="return doclink('link-35', 'getProperties', 'link-35');">getProperties</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">data</tt> </tt>
+</div><a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line"> </tt>
+<a name="Change.asHTML"></a><div id="Change.asHTML-def"><a name="L97"></a><tt class="py-lineno"> 97</tt> <a class="py-toggle" href="#" id="Change.asHTML-toggle" onclick="return toggle('Change.asHTML');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.Change-class.html#asHTML">asHTML</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Change.asHTML-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Change.asHTML-expanded"><a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">        <tt class="py-name">links</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt id="link-36" class="py-name" targets="Variable buildbot.status.web.auth.HTPasswdAuth.file=buildbot.status.web.auth.HTPasswdAuth-class.html#file"><a title="buildbot.status.web.auth.HTPasswdAuth.file" class="py-name" href="#" onclick="return doclink('link-36', 'file', 'link-36');">file</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">files</tt><tt class="py-op">:</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">            <tt id="link-37" class="py-name" targets="Variable buildbot.status.web.feeds.FeedResource.link=buildbot.status.web.feeds.FeedResource-class.html#link"><a title="buildbot.status.web.feeds.FeedResource.link" class="py-name" href="#" onclick="return doclink('link-37', 'link', 'link-37');">link</a></tt> <tt class="py-op">=</tt> <tt class="py-name">filter</tt><tt class="py-op">(</tt><tt class="py-keyword">lambda</tt> <tt id="link-38" class="py-name" targets="Function buildbot.process.factory.s()=buildbot.process.factory-module.html#s"><a title="buildbot.process.factory.s" class="py-name" href="#" onclick="return doclink('link-38', 's', 'link-38');">s</a></tt><tt class="py-op">:</tt> <tt id="link-39" class="py-name"><a title="buildbot.process.factory.s" class="py-name" href="#" onclick="return doclink('link-39', 's', 'link-38');">s</a></tt><tt class="py-op">.</tt><tt class="py-name">find</tt><tt class="py-op">(</tt><tt id="link-40" class="py-name"><a title="buildbot.status.web.auth.HTPasswdAuth.file" class="py-name" href="#" onclick="return doclink('link-40', 'file', 'link-36');">file</a></tt><tt class="py-op">)</tt> <tt class="py-op">!=</tt> <tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">links</tt><tt class="py-op">)</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt id="link-41" class="py-name"><a title="buildbot.status.web.feeds.FeedResource.link" class="py-name" href="#" onclick="return doclink('link-41', 'link', 'link-37');">link</a></tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-number">1</tt><tt class="py-op">:</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">                <tt class="py-comment"># could get confused</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">                <tt class="py-name">links</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-string">'&lt;a href="%s"&gt;&lt;b&gt;%s&lt;/b&gt;&lt;/a&gt;'</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt id="link-42" class="py-name"><a title="buildbot.status.web.feeds.FeedResource.link" class="py-name" href="#" onclick="return doclink('link-42', 'link', 'link-37');">link</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt id="link-43" class="py-name"><a title="buildbot.status.web.auth.HTPasswdAuth.file" class="py-name" href="#" onclick="return doclink('link-43', 'file', 'link-36');">file</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">                <tt class="py-name">links</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-string">'&lt;b&gt;%s&lt;/b&gt;'</tt> <tt class="py-op">%</tt> <tt id="link-44" class="py-name"><a title="buildbot.status.web.auth.HTPasswdAuth.file" class="py-name" href="#" onclick="return doclink('link-44', 'file', 'link-36');">file</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-45" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-45', 'revision', 'link-17');">revision</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">getattr</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt> <tt class="py-string">'revlink'</tt><tt class="py-op">,</tt> <tt class="py-string">""</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">                <tt id="link-46" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-46', 'revision', 'link-17');">revision</a></tt> <tt class="py-op">=</tt> <tt class="py-string">'Revision: &lt;a href="%s"&gt;&lt;b&gt;%s&lt;/b&gt;&lt;/a&gt;\n'</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line">                        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">revlink</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-47" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-47', 'revision', 'link-17');">revision</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">                <tt id="link-48" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-48', 'revision', 'link-17');">revision</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"Revision: &lt;b&gt;%s&lt;/b&gt;&lt;br /&gt;\n"</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-49" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-49', 'revision', 'link-17');">revision</a></tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">            <tt id="link-50" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-50', 'revision', 'link-17');">revision</a></tt> <tt class="py-op">=</tt> <tt class="py-string">''</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line"> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line">        <tt id="link-51" class="py-name"><a title="buildbot.changes.changes.Change.branch
+buildbot.sourcestamp.SourceStamp.branch
+buildbot.steps.source.Source.branch" class="py-name" href="#" onclick="return doclink('link-51', 'branch', 'link-15');">branch</a></tt> <tt class="py-op">=</tt> <tt class="py-string">""</tt> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-52" class="py-name"><a title="buildbot.changes.changes.Change.branch
+buildbot.sourcestamp.SourceStamp.branch
+buildbot.steps.source.Source.branch" class="py-name" href="#" onclick="return doclink('link-52', 'branch', 'link-15');">branch</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">            <tt id="link-53" class="py-name"><a title="buildbot.changes.changes.Change.branch
+buildbot.sourcestamp.SourceStamp.branch
+buildbot.steps.source.Source.branch" class="py-name" href="#" onclick="return doclink('link-53', 'branch', 'link-15');">branch</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"Branch: &lt;b&gt;%s&lt;/b&gt;&lt;br /&gt;\n"</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-54" class="py-name"><a title="buildbot.changes.changes.Change.branch
+buildbot.sourcestamp.SourceStamp.branch
+buildbot.steps.source.Source.branch" class="py-name" href="#" onclick="return doclink('link-54', 'branch', 'link-15');">branch</a></tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line"> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">        <tt id="link-55" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-55', 'properties', 'link-9');">properties</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">prop</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-56" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-56', 'properties', 'link-9');">properties</a></tt><tt class="py-op">.</tt><tt id="link-57" class="py-name" targets="Method buildbot.process.properties.Properties.asList()=buildbot.process.properties.Properties-class.html#asList"><a title="buildbot.process.properties.Properties.asList" class="py-name" href="#" onclick="return doclink('link-57', 'asList', 'link-57');">asList</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">            <tt id="link-58" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-58', 'properties', 'link-9');">properties</a></tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-string">"%s: %s&lt;br /&gt;"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">prop</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">prop</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line"> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line">        <tt class="py-name">kwargs</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt> <tt class="py-string">'who'</tt>       <tt class="py-op">:</tt> <tt id="link-59" class="py-name"><a title="buildbot.process.step_twisted2.OneJellyTest.html
+buildbot.status.html
+buildbot.status.tests.OneTest.html
+buildbot.status.tests.TestResults.html" class="py-name" href="#" onclick="return doclink('link-59', 'html', 'link-3');">html</a></tt><tt class="py-op">.</tt><tt class="py-name">escape</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">who</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">                   <tt class="py-string">'at'</tt>        <tt class="py-op">:</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-60" class="py-name"><a title="buildbot.changes.changes.Change.getTime" class="py-name" href="#" onclick="return doclink('link-60', 'getTime', 'link-34');">getTime</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">                   <tt class="py-string">'files'</tt>     <tt class="py-op">:</tt> <tt id="link-61" class="py-name"><a title="buildbot.process.step_twisted2.OneJellyTest.html
+buildbot.status.html
+buildbot.status.tests.OneTest.html
+buildbot.status.tests.TestResults.html" class="py-name" href="#" onclick="return doclink('link-61', 'html', 'link-3');">html</a></tt><tt class="py-op">.</tt><tt class="py-name">UL</tt><tt class="py-op">(</tt><tt class="py-name">links</tt><tt class="py-op">)</tt> <tt class="py-op">+</tt> <tt class="py-string">'\n'</tt><tt class="py-op">,</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">                   <tt class="py-string">'revision'</tt>  <tt class="py-op">:</tt> <tt id="link-62" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-62', 'revision', 'link-17');">revision</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">                   <tt class="py-string">'branch'</tt>    <tt class="py-op">:</tt> <tt id="link-63" class="py-name"><a title="buildbot.changes.changes.Change.branch
+buildbot.sourcestamp.SourceStamp.branch
+buildbot.steps.source.Source.branch" class="py-name" href="#" onclick="return doclink('link-63', 'branch', 'link-15');">branch</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">                   <tt class="py-string">'comments'</tt>  <tt class="py-op">:</tt> <tt id="link-64" class="py-name"><a title="buildbot.process.step_twisted2.OneJellyTest.html
+buildbot.status.html
+buildbot.status.tests.OneTest.html
+buildbot.status.tests.TestResults.html" class="py-name" href="#" onclick="return doclink('link-64', 'html', 'link-3');">html</a></tt><tt class="py-op">.</tt><tt class="py-name">PRE</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">comments</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">                   <tt class="py-string">'properties'</tt><tt class="py-op">:</tt> <tt id="link-65" class="py-name"><a title="buildbot.process.step_twisted2.OneJellyTest.html
+buildbot.status.html
+buildbot.status.tests.OneTest.html
+buildbot.status.tests.TestResults.html" class="py-name" href="#" onclick="return doclink('link-65', 'html', 'link-3');">html</a></tt><tt class="py-op">.</tt><tt class="py-name">UL</tt><tt class="py-op">(</tt><tt id="link-66" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-66', 'properties', 'link-9');">properties</a></tt><tt class="py-op">)</tt> <tt class="py-op">+</tt> <tt class="py-string">'\n'</tt> <tt class="py-op">}</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-67" class="py-name"><a title="buildbot.changes.changes.html_tmpl" class="py-name" href="#" onclick="return doclink('link-67', 'html_tmpl', 'link-11');">html_tmpl</a></tt> <tt class="py-op">%</tt> <tt class="py-name">kwargs</tt> </tt>
+</div><a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line"> </tt>
+<a name="Change.get_HTML_box"></a><div id="Change.get_HTML_box-def"><a name="L132"></a><tt class="py-lineno">132</tt> <a class="py-toggle" href="#" id="Change.get_HTML_box-toggle" onclick="return toggle('Change.get_HTML_box');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.Change-class.html#get_HTML_box">get_HTML_box</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">url</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Change.get_HTML_box-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Change.get_HTML_box-expanded"><a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line">        <tt class="py-docstring">"""Return the contents of a TD cell for the waterfall display.</tt> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line"><tt class="py-docstring">        @param url: the URL that points to an HTML page that will render</tt> </tt>
+<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line"><tt class="py-docstring">        using our asHTML method. The Change is free to use this or ignore it</tt> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line"><tt class="py-docstring">        as it pleases.</tt> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line"><tt class="py-docstring">        @return: the HTML that will be put inside the table cell. Typically</tt> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line"><tt class="py-docstring">        this is just a single href named after the author of the change and</tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line"><tt class="py-docstring">        pointing at the passed-in 'url'.</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line">        <tt class="py-name">who</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-68" class="py-name" targets="Method buildbot.changes.changes.Change.getShortAuthor()=buildbot.changes.changes.Change-class.html#getShortAuthor"><a title="buildbot.changes.changes.Change.getShortAuthor" class="py-name" href="#" onclick="return doclink('link-68', 'getShortAuthor', 'link-68');">getShortAuthor</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">comments</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line">            <tt id="link-69" class="py-name" targets="Variable buildbot.status.web.about.AboutBuildbot.title=buildbot.status.web.about.AboutBuildbot-class.html#title,Variable buildbot.status.web.auth.AuthFailResource.title=buildbot.status.web.auth.AuthFailResource-class.html#title,Variable buildbot.status.web.base.HtmlResource.title=buildbot.status.web.base.HtmlResource-class.html#title,Variable buildbot.status.web.baseweb.OneBoxPerBuilder.title=buildbot.status.web.baseweb.OneBoxPerBuilder-class.html#title,Variable buildbot.status.web.baseweb.OneLinePerBuild.title=buildbot.status.web.baseweb.OneLinePerBuild-class.html#title,Variable buildbot.status.web.builder.BuildersResource.title=buildbot.status.web.builder.BuildersResource-class.html#title,Variable buildbot.status.web.feeds.FeedResource.title=buildbot.status.web.feeds.FeedResource-class.html#title,Variable buildbot.status.web.slaves.BuildSlavesResource.title=buildbot.status.web.slaves.BuildSlavesResource-class.html#title,Variable buildbot.status.web.step.StatusResourceBuildStep.title=buildbot.status.web.step.StatusResourceBuildStep-class.html#title,Variable buildbot.status.web.tests.TestResult.title=buildbot.status.web.tests.TestResult-class.html#title,Variable buildbot.status.web.tests.TestsResource.title=buildbot.status.web.tests.TestsResource-class.html#title,Variable buildbot.status.web.waterfall.WaterfallHelp.title=buildbot.status.web.waterfall.WaterfallHelp-class.html#title"><a title="buildbot.status.web.about.AboutBuildbot.title
+buildbot.status.web.auth.AuthFailResource.title
+buildbot.status.web.base.HtmlResource.title
+buildbot.status.web.baseweb.OneBoxPerBuilder.title
+buildbot.status.web.baseweb.OneLinePerBuild.title
+buildbot.status.web.builder.BuildersResource.title
+buildbot.status.web.feeds.FeedResource.title
+buildbot.status.web.slaves.BuildSlavesResource.title
+buildbot.status.web.step.StatusResourceBuildStep.title
+buildbot.status.web.tests.TestResult.title
+buildbot.status.web.tests.TestsResource.title
+buildbot.status.web.waterfall.WaterfallHelp.title" class="py-name" href="#" onclick="return doclink('link-69', 'title', 'link-69');">title</a></tt> <tt class="py-op">=</tt> <tt class="py-string">""</tt> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line">            <tt id="link-70" class="py-name"><a title="buildbot.status.web.about.AboutBuildbot.title
+buildbot.status.web.auth.AuthFailResource.title
+buildbot.status.web.base.HtmlResource.title
+buildbot.status.web.baseweb.OneBoxPerBuilder.title
+buildbot.status.web.baseweb.OneLinePerBuild.title
+buildbot.status.web.builder.BuildersResource.title
+buildbot.status.web.feeds.FeedResource.title
+buildbot.status.web.slaves.BuildSlavesResource.title
+buildbot.status.web.step.StatusResourceBuildStep.title
+buildbot.status.web.tests.TestResult.title
+buildbot.status.web.tests.TestsResource.title
+buildbot.status.web.waterfall.WaterfallHelp.title" class="py-name" href="#" onclick="return doclink('link-70', 'title', 'link-69');">title</a></tt> <tt class="py-op">=</tt> <tt id="link-71" class="py-name"><a title="buildbot.process.step_twisted2.OneJellyTest.html
+buildbot.status.html
+buildbot.status.tests.OneTest.html
+buildbot.status.tests.TestResults.html" class="py-name" href="#" onclick="return doclink('link-71', 'html', 'link-3');">html</a></tt><tt class="py-op">.</tt><tt class="py-name">escape</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">comments</tt><tt class="py-op">)</tt> </tt>
+<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-string">'&lt;a href="%s" title="%s"&gt;%s&lt;/a&gt;'</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">url</tt><tt class="py-op">,</tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line">                                                   <tt id="link-72" class="py-name"><a title="buildbot.status.web.about.AboutBuildbot.title
+buildbot.status.web.auth.AuthFailResource.title
+buildbot.status.web.base.HtmlResource.title
+buildbot.status.web.baseweb.OneBoxPerBuilder.title
+buildbot.status.web.baseweb.OneLinePerBuild.title
+buildbot.status.web.builder.BuildersResource.title
+buildbot.status.web.feeds.FeedResource.title
+buildbot.status.web.slaves.BuildSlavesResource.title
+buildbot.status.web.step.StatusResourceBuildStep.title
+buildbot.status.web.tests.TestResult.title
+buildbot.status.web.tests.TestsResource.title
+buildbot.status.web.waterfall.WaterfallHelp.title" class="py-name" href="#" onclick="return doclink('link-72', 'title', 'link-69');">title</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">                                                   <tt id="link-73" class="py-name"><a title="buildbot.process.step_twisted2.OneJellyTest.html
+buildbot.status.html
+buildbot.status.tests.OneTest.html
+buildbot.status.tests.TestResults.html" class="py-name" href="#" onclick="return doclink('link-73', 'html', 'link-3');">html</a></tt><tt class="py-op">.</tt><tt class="py-name">escape</tt><tt class="py-op">(</tt><tt class="py-name">who</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line"> </tt>
+<a name="Change.getShortAuthor"></a><div id="Change.getShortAuthor-def"><a name="L152"></a><tt class="py-lineno">152</tt> <a class="py-toggle" href="#" id="Change.getShortAuthor-toggle" onclick="return toggle('Change.getShortAuthor');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.Change-class.html#getShortAuthor">getShortAuthor</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Change.getShortAuthor-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Change.getShortAuthor-expanded"><a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">who</tt> </tt>
+</div><a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line"> </tt>
+<a name="Change.getTime"></a><div id="Change.getTime-def"><a name="L155"></a><tt class="py-lineno">155</tt> <a class="py-toggle" href="#" id="Change.getTime-toggle" onclick="return toggle('Change.getTime');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.Change-class.html#getTime">getTime</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Change.getTime-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Change.getTime-expanded"><a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">when</tt><tt class="py-op">:</tt> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-string">"?"</tt> </tt>
+<a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">time</tt><tt class="py-op">.</tt><tt class="py-name">strftime</tt><tt class="py-op">(</tt><tt class="py-string">"%a %d %b %Y %H:%M:%S"</tt><tt class="py-op">,</tt> </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line">                             <tt class="py-name">time</tt><tt class="py-op">.</tt><tt class="py-name">localtime</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">when</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line"> </tt>
+<a name="Change.getTimes"></a><div id="Change.getTimes-def"><a name="L161"></a><tt class="py-lineno">161</tt> <a class="py-toggle" href="#" id="Change.getTimes-toggle" onclick="return toggle('Change.getTimes');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.Change-class.html#getTimes">getTimes</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Change.getTimes-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Change.getTimes-expanded"><a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">when</tt><tt class="py-op">,</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line"> </tt>
+<a name="Change.getText"></a><div id="Change.getText-def"><a name="L164"></a><tt class="py-lineno">164</tt> <a class="py-toggle" href="#" id="Change.getText-toggle" onclick="return toggle('Change.getText');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.Change-class.html#getText">getText</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Change.getText-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Change.getText-expanded"><a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-op">[</tt><tt id="link-74" class="py-name"><a title="buildbot.process.step_twisted2.OneJellyTest.html
+buildbot.status.html
+buildbot.status.tests.OneTest.html
+buildbot.status.tests.TestResults.html" class="py-name" href="#" onclick="return doclink('link-74', 'html', 'link-3');">html</a></tt><tt class="py-op">.</tt><tt class="py-name">escape</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">who</tt><tt class="py-op">)</tt><tt class="py-op">]</tt> </tt>
+</div><a name="Change.getLogs"></a><div id="Change.getLogs-def"><a name="L166"></a><tt class="py-lineno">166</tt> <a class="py-toggle" href="#" id="Change.getLogs-toggle" onclick="return toggle('Change.getLogs');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.Change-class.html#getLogs">getLogs</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Change.getLogs-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Change.getLogs-expanded"><a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+</div><a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line"> </tt>
+<a name="Change.getFileContents"></a><div id="Change.getFileContents-def"><a name="L169"></a><tt class="py-lineno">169</tt> <a class="py-toggle" href="#" id="Change.getFileContents-toggle" onclick="return toggle('Change.getFileContents');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.Change-class.html#getFileContents">getFileContents</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Change.getFileContents-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Change.getFileContents-expanded"><a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line">        <tt class="py-name">data</tt> <tt class="py-op">=</tt> <tt class="py-string">""</tt> </tt>
+<a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">files</tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-number">1</tt><tt class="py-op">:</tt> </tt>
+<a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">isdir</tt><tt class="py-op">:</tt> </tt>
+<a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line">                <tt class="py-name">data</tt> <tt class="py-op">+=</tt> <tt class="py-string">"Directory: %s\n"</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">files</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> </tt>
+<a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line">                <tt class="py-name">data</tt> <tt class="py-op">+=</tt> <tt class="py-string">"File: %s\n"</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">files</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> </tt>
+<a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line">            <tt class="py-name">data</tt> <tt class="py-op">+=</tt> <tt class="py-string">"Files:\n"</tt> </tt>
+<a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line">            <tt class="py-keyword">for</tt> <tt class="py-name">f</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">files</tt><tt class="py-op">:</tt> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line">                <tt class="py-name">data</tt> <tt class="py-op">+=</tt> <tt class="py-string">" %s\n"</tt> <tt class="py-op">%</tt> <tt class="py-name">f</tt> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">data</tt> </tt>
+</div><a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line">         </tt>
+<a name="Change.getProperties"></a><div id="Change.getProperties-def"><a name="L182"></a><tt class="py-lineno">182</tt> <a class="py-toggle" href="#" id="Change.getProperties-toggle" onclick="return toggle('Change.getProperties');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.Change-class.html#getProperties">getProperties</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Change.getProperties-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Change.getProperties-expanded"><a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line">        <tt class="py-name">data</tt> <tt class="py-op">=</tt> <tt class="py-string">""</tt> </tt>
+<a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">prop</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-75" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-75', 'properties', 'link-9');">properties</a></tt><tt class="py-op">.</tt><tt id="link-76" class="py-name"><a title="buildbot.process.properties.Properties.asList" class="py-name" href="#" onclick="return doclink('link-76', 'asList', 'link-57');">asList</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line">            <tt class="py-name">data</tt> <tt class="py-op">+=</tt> <tt class="py-string">"  %s: %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">prop</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">prop</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">data</tt> </tt>
+</div></div><a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line"> </tt>
+<a name="ChangeMaster"></a><div id="ChangeMaster-def"><a name="L188"></a><tt class="py-lineno">188</tt> <a class="py-toggle" href="#" id="ChangeMaster-toggle" onclick="return toggle('ChangeMaster');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildbot.changes.changes.ChangeMaster-class.html">ChangeMaster</a><tt class="py-op">(</tt><tt class="py-base-class">service</tt><tt class="py-op">.</tt><tt class="py-base-class">MultiService</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ChangeMaster-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="ChangeMaster-expanded"><a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line"> </tt>
+<a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line">    <tt class="py-docstring">"""This is the master-side service which receives file change</tt> </tt>
+<a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line"><tt class="py-docstring">    notifications from CVS. It keeps a log of these changes, enough to</tt> </tt>
+<a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line"><tt class="py-docstring">    provide for the HTML waterfall display, and to tell</tt> </tt>
+<a name="L193"></a><tt class="py-lineno">193</tt>  <tt class="py-line"><tt class="py-docstring">    temporarily-disconnected bots what they missed while they were</tt> </tt>
+<a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line"><tt class="py-docstring">    offline.</tt> </tt>
+<a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line"><tt class="py-docstring">    Change notifications come from two different kinds of sources. The first</tt> </tt>
+<a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line"><tt class="py-docstring">    is a PB service (servicename='changemaster', perspectivename='change'),</tt> </tt>
+<a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line"><tt class="py-docstring">    which provides a remote method called 'addChange', which should be</tt> </tt>
+<a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line"><tt class="py-docstring">    called with a dict that has keys 'filename' and 'comments'.</tt> </tt>
+<a name="L200"></a><tt class="py-lineno">200</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line"><tt class="py-docstring">    The second is a list of objects derived from the ChangeSource class.</tt> </tt>
+<a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line"><tt class="py-docstring">    These are added with .addSource(), which also sets the .changemaster</tt> </tt>
+<a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line"><tt class="py-docstring">    attribute in the source to point at the ChangeMaster. When the</tt> </tt>
+<a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line"><tt class="py-docstring">    application begins, these will be started with .start() . At shutdown</tt> </tt>
+<a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line"><tt class="py-docstring">    time, they will be terminated with .stop() . They must be persistable.</tt> </tt>
+<a name="L206"></a><tt class="py-lineno">206</tt>  <tt class="py-line"><tt class="py-docstring">    They are expected to call self.changemaster.addChange() with Change</tt> </tt>
+<a name="L207"></a><tt class="py-lineno">207</tt>  <tt class="py-line"><tt class="py-docstring">    objects.</tt> </tt>
+<a name="L208"></a><tt class="py-lineno">208</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L209"></a><tt class="py-lineno">209</tt>  <tt class="py-line"><tt class="py-docstring">    There are several different variants of the second type of source:</tt> </tt>
+<a name="L210"></a><tt class="py-lineno">210</tt>  <tt class="py-line"><tt class="py-docstring">    </tt> </tt>
+<a name="L211"></a><tt class="py-lineno">211</tt>  <tt class="py-line"><tt class="py-docstring">      - L{buildbot.changes.mail.MaildirSource} watches a maildir for CVS</tt> </tt>
+<a name="L212"></a><tt class="py-lineno">212</tt>  <tt class="py-line"><tt class="py-docstring">        commit mail. It uses DNotify if available, or polls every 10</tt> </tt>
+<a name="L213"></a><tt class="py-lineno">213</tt>  <tt class="py-line"><tt class="py-docstring">        seconds if not.  It parses incoming mail to determine what files</tt> </tt>
+<a name="L214"></a><tt class="py-lineno">214</tt>  <tt class="py-line"><tt class="py-docstring">        were changed.</tt> </tt>
+<a name="L215"></a><tt class="py-lineno">215</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L216"></a><tt class="py-lineno">216</tt>  <tt class="py-line"><tt class="py-docstring">      - L{buildbot.changes.freshcvs.FreshCVSSource} makes a PB</tt> </tt>
+<a name="L217"></a><tt class="py-lineno">217</tt>  <tt class="py-line"><tt class="py-docstring">        connection to the CVSToys 'freshcvs' daemon and relays any</tt> </tt>
+<a name="L218"></a><tt class="py-lineno">218</tt>  <tt class="py-line"><tt class="py-docstring">        changes it announces.</tt> </tt>
+<a name="L219"></a><tt class="py-lineno">219</tt>  <tt class="py-line"><tt class="py-docstring">    </tt> </tt>
+<a name="L220"></a><tt class="py-lineno">220</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L221"></a><tt class="py-lineno">221</tt>  <tt class="py-line"> </tt>
+<a name="L222"></a><tt class="py-lineno">222</tt>  <tt class="py-line">    <tt class="py-name">implements</tt><tt class="py-op">(</tt><tt id="link-77" class="py-name"><a title="buildbot.interfaces
+buildbot.slave.interfaces" class="py-name" href="#" onclick="return doclink('link-77', 'interfaces', 'link-5');">interfaces</a></tt><tt class="py-op">.</tt><tt id="link-78" class="py-name" targets="Class buildbot.interfaces.IEventSource=buildbot.interfaces.IEventSource-class.html"><a title="buildbot.interfaces.IEventSource" class="py-name" href="#" onclick="return doclink('link-78', 'IEventSource', 'link-78');">IEventSource</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L223"></a><tt class="py-lineno">223</tt>  <tt class="py-line"> </tt>
+<a name="L224"></a><tt class="py-lineno">224</tt>  <tt class="py-line">    <tt id="link-79" class="py-name" targets="Variable buildbot.changes.changes.ChangeMaster.debug=buildbot.changes.changes.ChangeMaster-class.html#debug,Module buildbot.clients.debug=buildbot.clients.debug-module.html,Variable buildbot.master.BotMaster.debug=buildbot.master.BotMaster-class.html#debug,Variable buildbot.master.BuildMaster.debug=buildbot.master.BuildMaster-class.html#debug,Variable buildbot.process.buildstep.LoggedRemoteCommand.debug=buildbot.process.buildstep.LoggedRemoteCommand-class.html#debug,Variable buildbot.slave.commands.Command.debug=buildbot.slave.commands.Command-class.html#debug,Variable buildbot.slave.commands.ShellCommandPP.debug=buildbot.slave.commands.ShellCommandPP-class.html#debug,Variable buildbot.slave.commands.SlaveDirectoryUploadCommand.debug=buildbot.slave.commands.SlaveDirectoryUploadCommand-class.html#debug,Variable buildbot.slave.commands.SlaveFileDownloadCommand.debug=buildbot.slave.commands.SlaveFileDownloadCommand-class.html#debug,Variable buildbot.slave.commands.SlaveFileUploadCommand.debug=buildbot.slave.commands.SlaveFileUploadCommand-class.html#debug,Variable buildbot.status.progress.Expectations.debug=buildbot.status.progress.Expectations-class.html#debug,Variable buildbot.status.progress.StepProgress.debug=buildbot.status.progress.StepProgress-class.html#debug"><a title="buildbot.changes.changes.ChangeMaster.debug
+buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.slave.commands.Command.debug
+buildbot.slave.commands.ShellCommandPP.debug
+buildbot.slave.commands.SlaveDirectoryUploadCommand.debug
+buildbot.slave.commands.SlaveFileDownloadCommand.debug
+buildbot.slave.commands.SlaveFileUploadCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug" class="py-name" href="#" onclick="return doclink('link-79', 'debug', 'link-79');">debug</a></tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L225"></a><tt class="py-lineno">225</tt>  <tt class="py-line">    <tt class="py-comment"># todo: use Maildir class to watch for changes arriving by mail</tt> </tt>
+<a name="L226"></a><tt class="py-lineno">226</tt>  <tt class="py-line"> </tt>
+<a name="L227"></a><tt class="py-lineno">227</tt>  <tt class="py-line">    <tt id="link-80" class="py-name" targets="Variable buildbot.changes.changes.ChangeMaster.changeHorizon=buildbot.changes.changes.ChangeMaster-class.html#changeHorizon"><a title="buildbot.changes.changes.ChangeMaster.changeHorizon" class="py-name" href="#" onclick="return doclink('link-80', 'changeHorizon', 'link-80');">changeHorizon</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L228"></a><tt class="py-lineno">228</tt>  <tt class="py-line"> </tt>
+<a name="ChangeMaster.__init__"></a><div id="ChangeMaster.__init__-def"><a name="L229"></a><tt class="py-lineno">229</tt> <a class="py-toggle" href="#" id="ChangeMaster.__init__-toggle" onclick="return toggle('ChangeMaster.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.ChangeMaster-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ChangeMaster.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ChangeMaster.__init__-expanded"><a name="L230"></a><tt class="py-lineno">230</tt>  <tt class="py-line">        <tt class="py-name">service</tt><tt class="py-op">.</tt><tt class="py-name">MultiService</tt><tt class="py-op">.</tt><tt id="link-81" class="py-name" targets="Method buildbot.buildset.BuildSet.__init__()=buildbot.buildset.BuildSet-class.html#__init__,Method buildbot.buildslave.AbstractBuildSlave.__init__()=buildbot.buildslave.AbstractBuildSlave-class.html#__init__,Method buildbot.buildslave.AbstractLatentBuildSlave.__init__()=buildbot.buildslave.AbstractLatentBuildSlave-class.html#__init__,Method buildbot.changes.bonsaipoller.BonsaiParser.__init__()=buildbot.changes.bonsaipoller.BonsaiParser-class.html#__init__,Method buildbot.changes.bonsaipoller.BonsaiPoller.__init__()=buildbot.changes.bonsaipoller.BonsaiPoller-class.html#__init__,Method buildbot.changes.bonsaipoller.BonsaiResult.__init__()=buildbot.changes.bonsaipoller.BonsaiResult-class.html#__init__,Method buildbot.changes.bonsaipoller.CiNode.__init__()=buildbot.changes.bonsaipoller.CiNode-class.html#__init__,Method buildbot.changes.bonsaipoller.FileNode.__init__()=buildbot.changes.bonsaipoller.FileNode-class.html#__init__,Method buildbot.changes.bonsaipoller.InvalidResultError.__init__()=buildbot.changes.bonsaipoller.InvalidResultError-class.html#__init__,Method buildbot.changes.changes.Change.__init__()=buildbot.changes.changes.Change-class.html#__init__,Method buildbot.changes.changes.ChangeMaster.__init__()=buildbot.changes.changes.ChangeMaster-class.html#__init__,Method buildbot.changes.dnotify.DNotify.__init__()=buildbot.changes.dnotify.DNotify-class.html#__init__,Method buildbot.changes.dnotify.DNotify_Handler.__init__()=buildbot.changes.dnotify.DNotify_Handler-class.html#__init__,Method buildbot.changes.freshcvs.FreshCVSSourceNewcred.__init__()=buildbot.changes.freshcvs.FreshCVSSourceNewcred-class.html#__init__,Method buildbot.changes.freshcvs.FreshCVSSourceOldcred.__init__()=buildbot.changes.freshcvs.FreshCVSSourceOldcred-class.html#__init__,Method buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.__init__()=buildbot.changes.mail.BzrLaunchpadEmailMaildirSource-class.html#__init__,Method buildbot.changes.mail.MaildirSource.__init__()=buildbot.changes.mail.MaildirSource-class.html#__init__,Method buildbot.changes.maildir.MaildirService.__init__()=buildbot.changes.maildir.MaildirService-class.html#__init__,Method buildbot.changes.monotone.Monotone.__init__()=buildbot.changes.monotone.Monotone-class.html#__init__,Method buildbot.changes.monotone.MonotoneSource.__init__()=buildbot.changes.monotone.MonotoneSource-class.html#__init__,Method buildbot.changes.p4poller.P4Source.__init__()=buildbot.changes.p4poller.P4Source-class.html#__init__,Method buildbot.changes.pb.ChangePerspective.__init__()=buildbot.changes.pb.ChangePerspective-class.html#__init__,Method buildbot.changes.pb.PBChangeSource.__init__()=buildbot.changes.pb.PBChangeSource-class.html#__init__,Method buildbot.changes.svnpoller.SVNPoller.__init__()=buildbot.changes.svnpoller.SVNPoller-class.html#__init__,Method buildbot.clients.base.StatusClient.__init__()=buildbot.clients.base.StatusClient-class.html#__init__,Method buildbot.clients.base.TextClient.__init__()=buildbot.clients.base.TextClient-class.html#__init__,Method buildbot.clients.debug.DebugWidget.__init__()=buildbot.clients.debug.DebugWidget-class.html#__init__,Method buildbot.clients.gtkPanes.Box.__init__()=buildbot.clients.gtkPanes.Box-class.html#__init__,Method buildbot.clients.gtkPanes.GtkClient.__init__()=buildbot.clients.gtkPanes.GtkClient-class.html#__init__,Method buildbot.clients.gtkPanes.ThreeRowBuilder.__init__()=buildbot.clients.gtkPanes.ThreeRowBuilder-class.html#__init__,Method buildbot.clients.gtkPanes.ThreeRowClient.__init__()=buildbot.clients.gtkPanes.ThreeRowClient-class.html#__init__,Method buildbot.clients.sendchange.Sender.__init__()=buildbot.clients.sendchange.Sender-class.html#__init__,Method buildbot.config.BuilderConfig.__init__()=buildbot.config.BuilderConfig-class.html#__init__,Method buildbot.dnotify.DNotify.__init__()=buildbot.dnotify.DNotify-class.html#__init__,Method buildbot.dnotify.DNotify_Handler.__init__()=buildbot.dnotify.DNotify_Handler-class.html#__init__,Method buildbot.ec2buildslave.EC2LatentBuildSlave.__init__()=buildbot.ec2buildslave.EC2LatentBuildSlave-class.html#__init__,Method buildbot.locks.BaseLock.__init__()=buildbot.locks.BaseLock-class.html#__init__,Method buildbot.locks.LockAccess.__init__()=buildbot.locks.LockAccess-class.html#__init__,Method buildbot.locks.MasterLock.__init__()=buildbot.locks.MasterLock-class.html#__init__,Method buildbot.locks.RealMasterLock.__init__()=buildbot.locks.RealMasterLock-class.html#__init__,Method buildbot.locks.RealSlaveLock.__init__()=buildbot.locks.RealSlaveLock-class.html#__init__,Method buildbot.locks.SlaveLock.__init__()=buildbot.locks.SlaveLock-class.html#__init__,Method buildbot.manhole.ArbitraryCheckerManhole.__init__()=buildbot.manhole.ArbitraryCheckerManhole-class.html#__init__,Method buildbot.manhole.AuthorizedKeysChecker.__init__()=buildbot.manhole.AuthorizedKeysChecker-class.html#__init__,Method buildbot.manhole.AuthorizedKeysManhole.__init__()=buildbot.manhole.AuthorizedKeysManhole-class.html#__init__,Method buildbot.manhole.PasswordManhole.__init__()=buildbot.manhole.PasswordManhole-class.html#__init__,Method buildbot.manhole.TelnetManhole.__init__()=buildbot.manhole.TelnetManhole-class.html#__init__,Method buildbot.manhole.chainedProtocolFactory.__init__()=buildbot.manhole.chainedProtocolFactory-class.html#__init__,Method buildbot.manhole.makeTelnetProtocol.__init__()=buildbot.manhole.makeTelnetProtocol-class.html#__init__,Method buildbot.master.BotMaster.__init__()=buildbot.master.BotMaster-class.html#__init__,Method buildbot.master.BuildMaster.__init__()=buildbot.master.BuildMaster-class.html#__init__,Method buildbot.master.Control.__init__()=buildbot.master.Control-class.html#__init__,Method buildbot.master.Dispatcher.__init__()=buildbot.master.Dispatcher-class.html#__init__,Method buildbot.pbutil.ReconnectingPBClientFactory.__init__()=buildbot.pbutil.ReconnectingPBClientFactory-class.html#__init__,Method buildbot.process.base.Build.__init__()=buildbot.process.base.Build-class.html#__init__,Method buildbot.process.base.BuildRequest.__init__()=buildbot.process.base.BuildRequest-class.html#__init__,Method buildbot.process.builder.AbstractSlaveBuilder.__init__()=buildbot.process.builder.AbstractSlaveBuilder-class.html#__init__,Method buildbot.process.builder.BuildRequestControl.__init__()=buildbot.process.builder.BuildRequestControl-class.html#__init__,Method buildbot.process.builder.Builder.__init__()=buildbot.process.builder.Builder-class.html#__init__,Method buildbot.process.builder.LatentSlaveBuilder.__init__()=buildbot.process.builder.LatentSlaveBuilder-class.html#__init__,Method buildbot.process.builder.SlaveBuilder.__init__()=buildbot.process.builder.SlaveBuilder-class.html#__init__,Method buildbot.process.buildstep.BuildStep.__init__()=buildbot.process.buildstep.BuildStep-class.html#__init__,Method buildbot.process.buildstep.LogLineObserver.__init__()=buildbot.process.buildstep.LogLineObserver-class.html#__init__,Method buildbot.process.buildstep.LoggedRemoteCommand.__init__()=buildbot.process.buildstep.LoggedRemoteCommand-class.html#__init__,Method buildbot.process.buildstep.LoggingBuildStep.__init__()=buildbot.process.buildstep.LoggingBuildStep-class.html#__init__,Method buildbot.process.buildstep.OutputProgressObserver.__init__()=buildbot.process.buildstep.OutputProgressObserver-class.html#__init__,Method buildbot.process.buildstep.RemoteCommand.__init__()=buildbot.process.buildstep.RemoteCommand-class.html#__init__,Method buildbot.process.buildstep.RemoteShellCommand.__init__()=buildbot.process.buildstep.RemoteShellCommand-class.html#__init__,Method buildbot.process.factory.BasicBuildFactory.__init__()=buildbot.process.factory.BasicBuildFactory-class.html#__init__,Method buildbot.process.factory.BasicSVN.__init__()=buildbot.process.factory.BasicSVN-class.html#__init__,Method buildbot.process.factory.BuildFactory.__init__()=buildbot.process.factory.BuildFactory-class.html#__init__,Method buildbot.process.factory.CPAN.__init__()=buildbot.process.factory.CPAN-class.html#__init__,Method buildbot.process.factory.Distutils.__init__()=buildbot.process.factory.Distutils-class.html#__init__,Method buildbot.process.factory.GNUAutoconf.__init__()=buildbot.process.factory.GNUAutoconf-class.html#__init__,Method buildbot.process.factory.QuickBuildFactory.__init__()=buildbot.process.factory.QuickBuildFactory-class.html#__init__,Method buildbot.process.factory.Trial.__init__()=buildbot.process.factory.Trial-class.html#__init__,Method buildbot.process.mtrlogobserver.EqConnectionPool.__init__()=buildbot.process.mtrlogobserver.EqConnectionPool-class.html#__init__,Method buildbot.process.mtrlogobserver.MTR.__init__()=buildbot.process.mtrlogobserver.MTR-class.html#__init__,Method buildbot.process.mtrlogobserver.MtrLogObserver.__init__()=buildbot.process.mtrlogobserver.MtrLogObserver-class.html#__init__,Method buildbot.process.mtrlogobserver.MtrTestFailData.__init__()=buildbot.process.mtrlogobserver.MtrTestFailData-class.html#__init__,Method buildbot.process.process_twisted.FullTwistedBuildFactory.__init__()=buildbot.process.process_twisted.FullTwistedBuildFactory-class.html#__init__,Method buildbot.process.process_twisted.QuickTwistedBuildFactory.__init__()=buildbot.process.process_twisted.QuickTwistedBuildFactory-class.html#__init__,Method buildbot.process.process_twisted.TwistedBaseFactory.__init__()=buildbot.process.process_twisted.TwistedBaseFactory-class.html#__init__,Method buildbot.process.process_twisted.TwistedDebsBuildFactory.__init__()=buildbot.process.process_twisted.TwistedDebsBuildFactory-class.html#__init__,Method buildbot.process.process_twisted.TwistedReactorsBuildFactory.__init__()=buildbot.process.process_twisted.TwistedReactorsBuildFactory-class.html#__init__,Method buildbot.process.properties.Properties.__init__()=buildbot.process.properties.Properties-class.html#__init__,Method buildbot.process.properties.PropertyMap.__init__()=buildbot.process.properties.PropertyMap-class.html#__init__,Method buildbot.process.properties.WithProperties.__init__()=buildbot.process.properties.WithProperties-class.html#__init__,Method buildbot.process.subunitlogobserver.SubunitLogObserver.__init__()=buildbot.process.subunitlogobserver.SubunitLogObserver-class.html#__init__,Method buildbot.process.subunitlogobserver.SubunitShellCommand.__init__()=buildbot.process.subunitlogobserver.SubunitShellCommand-class.html#__init__,Method buildbot.scheduler.AnyBranchScheduler.__init__()=buildbot.scheduler.AnyBranchScheduler-class.html#__init__,Method buildbot.scheduler.BaseScheduler.__init__()=buildbot.scheduler.BaseScheduler-class.html#__init__,Method buildbot.scheduler.BaseUpstreamScheduler.__init__()=buildbot.scheduler.BaseUpstreamScheduler-class.html#__init__,Method buildbot.scheduler.Dependent.__init__()=buildbot.scheduler.Dependent-class.html#__init__,Method buildbot.scheduler.JobFileScanner.__init__()=buildbot.scheduler.JobFileScanner-class.html#__init__,Method buildbot.scheduler.Nightly.__init__()=buildbot.scheduler.Nightly-class.html#__init__,Method buildbot.scheduler.Periodic.__init__()=buildbot.scheduler.Periodic-class.html#__init__,Method buildbot.scheduler.Scheduler.__init__()=buildbot.scheduler.Scheduler-class.html#__init__,Method buildbot.scheduler.Triggerable.__init__()=buildbot.scheduler.Triggerable-class.html#__init__,Method buildbot.scheduler.TryBase.__init__()=buildbot.scheduler.TryBase-class.html#__init__,Method buildbot.scheduler.Try_Jobdir.__init__()=buildbot.scheduler.Try_Jobdir-class.html#__init__,Method buildbot.scheduler.Try_Userpass.__init__()=buildbot.scheduler.Try_Userpass-class.html#__init__,Method buildbot.scheduler.Try_Userpass_Perspective.__init__()=buildbot.scheduler.Try_Userpass_Perspective-class.html#__init__,Method buildbot.scripts.checkconfig.ConfigLoader.__init__()=buildbot.scripts.checkconfig.ConfigLoader-class.html#__init__,Method buildbot.scripts.logwatcher.LogWatcher.__init__()=buildbot.scripts.logwatcher.LogWatcher-class.html#__init__,Method buildbot.scripts.runner.Maker.__init__()=buildbot.scripts.runner.Maker-class.html#__init__,Method buildbot.scripts.runner.OptionsWithOptionsFile.__init__()=buildbot.scripts.runner.OptionsWithOptionsFile-class.html#__init__,Method buildbot.scripts.runner.SendChangeOptions.__init__()=buildbot.scripts.runner.SendChangeOptions-class.html#__init__,Method buildbot.scripts.runner.TryOptions.__init__()=buildbot.scripts.runner.TryOptions-class.html#__init__,Method buildbot.scripts.tryclient.BuildSetStatusGrabber.__init__()=buildbot.scripts.tryclient.BuildSetStatusGrabber-class.html#__init__,Method buildbot.scripts.tryclient.RemoteTryPP.__init__()=buildbot.scripts.tryclient.RemoteTryPP-class.html#__init__,Method buildbot.scripts.tryclient.SourceStampExtractor.__init__()=buildbot.scripts.tryclient.SourceStampExtractor-class.html#__init__,Method buildbot.scripts.tryclient.Try.__init__()=buildbot.scripts.tryclient.Try-class.html#__init__,Method buildbot.slave.bot.Bot.__init__()=buildbot.slave.bot.Bot-class.html#__init__,Method buildbot.slave.bot.BotFactory.__init__()=buildbot.slave.bot.BotFactory-class.html#__init__,Method buildbot.slave.bot.BuildSlave.__init__()=buildbot.slave.bot.BuildSlave-class.html#__init__,Method buildbot.slave.bot.Master.__init__()=buildbot.slave.bot.Master-class.html#__init__,Method buildbot.slave.bot.SlaveBuild.__init__()=buildbot.slave.bot.SlaveBuild-class.html#__init__,Method buildbot.slave.bot.SlaveBuilder.__init__()=buildbot.slave.bot.SlaveBuilder-class.html#__init__,Method buildbot.slave.commands.Command.__init__()=buildbot.slave.commands.Command-class.html#__init__,Method buildbot.slave.commands.LogFileWatcher.__init__()=buildbot.slave.commands.LogFileWatcher-class.html#__init__,Method buildbot.slave.commands.Obfuscated.__init__()=buildbot.slave.commands.Obfuscated-class.html#__init__,Method buildbot.slave.commands.ShellCommand.__init__()=buildbot.slave.commands.ShellCommand-class.html#__init__,Method buildbot.slave.commands.ShellCommandPP.__init__()=buildbot.slave.commands.ShellCommandPP-class.html#__init__,Method buildbot.slave.interfaces.ISlaveCommand.__init__()=buildbot.slave.interfaces.ISlaveCommand-class.html#__init__,Method buildbot.sourcestamp.SourceStamp.__init__()=buildbot.sourcestamp.SourceStamp-class.html#__init__,Method buildbot.status.base.StatusReceiverMultiService.__init__()=buildbot.status.base.StatusReceiverMultiService-class.html#__init__,Method buildbot.status.builder.BuildRequestStatus.__init__()=buildbot.status.builder.BuildRequestStatus-class.html#__init__,Method buildbot.status.builder.BuildSetStatus.__init__()=buildbot.status.builder.BuildSetStatus-class.html#__init__,Method buildbot.status.builder.BuildStatus.__init__()=buildbot.status.builder.BuildStatus-class.html#__init__,Method buildbot.status.builder.BuildStepStatus.__init__()=buildbot.status.builder.BuildStepStatus-class.html#__init__,Method buildbot.status.builder.BuilderStatus.__init__()=buildbot.status.builder.BuilderStatus-class.html#__init__,Method buildbot.status.builder.HTMLLogFile.__init__()=buildbot.status.builder.HTMLLogFile-class.html#__init__,Method buildbot.status.builder.LogFile.__init__()=buildbot.status.builder.LogFile-class.html#__init__,Method buildbot.status.builder.LogFileProducer.__init__()=buildbot.status.builder.LogFileProducer-class.html#__init__,Method buildbot.status.builder.LogFileScanner.__init__()=buildbot.status.builder.LogFileScanner-class.html#__init__,Method buildbot.status.builder.SlaveStatus.__init__()=buildbot.status.builder.SlaveStatus-class.html#__init__,Method buildbot.status.builder.Status.__init__()=buildbot.status.builder.Status-class.html#__init__,Method buildbot.status.builder.TestResult.__init__()=buildbot.status.builder.TestResult-class.html#__init__,Method buildbot.status.client.BuildSubscriber.__init__()=buildbot.status.client.BuildSubscriber-class.html#__init__,Method buildbot.status.client.PBListener.__init__()=buildbot.status.client.PBListener-class.html#__init__,Method buildbot.status.client.RemoteBuild.__init__()=buildbot.status.client.RemoteBuild-class.html#__init__,Method buildbot.status.client.RemoteBuildRequest.__init__()=buildbot.status.client.RemoteBuildRequest-class.html#__init__,Method buildbot.status.client.RemoteBuildSet.__init__()=buildbot.status.client.RemoteBuildSet-class.html#__init__,Method buildbot.status.client.RemoteBuildStep.__init__()=buildbot.status.client.RemoteBuildStep-class.html#__init__,Method buildbot.status.client.RemoteBuilder.__init__()=buildbot.status.client.RemoteBuilder-class.html#__init__,Method buildbot.status.client.RemoteChange.__init__()=buildbot.status.client.RemoteChange-class.html#__init__,Method buildbot.status.client.RemoteEvent.__init__()=buildbot.status.client.RemoteEvent-class.html#__init__,Method buildbot.status.client.RemoteLog.__init__()=buildbot.status.client.RemoteLog-class.html#__init__,Method buildbot.status.client.RemoteSlave.__init__()=buildbot.status.client.RemoteSlave-class.html#__init__,Method buildbot.status.client.StatusClientPerspective.__init__()=buildbot.status.client.StatusClientPerspective-class.html#__init__,Method buildbot.status.mail.Domain.__init__()=buildbot.status.mail.Domain-class.html#__init__,Method buildbot.status.mail.MailNotifier.__init__()=buildbot.status.mail.MailNotifier-class.html#__init__,Method buildbot.status.progress.BuildProgress.__init__()=buildbot.status.progress.BuildProgress-class.html#__init__,Method buildbot.status.progress.Expectations.__init__()=buildbot.status.progress.Expectations-class.html#__init__,Method buildbot.status.progress.StepProgress.__init__()=buildbot.status.progress.StepProgress-class.html#__init__,Method buildbot.status.progress.WatcherState.__init__()=buildbot.status.progress.WatcherState-class.html#__init__,Method buildbot.status.tests.OneTest.__init__()=buildbot.status.tests.OneTest-class.html#__init__,Method buildbot.status.tests.TestResults.__init__()=buildbot.status.tests.TestResults-class.html#__init__,Method buildbot.status.tinderbox.TinderboxMailNotifier.__init__()=buildbot.status.tinderbox.TinderboxMailNotifier-class.html#__init__,Method buildbot.status.web.auth.BasicAuth.__init__()=buildbot.status.web.auth.BasicAuth-class.html#__init__,Method buildbot.status.web.auth.HTPasswdAuth.__init__()=buildbot.status.web.auth.HTPasswdAuth-class.html#__init__,Method buildbot.status.web.base.Box.__init__()=buildbot.status.web.base.Box-class.html#__init__,Method buildbot.status.web.base.StaticHTML.__init__()=buildbot.status.web.base.StaticHTML-class.html#__init__,Method buildbot.status.web.baseweb.OneLinePerBuild.__init__()=buildbot.status.web.baseweb.OneLinePerBuild-class.html#__init__,Method buildbot.status.web.baseweb.OneLinePerBuildOneBuilder.__init__()=buildbot.status.web.baseweb.OneLinePerBuildOneBuilder-class.html#__init__,Method buildbot.status.web.baseweb.Waterfall.__init__()=buildbot.status.web.baseweb.Waterfall-class.html#__init__,Method buildbot.status.web.baseweb.WebStatus.__init__()=buildbot.status.web.baseweb.WebStatus-class.html#__init__,Method buildbot.status.web.build.BuildsResource.__init__()=buildbot.status.web.build.BuildsResource-class.html#__init__,Method buildbot.status.web.build.StatusResourceBuild.__init__()=buildbot.status.web.build.StatusResourceBuild-class.html#__init__,Method buildbot.status.web.builder.StatusResourceAllBuilders.__init__()=buildbot.status.web.builder.StatusResourceAllBuilders-class.html#__init__,Method buildbot.status.web.builder.StatusResourceBuilder.__init__()=buildbot.status.web.builder.StatusResourceBuilder-class.html#__init__,Method buildbot.status.web.buildstatus.BuildStatusStatusResource.__init__()=buildbot.status.web.buildstatus.BuildStatusStatusResource-class.html#__init__,Method buildbot.status.web.console.ConsoleStatusResource.__init__()=buildbot.status.web.console.ConsoleStatusResource-class.html#__init__,Method buildbot.status.web.console.DevBuild.__init__()=buildbot.status.web.console.DevBuild-class.html#__init__,Method buildbot.status.web.console.DevRevision.__init__()=buildbot.status.web.console.DevRevision-class.html#__init__,Method buildbot.status.web.feeds.Atom10StatusResource.__init__()=buildbot.status.web.feeds.Atom10StatusResource-class.html#__init__,Method buildbot.status.web.feeds.FeedResource.__init__()=buildbot.status.web.feeds.FeedResource-class.html#__init__,Method buildbot.status.web.feeds.Rss20StatusResource.__init__()=buildbot.status.web.feeds.Rss20StatusResource-class.html#__init__,Method buildbot.status.web.grid.GridStatusResource.__init__()=buildbot.status.web.grid.GridStatusResource-class.html#__init__,Method buildbot.status.web.grid.TransposedGridStatusResource.__init__()=buildbot.status.web.grid.TransposedGridStatusResource-class.html#__init__,Method buildbot.status.web.logs.ChunkConsumer.__init__()=buildbot.status.web.logs.ChunkConsumer-class.html#__init__,Method buildbot.status.web.logs.HTMLLog.__init__()=buildbot.status.web.logs.HTMLLog-class.html#__init__,Method buildbot.status.web.logs.LogsResource.__init__()=buildbot.status.web.logs.LogsResource-class.html#__init__,Method buildbot.status.web.logs.TextLog.__init__()=buildbot.status.web.logs.TextLog-class.html#__init__,Method buildbot.status.web.slaves.OneBuildSlaveResource.__init__()=buildbot.status.web.slaves.OneBuildSlaveResource-class.html#__init__,Method buildbot.status.web.step.StatusResourceBuildStep.__init__()=buildbot.status.web.step.StatusResourceBuildStep-class.html#__init__,Method buildbot.status.web.step.StepsResource.__init__()=buildbot.status.web.step.StepsResource-class.html#__init__,Method buildbot.status.web.tests.TestResult.__init__()=buildbot.status.web.tests.TestResult-class.html#__init__,Method buildbot.status.web.tests.TestsResource.__init__()=buildbot.status.web.tests.TestsResource-class.html#__init__,Method buildbot.status.web.waterfall.Spacer.__init__()=buildbot.status.web.waterfall.Spacer-class.html#__init__,Method buildbot.status.web.waterfall.WaterfallHelp.__init__()=buildbot.status.web.waterfall.WaterfallHelp-class.html#__init__,Method buildbot.status.web.waterfall.WaterfallStatusResource.__init__()=buildbot.status.web.waterfall.WaterfallStatusResource-class.html#__init__,Method buildbot.status.web.xmlrpc.XMLRPCServer.__init__()=buildbot.status.web.xmlrpc.XMLRPCServer-class.html#__init__,Method buildbot.status.words.Contact.__init__()=buildbot.status.words.Contact-class.html#__init__,Method buildbot.status.words.IRC.__init__()=buildbot.status.words.IRC-class.html#__init__,Method buildbot.status.words.IRCContact.__init__()=buildbot.status.words.IRCContact-class.html#__init__,Method buildbot.status.words.IrcBuildRequest.__init__()=buildbot.status.words.IrcBuildRequest-class.html#__init__,Method buildbot.status.words.IrcStatusBot.__init__()=buildbot.status.words.IrcStatusBot-class.html#__init__,Method buildbot.status.words.IrcStatusFactory.__init__()=buildbot.status.words.IrcStatusFactory-class.html#__init__,Method buildbot.status.words.UsageError.__init__()=buildbot.status.words.UsageError-class.html#__init__,Method buildbot.steps.dummy.Dummy.__init__()=buildbot.steps.dummy.Dummy-class.html#__init__,Method buildbot.steps.dummy.RemoteDummy.__init__()=buildbot.steps.dummy.RemoteDummy-class.html#__init__,Method buildbot.steps.dummy.Wait.__init__()=buildbot.steps.dummy.Wait-class.html#__init__,Method buildbot.steps.master.MasterShellCommand.LocalPP.__init__()=buildbot.steps.master.MasterShellCommand.LocalPP-class.html#__init__,Method buildbot.steps.master.MasterShellCommand.__init__()=buildbot.steps.master.MasterShellCommand-class.html#__init__,Method buildbot.steps.maxq.MaxQ.__init__()=buildbot.steps.maxq.MaxQ-class.html#__init__,Method buildbot.steps.package.rpm.rpmbuild.RpmBuild.__init__()=buildbot.steps.package.rpm.rpmbuild.RpmBuild-class.html#__init__,Method buildbot.steps.package.rpm.rpmlint.RpmLint.__init__()=buildbot.steps.package.rpm.rpmlint.RpmLint-class.html#__init__,Method buildbot.steps.package.rpm.rpmspec.RpmSpec.__init__()=buildbot.steps.package.rpm.rpmspec.RpmSpec-class.html#__init__,Method buildbot.steps.python_twisted.BuildDebs.__init__()=buildbot.steps.python_twisted.BuildDebs-class.html#__init__,Method buildbot.steps.python_twisted.HLint.__init__()=buildbot.steps.python_twisted.HLint-class.html#__init__,Method buildbot.steps.python_twisted.ProcessDocs.__init__()=buildbot.steps.python_twisted.ProcessDocs-class.html#__init__,Method buildbot.steps.python_twisted.Trial.__init__()=buildbot.steps.python_twisted.Trial-class.html#__init__,Method buildbot.steps.shell.SetProperty.__init__()=buildbot.steps.shell.SetProperty-class.html#__init__,Method buildbot.steps.shell.ShellCommand.__init__()=buildbot.steps.shell.ShellCommand-class.html#__init__,Method buildbot.steps.shell.StringFileWriter.__init__()=buildbot.steps.shell.StringFileWriter-class.html#__init__,Method buildbot.steps.shell.WarningCountingShellCommand.__init__()=buildbot.steps.shell.WarningCountingShellCommand-class.html#__init__,Method buildbot.steps.source.Arch.__init__()=buildbot.steps.source.Arch-class.html#__init__,Method buildbot.steps.source.Bazaar.__init__()=buildbot.steps.source.Bazaar-class.html#__init__,Method buildbot.steps.source.Bzr.__init__()=buildbot.steps.source.Bzr-class.html#__init__,Method buildbot.steps.source.CVS.__init__()=buildbot.steps.source.CVS-class.html#__init__,Method buildbot.steps.source.Darcs.__init__()=buildbot.steps.source.Darcs-class.html#__init__,Method buildbot.steps.source.Git.__init__()=buildbot.steps.source.Git-class.html#__init__,Method buildbot.steps.source.Mercurial.__init__()=buildbot.steps.source.Mercurial-class.html#__init__,Method buildbot.steps.source.Monotone.__init__()=buildbot.steps.source.Monotone-class.html#__init__,Method buildbot.steps.source.P4.__init__()=buildbot.steps.source.P4-class.html#__init__,Method buildbot.steps.source.P4Sync.__init__()=buildbot.steps.source.P4Sync-class.html#__init__,Method buildbot.steps.source.SVN.__init__()=buildbot.steps.source.SVN-class.html#__init__,Method buildbot.steps.source.Source.__init__()=buildbot.steps.source.Source-class.html#__init__,Method buildbot.steps.transfer.DirectoryUpload.__init__()=buildbot.steps.transfer.DirectoryUpload-class.html#__init__,Method buildbot.steps.transfer.FileDownload.__init__()=buildbot.steps.transfer.FileDownload-class.html#__init__,Method buildbot.steps.transfer.FileUpload.__init__()=buildbot.steps.transfer.FileUpload-class.html#__init__,Method buildbot.steps.transfer.StatusRemoteCommand.__init__()=buildbot.steps.transfer.StatusRemoteCommand-class.html#__init__,Method buildbot.steps.trigger.Trigger.__init__()=buildbot.steps.trigger.Trigger-class.html#__init__,Method buildbot.util.CancelableDeferred.__init__()=buildbot.util.CancelableDeferred-class.html#__init__"><a title="buildbot.buildset.BuildSet.__init__
+buildbot.buildslave.AbstractBuildSlave.__init__
+buildbot.buildslave.AbstractLatentBuildSlave.__init__
+buildbot.changes.bonsaipoller.BonsaiParser.__init__
+buildbot.changes.bonsaipoller.BonsaiPoller.__init__
+buildbot.changes.bonsaipoller.BonsaiResult.__init__
+buildbot.changes.bonsaipoller.CiNode.__init__
+buildbot.changes.bonsaipoller.FileNode.__init__
+buildbot.changes.bonsaipoller.InvalidResultError.__init__
+buildbot.changes.changes.Change.__init__
+buildbot.changes.changes.ChangeMaster.__init__
+buildbot.changes.dnotify.DNotify.__init__
+buildbot.changes.dnotify.DNotify_Handler.__init__
+buildbot.changes.freshcvs.FreshCVSSourceNewcred.__init__
+buildbot.changes.freshcvs.FreshCVSSourceOldcred.__init__
+buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.__init__
+buildbot.changes.mail.MaildirSource.__init__
+buildbot.changes.maildir.MaildirService.__init__
+buildbot.changes.monotone.Monotone.__init__
+buildbot.changes.monotone.MonotoneSource.__init__
+buildbot.changes.p4poller.P4Source.__init__
+buildbot.changes.pb.ChangePerspective.__init__
+buildbot.changes.pb.PBChangeSource.__init__
+buildbot.changes.svnpoller.SVNPoller.__init__
+buildbot.clients.base.StatusClient.__init__
+buildbot.clients.base.TextClient.__init__
+buildbot.clients.debug.DebugWidget.__init__
+buildbot.clients.gtkPanes.Box.__init__
+buildbot.clients.gtkPanes.GtkClient.__init__
+buildbot.clients.gtkPanes.ThreeRowBuilder.__init__
+buildbot.clients.gtkPanes.ThreeRowClient.__init__
+buildbot.clients.sendchange.Sender.__init__
+buildbot.config.BuilderConfig.__init__
+buildbot.dnotify.DNotify.__init__
+buildbot.dnotify.DNotify_Handler.__init__
+buildbot.ec2buildslave.EC2LatentBuildSlave.__init__
+buildbot.locks.BaseLock.__init__
+buildbot.locks.LockAccess.__init__
+buildbot.locks.MasterLock.__init__
+buildbot.locks.RealMasterLock.__init__
+buildbot.locks.RealSlaveLock.__init__
+buildbot.locks.SlaveLock.__init__
+buildbot.manhole.ArbitraryCheckerManhole.__init__
+buildbot.manhole.AuthorizedKeysChecker.__init__
+buildbot.manhole.AuthorizedKeysManhole.__init__
+buildbot.manhole.PasswordManhole.__init__
+buildbot.manhole.TelnetManhole.__init__
+buildbot.manhole.chainedProtocolFactory.__init__
+buildbot.manhole.makeTelnetProtocol.__init__
+buildbot.master.BotMaster.__init__
+buildbot.master.BuildMaster.__init__
+buildbot.master.Control.__init__
+buildbot.master.Dispatcher.__init__
+buildbot.pbutil.ReconnectingPBClientFactory.__init__
+buildbot.process.base.Build.__init__
+buildbot.process.base.BuildRequest.__init__
+buildbot.process.builder.AbstractSlaveBuilder.__init__
+buildbot.process.builder.BuildRequestControl.__init__
+buildbot.process.builder.Builder.__init__
+buildbot.process.builder.LatentSlaveBuilder.__init__
+buildbot.process.builder.SlaveBuilder.__init__
+buildbot.process.buildstep.BuildStep.__init__
+buildbot.process.buildstep.LogLineObserver.__init__
+buildbot.process.buildstep.LoggedRemoteCommand.__init__
+buildbot.process.buildstep.LoggingBuildStep.__init__
+buildbot.process.buildstep.OutputProgressObserver.__init__
+buildbot.process.buildstep.RemoteCommand.__init__
+buildbot.process.buildstep.RemoteShellCommand.__init__
+buildbot.process.factory.BasicBuildFactory.__init__
+buildbot.process.factory.BasicSVN.__init__
+buildbot.process.factory.BuildFactory.__init__
+buildbot.process.factory.CPAN.__init__
+buildbot.process.factory.Distutils.__init__
+buildbot.process.factory.GNUAutoconf.__init__
+buildbot.process.factory.QuickBuildFactory.__init__
+buildbot.process.factory.Trial.__init__
+buildbot.process.mtrlogobserver.EqConnectionPool.__init__
+buildbot.process.mtrlogobserver.MTR.__init__
+buildbot.process.mtrlogobserver.MtrLogObserver.__init__
+buildbot.process.mtrlogobserver.MtrTestFailData.__init__
+buildbot.process.process_twisted.FullTwistedBuildFactory.__init__
+buildbot.process.process_twisted.QuickTwistedBuildFactory.__init__
+buildbot.process.process_twisted.TwistedBaseFactory.__init__
+buildbot.process.process_twisted.TwistedDebsBuildFactory.__init__
+buildbot.process.process_twisted.TwistedReactorsBuildFactory.__init__
+buildbot.process.properties.Properties.__init__
+buildbot.process.properties.PropertyMap.__init__
+buildbot.process.properties.WithProperties.__init__
+buildbot.process.subunitlogobserver.SubunitLogObserver.__init__
+buildbot.process.subunitlogobserver.SubunitShellCommand.__init__
+buildbot.scheduler.AnyBranchScheduler.__init__
+buildbot.scheduler.BaseScheduler.__init__
+buildbot.scheduler.BaseUpstreamScheduler.__init__
+buildbot.scheduler.Dependent.__init__
+buildbot.scheduler.JobFileScanner.__init__
+buildbot.scheduler.Nightly.__init__
+buildbot.scheduler.Periodic.__init__
+buildbot.scheduler.Scheduler.__init__
+buildbot.scheduler.Triggerable.__init__
+buildbot.scheduler.TryBase.__init__
+buildbot.scheduler.Try_Jobdir.__init__
+buildbot.scheduler.Try_Userpass.__init__
+buildbot.scheduler.Try_Userpass_Perspective.__init__
+buildbot.scripts.checkconfig.ConfigLoader.__init__
+buildbot.scripts.logwatcher.LogWatcher.__init__
+buildbot.scripts.runner.Maker.__init__
+buildbot.scripts.runner.OptionsWithOptionsFile.__init__
+buildbot.scripts.runner.SendChangeOptions.__init__
+buildbot.scripts.runner.TryOptions.__init__
+buildbot.scripts.tryclient.BuildSetStatusGrabber.__init__
+buildbot.scripts.tryclient.RemoteTryPP.__init__
+buildbot.scripts.tryclient.SourceStampExtractor.__init__
+buildbot.scripts.tryclient.Try.__init__
+buildbot.slave.bot.Bot.__init__
+buildbot.slave.bot.BotFactory.__init__
+buildbot.slave.bot.BuildSlave.__init__
+buildbot.slave.bot.Master.__init__
+buildbot.slave.bot.SlaveBuild.__init__
+buildbot.slave.bot.SlaveBuilder.__init__
+buildbot.slave.commands.Command.__init__
+buildbot.slave.commands.LogFileWatcher.__init__
+buildbot.slave.commands.Obfuscated.__init__
+buildbot.slave.commands.ShellCommand.__init__
+buildbot.slave.commands.ShellCommandPP.__init__
+buildbot.slave.interfaces.ISlaveCommand.__init__
+buildbot.sourcestamp.SourceStamp.__init__
+buildbot.status.base.StatusReceiverMultiService.__init__
+buildbot.status.builder.BuildRequestStatus.__init__
+buildbot.status.builder.BuildSetStatus.__init__
+buildbot.status.builder.BuildStatus.__init__
+buildbot.status.builder.BuildStepStatus.__init__
+buildbot.status.builder.BuilderStatus.__init__
+buildbot.status.builder.HTMLLogFile.__init__
+buildbot.status.builder.LogFile.__init__
+buildbot.status.builder.LogFileProducer.__init__
+buildbot.status.builder.LogFileScanner.__init__
+buildbot.status.builder.SlaveStatus.__init__
+buildbot.status.builder.Status.__init__
+buildbot.status.builder.TestResult.__init__
+buildbot.status.client.BuildSubscriber.__init__
+buildbot.status.client.PBListener.__init__
+buildbot.status.client.RemoteBuild.__init__
+buildbot.status.client.RemoteBuildRequest.__init__
+buildbot.status.client.RemoteBuildSet.__init__
+buildbot.status.client.RemoteBuildStep.__init__
+buildbot.status.client.RemoteBuilder.__init__
+buildbot.status.client.RemoteChange.__init__
+buildbot.status.client.RemoteEvent.__init__
+buildbot.status.client.RemoteLog.__init__
+buildbot.status.client.RemoteSlave.__init__
+buildbot.status.client.StatusClientPerspective.__init__
+buildbot.status.mail.Domain.__init__
+buildbot.status.mail.MailNotifier.__init__
+buildbot.status.progress.BuildProgress.__init__
+buildbot.status.progress.Expectations.__init__
+buildbot.status.progress.StepProgress.__init__
+buildbot.status.progress.WatcherState.__init__
+buildbot.status.tests.OneTest.__init__
+buildbot.status.tests.TestResults.__init__
+buildbot.status.tinderbox.TinderboxMailNotifier.__init__
+buildbot.status.web.auth.BasicAuth.__init__
+buildbot.status.web.auth.HTPasswdAuth.__init__
+buildbot.status.web.base.Box.__init__
+buildbot.status.web.base.StaticHTML.__init__
+buildbot.status.web.baseweb.OneLinePerBuild.__init__
+buildbot.status.web.baseweb.OneLinePerBuildOneBuilder.__init__
+buildbot.status.web.baseweb.Waterfall.__init__
+buildbot.status.web.baseweb.WebStatus.__init__
+buildbot.status.web.build.BuildsResource.__init__
+buildbot.status.web.build.StatusResourceBuild.__init__
+buildbot.status.web.builder.StatusResourceAllBuilders.__init__
+buildbot.status.web.builder.StatusResourceBuilder.__init__
+buildbot.status.web.buildstatus.BuildStatusStatusResource.__init__
+buildbot.status.web.console.ConsoleStatusResource.__init__
+buildbot.status.web.console.DevBuild.__init__
+buildbot.status.web.console.DevRevision.__init__
+buildbot.status.web.feeds.Atom10StatusResource.__init__
+buildbot.status.web.feeds.FeedResource.__init__
+buildbot.status.web.feeds.Rss20StatusResource.__init__
+buildbot.status.web.grid.GridStatusResource.__init__
+buildbot.status.web.grid.TransposedGridStatusResource.__init__
+buildbot.status.web.logs.ChunkConsumer.__init__
+buildbot.status.web.logs.HTMLLog.__init__
+buildbot.status.web.logs.LogsResource.__init__
+buildbot.status.web.logs.TextLog.__init__
+buildbot.status.web.slaves.OneBuildSlaveResource.__init__
+buildbot.status.web.step.StatusResourceBuildStep.__init__
+buildbot.status.web.step.StepsResource.__init__
+buildbot.status.web.tests.TestResult.__init__
+buildbot.status.web.tests.TestsResource.__init__
+buildbot.status.web.waterfall.Spacer.__init__
+buildbot.status.web.waterfall.WaterfallHelp.__init__
+buildbot.status.web.waterfall.WaterfallStatusResource.__init__
+buildbot.status.web.xmlrpc.XMLRPCServer.__init__
+buildbot.status.words.Contact.__init__
+buildbot.status.words.IRC.__init__
+buildbot.status.words.IRCContact.__init__
+buildbot.status.words.IrcBuildRequest.__init__
+buildbot.status.words.IrcStatusBot.__init__
+buildbot.status.words.IrcStatusFactory.__init__
+buildbot.status.words.UsageError.__init__
+buildbot.steps.dummy.Dummy.__init__
+buildbot.steps.dummy.RemoteDummy.__init__
+buildbot.steps.dummy.Wait.__init__
+buildbot.steps.master.MasterShellCommand.LocalPP.__init__
+buildbot.steps.master.MasterShellCommand.__init__
+buildbot.steps.maxq.MaxQ.__init__
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.__init__
+buildbot.steps.package.rpm.rpmlint.RpmLint.__init__
+buildbot.steps.package.rpm.rpmspec.RpmSpec.__init__
+buildbot.steps.python_twisted.BuildDebs.__init__
+buildbot.steps.python_twisted.HLint.__init__
+buildbot.steps.python_twisted.ProcessDocs.__init__
+buildbot.steps.python_twisted.Trial.__init__
+buildbot.steps.shell.SetProperty.__init__
+buildbot.steps.shell.ShellCommand.__init__
+buildbot.steps.shell.StringFileWriter.__init__
+buildbot.steps.shell.WarningCountingShellCommand.__init__
+buildbot.steps.source.Arch.__init__
+buildbot.steps.source.Bazaar.__init__
+buildbot.steps.source.Bzr.__init__
+buildbot.steps.source.CVS.__init__
+buildbot.steps.source.Darcs.__init__
+buildbot.steps.source.Git.__init__
+buildbot.steps.source.Mercurial.__init__
+buildbot.steps.source.Monotone.__init__
+buildbot.steps.source.P4.__init__
+buildbot.steps.source.P4Sync.__init__
+buildbot.steps.source.SVN.__init__
+buildbot.steps.source.Source.__init__
+buildbot.steps.transfer.DirectoryUpload.__init__
+buildbot.steps.transfer.FileDownload.__init__
+buildbot.steps.transfer.FileUpload.__init__
+buildbot.steps.transfer.StatusRemoteCommand.__init__
+buildbot.steps.trigger.Trigger.__init__
+buildbot.util.CancelableDeferred.__init__" class="py-name" href="#" onclick="return doclink('link-81', '__init__', 'link-81');">__init__</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt> </tt>
+<a name="L231"></a><tt class="py-lineno">231</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-82" class="py-name" targets="Package buildbot.changes=buildbot.changes-module.html,Module buildbot.changes.changes=buildbot.changes.changes-module.html,Variable buildbot.sourcestamp.SourceStamp.changes=buildbot.sourcestamp.SourceStamp-class.html#changes,Variable buildbot.status.builder.BuildStatus.changes=buildbot.status.builder.BuildStatus-class.html#changes,Module buildbot.status.web.changes=buildbot.status.web.changes-module.html"><a title="buildbot.changes
+buildbot.changes.changes
+buildbot.sourcestamp.SourceStamp.changes
+buildbot.status.builder.BuildStatus.changes
+buildbot.status.web.changes" class="py-name" href="#" onclick="return doclink('link-82', 'changes', 'link-82');">changes</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L232"></a><tt class="py-lineno">232</tt>  <tt class="py-line">        <tt class="py-comment"># self.basedir must be filled in by the parent</tt> </tt>
+<a name="L233"></a><tt class="py-lineno">233</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">nextNumber</tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+</div><a name="L234"></a><tt class="py-lineno">234</tt>  <tt class="py-line"> </tt>
+<a name="ChangeMaster.addSource"></a><div id="ChangeMaster.addSource-def"><a name="L235"></a><tt class="py-lineno">235</tt> <a class="py-toggle" href="#" id="ChangeMaster.addSource-toggle" onclick="return toggle('ChangeMaster.addSource');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.ChangeMaster-class.html#addSource">addSource</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">source</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ChangeMaster.addSource-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ChangeMaster.addSource-expanded"><a name="L236"></a><tt class="py-lineno">236</tt>  <tt class="py-line">        <tt class="py-keyword">assert</tt> <tt id="link-83" class="py-name"><a title="buildbot.interfaces
+buildbot.slave.interfaces" class="py-name" href="#" onclick="return doclink('link-83', 'interfaces', 'link-5');">interfaces</a></tt><tt class="py-op">.</tt><tt id="link-84" class="py-name" targets="Class buildbot.interfaces.IChangeSource=buildbot.interfaces.IChangeSource-class.html"><a title="buildbot.interfaces.IChangeSource" class="py-name" href="#" onclick="return doclink('link-84', 'IChangeSource', 'link-84');">IChangeSource</a></tt><tt class="py-op">.</tt><tt class="py-name">providedBy</tt><tt class="py-op">(</tt><tt id="link-85" class="py-name" targets="Variable buildbot.process.base.BuildRequest.source=buildbot.process.base.BuildRequest-class.html#source,Variable buildbot.status.builder.BuildStatus.source=buildbot.status.builder.BuildStatus-class.html#source,Module buildbot.steps.source=buildbot.steps.source-module.html"><a title="buildbot.process.base.BuildRequest.source
+buildbot.status.builder.BuildStatus.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-85', 'source', 'link-85');">source</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L237"></a><tt class="py-lineno">237</tt>  <tt class="py-line">        <tt class="py-keyword">assert</tt> <tt class="py-name">service</tt><tt class="py-op">.</tt><tt class="py-name">IService</tt><tt class="py-op">.</tt><tt class="py-name">providedBy</tt><tt class="py-op">(</tt><tt id="link-86" class="py-name"><a title="buildbot.process.base.BuildRequest.source
+buildbot.status.builder.BuildStatus.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-86', 'source', 'link-85');">source</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L238"></a><tt class="py-lineno">238</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-87" class="py-name"><a title="buildbot.changes.changes.ChangeMaster.debug
+buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.slave.commands.Command.debug
+buildbot.slave.commands.ShellCommandPP.debug
+buildbot.slave.commands.SlaveDirectoryUploadCommand.debug
+buildbot.slave.commands.SlaveFileDownloadCommand.debug
+buildbot.slave.commands.SlaveFileUploadCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug" class="py-name" href="#" onclick="return doclink('link-87', 'debug', 'link-79');">debug</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L239"></a><tt class="py-lineno">239</tt>  <tt class="py-line">            <tt class="py-keyword">print</tt> <tt class="py-string">"ChangeMaster.addSource"</tt><tt class="py-op">,</tt> <tt id="link-88" class="py-name"><a title="buildbot.process.base.BuildRequest.source
+buildbot.status.builder.BuildStatus.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-88', 'source', 'link-85');">source</a></tt> </tt>
+<a name="L240"></a><tt class="py-lineno">240</tt>  <tt class="py-line">        <tt id="link-89" class="py-name"><a title="buildbot.process.base.BuildRequest.source
+buildbot.status.builder.BuildStatus.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-89', 'source', 'link-85');">source</a></tt><tt class="py-op">.</tt><tt id="link-90" class="py-name" targets="Method buildbot.scheduler.Try_Jobdir.setServiceParent()=buildbot.scheduler.Try_Jobdir-class.html#setServiceParent,Method buildbot.slave.bot.SlaveBuilder.setServiceParent()=buildbot.slave.bot.SlaveBuilder-class.html#setServiceParent,Method buildbot.status.client.PBListener.setServiceParent()=buildbot.status.client.PBListener-class.html#setServiceParent,Method buildbot.status.mail.MailNotifier.setServiceParent()=buildbot.status.mail.MailNotifier-class.html#setServiceParent,Method buildbot.status.web.baseweb.WebStatus.setServiceParent()=buildbot.status.web.baseweb.WebStatus-class.html#setServiceParent,Method buildbot.status.words.IRC.setServiceParent()=buildbot.status.words.IRC-class.html#setServiceParent"><a title="buildbot.scheduler.Try_Jobdir.setServiceParent
+buildbot.slave.bot.SlaveBuilder.setServiceParent
+buildbot.status.client.PBListener.setServiceParent
+buildbot.status.mail.MailNotifier.setServiceParent
+buildbot.status.web.baseweb.WebStatus.setServiceParent
+buildbot.status.words.IRC.setServiceParent" class="py-name" href="#" onclick="return doclink('link-90', 'setServiceParent', 'link-90');">setServiceParent</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L241"></a><tt class="py-lineno">241</tt>  <tt class="py-line"> </tt>
+<a name="ChangeMaster.removeSource"></a><div id="ChangeMaster.removeSource-def"><a name="L242"></a><tt class="py-lineno">242</tt> <a class="py-toggle" href="#" id="ChangeMaster.removeSource-toggle" onclick="return toggle('ChangeMaster.removeSource');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.ChangeMaster-class.html#removeSource">removeSource</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">source</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ChangeMaster.removeSource-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ChangeMaster.removeSource-expanded"><a name="L243"></a><tt class="py-lineno">243</tt>  <tt class="py-line">        <tt class="py-keyword">assert</tt> <tt id="link-91" class="py-name"><a title="buildbot.process.base.BuildRequest.source
+buildbot.status.builder.BuildStatus.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-91', 'source', 'link-85');">source</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt> </tt>
+<a name="L244"></a><tt class="py-lineno">244</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-92" class="py-name"><a title="buildbot.changes.changes.ChangeMaster.debug
+buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.slave.commands.Command.debug
+buildbot.slave.commands.ShellCommandPP.debug
+buildbot.slave.commands.SlaveDirectoryUploadCommand.debug
+buildbot.slave.commands.SlaveFileDownloadCommand.debug
+buildbot.slave.commands.SlaveFileUploadCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug" class="py-name" href="#" onclick="return doclink('link-92', 'debug', 'link-79');">debug</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L245"></a><tt class="py-lineno">245</tt>  <tt class="py-line">            <tt class="py-keyword">print</tt> <tt class="py-string">"ChangeMaster.removeSource"</tt><tt class="py-op">,</tt> <tt id="link-93" class="py-name"><a title="buildbot.process.base.BuildRequest.source
+buildbot.status.builder.BuildStatus.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-93', 'source', 'link-85');">source</a></tt><tt class="py-op">,</tt> <tt id="link-94" class="py-name"><a title="buildbot.process.base.BuildRequest.source
+buildbot.status.builder.BuildStatus.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-94', 'source', 'link-85');">source</a></tt><tt class="py-op">.</tt><tt id="link-95" class="py-name" targets="Variable buildbot.changes.bonsaipoller.BonsaiPoller.parent=buildbot.changes.bonsaipoller.BonsaiPoller-class.html#parent,Variable buildbot.changes.monotone.MonotoneSource.parent=buildbot.changes.monotone.MonotoneSource-class.html#parent,Variable buildbot.changes.p4poller.P4Source.parent=buildbot.changes.p4poller.P4Source-class.html#parent,Variable buildbot.changes.svnpoller.SVNPoller.parent=buildbot.changes.svnpoller.SVNPoller-class.html#parent"><a title="buildbot.changes.bonsaipoller.BonsaiPoller.parent
+buildbot.changes.monotone.MonotoneSource.parent
+buildbot.changes.p4poller.P4Source.parent
+buildbot.changes.svnpoller.SVNPoller.parent" class="py-name" href="#" onclick="return doclink('link-95', 'parent', 'link-95');">parent</a></tt> </tt>
+<a name="L246"></a><tt class="py-lineno">246</tt>  <tt class="py-line">        <tt id="link-96" class="py-name" targets="Variable buildbot.changes.monotone.MonotoneSource.d=buildbot.changes.monotone.MonotoneSource-class.html#d"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-96', 'd', 'link-96');">d</a></tt> <tt class="py-op">=</tt> <tt class="py-name">defer</tt><tt class="py-op">.</tt><tt class="py-name">maybeDeferred</tt><tt class="py-op">(</tt><tt id="link-97" class="py-name"><a title="buildbot.process.base.BuildRequest.source
+buildbot.status.builder.BuildStatus.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-97', 'source', 'link-85');">source</a></tt><tt class="py-op">.</tt><tt id="link-98" class="py-name" targets="Method buildbot.status.mail.MailNotifier.disownServiceParent()=buildbot.status.mail.MailNotifier-class.html#disownServiceParent"><a title="buildbot.status.mail.MailNotifier.disownServiceParent" class="py-name" href="#" onclick="return doclink('link-98', 'disownServiceParent', 'link-98');">disownServiceParent</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L247"></a><tt class="py-lineno">247</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-99" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-99', 'd', 'link-96');">d</a></tt> </tt>
+</div><a name="L248"></a><tt class="py-lineno">248</tt>  <tt class="py-line"> </tt>
+<a name="ChangeMaster.addChange"></a><div id="ChangeMaster.addChange-def"><a name="L249"></a><tt class="py-lineno">249</tt> <a class="py-toggle" href="#" id="ChangeMaster.addChange-toggle" onclick="return toggle('ChangeMaster.addChange');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.ChangeMaster-class.html#addChange">addChange</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">change</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ChangeMaster.addChange-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ChangeMaster.addChange-expanded"><a name="L250"></a><tt class="py-lineno">250</tt>  <tt class="py-line">        <tt class="py-docstring">"""Deliver a file change event. The event should be a Change object.</tt> </tt>
+<a name="L251"></a><tt class="py-lineno">251</tt>  <tt class="py-line"><tt class="py-docstring">        This method will timestamp the object as it is received."""</tt> </tt>
+<a name="L252"></a><tt class="py-lineno">252</tt>  <tt class="py-line">        <tt id="link-100" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-100', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">"adding change, who %s, %d files, rev=%s, branch=%s, "</tt> </tt>
+<a name="L253"></a><tt class="py-lineno">253</tt>  <tt class="py-line">                <tt class="py-string">"comments %s, category %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">change</tt><tt class="py-op">.</tt><tt class="py-name">who</tt><tt class="py-op">,</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">change</tt><tt class="py-op">.</tt><tt class="py-name">files</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L254"></a><tt class="py-lineno">254</tt>  <tt class="py-line">                                              <tt class="py-name">change</tt><tt class="py-op">.</tt><tt id="link-101" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-101', 'revision', 'link-17');">revision</a></tt><tt class="py-op">,</tt> <tt class="py-name">change</tt><tt class="py-op">.</tt><tt id="link-102" class="py-name"><a title="buildbot.changes.changes.Change.branch
+buildbot.sourcestamp.SourceStamp.branch
+buildbot.steps.source.Source.branch" class="py-name" href="#" onclick="return doclink('link-102', 'branch', 'link-15');">branch</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L255"></a><tt class="py-lineno">255</tt>  <tt class="py-line">                                              <tt class="py-name">change</tt><tt class="py-op">.</tt><tt class="py-name">comments</tt><tt class="py-op">,</tt> <tt class="py-name">change</tt><tt class="py-op">.</tt><tt id="link-103" class="py-name"><a title="buildbot.changes.changes.Change.category
+buildbot.status.builder.BuilderStatus.category" class="py-name" href="#" onclick="return doclink('link-103', 'category', 'link-16');">category</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L256"></a><tt class="py-lineno">256</tt>  <tt class="py-line">        <tt class="py-name">change</tt><tt class="py-op">.</tt><tt id="link-104" class="py-name"><a title="buildbot.changes.changes.Change.number" class="py-name" href="#" onclick="return doclink('link-104', 'number', 'link-14');">number</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">nextNumber</tt> </tt>
+<a name="L257"></a><tt class="py-lineno">257</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">nextNumber</tt> <tt class="py-op">+=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L258"></a><tt class="py-lineno">258</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-105" class="py-name"><a title="buildbot.changes
+buildbot.changes.changes
+buildbot.sourcestamp.SourceStamp.changes
+buildbot.status.builder.BuildStatus.changes
+buildbot.status.web.changes" class="py-name" href="#" onclick="return doclink('link-105', 'changes', 'link-82');">changes</a></tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-name">change</tt><tt class="py-op">)</tt> </tt>
+<a name="L259"></a><tt class="py-lineno">259</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-106" class="py-name"><a title="buildbot.changes.bonsaipoller.BonsaiPoller.parent
+buildbot.changes.monotone.MonotoneSource.parent
+buildbot.changes.p4poller.P4Source.parent
+buildbot.changes.svnpoller.SVNPoller.parent" class="py-name" href="#" onclick="return doclink('link-106', 'parent', 'link-95');">parent</a></tt><tt class="py-op">.</tt><tt id="link-107" class="py-name" targets="Method buildbot.changes.changes.ChangeMaster.addChange()=buildbot.changes.changes.ChangeMaster-class.html#addChange,Method buildbot.clients.sendchange.Sender.addChange()=buildbot.clients.sendchange.Sender-class.html#addChange,Method buildbot.interfaces.IControl.addChange()=buildbot.interfaces.IControl-class.html#addChange,Method buildbot.interfaces.IScheduler.addChange()=buildbot.interfaces.IScheduler-class.html#addChange,Method buildbot.master.BuildMaster.addChange()=buildbot.master.BuildMaster-class.html#addChange,Method buildbot.master.Control.addChange()=buildbot.master.Control-class.html#addChange,Method buildbot.scheduler.AnyBranchScheduler.addChange()=buildbot.scheduler.AnyBranchScheduler-class.html#addChange,Method buildbot.scheduler.BaseScheduler.addChange()=buildbot.scheduler.BaseScheduler-class.html#addChange,Method buildbot.scheduler.Nightly.addChange()=buildbot.scheduler.Nightly-class.html#addChange,Method buildbot.scheduler.Scheduler.addChange()=buildbot.scheduler.Scheduler-class.html#addChange,Method buildbot.scheduler.TryBase.addChange()=buildbot.scheduler.TryBase-class.html#addChange"><a title="buildbot.changes.changes.ChangeMaster.addChange
+buildbot.clients.sendchange.Sender.addChange
+buildbot.interfaces.IControl.addChange
+buildbot.interfaces.IScheduler.addChange
+buildbot.master.BuildMaster.addChange
+buildbot.master.Control.addChange
+buildbot.scheduler.AnyBranchScheduler.addChange
+buildbot.scheduler.BaseScheduler.addChange
+buildbot.scheduler.Nightly.addChange
+buildbot.scheduler.Scheduler.addChange
+buildbot.scheduler.TryBase.addChange" class="py-name" href="#" onclick="return doclink('link-107', 'addChange', 'link-107');">addChange</a></tt><tt class="py-op">(</tt><tt class="py-name">change</tt><tt class="py-op">)</tt> </tt>
+<a name="L260"></a><tt class="py-lineno">260</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-108" class="py-name" targets="Method buildbot.changes.changes.ChangeMaster.pruneChanges()=buildbot.changes.changes.ChangeMaster-class.html#pruneChanges"><a title="buildbot.changes.changes.ChangeMaster.pruneChanges" class="py-name" href="#" onclick="return doclink('link-108', 'pruneChanges', 'link-108');">pruneChanges</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L261"></a><tt class="py-lineno">261</tt>  <tt class="py-line"> </tt>
+<a name="ChangeMaster.pruneChanges"></a><div id="ChangeMaster.pruneChanges-def"><a name="L262"></a><tt class="py-lineno">262</tt> <a class="py-toggle" href="#" id="ChangeMaster.pruneChanges-toggle" onclick="return toggle('ChangeMaster.pruneChanges');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.ChangeMaster-class.html#pruneChanges">pruneChanges</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ChangeMaster.pruneChanges-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ChangeMaster.pruneChanges-expanded"><a name="L263"></a><tt class="py-lineno">263</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-109" class="py-name"><a title="buildbot.changes.changes.ChangeMaster.changeHorizon" class="py-name" href="#" onclick="return doclink('link-109', 'changeHorizon', 'link-80');">changeHorizon</a></tt> <tt class="py-keyword">and</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-110" class="py-name"><a title="buildbot.changes
+buildbot.changes.changes
+buildbot.sourcestamp.SourceStamp.changes
+buildbot.status.builder.BuildStatus.changes
+buildbot.status.web.changes" class="py-name" href="#" onclick="return doclink('link-110', 'changes', 'link-82');">changes</a></tt><tt class="py-op">)</tt> <tt class="py-op">&gt;</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-111" class="py-name"><a title="buildbot.changes.changes.ChangeMaster.changeHorizon" class="py-name" href="#" onclick="return doclink('link-111', 'changeHorizon', 'link-80');">changeHorizon</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L264"></a><tt class="py-lineno">264</tt>  <tt class="py-line">            <tt id="link-112" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-112', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">"pruning %i changes"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-113" class="py-name"><a title="buildbot.changes
+buildbot.changes.changes
+buildbot.sourcestamp.SourceStamp.changes
+buildbot.status.builder.BuildStatus.changes
+buildbot.status.web.changes" class="py-name" href="#" onclick="return doclink('link-113', 'changes', 'link-82');">changes</a></tt><tt class="py-op">)</tt> <tt class="py-op">-</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-114" class="py-name"><a title="buildbot.changes.changes.ChangeMaster.changeHorizon" class="py-name" href="#" onclick="return doclink('link-114', 'changeHorizon', 'link-80');">changeHorizon</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L265"></a><tt class="py-lineno">265</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-115" class="py-name"><a title="buildbot.changes
+buildbot.changes.changes
+buildbot.sourcestamp.SourceStamp.changes
+buildbot.status.builder.BuildStatus.changes
+buildbot.status.web.changes" class="py-name" href="#" onclick="return doclink('link-115', 'changes', 'link-82');">changes</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-116" class="py-name"><a title="buildbot.changes
+buildbot.changes.changes
+buildbot.sourcestamp.SourceStamp.changes
+buildbot.status.builder.BuildStatus.changes
+buildbot.status.web.changes" class="py-name" href="#" onclick="return doclink('link-116', 'changes', 'link-82');">changes</a></tt><tt class="py-op">[</tt><tt class="py-op">-</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-117" class="py-name"><a title="buildbot.changes.changes.ChangeMaster.changeHorizon" class="py-name" href="#" onclick="return doclink('link-117', 'changeHorizon', 'link-80');">changeHorizon</a></tt><tt class="py-op">:</tt><tt class="py-op">]</tt> </tt>
+</div><a name="L266"></a><tt class="py-lineno">266</tt>  <tt class="py-line"> </tt>
+<a name="ChangeMaster.eventGenerator"></a><div id="ChangeMaster.eventGenerator-def"><a name="L267"></a><tt class="py-lineno">267</tt> <a class="py-toggle" href="#" id="ChangeMaster.eventGenerator-toggle" onclick="return toggle('ChangeMaster.eventGenerator');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.ChangeMaster-class.html#eventGenerator">eventGenerator</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">branches</tt><tt class="py-op">=</tt><tt class="py-op">[</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-param">categories</tt><tt class="py-op">=</tt><tt class="py-op">[</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ChangeMaster.eventGenerator-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ChangeMaster.eventGenerator-expanded"><a name="L268"></a><tt class="py-lineno">268</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">i</tt> <tt class="py-keyword">in</tt> <tt class="py-name">range</tt><tt class="py-op">(</tt><tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-118" class="py-name"><a title="buildbot.changes
+buildbot.changes.changes
+buildbot.sourcestamp.SourceStamp.changes
+buildbot.status.builder.BuildStatus.changes
+buildbot.status.web.changes" class="py-name" href="#" onclick="return doclink('link-118', 'changes', 'link-82');">changes</a></tt><tt class="py-op">)</tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L269"></a><tt class="py-lineno">269</tt>  <tt class="py-line">            <tt class="py-name">c</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-119" class="py-name"><a title="buildbot.changes
+buildbot.changes.changes
+buildbot.sourcestamp.SourceStamp.changes
+buildbot.status.builder.BuildStatus.changes
+buildbot.status.web.changes" class="py-name" href="#" onclick="return doclink('link-119', 'changes', 'link-82');">changes</a></tt><tt class="py-op">[</tt><tt class="py-name">i</tt><tt class="py-op">]</tt> </tt>
+<a name="L270"></a><tt class="py-lineno">270</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-op">(</tt><tt class="py-keyword">not</tt> <tt class="py-name">branches</tt> <tt class="py-keyword">or</tt> <tt class="py-name">c</tt><tt class="py-op">.</tt><tt id="link-120" class="py-name"><a title="buildbot.changes.changes.Change.branch
+buildbot.sourcestamp.SourceStamp.branch
+buildbot.steps.source.Source.branch" class="py-name" href="#" onclick="return doclink('link-120', 'branch', 'link-15');">branch</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">branches</tt><tt class="py-op">)</tt> <tt class="py-keyword">and</tt> <tt class="py-op">(</tt> </tt>
+<a name="L271"></a><tt class="py-lineno">271</tt>  <tt class="py-line">                <tt class="py-keyword">not</tt> <tt class="py-name">categories</tt> <tt class="py-keyword">or</tt> <tt class="py-name">c</tt><tt class="py-op">.</tt><tt id="link-121" class="py-name"><a title="buildbot.changes.changes.Change.category
+buildbot.status.builder.BuilderStatus.category" class="py-name" href="#" onclick="return doclink('link-121', 'category', 'link-16');">category</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">categories</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L272"></a><tt class="py-lineno">272</tt>  <tt class="py-line">                <tt class="py-keyword">yield</tt> <tt class="py-name">c</tt> </tt>
+</div><a name="L273"></a><tt class="py-lineno">273</tt>  <tt class="py-line"> </tt>
+<a name="ChangeMaster.getChangeNumbered"></a><div id="ChangeMaster.getChangeNumbered-def"><a name="L274"></a><tt class="py-lineno">274</tt> <a class="py-toggle" href="#" id="ChangeMaster.getChangeNumbered-toggle" onclick="return toggle('ChangeMaster.getChangeNumbered');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.ChangeMaster-class.html#getChangeNumbered">getChangeNumbered</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">num</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ChangeMaster.getChangeNumbered-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ChangeMaster.getChangeNumbered-expanded"><a name="L275"></a><tt class="py-lineno">275</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-122" class="py-name"><a title="buildbot.changes
+buildbot.changes.changes
+buildbot.sourcestamp.SourceStamp.changes
+buildbot.status.builder.BuildStatus.changes
+buildbot.status.web.changes" class="py-name" href="#" onclick="return doclink('link-122', 'changes', 'link-82');">changes</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L276"></a><tt class="py-lineno">276</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">None</tt> </tt>
+<a name="L277"></a><tt class="py-lineno">277</tt>  <tt class="py-line">        <tt class="py-name">first</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-123" class="py-name"><a title="buildbot.changes
+buildbot.changes.changes
+buildbot.sourcestamp.SourceStamp.changes
+buildbot.status.builder.BuildStatus.changes
+buildbot.status.web.changes" class="py-name" href="#" onclick="return doclink('link-123', 'changes', 'link-82');">changes</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt id="link-124" class="py-name"><a title="buildbot.changes.changes.Change.number" class="py-name" href="#" onclick="return doclink('link-124', 'number', 'link-14');">number</a></tt> </tt>
+<a name="L278"></a><tt class="py-lineno">278</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">first</tt> <tt class="py-op">+</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-125" class="py-name"><a title="buildbot.changes
+buildbot.changes.changes
+buildbot.sourcestamp.SourceStamp.changes
+buildbot.status.builder.BuildStatus.changes
+buildbot.status.web.changes" class="py-name" href="#" onclick="return doclink('link-125', 'changes', 'link-82');">changes</a></tt><tt class="py-op">)</tt><tt class="py-op">-</tt><tt class="py-number">1</tt> <tt class="py-op">!=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-126" class="py-name"><a title="buildbot.changes
+buildbot.changes.changes
+buildbot.sourcestamp.SourceStamp.changes
+buildbot.status.builder.BuildStatus.changes
+buildbot.status.web.changes" class="py-name" href="#" onclick="return doclink('link-126', 'changes', 'link-82');">changes</a></tt><tt class="py-op">[</tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt id="link-127" class="py-name"><a title="buildbot.changes.changes.Change.number" class="py-name" href="#" onclick="return doclink('link-127', 'number', 'link-14');">number</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L279"></a><tt class="py-lineno">279</tt>  <tt class="py-line">            <tt id="link-128" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-128', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt> </tt>
+<a name="L280"></a><tt class="py-lineno">280</tt>  <tt class="py-line">                    <tt class="py-string">"lost a change somewhere: [0] is %d, [%d] is %d"</tt> <tt class="py-op">%</tt> \ </tt>
+<a name="L281"></a><tt class="py-lineno">281</tt>  <tt class="py-line">                    <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-129" class="py-name"><a title="buildbot.changes
+buildbot.changes.changes
+buildbot.sourcestamp.SourceStamp.changes
+buildbot.status.builder.BuildStatus.changes
+buildbot.status.web.changes" class="py-name" href="#" onclick="return doclink('link-129', 'changes', 'link-82');">changes</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt id="link-130" class="py-name"><a title="buildbot.changes.changes.Change.number" class="py-name" href="#" onclick="return doclink('link-130', 'number', 'link-14');">number</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L282"></a><tt class="py-lineno">282</tt>  <tt class="py-line">                     <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-131" class="py-name"><a title="buildbot.changes
+buildbot.changes.changes
+buildbot.sourcestamp.SourceStamp.changes
+buildbot.status.builder.BuildStatus.changes
+buildbot.status.web.changes" class="py-name" href="#" onclick="return doclink('link-131', 'changes', 'link-82');">changes</a></tt><tt class="py-op">)</tt> <tt class="py-op">-</tt> <tt class="py-number">1</tt><tt class="py-op">,</tt> </tt>
+<a name="L283"></a><tt class="py-lineno">283</tt>  <tt class="py-line">                     <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-132" class="py-name"><a title="buildbot.changes
+buildbot.changes.changes
+buildbot.sourcestamp.SourceStamp.changes
+buildbot.status.builder.BuildStatus.changes
+buildbot.status.web.changes" class="py-name" href="#" onclick="return doclink('link-132', 'changes', 'link-82');">changes</a></tt><tt class="py-op">[</tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt id="link-133" class="py-name"><a title="buildbot.changes.changes.Change.number" class="py-name" href="#" onclick="return doclink('link-133', 'number', 'link-14');">number</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L284"></a><tt class="py-lineno">284</tt>  <tt class="py-line">            <tt class="py-keyword">for</tt> <tt class="py-name">c</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-134" class="py-name"><a title="buildbot.changes
+buildbot.changes.changes
+buildbot.sourcestamp.SourceStamp.changes
+buildbot.status.builder.BuildStatus.changes
+buildbot.status.web.changes" class="py-name" href="#" onclick="return doclink('link-134', 'changes', 'link-82');">changes</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L285"></a><tt class="py-lineno">285</tt>  <tt class="py-line">                <tt id="link-135" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-135', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">"c[%d]: "</tt> <tt class="py-op">%</tt> <tt class="py-name">c</tt><tt class="py-op">.</tt><tt id="link-136" class="py-name"><a title="buildbot.changes.changes.Change.number" class="py-name" href="#" onclick="return doclink('link-136', 'number', 'link-14');">number</a></tt><tt class="py-op">,</tt> <tt class="py-name">c</tt><tt class="py-op">)</tt> </tt>
+<a name="L286"></a><tt class="py-lineno">286</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">None</tt> </tt>
+<a name="L287"></a><tt class="py-lineno">287</tt>  <tt class="py-line">        <tt class="py-name">offset</tt> <tt class="py-op">=</tt> <tt class="py-name">num</tt> <tt class="py-op">-</tt> <tt class="py-name">first</tt> </tt>
+<a name="L288"></a><tt class="py-lineno">288</tt>  <tt class="py-line">        <tt id="link-137" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-137', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt> <tt class="py-string">"offset"</tt><tt class="py-op">,</tt> <tt class="py-name">offset</tt><tt class="py-op">)</tt> </tt>
+<a name="L289"></a><tt class="py-lineno">289</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-number">0</tt> <tt class="py-op">&lt;=</tt> <tt class="py-name">offset</tt> <tt class="py-op">&lt;=</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-138" class="py-name"><a title="buildbot.changes
+buildbot.changes.changes
+buildbot.sourcestamp.SourceStamp.changes
+buildbot.status.builder.BuildStatus.changes
+buildbot.status.web.changes" class="py-name" href="#" onclick="return doclink('link-138', 'changes', 'link-82');">changes</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L290"></a><tt class="py-lineno">290</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-139" class="py-name"><a title="buildbot.changes
+buildbot.changes.changes
+buildbot.sourcestamp.SourceStamp.changes
+buildbot.status.builder.BuildStatus.changes
+buildbot.status.web.changes" class="py-name" href="#" onclick="return doclink('link-139', 'changes', 'link-82');">changes</a></tt><tt class="py-op">[</tt><tt class="py-name">offset</tt><tt class="py-op">]</tt> </tt>
+<a name="L291"></a><tt class="py-lineno">291</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L292"></a><tt class="py-lineno">292</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">None</tt> </tt>
+</div><a name="L293"></a><tt class="py-lineno">293</tt>  <tt class="py-line"> </tt>
+<a name="ChangeMaster.__getstate__"></a><div id="ChangeMaster.__getstate__-def"><a name="L294"></a><tt class="py-lineno">294</tt> <a class="py-toggle" href="#" id="ChangeMaster.__getstate__-toggle" onclick="return toggle('ChangeMaster.__getstate__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.ChangeMaster-class.html#__getstate__">__getstate__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ChangeMaster.__getstate__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ChangeMaster.__getstate__-expanded"><a name="L295"></a><tt class="py-lineno">295</tt>  <tt class="py-line">        <tt id="link-140" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-140', 'd', 'link-96');">d</a></tt> <tt class="py-op">=</tt> <tt class="py-name">service</tt><tt class="py-op">.</tt><tt class="py-name">MultiService</tt><tt class="py-op">.</tt><tt id="link-141" class="py-name" targets="Method buildbot.changes.changes.ChangeMaster.__getstate__()=buildbot.changes.changes.ChangeMaster-class.html#__getstate__,Method buildbot.process.properties.Properties.__getstate__()=buildbot.process.properties.Properties-class.html#__getstate__,Method buildbot.status.builder.BuildStatus.__getstate__()=buildbot.status.builder.BuildStatus-class.html#__getstate__,Method buildbot.status.builder.BuildStepStatus.__getstate__()=buildbot.status.builder.BuildStepStatus-class.html#__getstate__,Method buildbot.status.builder.BuilderStatus.__getstate__()=buildbot.status.builder.BuilderStatus-class.html#__getstate__,Method buildbot.status.builder.HTMLLogFile.__getstate__()=buildbot.status.builder.HTMLLogFile-class.html#__getstate__,Method buildbot.status.builder.LogFile.__getstate__()=buildbot.status.builder.LogFile-class.html#__getstate__,Method buildbot.status.client.StatusClientPerspective.__getstate__()=buildbot.status.client.StatusClientPerspective-class.html#__getstate__,Method buildbot.status.words.IrcStatusFactory.__getstate__()=buildbot.status.words.IrcStatusFactory-class.html#__getstate__"><a title="buildbot.changes.changes.ChangeMaster.__getstate__
+buildbot.process.properties.Properties.__getstate__
+buildbot.status.builder.BuildStatus.__getstate__
+buildbot.status.builder.BuildStepStatus.__getstate__
+buildbot.status.builder.BuilderStatus.__getstate__
+buildbot.status.builder.HTMLLogFile.__getstate__
+buildbot.status.builder.LogFile.__getstate__
+buildbot.status.client.StatusClientPerspective.__getstate__
+buildbot.status.words.IrcStatusFactory.__getstate__" class="py-name" href="#" onclick="return doclink('link-141', '__getstate__', 'link-141');">__getstate__</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt> </tt>
+<a name="L296"></a><tt class="py-lineno">296</tt>  <tt class="py-line">        <tt class="py-keyword">del</tt> <tt id="link-142" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-142', 'd', 'link-96');">d</a></tt><tt class="py-op">[</tt><tt class="py-string">'parent'</tt><tt class="py-op">]</tt> </tt>
+<a name="L297"></a><tt class="py-lineno">297</tt>  <tt class="py-line">        <tt class="py-keyword">del</tt> <tt id="link-143" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-143', 'd', 'link-96');">d</a></tt><tt class="py-op">[</tt><tt class="py-string">'services'</tt><tt class="py-op">]</tt> <tt class="py-comment"># lose all children</tt> </tt>
+<a name="L298"></a><tt class="py-lineno">298</tt>  <tt class="py-line">        <tt class="py-keyword">del</tt> <tt id="link-144" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-144', 'd', 'link-96');">d</a></tt><tt class="py-op">[</tt><tt class="py-string">'namedServices'</tt><tt class="py-op">]</tt> </tt>
+<a name="L299"></a><tt class="py-lineno">299</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-145" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-145', 'd', 'link-96');">d</a></tt> </tt>
+</div><a name="L300"></a><tt class="py-lineno">300</tt>  <tt class="py-line"> </tt>
+<a name="ChangeMaster.__setstate__"></a><div id="ChangeMaster.__setstate__-def"><a name="L301"></a><tt class="py-lineno">301</tt> <a class="py-toggle" href="#" id="ChangeMaster.__setstate__-toggle" onclick="return toggle('ChangeMaster.__setstate__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.ChangeMaster-class.html#__setstate__">__setstate__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">d</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ChangeMaster.__setstate__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ChangeMaster.__setstate__-expanded"><a name="L302"></a><tt class="py-lineno">302</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__dict__</tt> <tt class="py-op">=</tt> <tt id="link-146" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-146', 'd', 'link-96');">d</a></tt> </tt>
+<a name="L303"></a><tt class="py-lineno">303</tt>  <tt class="py-line">        <tt class="py-comment"># self.basedir must be set by the parent</tt> </tt>
+<a name="L304"></a><tt class="py-lineno">304</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">services</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> <tt class="py-comment"># they'll be repopulated by readConfig</tt> </tt>
+<a name="L305"></a><tt class="py-lineno">305</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">namedServices</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+</div><a name="L306"></a><tt class="py-lineno">306</tt>  <tt class="py-line"> </tt>
+<a name="L307"></a><tt class="py-lineno">307</tt>  <tt class="py-line"> </tt>
+<a name="ChangeMaster.saveYourself"></a><div id="ChangeMaster.saveYourself-def"><a name="L308"></a><tt class="py-lineno">308</tt> <a class="py-toggle" href="#" id="ChangeMaster.saveYourself-toggle" onclick="return toggle('ChangeMaster.saveYourself');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.ChangeMaster-class.html#saveYourself">saveYourself</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ChangeMaster.saveYourself-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ChangeMaster.saveYourself-expanded"><a name="L309"></a><tt class="py-lineno">309</tt>  <tt class="py-line">        <tt id="link-147" class="py-name" targets="Variable buildbot.status.builder.HTMLLogFile.filename=buildbot.status.builder.HTMLLogFile-class.html#filename,Variable buildbot.status.builder.LogFile.filename=buildbot.status.builder.LogFile-class.html#filename"><a title="buildbot.status.builder.HTMLLogFile.filename
+buildbot.status.builder.LogFile.filename" class="py-name" href="#" onclick="return doclink('link-147', 'filename', 'link-147');">filename</a></tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">path</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-148" class="py-name" targets="Variable buildbot.status.builder.BuilderStatus.basedir=buildbot.status.builder.BuilderStatus-class.html#basedir"><a title="buildbot.status.builder.BuilderStatus.basedir" class="py-name" href="#" onclick="return doclink('link-148', 'basedir', 'link-148');">basedir</a></tt><tt class="py-op">,</tt> <tt class="py-string">"changes.pck"</tt><tt class="py-op">)</tt> </tt>
+<a name="L310"></a><tt class="py-lineno">310</tt>  <tt class="py-line">        <tt class="py-name">tmpfilename</tt> <tt class="py-op">=</tt> <tt id="link-149" class="py-name"><a title="buildbot.status.builder.HTMLLogFile.filename
+buildbot.status.builder.LogFile.filename" class="py-name" href="#" onclick="return doclink('link-149', 'filename', 'link-147');">filename</a></tt> <tt class="py-op">+</tt> <tt class="py-string">".tmp"</tt> </tt>
+<a name="L311"></a><tt class="py-lineno">311</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L312"></a><tt class="py-lineno">312</tt>  <tt class="py-line">            <tt class="py-name">dump</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt class="py-name">tmpfilename</tt><tt class="py-op">,</tt> <tt class="py-string">"wb"</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L313"></a><tt class="py-lineno">313</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">sys</tt><tt class="py-op">.</tt><tt class="py-name">platform</tt> <tt class="py-op">==</tt> <tt class="py-string">'win32'</tt><tt class="py-op">:</tt> </tt>
+<a name="L314"></a><tt class="py-lineno">314</tt>  <tt class="py-line">                <tt class="py-comment"># windows cannot rename a file on top of an existing one</tt> </tt>
+<a name="L315"></a><tt class="py-lineno">315</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">path</tt><tt class="py-op">.</tt><tt class="py-name">exists</tt><tt class="py-op">(</tt><tt id="link-150" class="py-name"><a title="buildbot.status.builder.HTMLLogFile.filename
+buildbot.status.builder.LogFile.filename" class="py-name" href="#" onclick="return doclink('link-150', 'filename', 'link-147');">filename</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L316"></a><tt class="py-lineno">316</tt>  <tt class="py-line">                    <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">unlink</tt><tt class="py-op">(</tt><tt id="link-151" class="py-name"><a title="buildbot.status.builder.HTMLLogFile.filename
+buildbot.status.builder.LogFile.filename" class="py-name" href="#" onclick="return doclink('link-151', 'filename', 'link-147');">filename</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L317"></a><tt class="py-lineno">317</tt>  <tt class="py-line">            <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">rename</tt><tt class="py-op">(</tt><tt class="py-name">tmpfilename</tt><tt class="py-op">,</tt> <tt id="link-152" class="py-name"><a title="buildbot.status.builder.HTMLLogFile.filename
+buildbot.status.builder.LogFile.filename" class="py-name" href="#" onclick="return doclink('link-152', 'filename', 'link-147');">filename</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L318"></a><tt class="py-lineno">318</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt> <tt class="py-name">Exception</tt><tt class="py-op">,</tt> <tt class="py-name">e</tt><tt class="py-op">:</tt> </tt>
+<a name="L319"></a><tt class="py-lineno">319</tt>  <tt class="py-line">            <tt id="link-153" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-153', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">"unable to save changes"</tt><tt class="py-op">)</tt> </tt>
+<a name="L320"></a><tt class="py-lineno">320</tt>  <tt class="py-line">            <tt id="link-154" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-154', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt id="link-155" class="py-name" targets="Method buildbot.clients.debug.DebugWidget.err()=buildbot.clients.debug.DebugWidget-class.html#err,Variable buildbot.status.web.auth.AuthBase.err=buildbot.status.web.auth.AuthBase-class.html#err"><a title="buildbot.clients.debug.DebugWidget.err
+buildbot.status.web.auth.AuthBase.err" class="py-name" href="#" onclick="return doclink('link-155', 'err', 'link-155');">err</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L321"></a><tt class="py-lineno">321</tt>  <tt class="py-line"> </tt>
+<a name="ChangeMaster.stopService"></a><div id="ChangeMaster.stopService-def"><a name="L322"></a><tt class="py-lineno">322</tt> <a class="py-toggle" href="#" id="ChangeMaster.stopService-toggle" onclick="return toggle('ChangeMaster.stopService');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.ChangeMaster-class.html#stopService">stopService</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ChangeMaster.stopService-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ChangeMaster.stopService-expanded"><a name="L323"></a><tt class="py-lineno">323</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-156" class="py-name" targets="Method buildbot.changes.changes.ChangeMaster.saveYourself()=buildbot.changes.changes.ChangeMaster-class.html#saveYourself,Method buildbot.status.builder.BuildStatus.saveYourself()=buildbot.status.builder.BuildStatus-class.html#saveYourself,Method buildbot.status.builder.BuilderStatus.saveYourself()=buildbot.status.builder.BuilderStatus-class.html#saveYourself"><a title="buildbot.changes.changes.ChangeMaster.saveYourself
+buildbot.status.builder.BuildStatus.saveYourself
+buildbot.status.builder.BuilderStatus.saveYourself" class="py-name" href="#" onclick="return doclink('link-156', 'saveYourself', 'link-156');">saveYourself</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L324"></a><tt class="py-lineno">324</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">service</tt><tt class="py-op">.</tt><tt class="py-name">MultiService</tt><tt class="py-op">.</tt><tt id="link-157" class="py-name" targets="Method buildbot.buildslave.AbstractLatentBuildSlave.stopService()=buildbot.buildslave.AbstractLatentBuildSlave-class.html#stopService,Method buildbot.changes.bonsaipoller.BonsaiPoller.stopService()=buildbot.changes.bonsaipoller.BonsaiPoller-class.html#stopService,Method buildbot.changes.changes.ChangeMaster.stopService()=buildbot.changes.changes.ChangeMaster-class.html#stopService,Method buildbot.changes.changes.TestChangeMaster.stopService()=buildbot.changes.changes.TestChangeMaster-class.html#stopService,Method buildbot.changes.maildir.MaildirService.stopService()=buildbot.changes.maildir.MaildirService-class.html#stopService,Method buildbot.changes.monotone.MonotoneSource.stopService()=buildbot.changes.monotone.MonotoneSource-class.html#stopService,Method buildbot.changes.p4poller.P4Source.stopService()=buildbot.changes.p4poller.P4Source-class.html#stopService,Method buildbot.changes.pb.PBChangeSource.stopService()=buildbot.changes.pb.PBChangeSource-class.html#stopService,Method buildbot.changes.svnpoller.SVNPoller.stopService()=buildbot.changes.svnpoller.SVNPoller-class.html#stopService,Method buildbot.master.BotMaster.stopService()=buildbot.master.BotMaster-class.html#stopService,Method buildbot.scheduler.Dependent.stopService()=buildbot.scheduler.Dependent-class.html#stopService,Method buildbot.scheduler.Nightly.stopService()=buildbot.scheduler.Nightly-class.html#stopService,Method buildbot.scheduler.Scheduler.stopService()=buildbot.scheduler.Scheduler-class.html#stopService,Method buildbot.slave.bot.BuildSlave.stopService()=buildbot.slave.bot.BuildSlave-class.html#stopService,Method buildbot.slave.bot.SlaveBuilder.stopService()=buildbot.slave.bot.SlaveBuilder-class.html#stopService,Method buildbot.status.web.baseweb.WebStatus.stopService()=buildbot.status.web.baseweb.WebStatus-class.html#stopService,Method buildbot.status.words.IRC.stopService()=buildbot.status.words.IRC-class.html#stopService"><a title="buildbot.buildslave.AbstractLatentBuildSlave.stopService
+buildbot.changes.bonsaipoller.BonsaiPoller.stopService
+buildbot.changes.changes.ChangeMaster.stopService
+buildbot.changes.changes.TestChangeMaster.stopService
+buildbot.changes.maildir.MaildirService.stopService
+buildbot.changes.monotone.MonotoneSource.stopService
+buildbot.changes.p4poller.P4Source.stopService
+buildbot.changes.pb.PBChangeSource.stopService
+buildbot.changes.svnpoller.SVNPoller.stopService
+buildbot.master.BotMaster.stopService
+buildbot.scheduler.Dependent.stopService
+buildbot.scheduler.Nightly.stopService
+buildbot.scheduler.Scheduler.stopService
+buildbot.slave.bot.BuildSlave.stopService
+buildbot.slave.bot.SlaveBuilder.stopService
+buildbot.status.web.baseweb.WebStatus.stopService
+buildbot.status.words.IRC.stopService" class="py-name" href="#" onclick="return doclink('link-157', 'stopService', 'link-157');">stopService</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L325"></a><tt class="py-lineno">325</tt>  <tt class="py-line"> </tt>
+<a name="TestChangeMaster"></a><div id="TestChangeMaster-def"><a name="L326"></a><tt class="py-lineno">326</tt> <a class="py-toggle" href="#" id="TestChangeMaster-toggle" onclick="return toggle('TestChangeMaster');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildbot.changes.changes.TestChangeMaster-class.html">TestChangeMaster</a><tt class="py-op">(</tt><tt class="py-base-class">ChangeMaster</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="TestChangeMaster-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="TestChangeMaster-expanded"><a name="L327"></a><tt class="py-lineno">327</tt>  <tt class="py-line">    <tt class="py-docstring">"""A ChangeMaster for use in tests that does not save itself"""</tt> </tt>
+<a name="TestChangeMaster.stopService"></a><div id="TestChangeMaster.stopService-def"><a name="L328"></a><tt class="py-lineno">328</tt> <a class="py-toggle" href="#" id="TestChangeMaster.stopService-toggle" onclick="return toggle('TestChangeMaster.stopService');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.changes.TestChangeMaster-class.html#stopService">stopService</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="TestChangeMaster.stopService-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="TestChangeMaster.stopService-expanded"><a name="L329"></a><tt class="py-lineno">329</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">service</tt><tt class="py-op">.</tt><tt class="py-name">MultiService</tt><tt class="py-op">.</tt><tt id="link-158" class="py-name"><a title="buildbot.buildslave.AbstractLatentBuildSlave.stopService
+buildbot.changes.bonsaipoller.BonsaiPoller.stopService
+buildbot.changes.changes.ChangeMaster.stopService
+buildbot.changes.changes.TestChangeMaster.stopService
+buildbot.changes.maildir.MaildirService.stopService
+buildbot.changes.monotone.MonotoneSource.stopService
+buildbot.changes.p4poller.P4Source.stopService
+buildbot.changes.pb.PBChangeSource.stopService
+buildbot.changes.svnpoller.SVNPoller.stopService
+buildbot.master.BotMaster.stopService
+buildbot.scheduler.Dependent.stopService
+buildbot.scheduler.Nightly.stopService
+buildbot.scheduler.Scheduler.stopService
+buildbot.slave.bot.BuildSlave.stopService
+buildbot.slave.bot.SlaveBuilder.stopService
+buildbot.status.web.baseweb.WebStatus.stopService
+buildbot.status.words.IRC.stopService" class="py-name" href="#" onclick="return doclink('link-158', 'stopService', 'link-157');">stopService</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L330"></a><tt class="py-lineno">330</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="buildbot-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.sourceforge.net/">BuildBot 0.7.12rc1</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Sun Jan  3 10:23:52 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
