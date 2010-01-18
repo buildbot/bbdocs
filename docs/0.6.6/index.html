@@ -1,0 +1,3349 @@
+<html lang="en">
+<head>
+<title>BuildBot Manual 0.6.6</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual 0.6.6">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="top" href="#Top">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual.
+
+Copyright (C) 2005 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<h1 class="settitle">BuildBot Manual 0.6.6</h1>
+   <div class="contents">
+<h2>Table of Contents</h2>
+<ul>
+<li><a name="toc_Top" href="#Top">BuildBot</a>
+<li><a name="toc_Introduction" href="#Introduction">1 Introduction</a>
+<ul>
+<li><a href="#History-and-Philosophy">1.1 History and Philosophy</a>
+<li><a href="#System-Architecture">1.2 System Architecture</a>
+<li><a href="#Control-Flow">1.3 Control Flow</a>
+</li></ul>
+<li><a name="toc_Installation" href="#Installation">2 Installation</a>
+<ul>
+<li><a href="#Requirements">2.1 Requirements</a>
+<li><a href="#Installing-the-code">2.2 Installing the code</a>
+<li><a href="#Creating-a-buildmaster">2.3 Creating a buildmaster</a>
+<li><a href="#Creating-a-buildslave">2.4 Creating a buildslave</a>
+<li><a href="#Launching-the-daemons">2.5 Launching the daemons</a>
+<li><a href="#Logfiles">2.6 Logfiles</a>
+<li><a href="#Shutdown">2.7 Shutdown</a>
+<li><a href="#Maintenance">2.8 Maintenance</a>
+<li><a href="#Troubleshooting">2.9 Troubleshooting</a>
+<ul>
+<li><a href="#Starting-the-buildslave">2.9.1 Starting the buildslave</a>
+<li><a href="#Connecting-to-the-buildmaster">2.9.2 Connecting to the buildmaster</a>
+<li><a href="#Forcing-Builds">2.9.3 Forcing Builds</a>
+</li></ul>
+</li></ul>
+<li><a name="toc_Concepts" href="#Concepts">3 Concepts</a>
+<ul>
+<li><a href="#Version-Control-Systems">3.1 Version Control Systems</a>
+<ul>
+<li><a href="#Generalizing-VC-Systems">3.1.1 Generalizing VC Systems</a>
+<li><a href="#Source-Tree-Specifications">3.1.2 Source Tree Specifications</a>
+<li><a href="#How-Different-VC-Systems-Specify-Sources">3.1.3 How Different VC Systems Specify Sources</a>
+<li><a href="#Attributes-of-Changes">3.1.4 Attributes of Changes</a>
+</li></ul>
+<li><a href="#Changes">3.2 Changes</a>
+<li><a href="#Users">3.3 Users</a>
+<ul>
+<li><a href="#Doing-Things-With-Users">3.3.1 Doing Things With Users</a>
+<li><a href="#Email-Addresses">3.3.2 Email Addresses</a>
+<li><a href="#IRC-Nicknames">3.3.3 IRC Nicknames</a>
+<li><a href="#Live-Status-Clients">3.3.4 Live Status Clients</a>
+</li></ul>
+</li></ul>
+<li><a name="toc_Configuration" href="#Configuration">4 Configuration</a>
+<ul>
+<li><a href="#Config-File-Format">4.1 Config File Format</a>
+<li><a href="#Loading-the-Config-File">4.2 Loading the Config File</a>
+<li><a href="#Defining-the-Project">4.3 Defining the Project</a>
+<li><a href="#Listing-Change-Sources">4.4 Listing Change Sources</a>
+<li><a href="#Setting-the-slaveport">4.5 Setting the slaveport</a>
+<li><a href="#Buildslave-Specifiers">4.6 Buildslave Specifiers</a>
+<li><a href="#Defining-Builders">4.7 Defining Builders</a>
+<li><a href="#Interlocks">4.8 Interlocks</a>
+<li><a href="#Defining-Status-Targets">4.9 Defining Status Targets</a>
+<li><a href="#Debug-options">4.10 Debug options</a>
+</li></ul>
+<li><a name="toc_Getting-Source-Code-Changes" href="#Getting-Source-Code-Changes">5 Getting Source Code Changes</a>
+<ul>
+<li><a href="#Change-Sources">5.1 Change Sources</a>
+<ul>
+<li><a href="#Choosing-ChangeSources">5.1.1 Choosing ChangeSources</a>
+<li><a href="#CVSToys-_002d-PBService">5.1.2 CVSToys - PBService</a>
+<li><a href="#CVSToys-_002d-mail-notification">5.1.3 CVSToys - mail notification</a>
+<li><a href="#Other-mail-notification-ChangeSources">5.1.4 Other mail notification ChangeSources</a>
+<li><a href="#PBChangeSource">5.1.5 PBChangeSource</a>
+</li></ul>
+<li><a href="#Sending-Changes-at-the-Buildmaster">5.2 Sending Changes to the Buildmaster</a>
+<li><a href="#Receiving-Changes">5.3 Receiving Changes</a>
+</li></ul>
+<li><a name="toc_Build-Process" href="#Build-Process">6 Build Process</a>
+<ul>
+<li><a href="#Build-Steps">6.1 Build Steps</a>
+<ul>
+<li><a href="#Common-Parameters">6.1.1 Common Parameters</a>
+<li><a href="#ShellCommand">6.1.2 ShellCommand</a>
+<li><a href="#Simple-ShellCommand-Subclasses">6.1.3 Simple ShellCommand Subclasses</a>
+<ul>
+<li><a href="#Configure">6.1.3.1 Configure</a>
+<li><a href="#Compile">6.1.3.2 Compile</a>
+<li><a href="#Test">6.1.3.3 Test</a>
+</li></ul>
+<li><a href="#Source-Checkout">6.1.4 Source Checkout</a>
+<ul>
+<li><a href="#CVS">6.1.4.1 CVS</a>
+<li><a href="#SVN">6.1.4.2 SVN</a>
+<li><a href="#Darcs">6.1.4.3 Darcs</a>
+<li><a href="#Arch">6.1.4.4 Arch</a>
+<li><a href="#Bazaar">6.1.4.5 Bazaar</a>
+<li><a href="#P4Sync">6.1.4.6 P4Sync</a>
+</li></ul>
+</li></ul>
+<li><a href="#Build-Factories">6.2 Build Factories</a>
+<ul>
+<li><a href="#BuildStep-Objects">6.2.1 BuildStep Objects</a>
+<li><a href="#BuildFactory">6.2.2 BuildFactory</a>
+<ul>
+<li><a href="#BuildFactory-Attributes">6.2.2.1 BuildFactory Attributes</a>
+<li><a href="#Quick-builds">6.2.2.2 Quick builds</a>
+</li></ul>
+<li><a href="#Process_002dSpecific-build-factories">6.2.3 Process-Specific build factories</a>
+<ul>
+<li><a href="#GNUAutoconf">6.2.3.1 GNUAutoconf</a>
+<li><a href="#CPAN">6.2.3.2 CPAN</a>
+<li><a href="#Python-distutils">6.2.3.3 Python distutils</a>
+<li><a href="#Python_002fTwisted_002ftrial-projects">6.2.3.4 Python/Twisted/trial projects</a>
+</li></ul>
+</li></ul>
+</li></ul>
+<li><a name="toc_Status-Delivery" href="#Status-Delivery">7 Status Delivery</a>
+<ul>
+<ul>
+<li><a href="#HTML-Waterfall">7.0.1 HTML Waterfall</a>
+<li><a href="#IRC-Bot">7.0.2 IRC Bot</a>
+<li><a href="#PBListener">7.0.3 PBListener</a>
+</li></ul>
+</li></ul>
+<li><a name="toc_Resources" href="#Resources">8 Resources</a>
+<li><a name="toc_Index" href="#Index">Index</a>
+</li></ul>
+</div>
+
+
+
+<div class="node">
+<p><hr>
+<a name="Top"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Introduction">Introduction</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#dir">(dir)</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#dir">(dir)</a>
+<br>
+</div>
+
+<h2 class="unnumbered">BuildBot</h2>
+
+<p>This is the BuildBot manual.
+
+   <p>Copyright (C) 2005 Brian Warner
+
+   <p>Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.
+
+<ul class="menu">
+<li><a accesskey="1" href="#Introduction">Introduction</a>:                 What the BuildBot does. 
+<li><a accesskey="2" href="#Installation">Installation</a>:                 Creating a buildmaster and buildslaves,
+                                running them. 
+<li><a accesskey="3" href="#Concepts">Concepts</a>:                     What goes on in the buildbot's little mind. 
+<li><a accesskey="4" href="#Configuration">Configuration</a>:                Controlling the buildbot. 
+<li><a accesskey="5" href="#Getting-Source-Code-Changes">Getting Source Code Changes</a>:   Discovering when to run a build. 
+<li><a accesskey="6" href="#Build-Process">Build Process</a>:                Controlling how each build is run. 
+<li><a accesskey="7" href="#Status-Delivery">Status Delivery</a>:              Telling the world about the build's results. 
+<li><a accesskey="8" href="#Resources">Resources</a>:                    Getting help. 
+<li><a accesskey="9" href="#Index">Index</a>:                        Complete index.
+
+</li></ul>
+<p>--- The Detailed Node Listing ---
+
+<p>Introduction
+
+</p>
+<ul class="menu">
+<li><a href="#History-and-Philosophy">History and Philosophy</a>
+<li><a href="#System-Architecture">System Architecture</a>
+<li><a href="#Control-Flow">Control Flow</a>
+
+</li></ul>
+<p>Installation
+
+</p>
+<ul class="menu">
+<li><a href="#Requirements">Requirements</a>
+<li><a href="#Installing-the-code">Installing the code</a>
+<li><a href="#Creating-a-buildmaster">Creating a buildmaster</a>
+<li><a href="#Creating-a-buildslave">Creating a buildslave</a>
+<li><a href="#Launching-the-daemons">Launching the daemons</a>
+<li><a href="#Logfiles">Logfiles</a>
+<li><a href="#Shutdown">Shutdown</a>
+<li><a href="#Maintenance">Maintenance</a>
+<li><a href="#Troubleshooting">Troubleshooting</a>
+
+</li></ul>
+<p>Troubleshooting
+
+</p>
+<ul class="menu">
+<li><a href="#Starting-the-buildslave">Starting the buildslave</a>
+<li><a href="#Connecting-to-the-buildmaster">Connecting to the buildmaster</a>
+<li><a href="#Forcing-Builds">Forcing Builds</a>
+
+</li></ul>
+<p>Concepts
+
+</p>
+<ul class="menu">
+<li><a href="#Version-Control-Systems">Version Control Systems</a>
+<li><a href="#Changes">Changes</a>
+<li><a href="#Users">Users</a>
+
+</li></ul>
+<p>Version Control Systems
+
+</p>
+<ul class="menu">
+<li><a href="#Generalizing-VC-Systems">Generalizing VC Systems</a>
+<li><a href="#Source-Tree-Specifications">Source Tree Specifications</a>
+<li><a href="#How-Different-VC-Systems-Specify-Sources">How Different VC Systems Specify Sources</a>
+<li><a href="#Attributes-of-Changes">Attributes of Changes</a>
+
+</li></ul>
+<p>Users
+
+</p>
+<ul class="menu">
+<li><a href="#Doing-Things-With-Users">Doing Things With Users</a>
+<li><a href="#Email-Addresses">Email Addresses</a>
+<li><a href="#IRC-Nicknames">IRC Nicknames</a>
+<li><a href="#Live-Status-Clients">Live Status Clients</a>
+
+</li></ul>
+<p>Configuration
+
+</p>
+<ul class="menu">
+<li><a href="#Config-File-Format">Config File Format</a>
+<li><a href="#Loading-the-Config-File">Loading the Config File</a>
+<li><a href="#Defining-the-Project">Defining the Project</a>
+<li><a href="#Listing-Change-Sources">Listing Change Sources</a>
+<li><a href="#Setting-the-slaveport">Setting the slaveport</a>
+<li><a href="#Buildslave-Specifiers">Buildslave Specifiers</a>
+<li><a href="#Defining-Builders">Defining Builders</a>
+<li><a href="#Interlocks">Interlocks</a>
+<li><a href="#Defining-Status-Targets">Defining Status Targets</a>
+<li><a href="#Debug-options">Debug options</a>
+
+</li></ul>
+<p>Getting Source Code Changes
+
+</p>
+<ul class="menu">
+<li><a href="#Change-Sources">Change Sources</a>
+<li><a href="#Sending-Changes-at-the-Buildmaster">Sending Changes at the Buildmaster</a>
+<li><a href="#Receiving-Changes">Receiving Changes</a>
+
+</li></ul>
+<p>Change Sources
+
+</p>
+<ul class="menu">
+<li><a href="#Choosing-ChangeSources">Choosing ChangeSources</a>
+<li><a href="#CVSToys-_002d-PBService">CVSToys - PBService</a>
+<li><a href="#CVSToys-_002d-mail-notification">CVSToys - mail notification</a>
+<li><a href="#Other-mail-notification-ChangeSources">Other mail notification ChangeSources</a>
+<li><a href="#PBChangeSource">PBChangeSource</a>
+
+</li></ul>
+<p>Build Process
+
+</p>
+<ul class="menu">
+<li><a href="#Build-Steps">Build Steps</a>
+<li><a href="#Build-Factories">Build Factories</a>
+
+</li></ul>
+<p>Build Steps
+
+</p>
+<ul class="menu">
+<li><a href="#Common-Parameters">Common Parameters</a>
+<li><a href="#ShellCommand">ShellCommand</a>
+<li><a href="#Simple-ShellCommand-Subclasses">Simple ShellCommand Subclasses</a>
+<li><a href="#Source-Checkout">Source Checkout</a>
+
+</li></ul>
+<p>Simple ShellCommand Subclasses
+
+</p>
+<ul class="menu">
+<li><a href="#Configure">Configure</a>
+<li><a href="#Compile">Compile</a>
+<li><a href="#Test">Test</a>
+
+</li></ul>
+<p>Source Checkout
+
+</p>
+<ul class="menu">
+<li><a href="#CVS">CVS</a>
+<li><a href="#SVN">SVN</a>
+<li><a href="#Darcs">Darcs</a>
+<li><a href="#Arch">Arch</a>
+<li><a href="#Bazaar">Bazaar</a>
+<li><a href="#P4Sync">P4Sync</a>
+
+</li></ul>
+<p>Build Factories
+
+</p>
+<ul class="menu">
+<li><a href="#BuildStep-Objects">BuildStep Objects</a>
+<li><a href="#BuildFactory">BuildFactory</a>
+<li><a href="#Process_002dSpecific-build-factories">Process-Specific build factories</a>
+
+</li></ul>
+<p>BuildFactory
+
+</p>
+<ul class="menu">
+<li><a href="#BuildFactory-Attributes">BuildFactory Attributes</a>
+<li><a href="#Quick-builds">Quick builds</a>
+
+</li></ul>
+<p>Process-Specific build factories
+
+</p>
+<ul class="menu">
+<li><a href="#GNUAutoconf">GNUAutoconf</a>
+<li><a href="#CPAN">CPAN</a>
+<li><a href="#Python-distutils">Python distutils</a>
+<li><a href="#Python_002fTwisted_002ftrial-projects">Python/Twisted/trial projects</a>
+
+</li></ul>
+<p>Status Delivery
+
+</p>
+<ul class="menu">
+<li><a href="#HTML-Waterfall">HTML Waterfall</a>
+<li><a href="#IRC-Bot">IRC Bot</a>
+<li><a href="#PBListener">PBListener</a>
+
+   </ul>
+
+<div class="node">
+<p><hr>
+<a name="Introduction"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Installation">Installation</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Top">Top</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+<br>
+</div>
+
+<h2 class="chapter">1 Introduction</h2>
+
+<p><a name="index-introduction-1"></a>
+The BuildBot is a system to automate the compile/test cycle required by most
+software projects to validate code changes. By automatically rebuilding and
+testing the tree each time something has changed, build problems are
+pinpointed quickly, before other developers are inconvenienced by the
+failure. The guilty developer can be identified and harassed without human
+intervention. By running the builds on a variety of platforms, developers
+who do not have the facilities to test their changes everywhere before
+checkin will at least know shortly afterwards whether they have broken the
+build or not. Warning counts, lint checks, image size, compile time, and
+other build parameters can be tracked over time, are more visible, and
+are therefore easier to improve.
+
+   <p>The overall goal is to reduce tree breakage and provide a platform to
+run tests or code-quality checks that are too annoying or pedantic for
+any human to waste their time with. Developers get immediate (and
+potentially public) feedback about their changes, encouraging them to
+be more careful about testing before checkin.
+
+   <p>Features:
+
+     <ul>
+<li>run builds on a variety of slave platforms
+<li>arbitrary build process: handles projects using C, Python, whatever
+<li>minimal host requirements: python and Twisted
+<li>slaves can be behind a firewall if they can still do checkout
+<li>status delivery through web page, email, IRC, other protocols
+<li>track builds in progress, provide estimated completion time
+<li>flexible configuration by subclassing generic build process classes
+<li>debug tools to force a new build, submit fake Changes, query slave status
+<li>released under the GPL
+</ul>
+
+<ul class="menu">
+<li><a accesskey="1" href="#History-and-Philosophy">History and Philosophy</a>
+<li><a accesskey="2" href="#System-Architecture">System Architecture</a>
+<li><a accesskey="3" href="#Control-Flow">Control Flow</a>
+</ul>
+
+<div class="node">
+<p><hr>
+<a name="History-and-Philosophy"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#System-Architecture">System Architecture</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Introduction">Introduction</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Introduction">Introduction</a>
+<br>
+</div>
+
+<h3 class="section">1.1 History and Philosophy</h3>
+
+<p>The Buildbot was inspired by a similar project built for a development
+team writing a cross-platform embedded system. The various components
+of the project were supposed to compile and run on several flavors of
+unix (linux, solaris, BSD), but individual developers had their own
+preferences and tended to stick to a single platform. From time to
+time, incompatibilities would sneak in (some unix platforms want to
+use <code>string.h</code>, some prefer <code>strings.h</code>), and then the tree
+would compile for some developers but not others. The buildbot was
+written to automate the human process of walking into the office,
+updating a tree, compiling (and discovering the breakage), finding the
+developer at fault, and complaining to them about the problem they had
+introduced. With multiple platforms it was difficult for developers to
+do the right thing (compile their potential change on all platforms);
+the buildbot offered a way to help.
+
+   <p>Another problem was when programmers would change the behavior of a
+library without warning its users, or change internal aspects that
+other code was (unfortunately) depending upon. Adding unit tests to
+the codebase helps here: if an application's unit tests pass despite
+changes in the libraries it uses, you can have more confidence that
+the library changes haven't broken anything. Many developers
+complained that the unit tests were inconvenient or took too long to
+run: having the buildbot run them reduces the developer's workload to
+a minimum.
+
+   <p>In general, having more visibility into the project is always good,
+and automation makes it easier for to do the right thing. When
+everyone can see the status of the project, developers are encouraged
+to keep the tree in good working order.
+
+   <p>The current version of the Buildbot is additionally targeted at
+distributed free-software projects, where resources and platforms are
+only available when provided by interested volunteers. The buildslaves
+are designed to require an absolute minimum of configuration, reducing
+the effort a potential volunteer needs to expend to be able to
+contribute a new test environment to the project. The goal is for
+anyone who wishes that a given project would run on their favorite
+platform should be able to offer that project a buildslave, running on
+that platform, where they can verify that their portability code
+works, and keeps working.
+
+<div class="node">
+<p><hr>
+<a name="System-Architecture"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Control-Flow">Control Flow</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#History-and-Philosophy">History and Philosophy</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Introduction">Introduction</a>
+<br>
+</div>
+
+<!-- node-name,  next,  previous,  up -->
+<h3 class="section">1.2 System Architecture</h3>
+
+<p>The Buildbot consists of a single <code>buildmaster</code> and one or more
+<code>buildslaves</code>, connected in a star topology. The buildmaster
+makes all decisions about what and when to build. It sends commands to
+be run on the build slaves, which simply execute the commands and
+return the results. (certain steps involve more local decision making,
+where the overhead of sending a lot of commands back and forth would
+be inappropriate, but in general the buildmaster is responsible for
+everything).
+
+   <p>The buildmaster is usually fed <code>Changes</code> by some sort of version
+control system See <a href="#Change-Sources">Change Sources</a>, which may cause builds to be
+run. As the builds are performed, various status messages are
+produced, which are then sent to any registered Status Targets
+See <a href="#Status-Delivery">Status Delivery</a>.
+
+<!-- @image{images/overview} -->
+<p>The buildmaster is configured and maintained by the &ldquo;buildmaster
+admin&rdquo;, who is generally the project team member responsible for
+build process issues. Each buildslave is maintained by a &ldquo;buildslave
+admin&rdquo;, who do not need to be quite as involved. Generally slaves are
+run by anyone who has an interest in seeing the project work well on
+their platform.
+
+<div class="node">
+<p><hr>
+<a name="Control-Flow"></a>Previous:&nbsp;<a rel="previous" accesskey="p" href="#System-Architecture">System Architecture</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Introduction">Introduction</a>
+<br>
+</div>
+
+<!-- node-name,  next,  previous,  up -->
+<h3 class="section">1.3 Control Flow</h3>
+
+<p>A day in the life of the buildbot:
+
+     <ul>
+<li>A developer commits some source code changes to the repository. A hook
+script or commit trigger of some sort sends information about this
+change to the buildmaster through one of its configured Change
+Sources. This notification might arrive via email, or over a network
+connection (either initiated by the buildmaster as it &ldquo;subscribes&rdquo;
+to changes, or by the commit trigger as it pushes Changes towards the
+buildmaster). The Change contains information about who made the
+change, what files were modified, which revision contains the change,
+and any checkin comments.
+
+     <li>The buildmaster distributes this change to all of its configured
+Builders, which funnel it into their current &ldquo;waiting Build&rdquo;. Any
+&ldquo;important&rdquo; changes cause the &ldquo;tree-stable-timer&rdquo; to be started,
+and the Change is added to a list of those that will go into the
+build. When the timer expires, the Build is started. Unless configured
+otherwise, all Builds run in parallel on the various buildslaves.
+
+     <li>The Build consists of a series of Steps. Each Step causes some number
+of commands to be invoked on the remote buildslave associated with
+that Builder. The first step is almost always to perform a checkout of
+the appropriate revision from the same VC system that produced the
+Change. The rest generally perform a compile and run unit tests. As
+each Step runs, the buildslave reports back command output and return
+status to the buildmaster.
+
+     <li>As the Build runs, status messages like &ldquo;Build Started&rdquo;, &ldquo;Step
+Started&rdquo;, &ldquo;Build Finished&rdquo;, etc, are published to a collection of
+Status Targets. One of these targets is usually the HTML &ldquo;Waterfall&rdquo;
+display, which shows a chronological list of events, and summarizes
+the results of the most recent build at the top of each column. 
+Developers can periodically check this page to see how their changes
+have fared. If they see red, they know that they've made a mistake and
+need to fix it. If they see green, they know that they've done their
+duty and don't need to worry about their change breaking anything.
+
+     <li>If a MailNotifier status target is active, the completion of a build
+will cause email to be sent to any developers whose Changes were
+incorporated into this Build. The MailNotifier can be configured to
+only send mail upon failing builds, or for builds which have just
+transitioned from passing to failing. Other status targets can provide
+similar real-time notification via different communication channels,
+like IRC.
+
+   </ul>
+
+<div class="node">
+<p><hr>
+<a name="Installation"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Concepts">Concepts</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Introduction">Introduction</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+<br>
+</div>
+
+<h2 class="chapter">2 Installation</h2>
+
+<ul class="menu">
+<li><a accesskey="1" href="#Requirements">Requirements</a>
+<li><a accesskey="2" href="#Installing-the-code">Installing the code</a>
+<li><a accesskey="3" href="#Creating-a-buildmaster">Creating a buildmaster</a>
+<li><a accesskey="4" href="#Creating-a-buildslave">Creating a buildslave</a>
+<li><a accesskey="5" href="#Launching-the-daemons">Launching the daemons</a>
+<li><a accesskey="6" href="#Logfiles">Logfiles</a>
+<li><a accesskey="7" href="#Shutdown">Shutdown</a>
+<li><a accesskey="8" href="#Maintenance">Maintenance</a>
+<li><a accesskey="9" href="#Troubleshooting">Troubleshooting</a>
+</ul>
+
+<div class="node">
+<p><hr>
+<a name="Requirements"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Installing-the-code">Installing the code</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Installation">Installation</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Installation">Installation</a>
+<br>
+</div>
+
+<h3 class="section">2.1 Requirements</h3>
+
+<p>At a bare minimum, you'll need the following (for both the buildmaster
+and a buildslave):
+
+     <ul>
+<li>Python: http://www.python.org
+
+     <p>Buildbot requires python-2.2 or later, and is primarily developed against
+python-2.3. The buildmaster uses generators, a feature which is not
+available in python-2.1, and both master and slave require a version of
+Twisted which only works with python-2.2 or later. Certain features (like
+the inclusion of build logs in status emails) require python-2.2.2 or
+later.
+
+     <li>Twisted: http://twistedmatrix.com
+
+     <p>Both the buildmaster and the buildslaves require Twisted-1.3.0 or
+later. They have been briefly tested against Twisted-1.2.0, and might
+even work with Twisted-1.1.0, but 1.3.0 is the version that has
+received the most testing.
+
+     <p>They run against Twisted-2.0.0 as well, albeit with a number of
+warnings about the use of deprecated features. If you use Twisted-2.0,
+you'll need at least "Twisted" (the core package), and you'll also
+want TwistedMail, TwistedWeb, and TwistedWords (for sending email,
+serving a web status page, and delivering build status via IRC,
+respectively). 
+</ul>
+
+   <p>Certain other packages may be useful on the system running the
+buildmaster:
+
+     <ul>
+<li>CVSToys: http://purl.net/net/CVSToys
+
+     <p>If your buildmaster uses FreshCVSSource to receive change notification
+from a cvstoys daemon, it will require CVSToys be installed (tested
+with CVSToys-1.0.10). If the it doesn't use that source (i.e. if you
+only use a mail-parsing change source, or the SVN notification
+script), you will not need CVSToys.
+
+   </ul>
+
+<div class="node">
+<p><hr>
+<a name="Installing-the-code"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Creating-a-buildmaster">Creating a buildmaster</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Requirements">Requirements</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Installation">Installation</a>
+<br>
+</div>
+
+<h3 class="section">2.2 Installing the code</h3>
+
+<p>The Buildbot is installed using the standard python <code>distutils</code>
+module. After unpacking the tarball, the process is:
+
+<pre class="example">     python setup.py build
+     python setup.py install
+</pre>
+   <p>where the install step may need to be done as root. This will put the
+bulk of the code in somewhere like
+/usr/lib/python2.3/site-packages/buildbot . It will also install the
+<code>buildbot</code> command-line tool in /usr/bin/buildbot.
+
+   <p>To test this, shift to a different directory (like /tmp), and run:
+
+<pre class="example">     pydoc buildbot
+</pre>
+   <p>If it shows you a brief description of the package and its contents,
+the install went ok. If it says <code>no Python documentation found
+for 'buildbot'</code>, then something went wrong.
+
+   <p>Windows users will find these files in other places. You will need to
+make sure that python can find the libraries, and will probably find
+it convenient to have <code>buildbot</code> on your PATH.
+
+   <p>If you wish, you can run the buildbot unit test suite like this:
+
+<pre class="example">     PYTHONPATH=. trial -v buildbot.test
+</pre>
+   <p>This should run up to 109 tests, depending upon what VC tools you have
+installed. On my desktop machine it takes about two minutes to complete. 
+Nothing should fail, a few might be skipped. If any of the tests fail, you
+should stop and investigate the cause before continuing the installation
+process, as it will probably be easier to track down the bug early.
+
+   <p>If you want to test the VC checkout process, you'll need to install a
+tarball of repositories, available from http://buildbot.sf.net/ . Otherwise
+there are about 8 tests which will be skipped (all with names like testSVN
+and testArchHTTP). If you unpack this tarball in ~/tmp, it will create
+~/tmp/buildbot-test-vc-1, and you can enable the extra tests with:
+
+<pre class="example">     PYTHONPATH=. BUILDBOT_TEST_VC=~/tmp trial -v buildbot.test
+</pre>
+   <p>If you cannot or do not wish to install the buildbot into a site-wide
+location like <span class="file">/usr</span> or <span class="file">/usr/local</span>, you can also install
+it into the account's home directory. Do the install command like
+this:
+
+<pre class="example">     python setup.py install --home=~
+</pre>
+   <p>That will populate <span class="file">~/lib/python</span> and create
+<span class="file">~/bin/buildbot</span>. Make sure this lib directory is on your
+<code>PYTHONPATH</code>.
+
+<div class="node">
+<p><hr>
+<a name="Creating-a-buildmaster"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Creating-a-buildslave">Creating a buildslave</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Installing-the-code">Installing the code</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Installation">Installation</a>
+<br>
+</div>
+
+<h3 class="section">2.3 Creating a buildmaster</h3>
+
+<p>As you learned earlier (see <a href="#System-Architecture">System Architecture</a>), the buildmaster
+runs on a central host (usually one that is publically visible, so
+everybody can check on the status of the project), and controls all
+aspects of the buildbot system. Let us call this host
+<code>buildbot.example.org</code>.
+
+   <p>You may wish to create a separate user account for the buildmaster,
+perhaps named <code>buildmaster</code>. This can help keep your personal
+configuration distinct from that of the buildmaster and is useful if
+you have to use a mail-based notification system (see <a href="#Change-Sources">Change Sources</a>). However, the Buildbot will work just fine with your regular
+user account.
+
+   <p>You need to choose a directory for the buildmaster, called the
+<code>basedir</code>. This directory will be owned by the buildmaster, which
+will use configuration files therein, and create status files as it
+runs. <span class="file">~/Buildbot</span> is a likely value. If you run multiple
+buildmasters in the same account, or if you run both masters and
+slaves, you may want a more distinctive name like
+<span class="file">~/Buildbot/master/gnomovision</span> or
+<span class="file">~/Buildmasters/fooproject</span>.
+
+   <p>Once you've picked a directory, use the <span class="command">buildbot master</span>
+command to create the directory and populate it with startup files:
+
+<pre class="example">     buildbot master <var>basedir</var>
+</pre>
+   <p>You will need to create a configuration file (see <a href="#Configuration">Configuration</a>)
+before starting the buildmaster. Most of the rest of this manual is
+dedicated to explaining how to do this. A sample configuration file is
+placed in the working directory, named <span class="file">master.cfg.sample</span>, which
+can be copied to <span class="file">master.cfg</span> and edited to suit your purposes.
+
+   <p>Internal details:
+
+   <p>This command creates a file named <span class="file">buildbot.tac</span> that contains
+all the state necessary to create the buildmaster. Twisted has a tool
+called <code>twistd</code> which can use this .tac file to create and launch
+a buildmaster instance. twistd takes care of logging and daemonization
+(running the program in the background). <span class="file">/usr/bin/buildbot</span> is a
+front end which runs twistd for you.
+
+   <p>In addition to <span class="file">buildbot.tac</span>, a small <span class="file">Makefile.sample</span> is
+installed. This can be used as the basis for customize daemon startup,
+See <a href="#Launching-the-daemons">Launching the daemons</a>.
+
+<div class="node">
+<p><hr>
+<a name="Creating-a-buildslave"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Launching-the-daemons">Launching the daemons</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Creating-a-buildmaster">Creating a buildmaster</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Installation">Installation</a>
+<br>
+</div>
+
+<h3 class="section">2.4 Creating a buildslave</h3>
+
+<p>Typically, you will be adding a buildslave to an existing buildmaster,
+to provide additional architecture coverage. The buildbot
+administrator will give you several pieces of information necessary to
+connect to the buildmaster. You should also be somewhat familiar with
+the project being tested, so you can troubleshoot build problems
+locally.
+
+   <p>The buildbot exists to make sure that the project's stated &ldquo;how to
+build it&rdquo; process actually works. To this end, the buildslave should
+run in an environment just like that of your regular developers. 
+Typically the project build process is documented somewhere
+(<span class="file">README</span>, <span class="file">INSTALL</span>, etc), in a document that should
+mention all library dependencies and contain a basic set of build
+instructions. This document will be useful as you configure the host
+and account in which the buildslave runs.
+
+   <p>Here's a good checklist for setting up a buildslave:
+
+     <ol type=1 start=1>
+<li>Set up the account
+
+     <p>It is recommended (although not mandatory) to set up a separate user
+account for the buildslave. This account is frequently named
+<code>buildbot</code> or <code>buildslave</code>. This serves to isolate your
+personal working environment from that of the slave's, and helps to
+minimize the security threat posed by letting possibly-unknown
+contributors run arbitrary code on your system. The account should
+have a minimum of fancy init scripts.
+
+     <li>Install the buildbot code
+
+     <p>Follow the instructions given earlier (see <a href="#Installing-the-code">Installing the code</a>). 
+If you use a separate buildslave account, and you didn't install the
+buildbot code to a shared location, then you will need to install it
+with <code>--home=~</code> for each account that needs it.
+
+     <li>Set up the host
+
+     <p>Make sure the host can actually reach the buildmaster. Usually the
+buildmaster is running a status webserver on the same machine, so
+simply point your web browser at it and see if you can get there. 
+Install whatever additional packages or libraries the project's
+INSTALL document advises. (or not: if your buildslave is supposed to
+make sure that building without optional libraries still works, then
+don't install those libraries).
+
+     <p>Again, these libraries don't necessarily have to be installed to a
+site-wide shared location, but they must be available to your build
+process. Accomplishing this is usually very specific to the build
+process, so installing them to <span class="file">/usr</span> or <span class="file">/usr/local</span> is
+usually the best approach.
+
+     <li>Test the build process
+
+     <p>Follow the instructions in the INSTALL document, in the buildslave's
+account. Perform a full CVS (or whatever) checkout, configure, make,
+run tests, etc. Confirm that the build works without manual fussing. 
+If it doesn't work when you do it by hand, it will be unlikely to work
+when the buildbot attempts to do it in an automated fashion.
+
+     <li>Choose a base directory
+
+     <p>This should be somewhere in the buildslave's account, typically named
+after the project which is being tested. The buildslave will not touch
+any file outside of this directory. Something like <span class="file">~/Buildbot</span>
+or <span class="file">~/Buildslaves/fooproject</span> is appropriate.
+
+     <li>Get the buildmaster host/port, botname, and password
+
+     <p>When the buildbot admin configures the buildmaster to accept and use
+your buildslave, they will provide you with the following pieces of
+information:
+
+          <ul>
+<li>your buildslave's name
+<li>the password assigned to your buildslave
+<li>the hostname and port number of the buildmaster, i.e. example.com:8007
+</ul>
+
+     <li>Create the buildslave
+
+     <p>Now run the 'buildbot' command as follows:
+
+     <pre class="example">          buildbot slave <var>BASEDIR</var> <var>MASTERHOST</var>:<var>PORT</var> <var>SLAVENAME</var> <var>PASSWORD</var>
+     </pre>
+     <p>This will create the base directory and a collection of files inside,
+including the <span class="file">buildbot.tac</span> file that contains all the
+information you passed to the <code>buildbot</code> command.
+
+     <li>Fill in the hostinfo files
+
+     <p>When it first connects, the buildslave will send a few files up to the
+buildmaster which describe the host that it is running on. These files
+are presented on the web status display so that developers have more
+information to reproduce any test failures that are witnessed by the
+buildbot. There are sample files in the <span class="file">info</span> subdirectory of
+the buildbot's base directory. You should edit these to correctly
+describe you and your host.
+
+     <p><span class="file">BASEDIR/info/admin</span> should contain your name and email address. 
+This is the &ldquo;buildslave admin address&rdquo;, and will be visible from the
+build status page (so you may wish to munge it a bit if
+address-harvesting spambots are a concern).
+
+     <p><span class="file">BASEDIR/info/host</span> should be filled with a brief description of
+the host: OS, version, memory size, CPU speed, versions of relevant
+libraries installed, and finally the version of the buildbot code
+which is running the buildslave.
+
+     <p>If you run many buildslaves, you may want to create
+<span class="file">~buildslave/info</span> and share it among all the buildslaves with
+symlinks.
+
+        </ol>
+
+<div class="node">
+<p><hr>
+<a name="Launching-the-daemons"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Logfiles">Logfiles</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Creating-a-buildslave">Creating a buildslave</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Installation">Installation</a>
+<br>
+</div>
+
+<h3 class="section">2.5 Launching the daemons</h3>
+
+<p>Both the buildmaster and the buildslave run as daemon programs. To
+launch them, pass the working directory to the <code>buildbot</code>
+command:
+
+<pre class="example">     buildbot start <var>BASEDIR</var>
+</pre>
+   <p>This command will start the daemon and then return, so normally it
+will not produce any output. To verify that the programs are indeed
+running, look for a pair of files named <span class="file">twistd.log</span> and
+<span class="file">twistd.pid</span> that should be created in the working directory. 
+<span class="file">twistd.pid</span> contains the process ID of the newly-spawned daemon.
+
+   <p>When the buildslave connects to the buildmaster, new directories will
+start appearing in its base directory. The buildmaster tells the slave
+to create a directory for each Builder which will be using that slave. 
+All build operations are performed within these directories: CVS
+checkouts, compiles, and tests.
+
+   <p>Once you get everything running, you will want to arrange for the
+buildbot daemons to be started at boot time. One way is to use
+<code>cron</code>, by putting them in a @reboot crontab entry:
+
+<pre class="example">     @reboot buildbot <var>BASEDIR</var>
+</pre>
+   <p>There is also experimental support for sysvinit-style
+<span class="file">/etc/init.d/buildbot</span> startup scripts. 
+<span class="file">debian/buildbot.init</span> and <span class="file">debian/buildbot.default</span> may be
+useful to look at.
+
+   <p>It is important to remember that the environment provided to cron jobs
+and init scripts can be quite different that your normal runtime. 
+There may be fewer environment variables specified, and the PATH may
+be shorter than usual. It is a good idea to test out this method of
+launching the buildslave by using a cron job with a time in the near
+future, with the same command, and then check <span class="file">twistd.log</span> to
+make sure the slave actually started correctly. Common problems here
+are for <span class="file">/usr/local</span> or <span class="file">~/bin</span> to not be on your
+<code>PATH</code>, or for <code>PYTHONPATH</code> to not be set correctly. 
+Sometimes <code>HOME</code> is messed up too.
+
+   <p>To modify the way the daemons are started (perhaps you want to set
+some environment variables first, or perform some cleanup each time),
+you can create a file named <span class="file">Makefile.buildbot</span> in the base
+directory. When the <span class="file">buildbot</span> front-end tool is told to
+<span class="command">start</span> the daemon, and it sees this file (and
+<span class="file">/usr/bin/make</span> exists), it will do <span class="command">make -f
+Makefile.buildbot start</span> instead of its usual action (which involves
+running <span class="command">twistd</span>). When the buildmaster or buildslave is
+installed, a <span class="file">Makefile.sample</span> is created which implements the
+same behavior as the the <span class="file">buildbot</span> tool uses, so if you want to
+customize the process, just copy <span class="file">Makefile.sample</span> to
+<span class="file">Makefile.buildbot</span> and edit it as necessary.
+
+<div class="node">
+<p><hr>
+<a name="Logfiles"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Shutdown">Shutdown</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Launching-the-daemons">Launching the daemons</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Installation">Installation</a>
+<br>
+</div>
+
+<h3 class="section">2.6 Logfiles</h3>
+
+<p>While a buildbot daemon runs, it emits text to a logfile, named
+<span class="file">twistd.log</span>. A command like <code>tail -f twistd.log</code> is useful
+to watch the command output as it runs.
+
+   <p>The buildmaster will announce any errors with its configuration file
+in the logfile, so it is a good idea to look at the log at startup
+time to check for any problems. Most buildmaster activities will cause
+lines to be added to the log.
+
+<div class="node">
+<p><hr>
+<a name="Shutdown"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Maintenance">Maintenance</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Logfiles">Logfiles</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Installation">Installation</a>
+<br>
+</div>
+
+<h3 class="section">2.7 Shutdown</h3>
+
+<p>To stop a buildmaster or buildslave manually, use:
+
+<pre class="example">     buildbot stop <var>BASEDIR</var>
+</pre>
+   <p>This simply looks for the <span class="file">twistd.pid</span> file and kills whatever
+process is identified within.
+
+   <p>At system shutdown, all processes are sent a <code>SIGKILL</code>. The
+buildmaster and buildslave will respond to this by shutting down
+normally.
+
+   <p>The buildmaster will respond to a <code>SIGHUP</code> by re-reading its
+config file. The following shortcut is available:
+
+<pre class="example">     buildbot sighup <var>BASEDIR</var>
+</pre>
+   <div class="node">
+<p><hr>
+<a name="Maintenance"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Troubleshooting">Troubleshooting</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Shutdown">Shutdown</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Installation">Installation</a>
+<br>
+</div>
+
+<h3 class="section">2.8 Maintenance</h3>
+
+<p>It is a good idea to check the buildmaster's status page every once in
+a while, to see if your buildslave is still online. Eventually the
+buildbot will probably be enhanced to send you email (via the
+<span class="file">info/admin</span> email address) when the slave has been offline for
+more than a few hours.
+
+   <p>If you find you can no longer provide a buildslave to the project, please
+let the project admins know, so they can put out a call for a
+replacement.
+
+   <p>The Buildbot records status and logs output continually, each time a
+build is performed. The status tends to be small, but the build logs
+can become quite large. Each build and log are recorded in a separate
+file, arranged hierarchically under the buildmaster's base directory. 
+To prevent these files from growing without bound, you should
+periodically delete old build logs. A simple cron job to delete
+anything older than, say, two weeks should do the job. The only trick
+is to leave the <span class="file">buildbot.tac</span> and other support files alone, for
+which find's <code>-mindepth</code> argument helps skip everything in the
+top directory. You can use something like the following:
+
+<pre class="example">     @weekly cd BASEDIR &amp;&amp; find . -mindepth 2 -type f -mtime +14 -exec rm {} \;
+     @weekly cd BASEDIR &amp;&amp; find twistd.log* -mtime +14 -exec rm {} \;
+</pre>
+   <div class="node">
+<p><hr>
+<a name="Troubleshooting"></a>Previous:&nbsp;<a rel="previous" accesskey="p" href="#Maintenance">Maintenance</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Installation">Installation</a>
+<br>
+</div>
+
+<h3 class="section">2.9 Troubleshooting</h3>
+
+<p>Here are a few hints on diagnosing common problems.
+
+<ul class="menu">
+<li><a accesskey="1" href="#Starting-the-buildslave">Starting the buildslave</a>
+<li><a accesskey="2" href="#Connecting-to-the-buildmaster">Connecting to the buildmaster</a>
+<li><a accesskey="3" href="#Forcing-Builds">Forcing Builds</a>
+</ul>
+
+<div class="node">
+<p><hr>
+<a name="Starting-the-buildslave"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Connecting-to-the-buildmaster">Connecting to the buildmaster</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Troubleshooting">Troubleshooting</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Troubleshooting">Troubleshooting</a>
+<br>
+</div>
+
+<h4 class="subsection">2.9.1 Starting the buildslave</h4>
+
+<p>Cron jobs are typically run with a minimal shell (<span class="file">/bin/sh</span>, not
+<span class="file">/bin/bash</span>), and tilde expansion is not always performed in such
+commands. You may want to use explicit paths, because the <code>PATH</code>
+is usually quite short and doesn't include anything set by your
+shell's startup scripts (<span class="file">.profile</span>, <span class="file">.bashrc</span>, etc). If
+you've installed buildbot (or other python libraries) to an unusual
+location, you may need to add a <code>PYTHONPATH</code> specification (note
+that python will do tilde-expansion on <code>PYTHONPATH</code> elements by
+itself). Sometimes it is safer to fully-specify everything:
+
+<pre class="example">     @reboot PYTHONPATH=~/lib/python /usr/local/bin/buildbot start /usr/home/buildbot/basedir
+</pre>
+   <p>Take the time to get the @reboot job set up. Otherwise, things will work
+fine for a while, but the first power outage or system reboot you have will
+stop the buildslave with nothing but the cries of sorrowful developers to
+remind you that it has gone away.
+
+<div class="node">
+<p><hr>
+<a name="Connecting-to-the-buildmaster"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Forcing-Builds">Forcing Builds</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Starting-the-buildslave">Starting the buildslave</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Troubleshooting">Troubleshooting</a>
+<br>
+</div>
+
+<h4 class="subsection">2.9.2 Connecting to the buildmaster</h4>
+
+<p>If the buildslave cannot connect to the buildmaster, the reason should
+be described in the <span class="file">twistd.log</span> logfile. Some common problems
+are an incorrect master hostname or port number, or a mistyped bot
+name or password. If the buildslave loses the connection to the
+master, it is supposed to attempt to reconnect with an
+exponentially-increasing backoff. Each attempt (and the time of the
+next attempt) will be logged. If you get impatient, just manually stop
+and re-start the buildslave.
+
+   <p>When the buildmaster is restarted, all slaves will be disconnected,
+and will attempt to reconnect as usual. The reconnect time will depend
+upon how long the buildmaster is offline (i.e. how far up the
+exponential backoff curve the slaves have travelled). Again,
+<code>buildbot stop </code><var>BASEDIR</var><code>; buildbot start </code><var>BASEDIR</var> will
+speed up the process.
+
+<div class="node">
+<p><hr>
+<a name="Forcing-Builds"></a>Previous:&nbsp;<a rel="previous" accesskey="p" href="#Connecting-to-the-buildmaster">Connecting to the buildmaster</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Troubleshooting">Troubleshooting</a>
+<br>
+</div>
+
+<h4 class="subsection">2.9.3 Forcing Builds</h4>
+
+<p>From the buildmaster's main status web page, you can force a build to
+be run on your build slave. Figure out which column is for a builder
+that runs on your slave, click on that builder's name, and the page
+that comes up will have a &ldquo;Force Build&rdquo; button. Fill in the form,
+hit the button, and a moment later you should see your slave's
+<span class="file">twistd.log</span> filling with commands being run. Using <code>pstree</code>
+or <code>top</code> should also reveal the cvs/make/gcc/etc processes being
+run by the buildslave. Note that the same web page should also show
+the <span class="file">admin</span> and <span class="file">host</span> information files that you configured
+earlier.
+
+<div class="node">
+<p><hr>
+<a name="Concepts"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Configuration">Configuration</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Installation">Installation</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+<br>
+</div>
+
+<h2 class="chapter">3 Concepts</h2>
+
+<p>This chapter defines some of the basic concepts that the Buildbot
+uses. You'll need to understand how the Buildbot sees the world to
+configure it properly.
+
+<ul class="menu">
+<li><a accesskey="1" href="#Version-Control-Systems">Version Control Systems</a>
+<li><a accesskey="2" href="#Changes">Changes</a>
+<li><a accesskey="3" href="#Users">Users</a>
+</ul>
+
+<div class="node">
+<p><hr>
+<a name="Version-Control-Systems"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Changes">Changes</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Concepts">Concepts</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Concepts">Concepts</a>
+<br>
+</div>
+
+<h3 class="section">3.1 Version Control Systems</h3>
+
+<p><a name="index-CVS-2"></a>
+These source trees come from a Version Control System of some kind. 
+CVS and Subversion are two popular ones, but the Buildbot supports
+others. All VC systems<a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a> have some notion of an upstream
+<code>repository</code> which acts as a server, from which clients can
+obtain source trees according to various parameters. The VC repository
+provides source trees of various projects, for different branches, and
+from various points in time. The first thing we have to do is to
+specify which source tree we want to get.
+
+<ul class="menu">
+<li><a accesskey="1" href="#Generalizing-VC-Systems">Generalizing VC Systems</a>
+<li><a accesskey="2" href="#Source-Tree-Specifications">Source Tree Specifications</a>
+<li><a accesskey="3" href="#How-Different-VC-Systems-Specify-Sources">How Different VC Systems Specify Sources</a>
+<li><a accesskey="4" href="#Attributes-of-Changes">Attributes of Changes</a>
+</ul>
+
+<div class="node">
+<p><hr>
+<a name="Generalizing-VC-Systems"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Source-Tree-Specifications">Source Tree Specifications</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Version-Control-Systems">Version Control Systems</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Version-Control-Systems">Version Control Systems</a>
+<br>
+</div>
+
+<h4 class="subsection">3.1.1 Generalizing VC Systems</h4>
+
+<p>For the purposes of the Buildbot, we will try to generalize all VC
+systems as having repositories that each provide sources for a variety
+of projects. Each project is defined as a directory tree with source
+files. The individual files may each have revisions, but we ignore
+that and treat the project as a whole as having a set of revisions. 
+Each time someone commits a change to the project, a new revision
+becomes available. These revisions can be described by a tuple with
+two items: the first is a branch tag, and the second is some kind of
+timestamp or revision stamp. Complex projects may have multiple branch
+tags, but there is always a default branch. The timestamp may be an
+actual timestamp (such as the -D option to CVS), or it may be a
+monotonically-increasing transaction number (such as the change number
+used by SVN and P4, or the revision number used by Arch, or a labeled
+tag used in CVS)<a rel="footnote" href="#fn-2" name="fnd-2"><sup>2</sup></a>. The SHA1 revision ID used by Monotone is
+also a kind of revision stamp, in that it specifies a unique copy of
+the source tree.
+
+   <p>When we aren't intending to make any changes to the sources we check out
+(at least not any that need to be committed back upstream), there are two
+basic ways to use a VC system:
+
+     <ul>
+<li>Retrieve a specific set of source revisions: some tag or key is used
+to index this set, which is fixed and cannot be changed by developers
+committing new changes to the tree. Releases are built from tagged
+revisions like this, so that they can be rebuilt again later (probably
+with controlled modifications). 
+<li>Retrieve the latest sources along a specific branch: some tag is used
+to indicate which branch is to be used, but within that constraint we want
+to get the latest revisions. 
+</ul>
+
+   <p>Build personnel or CM staff typically use the first approach: the
+build that results is (ideally) completely specified by the two
+parameters given to the VC system: repository and revision tag. This
+gives QA and end-users something concrete to point at when reporting
+bugs.
+
+   <p>Developers are more likely to use the second approach: each morning
+the developer does an update to pull in the changes committed by the
+team over the last day. These builds are not easy to fully specify: it
+depends upon exactly when you did a checkout, and upon what local
+changes the developer has in their tree. Developers do not normally
+tag each build they produce, because there is usually significant
+overhead involved in creating these tags. Recreating the trees used by
+one of these builds can be a challenge. Some VC systems may provide
+implicit tags (like a revision number), while others may allow the use
+of timestamps to mean <code>the state of the tree at time X</code> as
+opposed to a tree-state that has been explicitly marked.
+
+   <p>The Buildbot is designed to help developers, so it usually works in
+terms of <code>the latest</code> sources as opposed to specific tagged
+revisions. However, it would really prefer to build from reproducible
+source trees, so implicit revisions are used whenever possible.
+
+<div class="node">
+<p><hr>
+<a name="Source-Tree-Specifications"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#How-Different-VC-Systems-Specify-Sources">How Different VC Systems Specify Sources</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Generalizing-VC-Systems">Generalizing VC Systems</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Version-Control-Systems">Version Control Systems</a>
+<br>
+</div>
+
+<h4 class="subsection">3.1.2 Source Tree Specifications</h4>
+
+<p>So for the Buildbot's purposes we treat each VC system as a server
+which can take a list of specifications as input and produce a source
+tree as output. Some of these specifications are static: they are
+attributes of the builder and do not change over time. Others are more
+variable: each build will have a different value. The repository is
+changed over time by a sequence of Changes, each of which represents a
+single developer making changes to some set of files. These Changes
+are cumulative.
+
+   <p>For normal builds, the Buildbot wants to get well-defined source trees
+that contain specific Changes, and exclude others that occurred later. 
+We assume that the Changes arrive at the buildbot (through one of the
+mechanisms described in see <a href="#Change-Sources">Change Sources</a>) in the same order in
+which they are committed to the repository. The Buildbot waits for the
+tree to become <code>stable</code> before initiating a build, for two
+reasons. The first is that developers frequently commit several
+changes in a group, even when the VC system provides ways to make
+atomic transactions involving multiple files at the same time. Running
+a build in the middle of these sets of changes would use an
+inconsistent set of source files, and is likely to fail. The
+tree-stable-timer is intended to avoid these useless builds that
+include some of the developer's changes but not all. The second reason
+is that some VC systems (i.e. CVS) do not provide repository-wide
+transaction numbers, such that timestamps are the only way to refer to
+a specific repository state. These timestamps may be somewhat
+ambiguous, due to processing and notification delays. By waiting until
+the tree has been stable for, say, 10 minutes, we can choose a
+timestamp from the middle of that period to use for our source
+checkout, and then be reasonably sure that any clock-skew errors will
+not cause the build to be performed on an inconsistent set of source
+files.
+
+   <p>The Builders always use the tree-stable-timer, with a timeout that is
+configured to reflect a reasonable tradeoff between build latency and
+change frequency. When the VC system provides coherent repository-wide
+revision markers (such as Subversion's revision numbers, or in fact
+anything other than CVS's timestamps), the resulting Build is simply
+performed against a source tree defined by that revision marker. When
+the VC system does not provide this, a timestamp from the middle of
+the tree-stable period is used to generate the source
+tree<a rel="footnote" href="#fn-3" name="fnd-3"><sup>3</sup></a>.
+
+<div class="node">
+<p><hr>
+<a name="How-Different-VC-Systems-Specify-Sources"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Attributes-of-Changes">Attributes of Changes</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Source-Tree-Specifications">Source Tree Specifications</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Version-Control-Systems">Version Control Systems</a>
+<br>
+</div>
+
+<h4 class="subsection">3.1.3 How Different VC Systems Specify Sources</h4>
+
+<p>For CVS, the static specifications are <code>repository</code>, <code>module</code>,
+and <code>branch tag</code> (which defaults to HEAD). In addition to those, each
+build uses a timestamp (or omits the timestamp to mean <code>the latest</code>). 
+These parameters collectively specify a set of sources from which a build
+may be performed.
+
+   <p><a href="http://subversion.tigris.org">Subversion</a> combines the
+repository, module, and branch into a single <code>Subversion URL</code>
+parameter. Within that scope, source checkouts can be specified by a
+numeric <code>revision number</code> (a repository-wide
+monotonically-increasing marker, such that each transaction that
+changes the repository is indexed by a different revision number), or
+a revision timestamp.
+
+   <p><a href="http://wiki.gnuarch.org/">Arch</a> specifies a repository by URL,
+as well as a <code>version</code> which is kind of like a branch name. Arch
+uses the word <code>archive</code> to represent the repository. Arch lets
+you push changes from one archive to another, removing the strict
+centralization required by CVS and SVN. It seems to retain the
+distinction between repository and working directory that most other
+VC systems use. For complex multi-module directory structures, Arch
+has a built-in <code>build config</code> layer with which the checkout
+process has two steps. First, an initial bootstrap checkout is
+performed to retrieve a set of build-config files. Second, one of
+these files is used to figure out which archives/modules should be
+used to populate subdirectories of the initial checkout.
+
+   <p><a href="http://abridgegame.org/darcs/">Darcs</a> doesn't really have the
+notion of a single master repository. Nor does it really have
+branches. In Darcs, each working directory is also a repository, and
+there are operations to push and pull patches from one of these
+<code>repositories</code> to another. For the Buildbot's purposes, all you
+need to do is specify the URL of a repository that you want to build
+from. The build slave will then pull the latest patches from that
+repository and build them.
+
+<div class="node">
+<p><hr>
+<a name="Attributes-of-Changes"></a>Previous:&nbsp;<a rel="previous" accesskey="p" href="#How-Different-VC-Systems-Specify-Sources">How Different VC Systems Specify Sources</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Version-Control-Systems">Version Control Systems</a>
+<br>
+</div>
+
+<h4 class="subsection">3.1.4 Attributes of Changes</h4>
+
+<p>Each Change has a <code>who</code> attribute, which specifies which developer
+is responsible for the change. This is a string which comes from a
+namespace controlled by the VC repository. Frequently this means it is
+a username on the host which runs the repository, but not all VC
+systems require this (Arch, for example, would use a fully-qualified
+<code>Arch ID</code>, which looks like an email address). Each
+StatusNotifier will map the <code>who</code> attribute into something
+appropriate for their particular means of communication: an email
+address, an IRC handle, etc.
+
+   <p>Each Change can have a <code>revision</code> attribute, which describes how
+to get a tree with a specific state: a tree which includes this Change
+(and all that came before it) but none that come after it. If this
+information is unavailable, the <code>.revision</code> attribute will be
+<code>None</code>. These revisions are provided by the ChangeSource, and
+consumed by the <code>computeSourceRevision</code> method in the appropriate
+<code>step.Source</code> class.
+
+     <dl>
+<dt><span class="samp">CVS</span><dd><code>revision</code> is an int, seconds since the epoch
+<br><dt><span class="samp">SVN</span><dd><code>revision</code> is an int, a transation number (r%d)
+<br><dt><span class="samp">Darcs</span><dd>does not yet use <code>revision</code>
+<br><dt><span class="samp">Arch</span><dd><code>revision</code> is a string, ending in &ndash;patch-%d
+<br><dt><span class="samp">Bazaar</span><dd>same as Arch
+<br><dt><span class="samp">P4</span><dd><code>revision</code> is an int, the transaction number
+</dl>
+
+   <p>The Change might also have a <code>branch</code> attribute. This is
+primarily intended to represent the CVS named branch (since CVS does
+not embed the <code>branch</code> in the pathname like many of the other
+systems), however it could be used for other purposes as well (e.g. 
+some VC systems might allow commits to be marked as <code>cosmetic</code>,
+or docs-only, or something). The Build, in its
+<code>isBranchImportant</code> method, gets to decide whether the branch is
+important or not. This allows you to configure Builds which only fire
+on changes to a specific branch. For a change to trigger a build, both
+the <code>branch</code> must be important, and at least one of the files
+inside the change must be considered important.
+
+<div class="node">
+<p><hr>
+<a name="Changes"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Users">Users</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Version-Control-Systems">Version Control Systems</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Concepts">Concepts</a>
+<br>
+</div>
+
+<h3 class="section">3.2 Changes</h3>
+
+<p>What is a Change?
+
+<div class="node">
+<p><hr>
+<a name="Users"></a>Previous:&nbsp;<a rel="previous" accesskey="p" href="#Changes">Changes</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Concepts">Concepts</a>
+<br>
+</div>
+
+<h3 class="section">3.3 Users</h3>
+
+<p>Buildbot has a somewhat limited awareness of users. It assumes the world
+consists of a set of developers, each of whom can be described by a couple
+of simple attributes. These developers make changes to the source code,
+causing builds which may succeed or fail.
+
+   <p>Each developer is primarily known through the source control system. Each
+Change object that arrives is tagged with a <code>who</code> field that
+typically gives the account name (on the repository machine) of the user
+responsible for that change. This string is the primary key by which the
+User is known, and is displayed on the HTML status pages and in each Build's
+&ldquo;blamelist&rdquo;.
+
+   <p>To do more with the User than just refer to them, this username needs to
+be mapped into an address of some sort. The responsibility for this mapping
+is left up to the status module which needs the address. The core code knows
+nothing about email addresses or IRC nicknames, just user names.
+
+<ul class="menu">
+<li><a accesskey="1" href="#Doing-Things-With-Users">Doing Things With Users</a>
+<li><a accesskey="2" href="#Email-Addresses">Email Addresses</a>
+<li><a accesskey="3" href="#IRC-Nicknames">IRC Nicknames</a>
+<li><a accesskey="4" href="#Live-Status-Clients">Live Status Clients</a>
+</ul>
+
+<div class="node">
+<p><hr>
+<a name="Doing-Things-With-Users"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Email-Addresses">Email Addresses</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Users">Users</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Users">Users</a>
+<br>
+</div>
+
+<h4 class="subsection">3.3.1 Doing Things With Users</h4>
+
+<p>Each Change has a single User who is responsible for that Change. Most
+Builds have a set of Changes: the Build represents the first time these
+Changes have been built and tested by the BuildBot. The build has a
+&ldquo;blamelist&rdquo; that consists of a simple union of the Users responsible
+for all the Build's Changes.
+
+   <p>The Build provides (through the IBuildStatus interface) a list of Users
+who are &ldquo;involved&rdquo; in the build. For now this is equal to the
+blamelist, but in the future it will be expanded to include a &ldquo;build
+sheriff&rdquo; (a person who is &ldquo;on duty&rdquo; at that time and responsible for
+watching over all builds that occur during their shift), as well as
+per-module owners who simply want to keep watch over their domain (chosen by
+subdirectory or a regexp matched against the filenames pulled out of the
+Changes). The Involved Users are those who probably have an interest in the
+results of any given build.
+
+   <p>In the future, Buildbot will acquire the concept of &ldquo;Problems&rdquo;,
+which last longer than builds and have beginnings and ends. For example, a
+test case which passed in one build and then failed in the next is a
+Problem. The Problem lasts until the test case starts passing again, at
+which point the Problem is said to be &ldquo;resolved&rdquo;.
+
+   <p>If there appears to be a code change went into the tree at the same time
+as the test started failing, that Change is marked as being resposible for
+the Problem, and the user who made the change is added to the Problem's
+&ldquo;Guilty&rdquo; list. In addition to this user, there may be others who share
+responsibility for the Problem (module owners, sponsoring developers). In
+addition to the Responsible Users, there may be a set of Interested Users,
+who take an interest in the fate of the Problem.
+
+   <p>Problems therefore have sets of Users who may want to be kept aware of
+the condition of the problem as it changes over time. If configured, the
+Buildbot can pester everyone on the Responsible list with increasing
+harshness until the problem is resolved, with the most harshness reserved
+for the Guilty parties themselves. The Interested Users may merely be told
+when the problem starts and stops, as they are not actually responsible for
+fixing anything.
+
+<div class="node">
+<p><hr>
+<a name="Email-Addresses"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#IRC-Nicknames">IRC Nicknames</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Doing-Things-With-Users">Doing Things With Users</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Users">Users</a>
+<br>
+</div>
+
+<h4 class="subsection">3.3.2 Email Addresses</h4>
+
+<p>The <code>buildbot.status.mail.MailNotifier</code> class provides a
+status target which can send email about the results of each build. It
+accepts a static list of email addresses to which each message should be
+delivered, but it can also be configured to send mail to the Build's
+Interested Users. To do this, it needs a way to convert User names into
+email addresses.
+
+   <p>For many VC systems, the User Name is actually an account name on the
+system which hosts the repository. As such, turning the name into an email
+address is a simple matter of appending &ldquo;@repositoryhost.com&rdquo;. Some
+projects use other kinds of mappings (for example the preferred email
+address may be at &ldquo;project.org&rdquo; despite the repository having an
+unrelated hostname), and some VC systems have full separation between the
+concept of a user and that of an account on the repository host (like
+Perforce). Some systems (like Arch) put a full contact email address in
+every change.
+
+   <p>To convert these names to addresses, the MailNotifier uses an EmailLookup
+object. This provides a .getAddress method which accepts a name and
+(eventually) returns an address. The default <code>MailNotifier</code>
+module provides an EmailLookup which simply appends a static string,
+configurable when the notifier is created. To create more complex behaviors
+(perhaps using an LDAP lookup, or using &ldquo;finger&rdquo; on a central host to
+determine a preferred address for the developer), provide a different object
+as the <code>lookup</code> argument.
+
+   <p>In the future, when the Problem mechanism has been set up, the Buildbot
+will need to send mail to arbitrary Users. It will do this by locating a
+MailNotifier-like object among all the buildmaster's status targets, and
+asking it to send messages to various Users. This means the User-to-address
+mapping only has to be set up once, in your MailNotifier, and every email
+message the buildbot emits will take advantage of it.
+
+<div class="node">
+<p><hr>
+<a name="IRC-Nicknames"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Live-Status-Clients">Live Status Clients</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Email-Addresses">Email Addresses</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Users">Users</a>
+<br>
+</div>
+
+<h4 class="subsection">3.3.3 IRC Nicknames</h4>
+
+<p>Like MailNotifier, the <code>buildbot.status.words.IRC</code> class
+provides a status target which can announce the results of each build. It
+also provides an interactive interface by responding to online queries
+posted in the channel or sent as private messages.
+
+   <p>The buildbot can be configured map User names to IRC nicknames, to watch
+for the recent presence of these nicknames, and to deliver build status
+messages to the interested parties. Like <code>MailNotifier</code> does for
+email addresses, the <code>IRC</code> object has an <code>IRCLookup</code>
+which is responsible for nicknames. The mapping can be set up statically, or
+it can be updated by online users themselves (by claiming a username with
+some kind of &ldquo;buildbot: i am user warner&rdquo; commands).
+
+   <p>Once the mapping is established, the rest of the buildbot can ask the
+<code>IRC</code> object to send messages to various users. It can report on
+the likelihood that the user saw the given message (based upon how long the
+user has been inactive on the channel), which might prompt the Problem
+Hassler logic to send them an email message instead.
+
+<div class="node">
+<p><hr>
+<a name="Live-Status-Clients"></a>Previous:&nbsp;<a rel="previous" accesskey="p" href="#IRC-Nicknames">IRC Nicknames</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Users">Users</a>
+<br>
+</div>
+
+<h4 class="subsection">3.3.4 Live Status Clients</h4>
+
+<p>The Buildbot also offers a PB-based status client interface which can
+display real-time build status in a GUI panel on the developer's desktop. 
+This interface is normally anonymous, but it could be configured to let the
+buildmaster know <em>which</em> developer is using the status client. The
+status client could then be used as a message-delivery service, providing an
+alternative way to deliver low-latency high-interruption messages to the
+developer (like &ldquo;hey, you broke the build&rdquo;).
+
+<div class="node">
+<p><hr>
+<a name="Configuration"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Getting-Source-Code-Changes">Getting Source Code Changes</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Concepts">Concepts</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+<br>
+</div>
+
+<h2 class="chapter">4 Configuration</h2>
+
+<p>The buildbot's behavior is defined by the &ldquo;config file&rdquo;, which
+normally lives in the <span class="file">master.cfg</span> file in the buildmaster's base
+directory (but this can be changed with an option to <code>buildbot
+master</code>). This file completely specifies which Builders are to be run,
+which slaves they should use, how Changes should be tracked, and where
+the status information is to be sent. The buildmaster's .tac file
+names the base directory, everything else comes from the config file.
+
+   <p>A sample config file was installed for you when you created the
+buildmaster, but you will need to edit it before your buildbot will do
+anything useful.
+
+   <p>This chapter gives an overview of the format of this file and the
+various sections in it. You will need to read the later chapters to
+understand how to fill in each section properly.
+
+<ul class="menu">
+<li><a accesskey="1" href="#Config-File-Format">Config File Format</a>
+<li><a accesskey="2" href="#Loading-the-Config-File">Loading the Config File</a>
+<li><a accesskey="3" href="#Defining-the-Project">Defining the Project</a>
+<li><a accesskey="4" href="#Listing-Change-Sources">Listing Change Sources</a>
+<li><a accesskey="5" href="#Setting-the-slaveport">Setting the slaveport</a>
+<li><a accesskey="6" href="#Buildslave-Specifiers">Buildslave Specifiers</a>
+<li><a accesskey="7" href="#Defining-Builders">Defining Builders</a>
+<li><a accesskey="8" href="#Interlocks">Interlocks</a>
+<li><a accesskey="9" href="#Defining-Status-Targets">Defining Status Targets</a>
+<li><a href="#Debug-options">Debug options</a>
+</ul>
+
+<div class="node">
+<p><hr>
+<a name="Config-File-Format"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Loading-the-Config-File">Loading the Config File</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Configuration">Configuration</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Configuration">Configuration</a>
+<br>
+</div>
+
+<h3 class="section">4.1 Config File Format</h3>
+
+<p>The config file is, fundamentally, just a piece of Python code which
+defines a dictionary named BuildmasterConfig, with a number of keys
+that are treated specially. You don't need to know Python to do basic
+configuration, though, you can just copy the syntax of the sample
+file. If you <em>are</em> comfortable writing Python code, however, you
+can use all the power of a full programming language to achieve more
+complicated configurations.
+
+   <p>The <code>BuildmasterConfig</code> name is the only one which matters: all
+other names defined during the execution of the file are discarded. 
+When parsing the config file, the Buildmaster generally compares the
+old configuration with the new one and performs the minumum set of
+actions necessary to bring the buildbot up to date: Builders which are
+not changed are left untouched, and Builders which are modified get to
+keep their old event history.
+
+   <p>Basic Python syntax: comments start with a hash character (&ldquo;#&rdquo;),
+tuples are defined with <code>(parenthesis, pairs)</code>, arrays are
+defined with <code>[square, brackets]</code>, tuples and arrays are mostly
+interchangeable. Dictionaries (data structures which map &ldquo;keys&rdquo; to
+&ldquo;values&rdquo;) are defined with curly braces: <code>{'key1': 'value1',
+'key2': 'value2'} </code>. Function calls (and object instantiation) can use
+named parameters, like <code>w = html.Waterfall(http_port=8010)</code>.
+
+   <p>The config file starts with a series of <code>import</code> statements,
+which make various kinds of Steps and Status targets available for
+later use. The main <code>BuildmasterConfig</code> dictionary is created,
+then it is populated with a variety of keys. These keys are broken
+roughly into the following sections, each of which is documented in
+the rest of this chapter:
+
+     <ul>
+<li>Project Definitions
+<li>Change Sources
+<li>Slaveport
+<li>Buildslave Configuration
+<li>Builders / Interlocks
+<li>Status Targets
+<li>Debug options
+</ul>
+
+   <p>The config file can use a few names which are placed into its namespace:
+
+     <dl>
+<dt><code>basedir</code><dd>the base directory for the buildmaster. This string is un-expanded, so
+it might start with a tilde which needs to be expanded before use. The
+config file is located in
+<code>os.path.expanduser(os.path.join(basedir, 'master.cfg'))</code>
+
+   </dl>
+
+<div class="node">
+<p><hr>
+<a name="Loading-the-Config-File"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Defining-the-Project">Defining the Project</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Config-File-Format">Config File Format</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Configuration">Configuration</a>
+<br>
+</div>
+
+<h3 class="section">4.2 Loading the Config File</h3>
+
+<p>The config file is only read at specific points in time. It is first
+read when the buildmaster is launched. Once it is running, there are
+various ways to ask it to reload the config file. If you are on the
+system hosting the buildmaster, you can send a <code>SIGHUP</code> signal to
+it: the <span class="command">buildbot</span> tool has a shortcut for this:
+
+<pre class="example">     buildbot sighup <var>BASEDIR</var>
+</pre>
+   <p>The debug tool (<code>buildbot debugclient --master HOST:PORT</code>) has a
+&ldquo;Reload .cfg&rdquo; button which will also trigger a reload. In the
+future, there will be other ways to accomplish this step (probably a
+password-protected button on the web page, as well as a privileged IRC
+command).
+
+<div class="node">
+<p><hr>
+<a name="Defining-the-Project"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Listing-Change-Sources">Listing Change Sources</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Loading-the-Config-File">Loading the Config File</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Configuration">Configuration</a>
+<br>
+</div>
+
+<h3 class="section">4.3 Defining the Project</h3>
+
+<p>There are a couple of basic settings that you use to tell the buildbot
+what project it is working on. This information is used by status
+reporters to let users find out more about the codebase being
+exercised by this particular Buildbot installation.
+
+<pre class="example">     c['projectName'] = "Buildbot"
+     c['projectURL'] = "http://buildbot.sourceforge.net/"
+     c['buildbotURL'] = "http://localhost:8010/"
+</pre>
+   <p><code>projectName</code> is a short string will be used to describe the
+project that this buildbot is working on. For example, it is used as
+the title of the waterfall HTML page.
+
+   <p><code>projectURL</code> is a string that gives a URL for the project as a
+whole. HTML status displays will show <code>projectName</code> as a link to
+<code>projectURL</code>, to provide a link from buildbot HTML pages to your
+project's home page.
+
+   <p>The <code>buildbotURL</code> string should point to the location where the
+buildbot's internal web server (usually the <code>html.Waterfall</code>
+page) is visible. This typically uses the port number set when you
+create the <code>Waterfall</code> object, the buildbot needs your help to
+figure out a suitable externally-visible host name.
+
+   <p>When status notices are sent to users (either by email or over IRC),
+<code>buildbotURL</code> will be used to create a URL to the specific build
+or problem that they are being notified about. It will also be made
+available to queriers (over IRC) who want to find out where to get
+more information about this buildbot.
+
+<div class="node">
+<p><hr>
+<a name="Listing-Change-Sources"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Setting-the-slaveport">Setting the slaveport</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Defining-the-Project">Defining the Project</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Configuration">Configuration</a>
+<br>
+</div>
+
+<h3 class="section">4.4 Listing Change Sources</h3>
+
+<p>The <code>c['sources']</code> key is a list of ChangeSource
+instances<a rel="footnote" href="#fn-4" name="fnd-4"><sup>4</sup></a>. 
+This defines how the buildmaster learns about source code changes. 
+More information about what goes here is available in See <a href="#Getting-Source-Code-Changes">Getting Source Code Changes</a>.
+
+<pre class="example">     c['sources'] = [buildbot.changes.pb.PBChangeSource()]
+</pre>
+   <div class="node">
+<p><hr>
+<a name="Setting-the-slaveport"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Buildslave-Specifiers">Buildslave Specifiers</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Listing-Change-Sources">Listing Change Sources</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Configuration">Configuration</a>
+<br>
+</div>
+
+<h3 class="section">4.5 Setting the slaveport</h3>
+
+<p><a name="index-slavePortnum-3"></a>
+The buildmaster will listen on a TCP port of your choosing for
+connections from buildslaves. It can also use this port for
+connections from remote Change Sources, status clients, and debug
+tools. This port should be visible to the outside world, and you'll
+need to tell your buildslave admins about your choice.
+
+   <p>It does not matter which port you pick, as long it is externally
+visible, however you should probably use something larger than 1024,
+since most operating systems don't allow non-root processes to bind to
+low-numbered ports.
+
+<pre class="example">     c['slavePortnum'] = 10000
+</pre>
+   <div class="node">
+<p><hr>
+<a name="Buildslave-Specifiers"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Defining-Builders">Defining Builders</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Setting-the-slaveport">Setting the slaveport</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Configuration">Configuration</a>
+<br>
+</div>
+
+<h3 class="section">4.6 Buildslave Specifiers</h3>
+
+<p><a name="index-bots-4"></a>
+The <code>c['bots']</code> key is a list of known buildslaves. Each
+buildslave is defined by a tuple of (slavename, slavepassword). These
+are the same two values that need to be provided to the buildslave
+administrator when they create the buildslave.
+
+<pre class="example">     c['bots'] = [('bot-solaris', 'solarispasswd'),
+                  ('bot-bsd', 'bsdpasswd'),
+                 ]
+</pre>
+   <p>The slavenames must be unique, of course. The password exists to
+prevent evildoers from interfering with the buildbot by inserting
+their own (broken) buildslaves into the system.
+
+   <p>Buildslaves with an unrecognized slavename or a non-matching password
+will be rejected when they attempt to connect.
+
+<div class="node">
+<p><hr>
+<a name="Defining-Builders"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Interlocks">Interlocks</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Buildslave-Specifiers">Buildslave Specifiers</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Configuration">Configuration</a>
+<br>
+</div>
+
+<h3 class="section">4.7 Defining Builders</h3>
+
+<p><a name="index-builders-5"></a>
+The <code>c['builders']</code> key is a list of dictionaries which specify
+the Builders. The Buildmaster runs a collection of Builders, each of
+which handles a single type of build (e.g. full versus quick), on a
+single build slave. A Buildbot which makes sure that the latest code
+(&ldquo;HEAD&rdquo;) compiles correctly across four separate architecture will
+have four Builders, each performing the same build but on different
+slaves (one per platform).
+
+   <p>Each Builder gets a separate column in the waterfall display. In
+general, each Builder runs independently (although various kinds of
+interlocks can cause one Builder to have an effect on another).
+
+   <p>Each Builder specification dictionary has several required keys:
+
+     <dl>
+<dt><code>name</code><dd>This specifies the Builder's name, which is used in status
+reports.
+
+     <br><dt><code>slavename</code><dd>This specifies which buildslave will be used by this Builder. 
+<code>slavename</code> must appear in the <code>c['bots']</code> list. Each
+buildslave can accomodate multiple Builders.
+
+     <br><dt><code>builddir</code><dd>This specifies the name of a subdirectory (under the base directory)
+in which everything related to this builder will be placed. On the
+buildmaster, this holds build status information. On the buildslave,
+this is where checkouts, compiles, and tests are run.
+
+     <br><dt><code>factory</code><dd>This is a <code>buildbot.process.factory.BuildFactory</code> instance which
+controls both when the build is run, and how it is performed. Full
+details appear in their own chapter, See <a href="#Build-Process">Build Process</a>. Parameters
+like the location of the CVS repository and the compile-time options
+used for the build are generally provided as arguments to the
+factory's constructor.
+
+   </dl>
+
+   <p>Other optional keys may be set on each Builder:
+
+   <p><a name="index-periodicBuildTime-6"></a>
+     <dl>
+<dt><code>periodicBuildTime</code><dd>If set, a build will be run every <code>periodicBuildTime</code> seconds. 
+This may be useful when you first get started using the buildbot,
+before you have a Change Source configured. E.g., if you want a
+buildbot which just recompiles the tree every hour, set this to 60*60.
+
+     <br><dt><code>category</code><dd>If provided, this is a string that identifies a category for the
+builder to be a part of. Status clients can limit themselves to a
+subset of the available categories. A common use for this is to add
+new builders to your setup (for a new module, or for a new buildslave)
+that do not work correctly yet and allow you to integrate them with
+the active builders. You can put these new builders in a test
+category, make your main status clients ignore them, and have only
+private status clients pick them up. As soon as they work, you can
+move them over to the active category.
+
+   </dl>
+
+<div class="node">
+<p><hr>
+<a name="Interlocks"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Defining-Status-Targets">Defining Status Targets</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Defining-Builders">Defining Builders</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Configuration">Configuration</a>
+<br>
+</div>
+
+<h3 class="section">4.8 Interlocks</h3>
+
+<p><code>c['interlocks']</code> is a list of Interlock specifications. Each one
+is a 3-tuple of interlock-name, feeder-list, and watcher-list. The
+interlock name is a unique string which distinguishes one interlock
+from another. The feeder-list is a list of strings which name the
+Builders that this interlock depends upon: the interlock will not
+&lt;q&gt;open&lt;/q&gt; for any given Change until all those Builders have
+completed successfully. The watcher-list is a list of strings which
+name the Builders that wait for this interlock to open. Those Builders
+will not run until their Interlocks' feeding Builders have passed.
+
+   <p>This feature is scheduled to be decomposed into a more useful pair:
+<code>Dependency</code> and <code>Lock</code>. The first indicates that one build
+depends upon another completing correctly, while the second indicates
+two builds that may not be run at the same time.
+
+   <p><code>Lock</code> are useful when running multiple Builders on the same
+(slow) buildslave, where running the builds in parallel would cause
+thrashing.
+
+<div class="node">
+<p><hr>
+<a name="Defining-Status-Targets"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Debug-options">Debug options</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Interlocks">Interlocks</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Configuration">Configuration</a>
+<br>
+</div>
+
+<h3 class="section">4.9 Defining Status Targets</h3>
+
+<p>The Buildmaster has a variety of ways to present build status to
+various users. Each such delivery method is a &ldquo;Status Target&rdquo; object
+in the configuration's <code>status</code> list. To add status targets, you
+just append more objects to this list:
+
+<pre class="example">     c['status'] = []
+     
+     from buildbot.status import html
+     c['status'].append(html.Waterfall(http_port=8010))
+     
+     from buildbot.status import mail
+     m = mail.MailNotifier(fromaddr="buildbot@localhost",
+                           extraRecipients=["builds@lists.example.com"],
+                           sendToInterestedUsers=False)
+     c['status'].append(m)
+     
+     from buildbot.status import words
+     c['status'].append(words.IRC(host="irc.example.com", nick="bb",
+                                  channels=["#example"]))
+</pre>
+   <p>Status delivery has its own chapter, See <a href="#Status-Delivery">Status Delivery</a>, in which
+all the built-in status targets are documented.
+
+<div class="node">
+<p><hr>
+<a name="Debug-options"></a>Previous:&nbsp;<a rel="previous" accesskey="p" href="#Defining-Status-Targets">Defining Status Targets</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Configuration">Configuration</a>
+<br>
+</div>
+
+<h3 class="section">4.10 Debug options</h3>
+
+<p>If you set <code>c['debugPassword']</code>, then you can connect to the
+buildmaster with the diagnostic tool launched by <code>buildbot
+debugclient MASTER:PORT</code>. From this tool, you can reload the config
+file, manually force builds, and inject changes, which may be useful
+for testing your buildmaster without actually commiting changes to
+your repository (or before you have the Change Sources set up). The
+debug tool uses the same port number as the slaves do:
+<code>c['slavePortnum']</code>, and is authenticated with this password.
+
+<pre class="example">     c['debugPassword'] = "debugpassword"
+</pre>
+   <p>If you set <code>c['manhole']</code> to an instance of the
+<code>buildbot.master.Manhole</code> class, you can telnet into the
+buildmaster and get an interactive Python shell, which may be useful
+for debugging buildbot internals. It is probably only useful for
+buildbot developers.
+
+<pre class="example">     from buildbot.master import Manhole
+     c['manhole'] = Manhole(9999, "admin", "password")
+</pre>
+   <div class="node">
+<p><hr>
+<a name="Getting-Source-Code-Changes"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Build-Process">Build Process</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Configuration">Configuration</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+<br>
+</div>
+
+<h2 class="chapter">5 Getting Source Code Changes</h2>
+
+<p>The most common way to use the Buildbot is centered around the idea of
+<code>Source Trees</code>: a directory tree filled with source code of some form
+which can be compiled and/or tested. Some projects use languages that don't
+involve any compilation step: nevertheless there may be a <code>build</code> phase
+where files are copied or rearranged into a form that is suitable for
+installation. Some projects do not have unit tests, and the Buildbot is
+merely helping to make sure that the sources can compile correctly. But in
+all of these cases, the thing-being-tested is a single source tree.
+
+   <p>A Version Control System mantains a source tree, and tells the
+buildmaster when it changes. The first step of each Build is typically
+to acquire a copy of some version of this tree.
+
+   <p>This chapter describes how the Buildbot thinks about source trees and
+Changes, and how it learns about them.
+
+<ul class="menu">
+<li><a accesskey="1" href="#Change-Sources">Change Sources</a>
+<li><a accesskey="2" href="#Sending-Changes-at-the-Buildmaster">Sending Changes at the Buildmaster</a>
+<li><a accesskey="3" href="#Receiving-Changes">Receiving Changes</a>
+</ul>
+
+<div class="node">
+<p><hr>
+<a name="Change-Sources"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Sending-Changes-at-the-Buildmaster">Sending Changes at the Buildmaster</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Getting-Source-Code-Changes">Getting Source Code Changes</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Getting-Source-Code-Changes">Getting Source Code Changes</a>
+<br>
+</div>
+
+<h3 class="section">5.1 Change Sources</h3>
+
+<p>Each Buildmaster watches a single source tree. Changes can be provided
+by a variety of ChangeSource types, however any given project will
+typically have only a single ChangeSource active. This section
+provides a list of ChangeSource types and descriptions of how to set
+them up.
+
+   <p>Each source tree has a nominal <code>top</code>. Each Change has a list of
+filenames, which are all relative to this top location. The
+ChangeSource is responsible for doing whatever is necessary to
+accomplish this. This generally involves a <code>Prefix</code>: a partial
+pathname which is stripped from the front of all filenames provided to
+the ChangeSource. Files which are outside this sub-tree are ignored by
+the ChangeSource: it does not generate Changes for those files.
+
+<ul class="menu">
+<li><a accesskey="1" href="#Choosing-ChangeSources">Choosing ChangeSources</a>
+<li><a accesskey="2" href="#CVSToys-_002d-PBService">CVSToys - PBService</a>
+<li><a accesskey="3" href="#CVSToys-_002d-mail-notification">CVSToys - mail notification</a>
+<li><a accesskey="4" href="#Other-mail-notification-ChangeSources">Other mail notification ChangeSources</a>
+<li><a accesskey="5" href="#PBChangeSource">PBChangeSource</a>
+</ul>
+
+<div class="node">
+<p><hr>
+<a name="Choosing-ChangeSources"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#CVSToys-_002d-PBService">CVSToys - PBService</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Change-Sources">Change Sources</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Change-Sources">Change Sources</a>
+<br>
+</div>
+
+<h4 class="subsection">5.1.1 Choosing ChangeSources</h4>
+
+<p>The <code>master.cfg</code> configuration file has a dictionary key named
+<code>BuildmasterConfig['sources']</code>, which holds a list of
+<code>IChangeSource</code> objects. The config file will typically create an
+object from one of the classes described below and stuff it into the
+list.
+
+<pre class="example">     s = FreshCVSSourceNewcred(host="host", port=4519,
+                               user="alice", passwd="secret",
+                               prefix="Twisted")
+     BuildmasterConfig['sources'] = [s]
+</pre>
+   <div class="node">
+<p><hr>
+<a name="CVSToys-_002d-PBService"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#CVSToys-_002d-mail-notification">CVSToys - mail notification</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Choosing-ChangeSources">Choosing ChangeSources</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Change-Sources">Change Sources</a>
+<br>
+</div>
+
+<h4 class="subsection">5.1.2 CVSToys - PBService</h4>
+
+<p>The <a href="http://purl.net/net/CVSToys">CVSToys</a> package provides a
+server which runs on the machine that hosts the CVS repository it
+watches. It has a variety of ways to distribute commit notifications,
+and offers a flexible regexp-based way to filter out uninteresting
+changes. One of the notification options is named <code>PBService</code> and
+works by listening on a TCP port for clients. These clients subscribe
+to hear about commit notifications.
+
+   <p>The buildmaster has a <code>PBService</code> client built in. There are two
+versions of it, one for old versions of CVSToys (1.0.9 and earlier)
+which used the <code>oldcred</code> authentication framework, and one for
+newer versions (1.0.10 and later) which use <code>newcred</code>. Both are
+classes in the <code>buildbot.changes.freshcvs</code> package.
+
+   <p><code>FreshCVSSourceNewcred</code> objects are created with the following
+parameters:
+
+     <dl>
+<dt><code>host</code><span class="samp"> and </span><code>port</code><dd>these specify where the CVSToys server can be reached
+
+     <br><dt><code>user</code><span class="samp"> and </span><code>passwd</code><dd>these specify the login information for the CVSToys server
+(<code>freshcvs</code>). These must match the server's values, which are
+defined in the <code>freshCfg</code> configuration file (which lives in the
+CVSROOT directory of the repository).
+
+     <br><dt><code>prefix</code><dd>this is the prefix to be found and stripped from filenames delivered
+by the CVSToys server. Most projects live in sub-directories of the
+main repository, as siblings of the CVSROOT sub-directory, so
+typically this prefix is set to that top sub-directory name.
+
+   </dl>
+
+<div class="node">
+<p><hr>
+<a name="CVSToys-_002d-mail-notification"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Other-mail-notification-ChangeSources">Other mail notification ChangeSources</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#CVSToys-_002d-PBService">CVSToys - PBService</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Change-Sources">Change Sources</a>
+<br>
+</div>
+
+<h4 class="subsection">5.1.3 CVSToys - mail notification</h4>
+
+<p>CVSToys also provides a <code>MailNotification</code> action which will send
+email to a list of recipients for each commit. This tends to work
+better than using <code>/bin/mail</code> from within the CVSROOT/loginfo
+file directly, as CVSToys will batch together all files changed during
+the same CVS invocation, and can provide more information (like
+creating a ViewCVS URL for each file changed).
+
+   <p>The Buildbot's <code>FCMaildirSource</code> is a ChangeSource which knows
+how to parse these CVSToys messages and turn them into Change objects. 
+It watches a Maildir for new messages. The usually installation
+process looks like:
+
+     <ol type=1 start=1>
+<li>Create a mailing list, <code>projectname-commits</code>. 
+<li>In CVSToys' freshCfg file, use a <code>MailNotification</code> action to
+send commit mail to this mailing list. 
+<li>Subscribe the buildbot user to the mailing list. 
+<li>Configure your .qmail or .forward file to deliver these messages into
+a maildir. 
+<li>In the Buildbot's master.cfg file, use a <code>FCMaildirSource</code> to
+watch the maildir for commit messages.
+        </ol>
+
+   <p>The <code>FCMaildirSource</code> is created with two parameters: the
+directory name of the maildir root, and the prefix to strip.
+
+<div class="node">
+<p><hr>
+<a name="Other-mail-notification-ChangeSources"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#PBChangeSource">PBChangeSource</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#CVSToys-_002d-mail-notification">CVSToys - mail notification</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Change-Sources">Change Sources</a>
+<br>
+</div>
+
+<h4 class="subsection">5.1.4 Other mail notification ChangeSources</h4>
+
+<p>There are other types of maildir-watching ChangeSources, which only
+differ in the function used to parse the message body.
+
+   <p><code>SyncmailMaildirSource</code> knows how to parse the message format
+used in mail sent by Syncmail.
+
+   <p><code>BonsaiMaildirSource</code> parses messages sent out by Bonsai.
+
+<div class="node">
+<p><hr>
+<a name="PBChangeSource"></a>Previous:&nbsp;<a rel="previous" accesskey="p" href="#Other-mail-notification-ChangeSources">Other mail notification ChangeSources</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Change-Sources">Change Sources</a>
+<br>
+</div>
+
+<h4 class="subsection">5.1.5 PBChangeSource</h4>
+
+<p>The last kind of ChangeSource actually listens on a TCP port for
+clients to connect and push change notices <em>into</em> the
+Buildmaster. This is used by the Subversion notification tool (in
+contrib/svn_buildbot.py), which is run by the SVN server and connects
+to the buildmaster directly. This is also useful for creating new
+kinds of change sources that work on a <code>push</code> model instead of
+some kind of subscription scheme, for example a script which is run
+out of a .forward file.
+
+   <p>This ChangeSource can be configured to listen on its own TCP port, or
+it can share the port that the buildmaster is already using for the
+buildslaves to connect. (This is possible because the
+<code>PBChangeSource</code> uses the same protocol as the buildslaves, and
+they can be distinguished by the <code>username</code> attribute used when
+the initial connection is established). It might be useful to have it
+listen on a different port it, for example, you wanted to establish
+different firewall rules for that port. You could allow only the SVN
+repository machine access to the <code>PBChangeSource</code> port, while
+allowing only the buildslave machines access to the slave port. Or you
+could just expose one port and run everything over it. <em>Note:
+this feature is not yet implemented, the PBChangeSource will always
+share the slave port and will always have a </em><code>user</code><em> name of
+</em><code>change</code><em>, and a passwd of </em><code>changepw</code><em>. These limitations will
+be removed in the future.</em>.
+
+   <p>The <code>PBChangeSource</code> is created with the following
+arguments:
+
+     <dl>
+<dt><code>port</code><dd>which port to listen on. If <code>None</code> (which is the default), it
+shares the port used for buildslave connections. <em>Not
+Implemented, always set to </em><code>None</code>.
+
+     <br><dt><code>user</code><span class="samp"> and </span><code>passwd</code><dd>the user/passwd account information that the client program must use
+to connect. Defaults to <code>change</code> and <code>changepw</code>. 
+<code>user</code><em> is currently always set to </em><code>change</code><em>,
+</em><code>passwd</code><em> is always set to </em><code>changepw</code>.
+
+     <br><dt><code>prefix</code><dd>the prefix to be found and stripped from filenames delivered over the
+connection. 
+</dl>
+
+<div class="node">
+<p><hr>
+<a name="Sending-Changes-at-the-Buildmaster"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Receiving-Changes">Receiving Changes</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Change-Sources">Change Sources</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Getting-Source-Code-Changes">Getting Source Code Changes</a>
+<br>
+</div>
+
+<h3 class="section">5.2 Sending Changes to the Buildmaster</h3>
+
+<div class="node">
+<p><hr>
+<a name="Receiving-Changes"></a>Previous:&nbsp;<a rel="previous" accesskey="p" href="#Sending-Changes-at-the-Buildmaster">Sending Changes at the Buildmaster</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Getting-Source-Code-Changes">Getting Source Code Changes</a>
+<br>
+</div>
+
+<h3 class="section">5.3 Receiving Changes</h3>
+
+<div class="node">
+<p><hr>
+<a name="Build-Process"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Status-Delivery">Status Delivery</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Getting-Source-Code-Changes">Getting Source Code Changes</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+<br>
+</div>
+
+<h2 class="chapter">6 Build Process</h2>
+
+<ul class="menu">
+<li><a accesskey="1" href="#Build-Steps">Build Steps</a>
+<li><a accesskey="2" href="#Build-Factories">Build Factories</a>
+</ul>
+
+<div class="node">
+<p><hr>
+<a name="Build-Steps"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Build-Factories">Build Factories</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Build-Process">Build Process</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Build-Process">Build Process</a>
+<br>
+</div>
+
+<h3 class="section">6.1 Build Steps</h3>
+
+<p>This section lists all the standard BuildStep objects available for use
+in a Build, and the parameters which can be used to control each.
+
+<ul class="menu">
+<li><a accesskey="1" href="#Common-Parameters">Common Parameters</a>
+<li><a accesskey="2" href="#ShellCommand">ShellCommand</a>
+<li><a accesskey="3" href="#Simple-ShellCommand-Subclasses">Simple ShellCommand Subclasses</a>
+<li><a accesskey="4" href="#Source-Checkout">Source Checkout</a>
+</ul>
+
+<div class="node">
+<p><hr>
+<a name="Common-Parameters"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#ShellCommand">ShellCommand</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Build-Steps">Build Steps</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Build-Steps">Build Steps</a>
+<br>
+</div>
+
+<h4 class="subsection">6.1.1 Common Parameters</h4>
+
+<p>The standard Build (described in the &lt;a
+href="factories.xhtml"&gt;BuildFactory&lt;/a&gt; docs) runs a series of
+BuildSteps in order, only stopping if one of them requests that the
+build be halted. It collects status information from each one to
+create an overall build status (of SUCCESS, WARNINGS, or FAILURE).
+
+   <p>All BuildSteps accept some common parameters to control how their
+individual status affects the overall build.
+
+   <p>Arguments common to all <code>BuildStep</code> subclasses:
+
+     <dl>
+<dt><code>name</code><dd>the name used to describe the step on the status display. It is also
+used to give a name to any LogFiles created by this step.
+
+     <br><dt><code>haltOnFailure</code><dd>if True, a FAILURE of this build step will cause the build to halt
+immediately with an overall result of FAILURE.
+
+     <br><dt><code>flunkOnWarnings</code><dd>when True, a WARNINGS or FAILURE of this build step will mark the
+overall build as FAILURE. The remaining steps will still be executed.
+
+     <br><dt><code>flunkOnFailure</code><dd>when True, a FAILURE of this build step will mark the overall build as
+a FAILURE. The remaining steps will still be executed.
+
+     <br><dt><code>warnOnWarnings</code><dd>when True, a WARNINGS or FAILURE of this build step will mark the
+overall build as having WARNINGS. The remaining steps will still be
+executed.
+
+     <br><dt><code>warnOnFailure</code><dd>when True, a FAILURE of this build step will mark the overall build as
+having WARNINGS. The remaining steps will still be executed.
+
+   </dl>
+
+<div class="node">
+<p><hr>
+<a name="ShellCommand"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Simple-ShellCommand-Subclasses">Simple ShellCommand Subclasses</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Common-Parameters">Common Parameters</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Build-Steps">Build Steps</a>
+<br>
+</div>
+
+<h4 class="subsection">6.1.2 ShellCommand</h4>
+
+<p>This is a useful base class for just about everything you might want to
+do during a build (except for the initial source checkout). It runs a single
+command in a child shell on the build slave. All stdout/stderr is recorded
+into a LogFile. The step finishes with a status of FAILURE if the command's
+exit code is non-zero, otherwise it has a status of SUCCESS.
+
+   <p>The preferred way to specify the command is with a list of argv strings,
+since this allows for spaces in filenames and avoids doing any fragile
+shell-escaping. You can also specify the command with a single string, in
+which case the string is given to '/bin/sh -c COMMAND' for parsing.
+
+   <p>All ShellCommands are run by default in the &ldquo;workdir&rdquo;, which
+defaults to the <span class="file">build</span> subdirectory of the slave builder's base
+directory. The absolute path of the workdir will thus be the slave's
+basedir (set as an option to mktap) plus the builder's basedir (set in
+the builder's ['builddir'] key in master.cfg) plus the workdir itself
+(a class-level attribute of the BuildFactory, defaults to
+<span class="file">build</span>).
+
+   <p><code>ShellCommand</code> Arguments:
+
+     <dl>
+<dt><code>command</code><dd>a list of strings (preferred) or single string (discouraged) which
+specifies the command to be run
+
+     <br><dt><code>env</code><dd>a dictionary of environment strings which will be added to the child
+command's environment.
+
+     <br><dt><code>want_stdout</code><dd>if False, stdout from the child process is discarded rather than being
+sent to the buildmaster for inclusion in the step's LogFile.
+
+     <br><dt><code>want_stderr</code><dd>like <code>want_stdout</code> but for stderr. Note that commands run through
+a PTY do not have separate stdout/stderr streams: both are merged into
+stdout.
+
+     <br><dt><code>timeout</code><dd>if the command fails to produce any output for this many seconds, it
+is assumed to be locked up and will be killed. 
+</dl>
+
+<div class="node">
+<p><hr>
+<a name="Simple-ShellCommand-Subclasses"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Source-Checkout">Source Checkout</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#ShellCommand">ShellCommand</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Build-Steps">Build Steps</a>
+<br>
+</div>
+
+<h4 class="subsection">6.1.3 Simple ShellCommand Subclasses</h4>
+
+<p>Several subclasses of ShellCommand are provided as starting points for
+common build steps. These are all very simple: they just override a few
+parameters so you don't have to specify them yourself, making the master.cfg
+file less verbose.
+
+<ul class="menu">
+<li><a accesskey="1" href="#Configure">Configure</a>
+<li><a accesskey="2" href="#Compile">Compile</a>
+<li><a accesskey="3" href="#Test">Test</a>
+</ul>
+
+<div class="node">
+<p><hr>
+<a name="Configure"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Compile">Compile</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Simple-ShellCommand-Subclasses">Simple ShellCommand Subclasses</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Simple-ShellCommand-Subclasses">Simple ShellCommand Subclasses</a>
+<br>
+</div>
+
+<h5 class="subsubsection">6.1.3.1 Configure</h5>
+
+<p>This is intended to handle the <code>./configure</code> step from
+autoconf-style projects, or the <code>perl Makefile.PL</code> step from perl
+MakeMaker.pm-style modules. The default command is <code>./configure</code>
+but you can change this by providing a <code>command=</code> parameter.
+
+<div class="node">
+<p><hr>
+<a name="Compile"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Test">Test</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Configure">Configure</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Simple-ShellCommand-Subclasses">Simple ShellCommand Subclasses</a>
+<br>
+</div>
+
+<h5 class="subsubsection">6.1.3.2 Compile</h5>
+
+<p>This is meant to handle compiling or building a project written in C. The
+default command is <code>make all</code>. When the compile is finished, the
+log file is scanned for GCC error/warning messages and a summary log is
+created with any problems that were seen (TODO: the summary is not yet
+created).
+
+<div class="node">
+<p><hr>
+<a name="Test"></a>Previous:&nbsp;<a rel="previous" accesskey="p" href="#Compile">Compile</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Simple-ShellCommand-Subclasses">Simple ShellCommand Subclasses</a>
+<br>
+</div>
+
+<h5 class="subsubsection">6.1.3.3 Test</h5>
+
+<p>This is meant to handle unit tests. The default command is <code>make
+test</code>, and the <code>warnOnFailure</code> flag is set.
+
+<div class="node">
+<p><hr>
+<a name="Source-Checkout"></a>Previous:&nbsp;<a rel="previous" accesskey="p" href="#Simple-ShellCommand-Subclasses">Simple ShellCommand Subclasses</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Build-Steps">Build Steps</a>
+<br>
+</div>
+
+<h4 class="subsection">6.1.4 Source Checkout</h4>
+
+<p>The first step of any build is typically to acquire the source code from
+which the build will be performed. There are several classes to handle this,
+each for a different source control system. For a description of how
+Buildbot treats source control in general, take a look at the &lt;a
+href="source.xhtml"&gt;Getting Sources&lt;/a&gt; documentation.
+
+   <p>All source checkout steps accept some common parameters to control how
+they get the sources and where they should be placed. The remaining
+per-system parameters are mostly to specify where exactly the sources are
+coming from.
+
+     <dl>
+<dt><code>mode</code><dd>
+a string describing the kind of VC operation that is desired. Defaults
+to <code>update</code>.
+
+          <dl>
+<dt><code>update</code><dd>specifies that the CVS checkout/update should be performed directly
+into the workdir. Each build is performed in the same directory,
+allowing for incremental builds. This minimizes disk space, bandwidth,
+and CPU time. However, it may encounter problems if the build process
+does not handle dependencies properly (sometimes you must do a 'clean
+build' to make sure everything gets compiled), or if source files are
+deleted but generated files can influence test behavior (e.g. python's
+.pyc files), or when source directories are deleted but generated
+files prevent CVS from removing them. Builds ought to be correct
+regardless of whether they are done &ldquo;from scratch&rdquo; or incrementally,
+but it is useful to test both kinds: this mode exercises the
+incremental-build style.
+
+          <br><dt><code>copy</code><dd>specifies that the CVS workspace should be maintained in a separate
+directory (called the 'copydir'), using checkout or update as
+necessary. For each build, a new workdir is created with a copy of the
+source tree (rm -rf workdir; cp -r copydir workdir). This doubles the
+disk space required, but keeps the bandwidth low (update instead of a
+full checkout). A full 'clean' build is performed each time. This
+avoids any generated-file build problems, but is still occasionally
+vulnerable to CVS problems such as a repository being manually
+rearranged, causing CVS errors on update which are not an issue with a
+full checkout.
+
+          <br><dt><code>clobber</code><dd>specifes that the working directory should be deleted each time,
+necessitating a full checkout for each build. This insures a clean
+build off a complete checkout, avoiding any of the problems described
+above. This mode exercises the &ldquo;from-scratch&rdquo; build style.
+
+          <br><dt><code>export</code><dd>this is like <code>clobber</code>, except that the 'cvs export' command is
+used to create the working directory. This command removes all CVS
+metadata files (the CVS/ directories) from the tree, which is
+sometimes useful for creating source tarballs (to avoid including the
+metadata in the tar file). 
+</dl>
+
+     <br><dt><code>workdir</code><dd>like all Steps, this indicates the directory where the build will take
+place. Source Steps are special in that they perform some operations
+outside of the workdir (like creating the workdir itself).
+
+     <br><dt><code>alwaysUseLatest</code><dd>if True, bypass the usual &ldquo;update to the last Change&rdquo; behavior, and
+always update to the latest changes instead.
+
+     <br><dt><code>retry</code><dd>If set, this specifies a tuple of <code>(delay, repeats)</code> which means
+that when a full VC checkout fails, it should be retried up to
+<var>repeats</var> times, waiting <var>delay</var> seconds between attempts. If
+you don't provide this, it defaults to <code>None</code>, which means VC
+operations should not be retried. This is provided to make life easier
+for buildslaves which are stuck behind poor network connections.
+
+   </dl>
+
+   <p>My habit as a developer is to do a <code>cvs update</code> and <code>make</code> each
+morning. Problems can occur, either because of bad code being checked in, or
+by incomplete dependencies causing a partial rebuild to fail where a
+complete from-scratch build might succeed. A quick Builder which emulates
+this incremental-build behavior would use the <code>mode='update'</code>
+setting.
+
+   <p>On the other hand, other kinds of dependency problems can cause a clean
+build to fail where a partial build might succeed. This frequently results
+from a link step that depends upon an object file that was removed from a
+later version of the tree: in the partial tree, the object file is still
+around (even though the Makefiles no longer know how to create it).
+
+   <p>&ldquo;official&rdquo; builds (traceable builds performed from a known set of
+source revisions) are always done as clean builds, to make sure it is
+not influenced by any uncontrolled factors (like leftover files from a
+previous build). A &ldquo;full&rdquo; Builder which behaves this way would want
+to use the <code>mode='clobber'</code> setting.
+
+<ul class="menu">
+<li><a accesskey="1" href="#CVS">CVS</a>
+<li><a accesskey="2" href="#SVN">SVN</a>
+<li><a accesskey="3" href="#Darcs">Darcs</a>
+<li><a accesskey="4" href="#Arch">Arch</a>
+<li><a accesskey="5" href="#Bazaar">Bazaar</a>
+<li><a accesskey="6" href="#P4Sync">P4Sync</a>
+</ul>
+
+<div class="node">
+<p><hr>
+<a name="CVS"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#SVN">SVN</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Source-Checkout">Source Checkout</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Source-Checkout">Source Checkout</a>
+<br>
+</div>
+
+<h5 class="subsubsection">6.1.4.1 CVS</h5>
+
+<p><a name="index-CVS-Checkout-7"></a>
+The <code>CVS</code> build step performs a CVS checkout or update. It
+takes the following arguments:
+
+     <dl>
+<dt><code>cvsroot</code><dd>(required): specify the CVSROOT value, which points to a CVS
+repository, probably on a remote machine. For example, the cvsroot
+value you would use to get a copy of the Buildbot source code is
+<code>:pserver:anonymous@cvs.sourceforge.net:/cvsroot/buildbot</code>
+
+     <br><dt><code>cvsmodule</code><dd>(required): specify the cvs <code>module</code>, which is generally a
+subdirectory of the CVSROOT. The cvsmodule for the Buildbot source
+code is <code>buildbot</code>.
+
+     <br><dt><code>branch</code><dd>a string which will be used in a <code>-r</code> argument. This is most
+useful for specifying a branch to work on. Defaults to <code>HEAD</code>.
+
+     <br><dt><code>global_options</code><dd>a list of flags to be put before the verb in the CVS command.
+
+     <br><dt><code>checkoutDelay</code><dd>if set, the number of seconds to put between the timestamp of the last
+known Change and the value used for the <code>-D</code> option. Defaults to
+half of the parent Build's treeStableTimer.
+
+   </dl>
+
+<div class="node">
+<p><hr>
+<a name="SVN"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Darcs">Darcs</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#CVS">CVS</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Source-Checkout">Source Checkout</a>
+<br>
+</div>
+
+<h5 class="subsubsection">6.1.4.2 SVN</h5>
+
+<p><a name="index-SVN-Checkout-8"></a>
+The <code>SVN</code> build step performs a Subversion checkout or update. 
+It takes the following arguments.
+
+     <dl>
+<dt><code>svnurl</code><dd>(required): this specifies the <code>URL</code> argument that will be given
+to the <code>svn checkout</code> command. It dictates both where the
+repository is located and which sub-tree should be extracted. In this
+respect, it is like a combination of the CVS <code>cvsroot</code> and
+<code>cvsmodule</code> arguments. For example, if you are using a remote
+Subversion repository which is accessible through HTTP at a URL of
+<code>http://svn.example.com/repos</code>, and you wanted to check out the
+<code>trunk/calc</code> sub-tree, you would use
+<code>svnurl="http://svn.example.com/repos/trunk/calc"</code> as an argument
+to your <code>SVN</code> step. 
+</dl>
+
+<div class="node">
+<p><hr>
+<a name="Darcs"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Arch">Arch</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#SVN">SVN</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Source-Checkout">Source Checkout</a>
+<br>
+</div>
+
+<h5 class="subsubsection">6.1.4.3 Darcs</h5>
+
+<p><a name="index-Darcs-Checkout-9"></a>
+The <code>Darcs</code> build step performs a
+<a href="http://abridgegame.org/darcs/">Darcs</a> checkout or update. It
+takes the following arguments:
+
+     <dl>
+<dt><code>repourl</code><dd>(required): the URL at which the Darcs source repository is available. 
+</dl>
+
+<div class="node">
+<p><hr>
+<a name="Arch"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Bazaar">Bazaar</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Darcs">Darcs</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Source-Checkout">Source Checkout</a>
+<br>
+</div>
+
+<h5 class="subsubsection">6.1.4.4 Arch</h5>
+
+<p><a name="index-Arch-Checkout-10"></a>
+The <code>Arch</code> build step performs an <a href="http://gnuarch.org/">Arch</a> checkout or update using the <code>tla</code> client. It takes the
+following arguments:
+
+     <dl>
+<dt><code>url</code><dd>(required): this specifies the URL at which the Arch source archive is
+available.
+
+     <br><dt><code>version</code><dd>(required): this specifies which &ldquo;development line&rdquo; (like a branch)
+should be used.
+
+     <br><dt><code>archive</code><dd>(optional): Each repository knows its own archive name. If this
+parameter is provided, it must match the repository's archive name. 
+The parameter is accepted for compatibility with the <code>Bazaar</code>
+step, below.
+
+   </dl>
+
+<div class="node">
+<p><hr>
+<a name="Bazaar"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#P4Sync">P4Sync</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Arch">Arch</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Source-Checkout">Source Checkout</a>
+<br>
+</div>
+
+<h5 class="subsubsection">6.1.4.5 Bazaar</h5>
+
+<p><a name="index-Bazaar-Checkout-11"></a>
+<code>Bazaar</code> is an alternate implementation of the Arch VC system,
+which uses a client named <code>baz</code>. The checkout semantics are just
+different enough from <code>tla</code> that there is a separate BuildStep for
+it.
+
+   <p>It takes exactly the same arguments as <code>Arch</code>, except that the
+<code>archive=</code> parameter is required. (baz does not emit the archive
+name when you do <code>baz register-archive</code>, so we must provide it
+ourselves).
+
+<div class="node">
+<p><hr>
+<a name="P4Sync"></a>Previous:&nbsp;<a rel="previous" accesskey="p" href="#Bazaar">Bazaar</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Source-Checkout">Source Checkout</a>
+<br>
+</div>
+
+<h5 class="subsubsection">6.1.4.6 P4Sync</h5>
+
+<p><a name="index-Perforce-Update-12"></a>
+The <code>P4Sync</code> build step performs a
+<a href="http://www.perforce.com/">Perforce</a> update. It is a temporary
+facility: a more complete P4 checkout step (named <code>P4</code>) will
+eventually replace it. This step requires significant manual setup on
+each build slave. It takes the following arguments.
+
+     <dl>
+<dt><code>p4port</code><dd>(required): the host:port string describing how to get to the P4 Depot
+(repository), used as the P4PORT environment variable for all p4
+commands
+</dl>
+
+<div class="node">
+<p><hr>
+<a name="Build-Factories"></a>Previous:&nbsp;<a rel="previous" accesskey="p" href="#Build-Steps">Build Steps</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Build-Process">Build Process</a>
+<br>
+</div>
+
+<h3 class="section">6.2 Build Factories</h3>
+
+<p>Each Builder is equipped with a &lt;q&gt;build factory&lt;/q&gt;, which is
+responsible for producing the actual <code>Build</code> objects that perform
+each build. This factory is created in the configuration file, and attached
+to a Builder through the 'factory' element of its dictionary.
+
+   <p>The standard <code>BuildFactory</code> object creates <code>Build</code>
+objects by default. These Builds will each execute a collection of
+BuildSteps in a fixed sequence. Each step can affect the results of the
+build, but in general there is little intelligence to tie the different
+steps together. You can create subclasses of <code>Build</code> to implement
+more sophisticated build processes, and then use a subclass of
+<code>BuildFactory</code> to create instances of your new Build
+subclass.
+
+<ul class="menu">
+<li><a accesskey="1" href="#BuildStep-Objects">BuildStep Objects</a>
+<li><a accesskey="2" href="#BuildFactory">BuildFactory</a>
+<li><a accesskey="3" href="#Process_002dSpecific-build-factories">Process-Specific build factories</a>
+</ul>
+
+<div class="node">
+<p><hr>
+<a name="BuildStep-Objects"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#BuildFactory">BuildFactory</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Build-Factories">Build Factories</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Build-Factories">Build Factories</a>
+<br>
+</div>
+
+<h4 class="subsection">6.2.1 BuildStep Objects</h4>
+
+<p>The steps used by these builds are all subclasses of <code>BuildStep</code>. 
+The standard ones provided with Buildbot are documented later,
+See <a href="#Build-Steps">Build Steps</a>. You can also write your own subclasses to use in
+builds.
+
+   <p>The basic behavior for a <code>BuildStep</code> is to:
+
+     <ul>
+<li>run for a while, then stop
+<li>possibly invoke some RemoteCommands on the attached build slave
+<li>possibly produce a set of log files
+<li>finish with a status described by one of four values defined in
+buildbot.status.builder: SUCCESS, WARNINGS, FAILURE, SKIPPED
+<li>provide a list of short strings to describe the step
+<li>define a color (generally green, orange, or red) with which the
+step should be displayed
+</ul>
+
+   <p>More sophisticated steps may produce additional information and
+provide it to later build steps, or store it in the factory to provide
+to later builds.
+
+<div class="node">
+<p><hr>
+<a name="BuildFactory"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Process_002dSpecific-build-factories">Process-Specific build factories</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#BuildStep-Objects">BuildStep Objects</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Build-Factories">Build Factories</a>
+<br>
+</div>
+
+<h4 class="subsection">6.2.2 BuildFactory</h4>
+
+<p>The default <code>BuildFactory</code>, provided in the
+<code>buildbot.process.factory</code> module, is constructed with a list of
+&ldquo;BuildStep specifications&rdquo;: a list of <code>(step_class, kwargs)</code>
+tuples for each. When asked to create a Build, it loads the list of
+steps into the new Build object. When the Build is actually started,
+these step specifications are used to create the actual set of
+BuildSteps, which are then executed one at a time. For example, a
+build which consists of a CVS checkout followed by a <code>make build</code>
+would be constructed as follows:
+
+<pre class="example">     from buildbot.process import step, factory
+     from buildbot.factory import s
+     # s is a convenience function, defined with:
+     # def s(steptype, **kwargs): return (steptype, kwargs)
+     
+     f = factory.BuildFactory([s(step.CVS,
+                                 cvsroot=CVSROOT, cvsmodule="project",
+                                 mode="update"),
+                               s(step.Compile, command=["make", "build"])])
+</pre>
+   <p>Each step can affect the build process in the following ways:
+
+     <ul>
+<li>If the step's <code>haltOnFailure</code> attribute is True, then a failure
+in the step (i.e. if it completes with a result of FAILURE) will cause
+the whole build to be terminated immediately: no further steps will be
+executed. This is useful for setup steps upon which the rest of the
+build depends: if the CVS checkout or <code>./configure</code> process
+fails, there is no point in trying to compile or test the resulting
+tree.
+
+     <li>If the <code>flunkOnFailure</code> or <code>flunkOnWarnings</code> flag is set,
+then a result of FAILURE or WARNINGS will mark the build as a whole as
+FAILED. However, the remaining steps will still be executed. This is
+appropriate for things like multiple testing steps: a failure in any
+one of them will indicate that the build has failed, however it is
+still useful to run them all to completion.
+
+     <li>Similarly, if the <code>warnOnFailure</code> or <code>warnOnWarnings</code> flag
+is set, then a result of FAILURE or WARNINGS will mark the build as
+having WARNINGS, and the remaining steps will still be executed. This
+may be appropriate for certain kinds of optional build or test steps. 
+For example, a failure experienced while building documentation files
+should be made visible with a WARNINGS result but not be serious
+enough to warrant marking the whole build with a FAILURE.
+
+   </ul>
+
+   <p>In addition, each Step produces its own results, may create logfiles,
+etc. However only the flags described above have any effect on the
+build as a whole.
+
+   <p>The pre-defined BuildSteps like <code>CVS</code> and <code>Compile</code> have
+reasonably appropriate flags set on them already. For example, without
+a source tree there is no point in continuing the build, so the
+<code>CVS</code> class has the <code>haltOnFailure</code> flag set to True. Look
+in <span class="file">buildbot/process/step.py</span> to see how the other Steps are
+marked.
+
+   <p>Each Step is created with an additional <code>workdir</code> argument that
+indicates where its actions should take place. This is specified as a
+subdirectory of the slave builder's base directory, with a default
+value of <code>build</code>. This is only implemented as a step argument (as
+opposed to simply being a part of the base directory) because the
+CVS/SVN steps need to perform their checkouts from the parent
+directory.
+
+<ul class="menu">
+<li><a accesskey="1" href="#BuildFactory-Attributes">BuildFactory Attributes</a>
+<li><a accesskey="2" href="#Quick-builds">Quick builds</a>
+</ul>
+
+<div class="node">
+<p><hr>
+<a name="BuildFactory-Attributes"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Quick-builds">Quick builds</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#BuildFactory">BuildFactory</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#BuildFactory">BuildFactory</a>
+<br>
+</div>
+
+<h5 class="subsubsection">6.2.2.1 BuildFactory Attributes</h5>
+
+<p>Several attributes from the BuildFactory are copied into each Build.
+
+   <p><a name="index-treeStableTimer-13"></a>
+     <dl>
+<dt><code>treeStableTimer</code><dd>provides the duration of the &ldquo;tree-stable timer&rdquo;, in seconds. Builds
+will wait until the tree has been seen no important changes for at
+least this long.
+
+     <br><dt><code>useProgress</code><dd>(defaults to True): if True, the buildmaster keeps track of how long
+each step takes, so it can provide estimates of how long future builds
+will take. If builds are not expected to take a consistent amount of
+time (such as incremental builds in which a random set of files are
+recompiled or tested each time), this should be set to False to
+inhibit progress-tracking.
+
+   </dl>
+
+<div class="node">
+<p><hr>
+<a name="Quick-builds"></a>Previous:&nbsp;<a rel="previous" accesskey="p" href="#BuildFactory-Attributes">BuildFactory Attributes</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#BuildFactory">BuildFactory</a>
+<br>
+</div>
+
+<h5 class="subsubsection">6.2.2.2 Quick builds</h5>
+
+<p>The difference between a &ldquo;full build&rdquo; and a &ldquo;quick build&rdquo; is that
+quick builds are generally done incrementally, starting with the tree
+where the previous build was performed. That simply means that the
+source-checkout step should be given a <code>mode='update'</code> flag, to
+do the source update in-place.
+
+   <p>In addition to that, the <code>useProgress</code> flag should be set to
+False. Incremental builds will (or at least the ought to) compile as
+few files as necessary, so they will take an unpredictable amount of
+time to run. Therefore it would be misleading to claim to predict how
+long the build will take.
+
+<div class="node">
+<p><hr>
+<a name="Process_002dSpecific-build-factories"></a>Previous:&nbsp;<a rel="previous" accesskey="p" href="#BuildFactory">BuildFactory</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Build-Factories">Build Factories</a>
+<br>
+</div>
+
+<h4 class="subsection">6.2.3 Process-Specific build factories</h4>
+
+<p>Many projects use one of a few popular build frameworks to simplify
+the creation and maintenance of Makefiles or other compilation
+structures. Buildbot provides several pre-configured BuildFactory
+subclasses which let you build these projects with a minimum of fuss.
+
+<ul class="menu">
+<li><a accesskey="1" href="#GNUAutoconf">GNUAutoconf</a>
+<li><a accesskey="2" href="#CPAN">CPAN</a>
+<li><a accesskey="3" href="#Python-distutils">Python distutils</a>
+<li><a accesskey="4" href="#Python_002fTwisted_002ftrial-projects">Python/Twisted/trial projects</a>
+</ul>
+
+<div class="node">
+<p><hr>
+<a name="GNUAutoconf"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#CPAN">CPAN</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Process_002dSpecific-build-factories">Process-Specific build factories</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Process_002dSpecific-build-factories">Process-Specific build factories</a>
+<br>
+</div>
+
+<h5 class="subsubsection">6.2.3.1 GNUAutoconf</h5>
+
+<p><a href="http://www.gnu.org/software/autoconf/">GNU Autoconf</a> is a
+software portability tool, intended to make it possible to write
+programs in C (and other languages) which will run on a variety of
+UNIX-like systems. Most GNU software is built using autoconf. It is
+frequently used in combination with GNU automake. These tools both
+encourage a build process which usually looks like this:
+
+<pre class="example">     % CONFIG_ENV=foo ./configure --with-flags
+     % make all
+     % make check
+     # make install
+</pre>
+   <p>(except of course the Buildbot always skips the <code>make install</code>
+part).
+
+   <p>The Buildbot's <code>buildbot.process.factory.GNUAutoconf</code> factory is
+designed to build projects which use GNU autoconf and/or automake. The
+configuration environment variables, the configure flags, and command
+lines used for the compile and test are all configurable, in general
+the default values will be suitable.
+
+   <p>Example:
+
+<pre class="example">     # use the s() convenience function defined earlier
+     f = factory.GNUAutoconf(source=s(step.SVN, svnurl=URL, mode="copy"),
+                             flags=["--disable-nls"])
+</pre>
+   <p>Required Arguments:
+
+     <dl>
+<dt><code>source</code><dd>This argument must be a step specification tuple that provides a
+BuildStep to generate the source tree. 
+</dl>
+
+   <p>Optional Arguments:
+
+     <dl>
+<dt><code>configure</code><dd>The command used to configure the tree. Defaults to
+<code>./configure</code>. Accepts either a string or a list of shell argv
+elements.
+
+     <br><dt><code>configureEnv</code><dd>The environment used for the initial configuration step. This accepts
+a dictionary which will be merged into the buildslave's normal
+environment. This is commonly used to provide things like
+<code>CFLAGS="-O2 -g"</code> (to turn off debug symbols during the compile). 
+Defaults to an empty dictionary.
+
+     <br><dt><code>configureFlags</code><dd>A list of flags to be appended to the argument list of the configure
+command. This is commonly used to enable or disable specific features
+of the autoconf-controlled package, like <code>["--without-x"]</code> to
+disable windowing support. Defaults to an empty list.
+
+     <br><dt><code>compile</code><dd>this is a shell command or list of argv values which is used to
+actually compile the tree. It defaults to <code>make all</code>. If set to
+None, the compile step is skipped.
+
+     <br><dt><code>test</code><dd>this is a shell command or list of argv values which is used to run
+the tree's self-tests. It defaults to <code>make check</code>. If set to
+None, the test step is skipped.
+
+   </dl>
+
+<div class="node">
+<p><hr>
+<a name="CPAN"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Python-distutils">Python distutils</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#GNUAutoconf">GNUAutoconf</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Process_002dSpecific-build-factories">Process-Specific build factories</a>
+<br>
+</div>
+
+<h5 class="subsubsection">6.2.3.2 CPAN</h5>
+
+<p>Most Perl modules available from the <a href="http://www.cpan.org/">CPAN</a>
+archive use the <code>MakeMaker</code> module to provide configuration,
+build, and test services. The standard build routine for these modules
+looks like:
+
+<pre class="example">     % perl Makefile.PL
+     % make
+     % make test
+     # make install
+</pre>
+   <p>(except again Buildbot skips the install step)
+
+   <p>Buildbot provides a <code>CPAN</code> factory to compile and test these
+projects.
+
+   <p>Arguments:
+     <dl>
+<dt><code>source</code><dd>(required): A step specification tuple, that that used by GNUAutoconf.
+
+     <br><dt><code>perl</code><dd>A string which specifies the <code>perl</code> executable to use. Defaults
+to just <code>perl</code>.
+
+   </dl>
+
+<div class="node">
+<p><hr>
+<a name="Python-distutils"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Python_002fTwisted_002ftrial-projects">Python/Twisted/trial projects</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#CPAN">CPAN</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Process_002dSpecific-build-factories">Process-Specific build factories</a>
+<br>
+</div>
+
+<h5 class="subsubsection">6.2.3.3 Python distutils</h5>
+
+<p>Most Python modules use the <code>distutils</code> package to provide
+configuration and build services. The standard build process looks
+like:
+
+<pre class="example">     % python ./setup.py build
+     % python ./setup.py install
+</pre>
+   <p>Unfortunately, although Python provides a standard unit-test framework
+named <code>unittest</code>, to the best of my knowledge <code>distutils</code>
+does not provide a standardized target to run such unit tests. (please
+let me know if I'm wrong, and I will update this factory).
+
+   <p>The <code>Distutils</code> factory provides support for running the build
+part of this process. It accepts the same <code>source=</code> parameter as
+the other build factories.
+
+   <p>Arguments:
+     <dl>
+<dt><code>source</code><dd>(required): A step specification tuple, that that used by GNUAutoconf.
+
+     <br><dt><code>python</code><dd>A string which specifies the <code>python</code> executable to use. Defaults
+to just <code>python</code>.
+
+     <br><dt><code>test</code><dd>Provides a shell command which runs unit tests. This accepts either a
+string or a list. The default value is None, which disables the test
+step (since there is no common default command to run unit tests in
+distutils modules).
+
+   </dl>
+
+<div class="node">
+<p><hr>
+<a name="Python_002fTwisted_002ftrial-projects"></a>Previous:&nbsp;<a rel="previous" accesskey="p" href="#Python-distutils">Python distutils</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Process_002dSpecific-build-factories">Process-Specific build factories</a>
+<br>
+</div>
+
+<h5 class="subsubsection">6.2.3.4 Python/Twisted/trial projects</h5>
+
+<p>Twisted provides a unit test tool named <code>trial</code> which provides a
+few improvements over Python's built-in <code>unittest</code> module. Many
+python projects which use Twisted for their networking or application
+services also use trial for their unit tests. These modules are
+usually built and tested with something like the following:
+
+<pre class="example">     % python ./setup.py build
+     % PYTHONPATH=build/lib.linux-i686-2.3 trial -v PROJECTNAME.test
+     % python ./setup.py install
+</pre>
+   <p>Unfortunately, the <span class="file">build/lib</span> directory into which the
+built/copied .py files are placed is actually architecture-dependent,
+and I do not yet know of a simple way to calculate its value. For many
+projects it is sufficient to import their libraries &ldquo;in place&rdquo; from
+the tree's base directory (<code>PYTHONPATH=.</code>).
+
+   <p>In addition, the <var>PROJECTNAME</var> value where the test files are
+located is project-dependent: it is usually just the project's
+top-level library directory, as common practice suggests the unit test
+files are put in the <code>test</code> sub-module. This value cannot be
+guessed, the <code>Trial</code> class must be told where to find the test
+files.
+
+   <p>The <code>Trial</code> class provides support for building and testing
+projects which use distutils and trial. If the test module name is
+specified, trial will be invoked. The library path used for testing
+can also be set.
+
+   <p>One advantage of trial is that the Buildbot happens to know how to
+parse trial output, letting it identify which tests passed and which
+ones failed. The Buildbot can then provide fine-grained reports about
+how many tests have failed, when individual tests fail when they had
+been passing previously, etc.
+
+   <p>Another feature of trial is that you can give it a series of source
+.py files, and it will search them for special <code>test-case-name</code>
+tags that indicate which test cases provide coverage for that file. 
+Trial can then run just the appropriate tests. This is useful for
+quick builds, where you want to only run the test cases that cover the
+changed functionality.
+
+   <p>Arguments:
+     <dl>
+<dt><code>source</code><dd>(required): A step specification tuple, like that used by GNUAutoconf.
+
+     <br><dt><code>buildpython</code><dd>A list (argv array) of strings which specifies the <code>python</code>
+executable to use when building the package. Defaults to just
+<code>['python']</code>. It may be useful to add flags here, to supress
+warnings during compilation of extension modules. This list is
+extended with <code>['./setup.py', 'build']</code> and then executed in a
+ShellCommand.
+
+     <br><dt><code>testpath</code><dd>Provides a directory to add to <code>PYTHONPATH</code> when running the unit
+tests, if tests are being run. Defaults to <code>.</code> to include the
+project files in-place. The generated build library is frequently
+architecture-dependent, but may simply be <span class="file">build/lib</span> for
+pure-python modules.
+
+     <br><dt><code>trialpython</code><dd>Another list of strings used to build the command that actually runs
+trial. This is prepended to the contents of the <code>trial</code> argument
+below. It may be useful to add <code>-W</code> flags here to supress
+warnings that occur while tests are being run. Defaults to an empty
+list, meaning <code>trial</code> will be run without an explicit
+interpreter, which is generally what you want if you're using
+<span class="file">/usr/bin/trial</span> instead of, say, the <span class="file">./bin/trial</span> that
+lives in the Twisted source tree.
+
+     <br><dt><code>trial</code><dd>provides the name of the <code>trial</code> command. It is occasionally
+useful to use an alternate executable, such as <code>trial2.2</code> which
+might run the tests under an older version of Python. Defaults to
+<code>trial</code>.
+
+     <br><dt><code>tests</code><dd>Provides a module name or names which contain the unit tests for this
+project. Accepts a string, typically <code>PROJECTNAME.test</code>, or a
+list of strings. Defaults to None, indicating that no tests should be
+run. You must either set this or <code>useTestCaseNames</code> to do anyting
+useful with the Trial factory.
+
+     <br><dt><code>useTestCaseNames</code><dd>Tells the Step to provide the names of all changed .py files to trial,
+so it can look for test-case-name tags and run just the matching test
+cases. Suitable for use in quick builds. Defaults to False.
+
+     <br><dt><code>randomly</code><dd>If <code>True</code>, tells Trial (with the <code>--random=0</code> argument) to
+run the test cases in random order, which sometimes catches subtle
+inter-test dependency bugs. Defaults to <code>False</code>.
+
+     <br><dt><code>recurse</code><dd>If <code>True</code>, tells Trial (with the <code>--recurse</code> argument) to
+look in all subdirectories for additional test cases. It isn't clear
+to me how this works, but it may be useful to deal with the
+unknown-PROJECTNAME problem described above, and is currently used in
+the Twisted buildbot to accomodate the fact that test cases are now
+distributed through multiple twisted.SUBPROJECT.test directories.
+
+   </dl>
+
+   <p>Unless one of <code>trialModule</code> or <code>useTestCaseNames</code>
+are set, no tests will be run.
+
+   <p>Some quick examples follow. Most of these examples assume that the
+target python code (the &ldquo;code under test&rdquo;) can be reached directly
+from the root of the target tree, rather than being in a <span class="file">lib/</span>
+subdirectory.
+
+<pre class="example">     #  Trial(source, tests="toplevel.test") does:
+     #   python ./setup.py build
+     #   PYTHONPATH=. trial -to toplevel.test
+     
+     #  Trial(source, tests=["toplevel.test", "other.test"]) does:
+     #   python ./setup.py build
+     #   PYTHONPATH=. trial -to toplevel.test other.test
+     
+     #  Trial(source, useTestCaseNames=True) does:
+     #   python ./setup.py build
+     #   PYTHONPATH=. trial -to --testmodule=foo/bar.py..  (from Changes)
+     
+     #  Trial(source, buildpython=["python2.3", "-Wall"], tests="foo.tests"):
+     #   python2.3 -Wall ./setup.py build
+     #   PYTHONPATH=. trial -to foo.tests
+     
+     #  Trial(source, trialpython="python2.3", trial="/usr/bin/trial",
+     #        tests="foo.tests") does:
+     #   python2.3 -Wall ./setup.py build
+     #   PYTHONPATH=. python2.3 /usr/bin/trial -to foo.tests
+     
+     # For running trial out of the tree being tested (only useful when the
+     # tree being built is Twisted itself):
+     #  Trial(source, trialpython=["python2.3", "-Wall"], trial="./bin/trial",
+     #        tests="foo.tests") does:
+     #   python2.3 -Wall ./setup.py build
+     #   PYTHONPATH=. python2.3 -Wall ./bin/trial -to foo.tests
+</pre>
+   <p>If the output directory of <code>./setup.py build</code> is known, you can
+pull the python code from the built location instead of the source
+directories. This should be able to handle variations in where the
+source comes from, as well as accomodating binary extension modules:
+
+<pre class="example">     # Trial(source,tests="toplevel.test",testpath='build/lib.linux-i686-2.3')
+     # does:
+     #  python ./setup.py build
+     #  PYTHONPATH=build/lib.linux-i686-2.3 trial -to toplevel.test
+</pre>
+   <div class="node">
+<p><hr>
+<a name="Status-Delivery"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Resources">Resources</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Build-Process">Build Process</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+<br>
+</div>
+
+<h2 class="chapter">7 Status Delivery</h2>
+
+<p>More details are available in the docstrings for each class, use
+<code>pydoc buildbot.status.html.Waterfall</code> to see them. Most status
+delivery objects take a <code>categories=</code> argument, which can contain
+a list of &ldquo;category&rdquo; names: in this case, it will only show status
+for Builders that are in one of the named categories.
+
+   <p>(implementor's note: each of these objects should be a
+service.MultiService which will be attached to the BuildMaster object
+when the configuration is processed. They should use
+<code>self.parent.getStatus()</code> to get access to the top-level IStatus
+object.)
+
+<ul class="menu">
+<li><a accesskey="1" href="#HTML-Waterfall">HTML Waterfall</a>
+<li><a accesskey="2" href="#IRC-Bot">IRC Bot</a>
+<li><a accesskey="3" href="#PBListener">PBListener</a>
+</ul>
+
+<div class="node">
+<p><hr>
+<a name="HTML-Waterfall"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#IRC-Bot">IRC Bot</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Status-Delivery">Status Delivery</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Status-Delivery">Status Delivery</a>
+<br>
+</div>
+
+<h4 class="subsection">7.0.1 HTML Waterfall</h4>
+
+<p><a name="index-Waterfall-14"></a>
+<pre class="example">     from buildbot.status import html
+     w = html.Waterfall(http_port=8080)
+     c['status'].append(w)
+</pre>
+   <p>The <code>buildbot.status.html.Waterfall</code> status target creates an
+HTML &ldquo;waterfall display&rdquo;, which shows a time-based chart of events. 
+This display provides detailed information about all steps of all
+recent builds, and provides hyperlinks to look at individual build
+logs and source changes. If the <code>http_port</code> argument is provided,
+it represents the TCP port number on which the web server should
+listen. If instead <code>distrib_port</code> is provided, a twisted.web
+distributed server will be started either on a TCP port (if
+<code>distrib_port</code> is an int) or more likely on a UNIX socket (if
+<code>distrib_port</code> is a string). The HTML page can have a favicon and
+custom CSS: see the docstring for details.
+
+   <p>The <code>distrib_port</code> option means that, on a host with a
+suitably-configured twisted-web server, you do not need to consume a
+separate TCP port for the buildmaster's status web page. When the web
+server is constructed with <code>mktap web --user</code>, URLs that point to
+<code>http://host/~username/</code> are dispatched to a sub-server that is
+listening on a UNIX socket at <code>~username/.twisted-web-pb</code>. On
+such a system, it is convenient to create a dedicated <code>buildbot</code>
+user, then set <code>distrib_port</code> to
+<code>os.path.expanduser("~/.twistd-web-pb")</code>. This configuration will
+make the HTML status page available at <code>http://host/~buildbot/</code>. 
+Suitable URL remapping can make it appear at
+<code>http://host/buildbot/</code>, and the right virtual host setup can
+even place it at <code>http://buildbot.host/</code>.
+
+<div class="node">
+<p><hr>
+<a name="IRC-Bot"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#PBListener">PBListener</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#HTML-Waterfall">HTML Waterfall</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Status-Delivery">Status Delivery</a>
+<br>
+</div>
+
+<h4 class="subsection">7.0.2 IRC Bot</h4>
+
+<p><a name="index-IRC-15"></a>
+The <code>buildbot.status.words.IRC</code> status target creates an IRC bot
+which will attach to certain channels and be available for status
+queries. It can also be asked to announce builds as they occur, or be
+told to shut up.
+
+<pre class="example">     from twisted.status import words
+     irc = words.IRC("irc.example.org", "botnickname",
+                     channels=["channel1", "channel2"])
+     c['status'].append(irc)
+</pre>
+   <p>Take a look at the docstring for <code>words.IRC</code> for more details on
+configuring this service.
+
+   <p>To use the service, you address messages at the buildbot, either
+normally (<code>botnickname: status</code>) or with private messages
+(<code>/msg botnickname status</code>). The buildbot will respond in kind.
+
+   <p>Some of the commands currently available:
+
+     <dl>
+<dt><code>list builders</code><dd>Emit a list of all configured builders
+<br><dt><code>status BUILDER</code><dd>Announce the status of a specific Builder: what it is doing right now. 
+<br><dt><code>status all</code><dd>Announce the status of all Builders
+<br><dt><code>watch BUILDER</code><dd>If the given Builder is currently running, wait until the Build is
+finished and then announce the results. 
+<br><dt><code>last BUILDER</code><dd>Return the results of the last build to run on the given Builder.
+
+     <br><dt><code>help COMMAND</code><dd>Describe a command. Use <code>help commands</code> to get a list of known
+commands. 
+<br><dt><code>source</code><dd>Announce the URL of the Buildbot's home page. 
+<br><dt><code>version</code><dd>Announce the version of this Buildbot. 
+</dl>
+
+   <p>If the <code>allowForce=True</code> option was used, some addtional commands
+will be available:
+
+     <dl>
+<dt><code>force build BUILDER REASON</code><dd>Tell the given Builder to start a build of the latest code. The user
+requesting the build and REASON are recorded in the Build status. The
+buildbot will announce the build's status when it finishes.
+
+     <br><dt><code>stop build BUILDER REASON</code><dd>Terminate any running build in the given Builder. REASON will be added
+to the build status to explain why it was stopped. You might use this
+if you committed a bug, corrected it right away, and don't want to
+wait for the first build (which is destined to fail) to complete
+before starting the second (hopefully fixed) build. 
+</dl>
+
+<div class="node">
+<p><hr>
+<a name="PBListener"></a>Previous:&nbsp;<a rel="previous" accesskey="p" href="#IRC-Bot">IRC Bot</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Status-Delivery">Status Delivery</a>
+<br>
+</div>
+
+<h4 class="subsection">7.0.3 PBListener</h4>
+
+<p><a name="index-PBListener-16"></a>
+<code>buildbot.status.client.PBListener(port=int, user=str,
+passwd=str)</code>
+
+   <p>This sets up a PB listener on the given TCP port, to which a PB-based
+status client can connect and retrieve status information. 
+<code>buildbot statusgui</code> is an example of such a status client.
+
+<div class="node">
+<p><hr>
+<a name="Resources"></a>Next:&nbsp;<a rel="next" accesskey="n" href="#Index">Index</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Status-Delivery">Status Delivery</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+<br>
+</div>
+
+<h2 class="chapter">8 Resources</h2>
+
+<p>The Buildbot's home page is at <a href="http://buildbot.sourceforge.net/">http://buildbot.sourceforge.net/</a>
+
+   <p>For configuration questions and general discussion, please use the
+<code>buildbot-devel</code> mailing list. The subscription instructions and
+archives are available at
+<a href="http://lists.sourceforge.net/lists/listinfo/buildbot-devel">http://lists.sourceforge.net/lists/listinfo/buildbot-devel</a>
+
+<div class="node">
+<p><hr>
+<a name="Index"></a>Previous:&nbsp;<a rel="previous" accesskey="p" href="#Resources">Resources</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+<br>
+</div>
+
+<h2 class="unnumbered">Index</h2>
+
+<ul class="index-cp" compact>
+<li><a href="#index-Arch-Checkout-10">Arch Checkout</a>: <a href="#Arch">Arch</a></li>
+<li><a href="#index-Bazaar-Checkout-11">Bazaar Checkout</a>: <a href="#Bazaar">Bazaar</a></li>
+<li><a href="#index-bots-4">bots</a>: <a href="#Buildslave-Specifiers">Buildslave Specifiers</a></li>
+<li><a href="#index-builders-5">builders</a>: <a href="#Defining-Builders">Defining Builders</a></li>
+<li><a href="#index-CVS-2">CVS</a>: <a href="#Version-Control-Systems">Version Control Systems</a></li>
+<li><a href="#index-CVS-Checkout-7">CVS Checkout</a>: <a href="#CVS">CVS</a></li>
+<li><a href="#index-Darcs-Checkout-9">Darcs Checkout</a>: <a href="#Darcs">Darcs</a></li>
+<li><a href="#index-introduction-1">introduction</a>: <a href="#Introduction">Introduction</a></li>
+<li><a href="#index-IRC-15">IRC</a>: <a href="#IRC-Bot">IRC Bot</a></li>
+<li><a href="#index-PBListener-16">PBListener</a>: <a href="#PBListener">PBListener</a></li>
+<li><a href="#index-Perforce-Update-12">Perforce Update</a>: <a href="#P4Sync">P4Sync</a></li>
+<li><a href="#index-periodicBuildTime-6">periodicBuildTime</a>: <a href="#Defining-Builders">Defining Builders</a></li>
+<li><a href="#index-slavePortnum-3">slavePortnum</a>: <a href="#Setting-the-slaveport">Setting the slaveport</a></li>
+<li><a href="#index-SVN-Checkout-8">SVN Checkout</a>: <a href="#SVN">SVN</a></li>
+<li><a href="#index-treeStableTimer-13">treeStableTimer</a>: <a href="#BuildFactory-Attributes">BuildFactory Attributes</a></li>
+<li><a href="#index-Waterfall-14">Waterfall</a>: <a href="#HTML-Waterfall">HTML Waterfall</a></li>
+   </ul><div class="footnote">
+<hr>
+<a name="texinfo-footnotes-in-document"></a><h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> except Darcs, but since the Buildbot
+never changes its local source tree we can ignore the fact that Darcs
+uses a less centralized model</p>
+
+   <p class="footnote"><small>[<a name="fn-2" href="#fnd-2">2</a>]</small> many VC systems provide more complexity than
+this: in particular the local views that P4 and ClearCase can assemble
+out of various source directories are more complex than we're prepared
+to take advantage of here</p>
+
+   <p class="footnote"><small>[<a name="fn-3" href="#fnd-3">3</a>]</small> although this <code>checkoutDelay</code> can be overridden</p>
+
+   <p class="footnote"><small>[<a name="fn-4" href="#fnd-4">4</a>]</small> To be precise, it is a list of objects which all
+implement the <code>buildbot.interfaces.IChangeSource</code> Interface</p>
+
+   <p><hr></div>
+
+</body></html>
+
