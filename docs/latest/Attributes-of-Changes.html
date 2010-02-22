@@ -1,0 +1,142 @@
+<html lang="en">
+<head>
+<title>Attributes of Changes - BuildBot Manual - latest</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - latest">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Version-Control-Systems.html#Version-Control-Systems" title="Version Control Systems">
+<link rel="prev" href="How-Different-VC-Systems-Specify-Sources.html#How-Different-VC-Systems-Specify-Sources" title="How Different VC Systems Specify Sources">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version latest.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Attributes-of-Changes"></a>
+<p>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="How-Different-VC-Systems-Specify-Sources.html#How-Different-VC-Systems-Specify-Sources">How Different VC Systems Specify Sources</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Version-Control-Systems.html#Version-Control-Systems">Version Control Systems</a>
+<hr>
+</div>
+
+<h4 class="subsection">3.1.4 Attributes of Changes</h4>
+
+<h3 class="heading">Who</h3>
+
+<p>Each Change has a <code>who</code> attribute, which specifies which
+developer is responsible for the change. This is a string which comes
+from a namespace controlled by the VC repository. Frequently this
+means it is a username on the host which runs the repository, but not
+all VC systems require this (Arch, for example, uses a fully-qualified
+<code>Arch ID</code>, which looks like an email address, as does Darcs). 
+Each StatusNotifier will map the <code>who</code> attribute into something
+appropriate for their particular means of communication: an email
+address, an IRC handle, etc.
+
+<h3 class="heading">Files</h3>
+
+<p>It also has a list of <code>files</code>, which are just the tree-relative
+filenames of any files that were added, deleted, or modified for this
+Change. These filenames are used by the <code>fileIsImportant</code>
+function (in the Scheduler) to decide whether it is worth triggering a
+new build or not, e.g. the function could use the following function
+to only run a build if a C file were checked in:
+
+<pre class="example">     def has_C_files(change):
+         for name in change.files:
+             if name.endswith(".c"):
+                 return True
+         return False
+</pre>
+   <p>Certain BuildSteps can also use the list of changed files
+to run a more targeted series of tests, e.g. the
+<code>python_twisted.Trial</code> step can run just the unit tests that
+provide coverage for the modified .py files instead of running the
+full test suite.
+
+<h3 class="heading">Comments</h3>
+
+<p>The Change also has a <code>comments</code> attribute, which is a string
+containing any checkin comments.
+
+<h3 class="heading">Revision</h3>
+
+<p>Each Change can have a <code>revision</code> attribute, which describes how
+to get a tree with a specific state: a tree which includes this Change
+(and all that came before it) but none that come after it. If this
+information is unavailable, the <code>.revision</code> attribute will be
+<code>None</code>. These revisions are provided by the ChangeSource, and
+consumed by the <code>computeSourceRevision</code> method in the appropriate
+<code>source.Source</code> class.
+
+     <dl>
+<dt>&lsquo;<samp><span class="samp">CVS</span></samp>&rsquo;<dd><code>revision</code> is an int, seconds since the epoch
+<br><dt>&lsquo;<samp><span class="samp">SVN</span></samp>&rsquo;<dd><code>revision</code> is an int, the changeset number (r%d)
+<br><dt>&lsquo;<samp><span class="samp">Darcs</span></samp>&rsquo;<dd><code>revision</code> is a large string, the output of <code>darcs changes --context</code>
+<br><dt>&lsquo;<samp><span class="samp">Mercurial</span></samp>&rsquo;<dd><code>revision</code> is a short string (a hash ID), the output of <code>hg identify</code>
+<br><dt>&lsquo;<samp><span class="samp">Arch/Bazaar</span></samp>&rsquo;<dd><code>revision</code> is the full revision ID (ending in &ndash;patch-%d)
+<br><dt>&lsquo;<samp><span class="samp">P4</span></samp>&rsquo;<dd><code>revision</code> is an int, the transaction number
+<br><dt>&lsquo;<samp><span class="samp">Git</span></samp>&rsquo;<dd><code>revision</code> is a short string (a SHA1 hash), the output of e.g. 
+<code>git rev-parse</code>
+</dl>
+
+<h3 class="heading">Branches</h3>
+
+<p>The Change might also have a <code>branch</code> attribute. This indicates
+that all of the Change's files are in the same named branch. The
+Schedulers get to decide whether the branch should be built or not.
+
+   <p>For VC systems like CVS, Arch, Monotone, and Git, the <code>branch</code>
+name is unrelated to the filename. (that is, the branch name and the
+filename inhabit unrelated namespaces). For SVN, branches are
+expressed as subdirectories of the repository, so the file's
+&ldquo;svnurl&rdquo; is a combination of some base URL, the branch name, and the
+filename within the branch. (In a sense, the branch name and the
+filename inhabit the same namespace). Darcs branches are
+subdirectories of a base URL just like SVN. Mercurial branches are the
+same as Darcs.
+
+     <dl>
+<dt>&lsquo;<samp><span class="samp">CVS</span></samp>&rsquo;<dd>branch='warner-newfeature', files=['src/foo.c']
+<br><dt>&lsquo;<samp><span class="samp">SVN</span></samp>&rsquo;<dd>branch='branches/warner-newfeature', files=['src/foo.c']
+<br><dt>&lsquo;<samp><span class="samp">Darcs</span></samp>&rsquo;<dd>branch='warner-newfeature', files=['src/foo.c']
+<br><dt>&lsquo;<samp><span class="samp">Mercurial</span></samp>&rsquo;<dd>branch='warner-newfeature', files=['src/foo.c']
+<br><dt>&lsquo;<samp><span class="samp">Arch/Bazaar</span></samp>&rsquo;<dd>branch='buildbot&ndash;usebranches&ndash;0', files=['buildbot/master.py']
+<br><dt>&lsquo;<samp><span class="samp">Git</span></samp>&rsquo;<dd>branch='warner-newfeature', files=['src/foo.c']
+</dl>
+
+<h3 class="heading">Build Properties</h3>
+
+<p>A Change may have one or more properties attached to it, usually specified
+through the Force Build form or see <a href="sendchange.html#sendchange">sendchange</a>. Properties are discussed
+in detail in the see <a href="Build-Properties.html#Build-Properties">Build Properties</a> section.
+
+<h3 class="heading">Links</h3>
+
+<!-- TODO: who is using 'links'? how is it being used? -->
+<p>Finally, the Change might have a <code>links</code> list, which is intended
+to provide a list of URLs to a <em>viewcvs</em>-style web page that
+provides more detail for this Change, perhaps including the full file
+diffs.
+
+   </body></html>
+

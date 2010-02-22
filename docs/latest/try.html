@@ -1,0 +1,387 @@
+<html lang="en">
+<head>
+<title>try - BuildBot Manual - latest</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - latest">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Developer-Tools.html#Developer-Tools" title="Developer Tools">
+<link rel="prev" href="statusgui.html#statusgui" title="statusgui">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version latest.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="try"></a>
+<p>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="statusgui.html#statusgui">statusgui</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Developer-Tools.html#Developer-Tools">Developer Tools</a>
+<hr>
+</div>
+
+<h4 class="subsection">5.2.3 try</h4>
+
+<p>This lets a developer to ask the question &ldquo;What would happen if I
+committed this patch right now?&rdquo;. It runs the unit test suite (across
+multiple build platforms) on the developer's current code, allowing
+them to make sure they will not break the tree when they finally
+commit their changes.
+
+   <p>The <samp><span class="command">buildbot try</span></samp> command is meant to be run from within a
+developer's local tree, and starts by figuring out the base revision
+of that tree (what revision was current the last time the tree was
+updated), and a patch that can be applied to that revision of the tree
+to make it match the developer's copy. This (revision, patch) pair is
+then sent to the buildmaster, which runs a build with that
+SourceStamp. If you want, the tool will emit status messages as the
+builds run, and will not terminate until the first failure has been
+detected (or the last success).
+
+   <p>There is an alternate form which accepts a pre-made patch file
+(typically the output of a command like 'svn diff'). This &ldquo;&ndash;diff&rdquo;
+form does not require a local tree to run from. See See <a href="try-_002d_002ddiff.html#try-_002d_002ddiff">try &ndash;diff</a>.
+
+   <p>For this command to work, several pieces must be in place:
+
+<h3 class="heading">TryScheduler</h3>
+
+<p><a name="index-buildbot_002escheduler_002eTry_005fJobdir-124"></a><a name="index-buildbot_002escheduler_002eTry_005fUserpass-125"></a>
+The buildmaster must have a <code>scheduler.Try</code> instance in
+the config file's <code>c['schedulers']</code> list. This lets the
+administrator control who may initiate these &ldquo;trial&rdquo; builds, which
+branches are eligible for trial builds, and which Builders should be
+used for them.
+
+   <p>The <code>TryScheduler</code> has various means to accept build requests:
+all of them enforce more security than the usual buildmaster ports do. 
+Any source code being built can be used to compromise the buildslave
+accounts, but in general that code must be checked out from the VC
+repository first, so only people with commit privileges can get
+control of the buildslaves. The usual force-build control channels can
+waste buildslave time but do not allow arbitrary commands to be
+executed by people who don't have those commit privileges. However,
+the source code patch that is provided with the trial build does not
+have to go through the VC system first, so it is important to make
+sure these builds cannot be abused by a non-committer to acquire as
+much control over the buildslaves as a committer has. Ideally, only
+developers who have commit access to the VC repository would be able
+to start trial builds, but unfortunately the buildmaster does not, in
+general, have access to VC system's user list.
+
+   <p>As a result, the <code>TryScheduler</code> requires a bit more
+configuration. There are currently two ways to set this up:
+
+     <dl>
+<dt><strong>jobdir (ssh)</strong><dd>
+This approach creates a command queue directory, called the
+&ldquo;jobdir&rdquo;, in the buildmaster's working directory. The buildmaster
+admin sets the ownership and permissions of this directory to only
+grant write access to the desired set of developers, all of whom must
+have accounts on the machine. The <code>buildbot try</code> command creates
+a special file containing the source stamp information and drops it in
+the jobdir, just like a standard maildir. When the buildmaster notices
+the new file, it unpacks the information inside and starts the builds.
+
+     <p>The config file entries used by 'buildbot try' either specify a local
+queuedir (for which write and mv are used) or a remote one (using scp
+and ssh).
+
+     <p>The advantage of this scheme is that it is quite secure, the
+disadvantage is that it requires fiddling outside the buildmaster
+config (to set the permissions on the jobdir correctly). If the
+buildmaster machine happens to also house the VC repository, then it
+can be fairly easy to keep the VC userlist in sync with the
+trial-build userlist. If they are on different machines, this will be
+much more of a hassle. It may also involve granting developer accounts
+on a machine that would not otherwise require them.
+
+     <p>To implement this, the buildslave invokes 'ssh -l username host
+buildbot tryserver ARGS', passing the patch contents over stdin. The
+arguments must include the inlet directory and the revision
+information.
+
+     <br><dt><strong>user+password (PB)</strong><dd>
+In this approach, each developer gets a username/password pair, which
+are all listed in the buildmaster's configuration file. When the
+developer runs <code>buildbot try</code>, their machine connects to the
+buildmaster via PB and authenticates themselves using that username
+and password, then sends a PB command to start the trial build.
+
+     <p>The advantage of this scheme is that the entire configuration is
+performed inside the buildmaster's config file. The disadvantages are
+that it is less secure (while the &ldquo;cred&rdquo; authentication system does
+not expose the password in plaintext over the wire, it does not offer
+most of the other security properties that SSH does). In addition, the
+buildmaster admin is responsible for maintaining the username/password
+list, adding and deleting entries as developers come and go.
+
+   </dl>
+
+   <p>For example, to set up the &ldquo;jobdir&rdquo; style of trial build, using a
+command queue directory of <samp><span class="file">MASTERDIR/jobdir</span></samp> (and assuming that
+all your project developers were members of the <code>developers</code> unix
+group), you would first create that directory (with <samp><span class="command">mkdir
+MASTERDIR/jobdir MASTERDIR/jobdir/new MASTERDIR/jobdir/cur
+MASTERDIR/jobdir/tmp; chgrp developers MASTERDIR/jobdir
+MASTERDIR/jobdir/*; chmod g+rwx,o-rwx MASTERDIR/jobdir
+MASTERDIR/jobdir/*</span></samp>), and then use the following scheduler in the
+buildmaster's config file:
+
+<pre class="example">     from buildbot.scheduler import Try_Jobdir
+     s = Try_Jobdir("try1", ["full-linux", "full-netbsd", "full-OSX"],
+                    jobdir="jobdir")
+     c['schedulers'] = [s]
+</pre>
+   <p>Note that you must create the jobdir before telling the buildmaster to
+use this configuration, otherwise you will get an error. Also remember
+that the buildmaster must be able to read and write to the jobdir as
+well. Be sure to watch the <samp><span class="file">twistd.log</span></samp> file (see <a href="Logfiles.html#Logfiles">Logfiles</a>)
+as you start using the jobdir, to make sure the buildmaster is happy
+with it.
+
+   <p>To use the username/password form of authentication, create a
+<code>Try_Userpass</code> instance instead. It takes the same
+<code>builderNames</code> argument as the <code>Try_Jobdir</code> form, but
+accepts an addtional <code>port</code> argument (to specify the TCP port to
+listen on) and a <code>userpass</code> list of username/password pairs to
+accept. Remember to use good passwords for this: the security of the
+buildslave accounts depends upon it:
+
+<pre class="example">     from buildbot.scheduler import Try_Userpass
+     s = Try_Userpass("try2", ["full-linux", "full-netbsd", "full-OSX"],
+                      port=8031, userpass=[("alice","pw1"), ("bob", "pw2")] )
+     c['schedulers'] = [s]
+</pre>
+   <p>Like most places in the buildbot, the <code>port</code> argument takes a
+strports specification. See <code>twisted.application.strports</code> for
+details.
+
+<h3 class="heading">locating the master</h3>
+
+<p>The <samp><span class="command">try</span></samp> command needs to be told how to connect to the
+<code>TryScheduler</code>, and must know which of the authentication
+approaches described above is in use by the buildmaster. You specify
+the approach by using <samp><span class="option">--connect=ssh</span></samp> or <samp><span class="option">--connect=pb</span></samp>
+(or <code>try_connect = 'ssh'</code> or <code>try_connect = 'pb'</code> in
+<samp><span class="file">.buildbot/options</span></samp>).
+
+   <p>For the PB approach, the command must be given a <samp><span class="option">--master</span></samp>
+argument (in the form HOST:PORT) that points to TCP port that you
+picked in the <code>Try_Userpass</code> scheduler. It also takes a
+<samp><span class="option">--username</span></samp> and <samp><span class="option">--passwd</span></samp> pair of arguments that match
+one of the entries in the buildmaster's <code>userpass</code> list. These
+arguments can also be provided as <code>try_master</code>,
+<code>try_username</code>, and <code>try_password</code> entries in the
+<samp><span class="file">.buildbot/options</span></samp> file.
+
+   <p>For the SSH approach, the command must be given <samp><span class="option">--tryhost</span></samp>,
+<samp><span class="option">--username</span></samp>, and optionally <samp><span class="option">--password</span></samp> (TODO:
+really?) to get to the buildmaster host. It must also be given
+<samp><span class="option">--trydir</span></samp>, which points to the inlet directory configured
+above. The trydir can be relative to the user's home directory, but
+most of the time you will use an explicit path like
+<samp><span class="file">~buildbot/project/trydir</span></samp>. These arguments can be provided in
+<samp><span class="file">.buildbot/options</span></samp> as <code>try_host</code>, <code>try_username</code>,
+<code>try_password</code>, and <code>try_dir</code>.
+
+   <p>In addition, the SSH approach needs to connect to a PBListener status
+port, so it can retrieve and report the results of the build (the PB
+approach uses the existing connection to retrieve status information,
+so this step is not necessary). This requires a <samp><span class="option">--master</span></samp>
+argument, or a <code>masterstatus</code> entry in <samp><span class="file">.buildbot/options</span></samp>,
+in the form of a HOSTNAME:PORT string.
+
+<h3 class="heading">choosing the Builders</h3>
+
+<p>A trial build is performed on multiple Builders at the same time, and
+the developer gets to choose which Builders are used (limited to a set
+selected by the buildmaster admin with the TryScheduler's
+<code>builderNames=</code> argument). The set you choose will depend upon
+what your goals are: if you are concerned about cross-platform
+compatibility, you should use multiple Builders, one from each
+platform of interest. You might use just one builder if that platform
+has libraries or other facilities that allow better test coverage than
+what you can accomplish on your own machine, or faster test runs.
+
+   <p>The set of Builders to use can be specified with multiple
+<samp><span class="option">--builder</span></samp> arguments on the command line. It can also be
+specified with a single <code>try_builders</code> option in
+<samp><span class="file">.buildbot/options</span></samp> that uses a list of strings to specify all
+the Builder names:
+
+<pre class="example">     try_builders = ["full-OSX", "full-win32", "full-linux"]
+</pre>
+   <p>If you are using the PB approach, you can get the names of the builders
+that are configured for the try scheduler using the <code>get-builder-names</code>
+argument:
+
+<pre class="example">     buildbot try --get-builder-names --connect=pb --master=... --username=... --passwd=...
+</pre>
+   <h3 class="heading">specifying the VC system</h3>
+
+<p>The <samp><span class="command">try</span></samp> command also needs to know how to take the
+developer's current tree and extract the (revision, patch)
+source-stamp pair. Each VC system uses a different process, so you
+start by telling the <samp><span class="command">try</span></samp> command which VC system you are
+using, with an argument like <samp><span class="option">--vc=cvs</span></samp> or <samp><span class="option">--vc=tla</span></samp>. 
+This can also be provided as <code>try_vc</code> in
+<samp><span class="file">.buildbot/options</span></samp>.
+
+<!-- The order of this list comes from the end of scripts/tryclient.py -->
+   <p>The following names are recognized: <code>cvs</code> <code>svn</code> <code>baz</code>
+<code>tla</code> <code>bzr</code> <code>hg</code> <code>darcs</code> <code>git</code> <code>p4</code>
+
+<h3 class="heading">finding the top of the tree</h3>
+
+<p>Some VC systems (notably CVS and SVN) track each directory
+more-or-less independently, which means the <samp><span class="command">try</span></samp> command
+needs to move up to the top of the project tree before it will be able
+to construct a proper full-tree patch. To accomplish this, the
+<samp><span class="command">try</span></samp> command will crawl up through the parent directories
+until it finds a marker file. The default name for this marker file is
+<samp><span class="file">.buildbot-top</span></samp>, so when you are using CVS or SVN you should
+<code>touch .buildbot-top</code> from the top of your tree before running
+<samp><span class="command">buildbot try</span></samp>. Alternatively, you can use a filename like
+<samp><span class="file">ChangeLog</span></samp> or <samp><span class="file">README</span></samp>, since many projects put one of
+these files in their top-most directory (and nowhere else). To set
+this filename, use <samp><span class="option">--try-topfile=ChangeLog</span></samp>, or set it in the
+options file with <code>try_topfile = 'ChangeLog'</code>.
+
+   <p>You can also manually set the top of the tree with
+<samp><span class="option">--try-topdir=~/trees/mytree</span></samp>, or <code>try_topdir =
+'~/trees/mytree'</code>. If you use <code>try_topdir</code>, in a
+<samp><span class="file">.buildbot/options</span></samp> file, you will need a separate options file
+for each tree you use, so it may be more convenient to use the
+<code>try_topfile</code> approach instead.
+
+   <p>Other VC systems which work on full projects instead of individual
+directories (tla, baz, darcs, monotone, mercurial, git) do not require
+<samp><span class="command">try</span></samp> to know the top directory, so the <samp><span class="option">--try-topfile</span></samp>
+and <samp><span class="option">--try-topdir</span></samp> arguments will be ignored. 
+<!-- is this true? I think I currently require topdirs all the time. -->
+
+   <p>If the <samp><span class="command">try</span></samp> command cannot find the top directory, it will
+abort with an error message.
+
+<h3 class="heading">determining the branch name</h3>
+
+<p>Some VC systems record the branch information in a way that &ldquo;try&rdquo;
+can locate it, in particular Arch (both <samp><span class="command">tla</span></samp> and
+<samp><span class="command">baz</span></samp>). For the others, if you are using something other than
+the default branch, you will have to tell the buildbot which branch
+your tree is using. You can do this with either the <samp><span class="option">--branch</span></samp>
+argument, or a <samp><span class="option">try_branch</span></samp> entry in the
+<samp><span class="file">.buildbot/options</span></samp> file.
+
+<h3 class="heading">determining the revision and patch</h3>
+
+<p>Each VC system has a separate approach for determining the tree's base
+revision and computing a patch.
+
+     <dl>
+<dt><code>CVS</code><dd>
+<samp><span class="command">try</span></samp> pretends that the tree is up to date. It converts the
+current time into a <code>-D</code> time specification, uses it as the base
+revision, and computes the diff between the upstream tree as of that
+point in time versus the current contents. This works, more or less,
+but requires that the local clock be in reasonably good sync with the
+repository.
+
+     <br><dt><code>SVN</code><dd><samp><span class="command">try</span></samp> does a <code>svn status -u</code> to find the latest
+repository revision number (emitted on the last line in the &ldquo;Status
+against revision: NN&rdquo; message). It then performs an <code>svn diff
+-rNN</code> to find out how your tree differs from the repository version,
+and sends the resulting patch to the buildmaster. If your tree is not
+up to date, this will result in the &ldquo;try&rdquo; tree being created with
+the latest revision, then <em>backwards</em> patches applied to bring it
+&ldquo;back&rdquo; to the version you actually checked out (plus your actual
+code changes), but this will still result in the correct tree being
+used for the build.
+
+     <br><dt><code>baz</code><dd><samp><span class="command">try</span></samp> does a <code>baz tree-id</code> to determine the
+fully-qualified version and patch identifier for the tree
+(ARCHIVE/VERSION&ndash;patch-NN), and uses the VERSION&ndash;patch-NN component
+as the base revision. It then does a <code>baz diff</code> to obtain the
+patch.
+
+     <br><dt><code>tla</code><dd><samp><span class="command">try</span></samp> does a <code>tla tree-version</code> to get the
+fully-qualified version identifier (ARCHIVE/VERSION), then takes the
+first line of <code>tla logs --reverse</code> to figure out the base
+revision. Then it does <code>tla changes --diffs</code> to obtain the patch.
+
+     <br><dt><code>bzr</code><dd><samp><span class="command">try</span></samp> does a <code>bzr revision-info</code> to find the base revision,
+then a <code>bzr diff -r$base..</code> to obtain the patch.
+
+     <br><dt><code>Mercurial</code><dd><code>hg identify --debug</code> emits the full revision id (as opposed to
+the common 12-char truncated) which is a SHA1 hash of the current
+revision's contents. This is used as the base revision. 
+<code>hg diff</code> then provides the patch relative to that
+revision. For <samp><span class="command">try</span></samp> to work, your working directory must only
+have patches that are available from the same remotely-available
+repository that the build process' <code>source.Mercurial</code> will use.
+
+     <br><dt><code>Perforce</code><dd><samp><span class="command">try</span></samp> does a <code>p4 changes -m1 ...</code> to determine the latest
+changelist and implicitly assumes that the local tree is synched to this
+revision. This is followed by a <code>p4 diff -du</code> to obtain the patch. 
+A p4 patch differs sligtly from a normal diff. It contains full depot
+paths and must be converted to paths relative to the branch top. To convert
+the following restriction is imposed. The p4base (see see <a href="P4Source.html#P4Source">P4Source</a>)
+ is assumed to be <code>//depot</code>
+
+     <br><dt><code>Darcs</code><dd><samp><span class="command">try</span></samp> does a <code>darcs changes --context</code> to find the list
+of all patches back to and including the last tag that was made. This text
+file (plus the location of a repository that contains all these
+patches) is sufficient to re-create the tree. Therefore the contents
+of this &ldquo;context&rdquo; file <em>are</em> the revision stamp for a
+Darcs-controlled source tree.  It then does a <code>darcs diff
+-u</code> to compute the patch relative to that revision.
+
+     <br><dt><code>Git</code><dd><code>git branch -v</code> lists all the branches available in the local
+repository along with the revision ID it points to and a short summary
+of the last commit. The line containing the currently checked out
+branch begins with '* ' (star and space) while all the others start
+with '  ' (two spaces). <samp><span class="command">try</span></samp> scans for this line and extracts
+the branch name and revision from it. Then it generates a diff against
+the base revision. 
+<!-- TODO: I'm not sure if this actually works the way it's intended -->
+<!-- since the extracted base revision might not actually exist in the -->
+<!-- upstream repository. Perhaps we need to add a -remote option to -->
+<!-- specify the remote tracking branch to generate a diff against. -->
+
+     <!-- TODO: monotone -->
+   </dl>
+
+<h3 class="heading">waiting for results</h3>
+
+<p>If you provide the <samp><span class="option">--wait</span></samp> option (or <code>try_wait = True</code>
+in <samp><span class="file">.buildbot/options</span></samp>), the <samp><span class="command">buildbot try</span></samp> command will
+wait until your changes have either been proven good or bad before
+exiting. Unless you use the <samp><span class="option">--quiet</span></samp> option (or
+<code>try_quiet=True</code>), it will emit a progress message every 60
+seconds until the builds have completed.
+
+<ul class="menu">
+<li><a accesskey="1" href="try-_002d_002ddiff.html#try-_002d_002ddiff">try --diff</a>
+</ul>
+
+   </body></html>
+
