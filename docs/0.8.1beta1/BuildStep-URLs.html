@@ -1,0 +1,123 @@
+<html lang="en">
+<head>
+<title>BuildStep URLs - BuildBot Manual - 0.8.1beta1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.1beta1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Writing-New-BuildSteps.html#Writing-New-BuildSteps" title="Writing New BuildSteps">
+<link rel="prev" href="Adding-LogObservers.html#Adding-LogObservers" title="Adding LogObservers">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.1beta1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="BuildStep-URLs"></a>
+<p>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Adding-LogObservers.html#Adding-LogObservers">Adding LogObservers</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Writing-New-BuildSteps.html#Writing-New-BuildSteps">Writing New BuildSteps</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.11.9.5 BuildStep URLs</h5>
+
+<p><a name="index-links-115"></a><a name="index-BuildStep-URLs-116"></a><a name="index-addURL-117"></a>
+Each BuildStep has a collection of &ldquo;links&rdquo;. Like its collection of
+LogFiles, each link has a name and a target URL. The web status page
+creates HREFs for each link in the same box as it does for LogFiles,
+except that the target of the link is the external URL instead of an
+internal link to a page that shows the contents of the LogFile.
+
+   <p>These external links can be used to point at build information hosted
+on other servers. For example, the test process might produce an
+intricate description of which tests passed and failed, or some sort
+of code coverage data in HTML form, or a PNG or GIF image with a graph
+of memory usage over time. The external link can provide an easy way
+for users to navigate from the buildbot's status page to these
+external web sites or file servers. Note that the step itself is
+responsible for insuring that there will be a document available at
+the given URL (perhaps by using <samp><span class="command">scp</span></samp> to copy the HTML output
+to a <samp><span class="file">~/public_html/</span></samp> directory on a remote web server). Calling
+<code>addURL</code> does not magically populate a web server.
+
+   <p>To set one of these links, the BuildStep should call the <code>addURL</code>
+method with the name of the link and the target URL. Multiple URLs can
+be set.
+
+   <p>In this example, we assume that the <samp><span class="command">make test</span></samp> command causes
+a collection of HTML files to be created and put somewhere on the
+coverage.example.org web server, in a filename that incorporates the
+build number.
+
+<pre class="example">     class TestWithCodeCoverage(BuildStep):
+         command = ["make", "test",
+                    WithProperties("buildnum=%s", "buildnumber")]
+     
+         def createSummary(self, log):
+             buildnumber = self.getProperty("buildnumber")
+             url = "http://coverage.example.org/builds/%s.html" % buildnumber
+             self.addURL("coverage", url)
+</pre>
+   <p>You might also want to extract the URL from some special message
+output by the build process itself:
+
+<pre class="example">     class TestWithCodeCoverage(BuildStep):
+         command = ["make", "test",
+                    WithProperties("buildnum=%s", "buildnumber")]
+     
+         def createSummary(self, log):
+             output = StringIO(log.getText())
+             for line in output.readlines():
+                 if line.startswith("coverage-url:"):
+                     url = line[len("coverage-url:"):].strip()
+                     self.addURL("coverage", url)
+                     return
+</pre>
+   <p>Note that a build process which emits both stdout and stderr might
+cause this line to be split or interleaved between other lines. It
+might be necessary to restrict the getText() call to only stdout with
+something like this:
+
+<pre class="example">             output = StringIO("".join([c[1]
+                                        for c in log.getChunks()
+                                        if c[0] == LOG_CHANNEL_STDOUT]))
+</pre>
+   <p>Of course if the build is run under a PTY, then stdout and stderr will
+be merged before the buildbot ever sees them, so such interleaving
+will be unavoidable.
+
+   </body></html>
+

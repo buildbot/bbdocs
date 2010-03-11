@@ -1,0 +1,96 @@
+<html lang="en">
+<head>
+<title>Testing the Config File - BuildBot Manual - 0.8.1beta1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.1beta1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Configuration.html#Configuration" title="Configuration">
+<link rel="prev" href="Loading-the-Config-File.html#Loading-the-Config-File" title="Loading the Config File">
+<link rel="next" href="Global-Configuration.html#Global-Configuration" title="Global Configuration">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.1beta1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Testing-the-Config-File"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Global-Configuration.html#Global-Configuration">Global Configuration</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Loading-the-Config-File.html#Loading-the-Config-File">Loading the Config File</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Configuration.html#Configuration">Configuration</a>
+<hr>
+</div>
+
+<h3 class="section">4.4 Testing the Config File</h3>
+
+<p>To verify that the config file is well-formed and contains no deprecated or
+invalid elements, use the &ldquo;checkconfig&rdquo; command, passing it either a master
+directory or a config file.
+
+<pre class="example">     % buildbot checkconfig master.cfg
+     Config file is good!
+     # or
+     % buildbot checkconfig /tmp/masterdir
+     Config file is good!
+</pre>
+   <p>If the config file has deprecated features (perhaps because you've
+upgraded the buildmaster and need to update the config file to match),
+they will be announced by checkconfig. In this case, the config file
+will work, but you should really remove the deprecated items and use
+the recommended replacements instead:
+
+<pre class="example">     % buildbot checkconfig master.cfg
+     /usr/lib/python2.4/site-packages/buildbot/master.py:559: DeprecationWarning: c['sources'] is
+     deprecated as of 0.7.6 and will be removed by 0.8.0 . Please use c['change_source'] instead.
+       warnings.warn(m, DeprecationWarning)
+     Config file is good!
+</pre>
+   <p>If the config file is simply broken, that will be caught too:
+
+<pre class="example">     % buildbot checkconfig master.cfg
+     Traceback (most recent call last):
+       File "/usr/lib/python2.4/site-packages/buildbot/scripts/runner.py", line 834, in doCheckConfig
+         ConfigLoader(configFile)
+       File "/usr/lib/python2.4/site-packages/buildbot/scripts/checkconfig.py", line 31, in __init__
+         self.loadConfig(configFile)
+       File "/usr/lib/python2.4/site-packages/buildbot/master.py", line 480, in loadConfig
+         exec f in localDict
+       File "/home/warner/BuildBot/master/foolscap/master.cfg", line 90, in ?
+         c[bogus] = "stuff"
+     NameError: name 'bogus' is not defined
+</pre>
+   </body></html>
+

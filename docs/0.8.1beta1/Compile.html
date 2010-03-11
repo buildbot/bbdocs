@@ -1,0 +1,148 @@
+<html lang="en">
+<head>
+<title>Compile - BuildBot Manual - 0.8.1beta1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.1beta1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="ShellCommand.html#ShellCommand" title="ShellCommand">
+<link rel="prev" href="Configure.html#Configure" title="Configure">
+<link rel="next" href="Visual-C_002b_002b.html#Visual-C_002b_002b" title="Visual C++">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.1beta1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Compile"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Visual-C_002b_002b.html#Visual-C_002b_002b">Visual C++</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Configure.html#Configure">Configure</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="ShellCommand.html#ShellCommand">ShellCommand</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.11.4.3 Compile</h5>
+
+<p><a name="index-buildbot_002esteps_002eshell_002eCompile-93"></a>
+This is meant to handle compiling or building a project written in C. 
+The default command is <code>make all</code>. When the compile is finished,
+the log file is scanned for GCC warning messages, a summary log is
+created with any problems that were seen, and the step is marked as
+WARNINGS if any were discovered. Through the <code>WarningCountingShellCommand</code>
+superclass, the number of warnings is stored in a Build Property named
+&ldquo;warnings-count&rdquo;, which is accumulated over all Compile steps (so if two
+warnings are found in one step, and three are found in another step, the
+overall build will have a &ldquo;warnings-count&rdquo; property of 5).
+
+   <p>The default regular expression used to detect a warning is
+<code>'.*warning[: ].*'</code> , which is fairly liberal and may cause
+false-positives. To use a different regexp, provide a
+<code>warningPattern=</code> argument, or use a subclass which sets the
+<code>warningPattern</code> attribute:
+
+<pre class="example">     f.addStep(Compile(command=["make", "test"],
+                       warningPattern="^Warning: "))
+</pre>
+   <p>The <code>warningPattern=</code> can also be a pre-compiled python regexp
+object: this makes it possible to add flags like <code>re.I</code> (to use
+case-insensitive matching).
+
+   <p>Note that the compiled <code>warningPattern</code> will have its <code>match</code> method
+called, which is subtly different from a <code>search</code>. Your regular
+expression must match the from the beginning of the line. This means that to
+look for the word "warning" in the middle of a line, you will need to
+prepend <code>'.*'</code> to your regular expression.
+
+   <p>The <code>suppressionFile=</code> argument can be specified as the (relative) path
+of a file inside the workdir defining warnings to be suppressed from the
+warning counting and log file. The file will be uploaded to the master from
+the slave before compiling, and any warning matched by a line in the
+suppression file will be ignored. This is useful to accept certain warnings
+(eg. in some special module of the source tree or in cases where the compiler
+is being particularly stupid), yet still be able to easily detect and fix the
+introduction of new warnings.
+
+   <p>The file must contain one line per pattern of warnings to ignore. Empty lines
+and lines beginning with <code>#</code> are ignored. Other lines must consist of a
+regexp matching the file name, followed by a colon (<code>:</code>), followed by a
+regexp matching the text of the warning. Optionally this may be followed by
+another colon and a line number range. For example:
+
+<pre class="example">     # Sample warning suppression file
+     
+     mi_packrec.c : .*result of 32-bit shift implicitly converted to 64 bits.* : 560-600
+     DictTabInfo.cpp : .*invalid access to non-static.*
+     kernel_types.h : .*only defines private constructors and has no friends.* : 51
+</pre>
+   <p>If no line number range is specified, the pattern matches the whole file; if
+only one number is given it matches only on that line.
+
+   <p>The default warningPattern regexp only matches the warning text, so line
+numbers and file names are ignored. To enable line number and file name
+matching, privide a different regexp and provide a function (callable) as the
+argument of <code>warningExtractor=</code>. The function is called with three
+arguments: the BuildStep object, the line in the log file with the warning,
+and the <code>SRE_Match</code> object of the regexp search for <code>warningPattern</code>. It
+should return a tuple <code>(filename, linenumber, warning_test)</code>. For
+example:
+
+<pre class="example">     f.addStep(Compile(command=["make"],
+                       warningPattern="^(.*?):([0-9]+): [Ww]arning: (.*)$",
+                       warningExtractor=Compile.warnExtractFromRegexpGroups,
+                       suppressionFile="support-files/compiler_warnings.supp"))
+</pre>
+   <p>(<code>Compile.warnExtractFromRegexpGroups</code> is a pre-defined function that
+returns the filename, linenumber, and text from groups (1,2,3) of the regexp
+match).
+
+   <p>In projects with source files in multiple directories, it is possible to get
+full path names for file names matched in the suppression file, as long as the
+build command outputs the names of directories as they are entered into and
+left again. For this, specify regexps for the arguments
+<code>directoryEnterPattern=</code> and <code>directoryLeavePattern=</code>. The
+<code>directoryEnterPattern=</code> regexp should return the name of the directory
+entered into in the first matched group. The defaults, which are suitable for
+GNU Make, are these:
+
+<pre class="example">     directoryEnterPattern = "make.*: Entering directory [\"`'](.*)['`\"]"
+     directoryLeavePattern = "make.*: Leaving directory"
+</pre>
+   <p>(TODO: this step needs to be extended to look for GCC error messages
+as well, and collect them into a separate logfile, along with the
+source code filenames involved).
+
+   </body></html>
+

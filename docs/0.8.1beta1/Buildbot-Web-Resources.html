@@ -1,0 +1,286 @@
+<html lang="en">
+<head>
+<title>Buildbot Web Resources - BuildBot Manual - 0.8.1beta1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.1beta1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="WebStatus.html#WebStatus" title="WebStatus">
+<link rel="next" href="WebStatus-Configuration-Parameters.html#WebStatus-Configuration-Parameters" title="WebStatus Configuration Parameters">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.1beta1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Buildbot-Web-Resources"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="WebStatus-Configuration-Parameters.html#WebStatus-Configuration-Parameters">WebStatus Configuration Parameters</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="WebStatus.html#WebStatus">WebStatus</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.13.1.1 Buildbot Web Resources</h5>
+
+<p>Certain URLs are &ldquo;magic&rdquo;, and the pages they serve are created by
+code in various classes in the <samp><span class="file">buildbot.status.web</span></samp> package
+instead of being read from disk. The most common way to access these
+pages is for the buildmaster admin to write or modify the
+<samp><span class="file">index.html</span></samp> page to contain links to them. Of course other
+project web pages can contain links to these buildbot pages as well.
+
+   <p>Many pages can be modified by adding query arguments to the URL. For
+example, a page which shows the results of the most recent build
+normally does this for all builders at once. But by appending
+&ldquo;?builder=i386&rdquo; to the end of the URL, the page will show only the
+results for the &ldquo;i386&rdquo; builder. When used in this way, you can add
+multiple &ldquo;builder=&rdquo; arguments to see multiple builders. Remembering
+that URL query arguments are separated <em>from each other</em> with
+ampersands, a URL that ends in &ldquo;?builder=i386&amp;builder=ppc&rdquo; would
+show builds for just those two Builders.
+
+   <p>The <code>branch=</code> query argument can be used on some pages. This
+filters the information displayed by that page down to only the builds
+or changes which involved the given branch. Use <code>branch=trunk</code> to
+reference the trunk: if you aren't intentionally using branches,
+you're probably using trunk. Multiple <code>branch=</code> arguments can be
+used to examine multiple branches at once (so appending
+<code>?branch=foo&amp;branch=bar</code> to the URL will show builds involving
+either branch). No <code>branch=</code> arguments means to show builds and
+changes for all branches.
+
+   <p>Some pages may include the Builder name or the build number in the
+main part of the URL itself. For example, a page that describes Build
+#7 of the &ldquo;i386&rdquo; builder would live at <samp><span class="file">/builders/i386/builds/7</span></samp>.
+
+   <p>The table below lists all of the internal pages and the URLs that can
+be used to access them.
+
+     <dl>
+<dt><code>/waterfall</code><dd>
+This provides a chronologically-oriented display of the activity of
+all builders. It is the same display used by the Waterfall display.
+
+     <p>By adding one or more &ldquo;builder=&rdquo; query arguments, the Waterfall is
+restricted to only showing information about the given Builders. By
+adding one or more &ldquo;branch=&rdquo; query arguments, the display is
+restricted to showing information about the given branches. In
+addition, adding one or more &ldquo;category=&rdquo; query arguments to the URL
+will limit the display to Builders that were defined with one of the
+given categories.
+
+     <p>A 'show_events=true' query argument causes the display to include
+non-Build events, like slaves attaching and detaching, as well as
+reconfiguration events. 'show_events=false' hides these events. The
+default is to show them.
+
+     <p>By adding the 'failures_only=true' query argument, the Waterfall is
+restricted to only showing information about the builders that
+are currently failing. A builder is considered failing if the
+last finished build was not successful, a step in the current
+build(s) is failing, or if the builder is offline.
+
+     <p>The <code>last_time=</code>, <code>first_time=</code>, and <code>show_time=</code>
+arguments will control what interval of time is displayed. The default
+is to show the latest events, but these can be used to look at earlier
+periods in history. The <code>num_events=</code> argument also provides a
+limit on the size of the displayed page.
+
+     <p>The Waterfall has references to resources many of the other portions
+of the URL space: <samp><span class="file">/builders</span></samp> for access to individual builds,
+<samp><span class="file">/changes</span></samp> for access to information about source code changes,
+etc.
+
+     <br><dt><code>/grid</code><dd>
+This provides a chronologically oriented display of builders, by
+revision.  The builders are listed down the left side of the page,
+and the revisions are listed across the top.
+
+     <p>By adding one ore more &ldquo;category=&rdquo; arguments the grid will be
+restricted to revisions in those categories.
+
+     <p>A &ldquo;width=N&rdquo; argument will limit the number of revisions shown to N,
+defaulting to 5.
+
+     <p>A &ldquo;branch=BRANCHNAME&rdquo; argument will limit the grid to revisions on
+branch BRANCHNAME.
+
+     <br><dt><code>/tgrid</code><dd>
+The Transposed Grid is similar to the standard grid, but, as the name
+implies, transposes the grid: the revisions are listed down the left side
+of the page, and the build hosts are listed across the top.  It accepts
+the same query arguments. The exception being that instead of &ldquo;width&rdquo;
+the argument is named &ldquo;length.&rdquo;
+
+     <br><dt><code>/console</code><dd>
+EXPERIMENTAL: This provides a developer-oriented display of the the last
+changes and how they affected the builders.
+
+     <p>It allows a developer to quickly see the status of each builder for the
+first build including his or her change. A green box means that the change
+succeeded for all the steps for a given builder. A red box means that
+the changed introduced a new regression on a builder. An orange box
+means that at least one of the test failed, but it was also failing
+in the previous build, so it is not possible to see if there was any
+regressions from this change. Finally a yellow box means that the test
+is in progress.
+
+     <p>By adding one or more &ldquo;builder=&rdquo; query arguments, the Console view is
+restricted to only showing information about the given Builders. By
+adding one or more &ldquo;branch=&rdquo; query arguments, the display is
+restricted to showing information about the given branches. In
+addition, adding one or more &ldquo;category=&rdquo; query arguments to the URL
+will limit the display to Builders that were defined with one of the
+given categories.
+
+     <p>By adding one or more &ldquo;name=&rdquo; query arguments to the URL, the console view is
+restricted to only showing changes made by the given users.
+
+     <p>NOTE: To use this page, your buildbot.css file in public_html
+must be the one found in buildbot/status/web/extended.css.
+
+     <p>The console view is still in development. At this moment it supports
+only the source control managers that have an integer based revision id,
+like svn. It also has some issues with displaying multiple braches at the
+same time. If you do have multiple branches, you should use the
+&ldquo;branch=&rdquo; query argument.  The <code>order_console_by_time</code> option may help
+with non-integer VCs:
+
+     <pre class="example">          w = html.WebStatus(http_port=8080, order_console_by_time=True)
+</pre>
+     <br><dt><code>/rss</code><dd>
+This provides a rss feed summarizing all failed builds. The same
+query-arguments used by 'waterfall' can be added to filter the
+feed output.
+
+     <br><dt><code>/atom</code><dd>
+This provides an atom feed summarizing all failed builds. The same
+query-arguments used by 'waterfall' can be added to filter the feed
+output.
+
+     <br><dt><code>/json</code><dd>
+This view provides quick access to Buildbot status information in a form that
+is easiliy digested from other programs, including JavaScript.  See
+<code>/json/help</code> for detailed interactive documentation of the output formats
+for this view.
+
+     <br><dt><code>/buildstatus?builder=$BUILDERNAME&amp;number=$BUILDNUM</code><dd>
+This displays a waterfall-like chronologically-oriented view of all the
+steps for a given build number on a given builder.
+
+     <br><dt><code>/builders/$BUILDERNAME</code><dd>
+This describes the given Builder, and provides buttons to force a
+build.  A <code>numbuilds=</code> argument will control how many build lines
+are displayed (5 by default).
+
+     <br><dt><code>/builders/$BUILDERNAME/builds/$BUILDNUM</code><dd>
+This describes a specific Build.
+
+     <br><dt><code>/builders/$BUILDERNAME/builds/$BUILDNUM/steps/$STEPNAME</code><dd>
+This describes a specific BuildStep.
+
+     <br><dt><code>/builders/$BUILDERNAME/builds/$BUILDNUM/steps/$STEPNAME/logs/$LOGNAME</code><dd>
+This provides an HTML representation of a specific logfile.
+
+     <br><dt><code>/builders/$BUILDERNAME/builds/$BUILDNUM/steps/$STEPNAME/logs/$LOGNAME/text</code><dd>
+This returns the logfile as plain text, without any HTML coloring
+markup. It also removes the &ldquo;headers&rdquo;, which are the lines that
+describe what command was run and what the environment variable
+settings were like. This maybe be useful for saving to disk and
+feeding to tools like 'grep'.
+
+     <br><dt><code>/changes</code><dd>
+This provides a brief description of the ChangeSource in use
+(see <a href="Change-Sources.html#Change-Sources">Change Sources</a>).
+
+     <br><dt><code>/changes/NN</code><dd>
+This shows detailed information about the numbered Change: who was the
+author, what files were changed, what revision number was represented,
+etc.
+
+     <br><dt><code>/buildslaves</code><dd>
+This summarizes each BuildSlave, including which Builders are
+configured to use it, whether the buildslave is currently connected or
+not, and host information retrieved from the buildslave itself.
+
+     <br><dt><code>/one_line_per_build</code><dd>
+This page shows one line of text for each build, merging information
+from all Builders<a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a>. Each line specifies
+the name of the Builder, the number of the Build, what revision it
+used, and a summary of the results. Successful builds are in green,
+while failing builds are in red. The date and time of the build are
+added to the right-hand edge of the line. The lines are ordered by
+build finish timestamp.
+
+     <p>One or more <code>builder=</code> or <code>branch=</code> arguments can be used to
+restrict the list. In addition, a <code>numbuilds=</code> argument will
+control how many lines are displayed (20 by default).
+
+     <br><dt><code>/builders</code><dd>
+This page shows a small table, with one box for each Builder,
+containing the results of the most recent Build. It does not show the
+individual steps, or the current status. This is a simple summary of
+buildbot status: if this page is green, then all tests are passing.
+
+     <p>As with <code>/one_line_per_build</code>, this page will also honor
+<code>builder=</code> and <code>branch=</code> arguments.
+
+     <br><dt><code>/about</code><dd>
+This page gives a brief summary of the Buildbot itself: software
+version, versions of some libraries that the Buildbot depends upon,
+etc. It also contains a link to the buildbot.net home page.
+
+   </dl>
+
+   <p>There are also a set of web-status resources that are intended for use
+by other programs, rather than humans.
+
+     <dl>
+<dt><code>/xmlrpc</code><dd>
+This runs an XML-RPC server which can be used to query status
+information about various builds. See <a href="XMLRPC-server.html#XMLRPC-server">XMLRPC server</a> for more
+details.
+
+   </dl>
+
+   <div class="footnote">
+<hr>
+<h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> Apparently this is the same way
+http://buildd.debian.org displays build status</p>
+
+   <hr></div>
+
+   </body></html>
+

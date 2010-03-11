@@ -1,0 +1,107 @@
+<html lang="en">
+<head>
+<title>Buildslave Options - BuildBot Manual - 0.8.1beta1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.1beta1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Creating-a-buildslave.html#Creating-a-buildslave" title="Creating a buildslave">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.1beta1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Buildslave-Options"></a>
+<p>
+Up:&nbsp;<a rel="up" accesskey="u" href="Creating-a-buildslave.html#Creating-a-buildslave">Creating a buildslave</a>
+<hr>
+</div>
+
+<h4 class="subsection">2.5.1 Buildslave Options</h4>
+
+<p>There are a handful of options you might want to use when creating the
+buildslave with the <samp><span class="command">buildbot create-slave &lt;options&gt; DIR &lt;params&gt;</span></samp>
+command. You can type <samp><span class="command">buildbot create-slave --help</span></samp> for a summary. 
+To use these, just include them on the <samp><span class="command">buildbot create-slave</span></samp>
+command line, like this:
+
+<pre class="example">     buildbot create-slave --umask=022 ~/buildslave buildmaster.example.org:42012 myslavename mypasswd
+</pre>
+     <dl>
+<dt><code>--usepty</code><dd>This is a boolean flag that tells the buildslave whether to launch child
+processes in a PTY or with regular pipes (the default) when the master does not
+specify.  This option is deprecated, as this particular parameter is better
+specified on the master.
+
+     <br><dt><code>--umask</code><dd>This is a string (generally an octal representation of an integer)
+which will cause the buildslave process' &ldquo;umask&rdquo; value to be set
+shortly after initialization. The &ldquo;twistd&rdquo; daemonization utility
+forces the umask to 077 at startup (which means that all files created
+by the buildslave or its child processes will be unreadable by any
+user other than the buildslave account). If you want build products to
+be readable by other accounts, you can add <code>--umask=022</code> to tell
+the buildslave to fix the umask after twistd clobbers it. If you want
+build products to be <em>writable</em> by other accounts too, use
+<code>--umask=000</code>, but this is likely to be a security problem.
+
+     <br><dt><code>--keepalive</code><dd>This is a number that indicates how frequently &ldquo;keepalive&rdquo; messages
+should be sent from the buildslave to the buildmaster, expressed in
+seconds. The default (600) causes a message to be sent to the
+buildmaster at least once every 10 minutes. To set this to a lower
+value, use e.g. <code>--keepalive=120</code>.
+
+     <p>If the buildslave is behind a NAT box or stateful firewall, these
+messages may help to keep the connection alive: some NAT boxes tend to
+forget about a connection if it has not been used in a while. When
+this happens, the buildmaster will think that the buildslave has
+disappeared, and builds will time out. Meanwhile the buildslave will
+not realize than anything is wrong.
+
+     <br><dt><code>--maxdelay</code><dd>This is a number that indicates the maximum amount of time the
+buildslave will wait between connection attempts, expressed in
+seconds. The default (300) causes the buildslave to wait at most 5
+minutes before trying to connect to the buildmaster again.
+
+     <br><dt><code>--log-size</code><dd>This is the size in bytes when to rotate the Twisted log files.
+
+     <br><dt><code>--log-count</code><dd>This is the number of log rotations to keep around. You can either
+specify a number or <code>None</code> (the default) to keep all
+<samp><span class="file">twistd.log</span></samp> files around.
+
+   </dl>
+
+   </body></html>
+

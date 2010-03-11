@@ -1,0 +1,134 @@
+<html lang="en">
+<head>
+<title>Launching the daemons - BuildBot Manual - 0.8.1beta1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.1beta1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Installation.html#Installation" title="Installation">
+<link rel="prev" href="Creating-a-buildslave.html#Creating-a-buildslave" title="Creating a buildslave">
+<link rel="next" href="Logfiles.html#Logfiles" title="Logfiles">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.1beta1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Launching-the-daemons"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Logfiles.html#Logfiles">Logfiles</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Creating-a-buildslave.html#Creating-a-buildslave">Creating a buildslave</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Installation.html#Installation">Installation</a>
+<hr>
+</div>
+
+<h3 class="section">2.6 Launching the daemons</h3>
+
+<p>Both the buildmaster and the buildslave run as daemon programs. To
+launch them, pass the working directory to the <code>buildbot</code>
+command:
+
+<pre class="example">     buildbot start <var>BASEDIR</var>
+</pre>
+   <p>The <var>BASEDIR</var> is option and can be omitted if the current directory
+contains the buildbot configuration (the <samp><span class="file">buildbot.tac</span></samp> file).
+
+<pre class="example">     buildbot start
+</pre>
+   <p>This command will start the daemon and then return, so normally it
+will not produce any output. To verify that the programs are indeed
+running, look for a pair of files named <samp><span class="file">twistd.log</span></samp> and
+<samp><span class="file">twistd.pid</span></samp> that should be created in the working directory. 
+<samp><span class="file">twistd.pid</span></samp> contains the process ID of the newly-spawned daemon.
+
+   <p>When the buildslave connects to the buildmaster, new directories will
+start appearing in its base directory. The buildmaster tells the slave
+to create a directory for each Builder which will be using that slave. 
+All build operations are performed within these directories: CVS
+checkouts, compiles, and tests.
+
+   <p>Once you get everything running, you will want to arrange for the
+buildbot daemons to be started at boot time. One way is to use
+<code>cron</code>, by putting them in a @reboot crontab entry<a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a>:
+
+<pre class="example">     @reboot buildbot start <var>BASEDIR</var>
+</pre>
+   <p>When you run <samp><span class="command">crontab</span></samp> to set this up, remember to do it as
+the buildmaster or buildslave account! If you add this to your crontab
+when running as your regular account (or worse yet, root), then the
+daemon will run as the wrong user, quite possibly as one with more
+authority than you intended to provide.
+
+   <p>It is important to remember that the environment provided to cron jobs
+and init scripts can be quite different that your normal runtime. 
+There may be fewer environment variables specified, and the PATH may
+be shorter than usual. It is a good idea to test out this method of
+launching the buildslave by using a cron job with a time in the near
+future, with the same command, and then check <samp><span class="file">twistd.log</span></samp> to
+make sure the slave actually started correctly. Common problems here
+are for <samp><span class="file">/usr/local</span></samp> or <samp><span class="file">~/bin</span></samp> to not be on your
+<code>PATH</code>, or for <code>PYTHONPATH</code> to not be set correctly. 
+Sometimes <code>HOME</code> is messed up too.
+
+   <p>To modify the way the daemons are started (perhaps you want to set
+some environment variables first, or perform some cleanup each time),
+you can create a file named <samp><span class="file">Makefile.buildbot</span></samp> in the base
+directory. When the <samp><span class="file">buildbot</span></samp> front-end tool is told to
+<samp><span class="command">start</span></samp> the daemon, and it sees this file (and
+<samp><span class="file">/usr/bin/make</span></samp> exists), it will do <samp><span class="command">make -f
+Makefile.buildbot start</span></samp> instead of its usual action (which involves
+running <samp><span class="command">twistd</span></samp>). When the buildmaster or buildslave is
+installed, a <samp><span class="file">Makefile.sample</span></samp> is created which implements the
+same behavior as the the <samp><span class="file">buildbot</span></samp> tool uses, so if you want to
+customize the process, just copy <samp><span class="file">Makefile.sample</span></samp> to
+<samp><span class="file">Makefile.buildbot</span></samp> and edit it as necessary.
+
+   <p>Some distributions may include conveniences to make starting buildbot
+at boot time easy.  For instance, with the default buildbot package in
+Debian-based distributions, you may only need to modify
+<code>/etc/default/buildbot</code> (see also <code>/etc/init.d/buildbot</code>, which
+reads the configuration in <code>/etc/default/buildbot</code>).
+
+   <div class="footnote">
+<hr>
+<h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> this
+@reboot syntax is understood by Vixie cron, which is the flavor
+usually provided with linux systems. Other unices may have a cron that
+doesn't understand @reboot</p>
+
+   <hr></div>
+
+   </body></html>
+

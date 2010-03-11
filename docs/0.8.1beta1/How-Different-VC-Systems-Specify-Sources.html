@@ -1,0 +1,168 @@
+<html lang="en">
+<head>
+<title>How Different VC Systems Specify Sources - BuildBot Manual - 0.8.1beta1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.1beta1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Version-Control-Systems.html#Version-Control-Systems" title="Version Control Systems">
+<link rel="prev" href="Source-Tree-Specifications.html#Source-Tree-Specifications" title="Source Tree Specifications">
+<link rel="next" href="Attributes-of-Changes.html#Attributes-of-Changes" title="Attributes of Changes">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.1beta1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="How-Different-VC-Systems-Specify-Sources"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Attributes-of-Changes.html#Attributes-of-Changes">Attributes of Changes</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Source-Tree-Specifications.html#Source-Tree-Specifications">Source Tree Specifications</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Version-Control-Systems.html#Version-Control-Systems">Version Control Systems</a>
+<hr>
+</div>
+
+<h4 class="subsection">3.1.3 How Different VC Systems Specify Sources</h4>
+
+<p>For CVS, the static specifications are <code>repository</code> and
+<code>module</code>. In addition to those, each build uses a timestamp (or
+omits the timestamp to mean <code>the latest</code>) and <code>branch tag</code>
+(which defaults to HEAD). These parameters collectively specify a set
+of sources from which a build may be performed.
+
+   <p><a href="http://subversion.tigris.org">Subversion</a> combines the
+repository, module, and branch into a single <code>Subversion URL</code>
+parameter. Within that scope, source checkouts can be specified by a
+numeric <code>revision number</code> (a repository-wide
+monotonically-increasing marker, such that each transaction that
+changes the repository is indexed by a different revision number), or
+a revision timestamp. When branches are used, the repository and
+module form a static <code>baseURL</code>, while each build has a
+<code>revision number</code> and a <code>branch</code> (which defaults to a
+statically-specified <code>defaultBranch</code>). The <code>baseURL</code> and
+<code>branch</code> are simply concatenated together to derive the
+<code>svnurl</code> to use for the checkout.
+
+   <p><a href="http://www.perforce.com/">Perforce</a> is similar. The server
+is specified through a <code>P4PORT</code> parameter. Module and branch
+are specified in a single depot path, and revisions are
+depot-wide. When branches are used, the <code>p4base</code> and
+<code>defaultBranch</code> are concatenated together to produce the depot
+path.
+
+   <p><a href="http://wiki.gnuarch.org/">Arch</a> and
+<a href="http://bazaar.canonical.com/">Bazaar</a> specify a repository by
+URL, as well as a <code>version</code> which is kind of like a branch name. 
+Arch uses the word <code>archive</code> to represent the repository. Arch
+lets you push changes from one archive to another, removing the strict
+centralization required by CVS and SVN. It retains the distinction
+between repository and working directory that most other VC systems
+use. For complex multi-module directory structures, Arch has a
+built-in <code>build config</code> layer with which the checkout process has
+two steps. First, an initial bootstrap checkout is performed to
+retrieve a set of build-config files. Second, one of these files is
+used to figure out which archives/modules should be used to populate
+subdirectories of the initial checkout.
+
+   <p>Builders which use Arch and Bazaar therefore have a static archive
+<code>url</code>, and a default &ldquo;branch&rdquo; (which is a string that specifies
+a complete category&ndash;branch&ndash;version triple). Each build can have its
+own branch (the category&ndash;branch&ndash;version string) to override the
+default, as well as a revision number (which is turned into a
+&ndash;patch-NN suffix when performing the checkout).
+
+   <p><a href="http://bazaar-vcs.org">Bzr</a> (which is a descendant of
+Arch/Bazaar, and is frequently referred to as &ldquo;Bazaar&rdquo;) has the same
+sort of repository-vs-workspace model as Arch, but the repository data
+can either be stored inside the working directory or kept elsewhere
+(either on the same machine or on an entirely different machine). For
+the purposes of Buildbot (which never commits changes), the repository
+is specified with a URL and a revision number.
+
+   <p>The most common way to obtain read-only access to a bzr tree is via
+HTTP, simply by making the repository visible through a web server
+like Apache. Bzr can also use FTP and SFTP servers, if the buildslave
+process has sufficient privileges to access them. Higher performance
+can be obtained by running a special Bazaar-specific server. None of
+these matter to the buildbot: the repository URL just has to match the
+kind of server being used. The <code>repoURL</code> argument provides the
+location of the repository.
+
+   <p>Branches are expressed as subdirectories of the main central
+repository, which means that if branches are being used, the BZR step
+is given a <code>baseURL</code> and <code>defaultBranch</code> instead of getting
+the <code>repoURL</code> argument.
+
+   <p><a href="http://darcs.net/">Darcs</a> doesn't really have the
+notion of a single master repository. Nor does it really have
+branches. In Darcs, each working directory is also a repository, and
+there are operations to push and pull patches from one of these
+<code>repositories</code> to another. For the Buildbot's purposes, all you
+need to do is specify the URL of a repository that you want to build
+from. The build slave will then pull the latest patches from that
+repository and build them. Multiple branches are implemented by using
+multiple repositories (possibly living on the same server).
+
+   <p>Builders which use Darcs therefore have a static <code>repourl</code> which
+specifies the location of the repository. If branches are being used,
+the source Step is instead configured with a <code>baseURL</code> and a
+<code>defaultBranch</code>, and the two strings are simply concatenated
+together to obtain the repository's URL. Each build then has a
+specific branch which replaces <code>defaultBranch</code>, or just uses the
+default one. Instead of a revision number, each build can have a
+&ldquo;context&rdquo;, which is a string that records all the patches that are
+present in a given tree (this is the output of <samp><span class="command">darcs changes
+--context</span></samp>, and is considerably less concise than, e.g. Subversion's
+revision number, but the patch-reordering flexibility of Darcs makes
+it impossible to provide a shorter useful specification).
+
+   <p><a href="http://selenic.com/mercurial">Mercurial</a> is like Darcs, in that
+each branch is stored in a separate repository. The <code>repourl</code>,
+<code>baseURL</code>, and <code>defaultBranch</code> arguments are all handled the
+same way as with Darcs. The &ldquo;revision&rdquo;, however, is the hash
+identifier returned by <samp><span class="command">hg identify</span></samp>.
+
+   <p><a href="http://git.or.cz/">Git</a> also follows a decentralized model, and
+each repository can have several branches and tags. The source Step is
+configured with a static <code>repourl</code> which specifies the location
+of the repository. In addition, an optional <code>branch</code> parameter
+can be specified to check out code from a specific branch instead of
+the default &ldquo;master&rdquo; branch. The &ldquo;revision&rdquo; is specified as a SHA1
+hash as returned by e.g. <samp><span class="command">git rev-parse</span></samp>. No attempt is made
+to ensure that the specified revision is actually a subset of the
+specified branch.
+
+   </body></html>
+

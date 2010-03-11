@@ -1,0 +1,135 @@
+<html lang="en">
+<head>
+<title>WebStatus - BuildBot Manual - 0.8.1beta1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.1beta1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Status-Targets.html#Status-Targets" title="Status Targets">
+<link rel="next" href="MailNotifier.html#MailNotifier" title="MailNotifier">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.1beta1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="WebStatus"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="MailNotifier.html#MailNotifier">MailNotifier</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Status-Targets.html#Status-Targets">Status Targets</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.13.1 WebStatus</h4>
+
+<p><a name="index-WebStatus-120"></a><a name="index-buildbot_002estatus_002eweb_002ebaseweb_002eWebStatus-121"></a>
+The <code>buildbot.status.html.WebStatus</code> status target runs a small
+web server inside the buildmaster. You can point a browser at this web
+server and retrieve information about every build the buildbot knows
+about, as well as find out what the buildbot is currently working on.
+
+   <p>The first page you will see is the &ldquo;Welcome Page&rdquo;, which contains
+links to all the other useful pages. This page is simply served from
+the <samp><span class="file">public_html/index.html</span></samp> file in the buildmaster's base
+directory, where it is created by the <samp><span class="command">buildbot create-master</span></samp>
+command along with the rest of the buildmaster.
+
+   <p>One of the most complex resource provided by <code>WebStatus</code> is the
+&ldquo;Waterfall Display&rdquo;, which shows a time-based chart of events. This
+somewhat-busy display provides detailed information about all steps of all
+recent builds, and provides hyperlinks to look at individual build logs and
+source changes. By simply reloading this page on a regular basis, you will see
+a complete description of everything the buildbot is currently working on.
+
+   <p>A similar, but more developer-oriented display is the "Grid" display.  This
+arranges builds by SourceStamp (horizontal axis) and builder (vertical axis),
+and can provide quick information as to which revisions are passing or failing
+on which builders.
+
+   <p>There are also pages with more specialized information. For example,
+there is a page which shows the last 20 builds performed by the
+buildbot, one line each. Each line is a link to detailed information
+about that build. By adding query arguments to the URL used to reach
+this page, you can narrow the display to builds that involved certain
+branches, or which ran on certain Builders. These pages are described
+in great detail below.
+
+<h3 class="heading">Configuration</h3>
+
+<p>When the buildmaster is created, a subdirectory named
+<samp><span class="file">public_html/</span></samp> is created in its base directory. By default, <code>WebStatus</code>
+will serve files from this directory: for example, when a user points
+their browser at the buildbot's <code>WebStatus</code> URL, they will see
+the contents of the <samp><span class="file">public_html/index.html</span></samp> file. Likewise,
+<samp><span class="file">public_html/robots.txt</span></samp>, <samp><span class="file">public_html/buildbot.css</span></samp>, and
+<samp><span class="file">public_html/favicon.ico</span></samp> are all useful things to have in there. 
+The first time a buildmaster is created, the <samp><span class="file">public_html</span></samp>
+directory is populated with some sample files, which you will probably
+want to customize for your own project. These files are all static:
+the buildbot does not modify them in any way as it serves them to HTTP
+clients.
+
+<pre class="example">     from buildbot.status.html import WebStatus
+     c['status'].append(WebStatus(8080))
+</pre>
+   <p>Note that the initial robots.txt file has Disallow lines for all of
+the dynamically-generated buildbot pages, to discourage web spiders
+and search engines from consuming a lot of CPU time as they crawl
+through the entire history of your buildbot. If you are running the
+buildbot behind a reverse proxy, you'll probably need to put the
+robots.txt file somewhere else (at the top level of the parent web
+server), and replace the URL prefixes in it with more suitable values.
+
+   <p>If you would like to use an alternative root directory, add the
+<code>public_html=..</code> option to the <code>WebStatus</code> creation:
+
+<pre class="example">     c['status'].append(WebStatus(8080, public_html="/var/www/buildbot"))
+</pre>
+   <p>In addition, if you are familiar with twisted.web <em>Resource
+Trees</em>, you can write code to add additional pages at places inside
+this web space. Just use <code>webstatus.putChild</code> to place these
+resources.
+
+   <p>The following section describes the special URLs and the status views
+they provide.
+
+<ul class="menu">
+<li><a accesskey="1" href="Buildbot-Web-Resources.html#Buildbot-Web-Resources">Buildbot Web Resources</a>
+<li><a accesskey="2" href="WebStatus-Configuration-Parameters.html#WebStatus-Configuration-Parameters">WebStatus Configuration Parameters</a>
+<li><a accesskey="3" href="XMLRPC-server.html#XMLRPC-server">XMLRPC server</a>
+</ul>
+
+   </body></html>
+

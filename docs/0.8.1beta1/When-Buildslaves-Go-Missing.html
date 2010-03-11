@@ -1,0 +1,107 @@
+<html lang="en">
+<head>
+<title>When Buildslaves Go Missing - BuildBot Manual - 0.8.1beta1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.1beta1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Buildslaves.html#Buildslaves" title="Buildslaves">
+<link rel="next" href="Latent-Buildslaves.html#Latent-Buildslaves" title="Latent Buildslaves">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.1beta1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="When-Buildslaves-Go-Missing"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Latent-Buildslaves.html#Latent-Buildslaves">Latent Buildslaves</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Buildslaves.html#Buildslaves">Buildslaves</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.8.1 When Buildslaves Go Missing</h4>
+
+<p>Sometimes, the buildslaves go away. One very common reason for this is
+when the buildslave process is started once (manually) and left
+running, but then later the machine reboots and the process is not
+automatically restarted.
+
+   <p>If you'd like to have the administrator of the buildslave (or other
+people) be notified by email when the buildslave has been missing for
+too long, just add the <code>notify_on_missing=</code> argument to the
+<code>BuildSlave</code> definition:
+
+<pre class="example">     c['slaves'] = [BuildSlave('bot-solaris', 'solarispasswd',
+                               notify_on_missing="bob@example.com"),
+                   ]
+</pre>
+   <p>By default, this will send email when the buildslave has been
+disconnected for more than one hour. Only one email per
+connection-loss event will be sent. To change the timeout, use
+<code>missing_timeout=</code> and give it a number of seconds (the default
+is 3600).
+
+   <p>You can have the buildmaster send email to multiple recipients: just
+provide a list of addresses instead of a single one:
+
+<pre class="example">     c['slaves'] = [BuildSlave('bot-solaris', 'solarispasswd',
+                               notify_on_missing=["bob@example.com",
+                                                  "alice@example.org"],
+                               missing_timeout=300, # notify after 5 minutes
+                               ),
+                   ]
+</pre>
+   <p>The email sent this way will use a MailNotifier (see <a href="MailNotifier.html#MailNotifier">MailNotifier</a>)
+status target, if one is configured. This provides a way for you to
+control the &ldquo;from&rdquo; address of the email, as well as the relayhost
+(aka &ldquo;smarthost&rdquo;) to use as an SMTP server. If no MailNotifier is
+configured on this buildmaster, the buildslave-missing emails will be
+sent using a default configuration.
+
+   <p>Note that if you want to have a MailNotifier for buildslave-missing
+emails but not for regular build emails, just create one with
+builders=[], as follows:
+
+<pre class="example">     from buildbot.status import mail
+     m = mail.MailNotifier(fromaddr="buildbot@localhost", builders=[],
+                           relayhost="smtp.example.org")
+     c['status'].append(m)
+     c['slaves'] = [BuildSlave('bot-solaris', 'solarispasswd',
+                               notify_on_missing="bob@example.com"),
+                   ]
+</pre>
+   </body></html>
+
