@@ -1,0 +1,103 @@
+<html lang="en">
+<head>
+<title>Changing the Schema - BuildBot Manual - latest</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - latest">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="The-Database.html#The-Database" title="The Database">
+<link rel="prev" href="Database-Schema.html#Database-Schema" title="Database Schema">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version latest.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Changing-the-Schema"></a>
+<p>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Database-Schema.html#Database-Schema">Database Schema</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="The-Database.html#The-Database">The Database</a>
+<hr>
+</div>
+
+<h4 class="subsection">7.3.2 Changing the Schema</h4>
+
+<p>To make a change to the database schema, follow these steps:
+
+     <ol type=1 start=1>
+
+     <li>
+Increment <code>CURRENT_VERSION</code> in <code>buildbot/db/schema/manager.py</code> by
+one.  This is your new version number.
+
+     <li>
+Create <samp><span class="file">buildbot/db/schema/vN.py</span></samp>, where N is your version number, by
+copying the previous script and stripping it down.  This script should define a
+subclass of <code>buildbot.db.schema.base.Updater</code> named <code>Updater</code>.
+
+     <p>The class must define the method <code>upgrade</code>, which takes no arguments.  It
+should upgrade the database from the previous version to your version,
+including incrementing the number in the <code>VERSION</code> table, probably with an
+<code>UPDATE</code> query.
+
+     <p>Consult the API documentation for the base class for information on the
+attributes that are available.
+
+     <li>
+Edit <samp><span class="file">buildbot/test/unit/test_db_schema_master.py</span></samp>.  If your upgrade
+involves moving data from the basedir into the database proper, then edit
+<code>fill_basedir</code> to add some test data.
+
+     <p>Add code to <code>assertDatabaseOKEmpty</code> to check that your upgrade works on an
+empty database.
+
+     <p>Add code to <code>assertDatabaseOKFull</code> to check that your upgrade works on a
+database with pre-existing data.  Do this even if your changes do not move any
+data from the basedir.
+
+     <p>Run the tests to find the bugs you introduced in step 2.
+
+     <li>
+Increment the version number in the <code>test_get_current_version</code> test in the
+same file.  Only do this after you've finished the previous step - a failure of
+this test is a good reminder that testing isn't done yet.
+
+     <li>
+Finally, make the corresponding changes to <samp><span class="file">buildbot/db/schema/tables.sql</span></samp>.
+
+        </ol>
+
+   </body></html>
+

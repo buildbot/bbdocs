@@ -67,7 +67,31 @@ master.  This can be overridden with the <code>db_url</code> parameter.
 specified with <code>sqlite:///</code> and absolute paths with <code>sqlite:////</code>
 
 <pre class="example">     c['db_url'] = "sqlite:///state.sqlite"
-     c['db_url'] = "mysql://user:pass@somehost.com/database_name"
+     c['db_url'] = "mysql://user:pass@somehost.com/database_name?max_idle=300"
+</pre>
+   <p>When using a MySQL database, multiple buildbot masters can share the same
+database.  Keep in mind that there is a single namespace for schedulers and
+builders for all masters using the same database.  One suggested configuration
+is to have one buildbot master configured with just the schedulers and change
+sources, and then other masters configured with just the builders.  To enable
+this mode, you will need to set the <code>multiMaster</code> option so that buildbot
+doesn't complain about missing schedulers or builders.  You'll also need to set
+<code>db_poll_interval</code> so the masters with builders check the database for new
+builds at the configured interval.
+
+   <p>The <code>max_idle</code> argument for MySQL connections should be set to something
+less than the wait_timeout configured for your server.  This ensures that
+connections are closed and re-opened after the configured amount of idle time. 
+If you see errors such as <code>_mysql_exceptions.OperationalError: (2006,
+'MySQL server has gone away')</code>, this means your <code>max_idle</code> setting is
+probably too high. <code>show global variables like 'wait_timeout';</code> will show
+what the currently configured wait_timeout is on your MySQL server.
+
+<pre class="example">     # Enable multiMaster mode; disables warnings about unknown builders and
+     # schedulers
+     c['multiMaster'] = True
+     # Check for new build requests every 60 seconds
+     c['db_poll_interval'] = 60
 </pre>
    </body></html>
 

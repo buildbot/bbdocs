@@ -56,14 +56,16 @@ Up:&nbsp;<a rel="up" accesskey="u" href="Configuration.html#Configuration">Confi
 
 <h3 class="section">4.12 Interlocks</h3>
 
-<p><a name="index-locks-112"></a>
+<p><a name="index-locks-118"></a>
 Until now, we assumed that a master can run builds at any slave whenever
 needed or desired.  Some times, you want to enforce additional constraints on
 builds. For reasons like limited network bandwidth, old slave machines, or a
 self-willed data base server, you may want to limit the number of builds (or
 build steps) that can access a resource.
 
-   <p>The mechanism used by Buildbot is known as the read/write lock.<a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a> It
+<h3 class="heading">Access Modes</h3>
+
+<p>The mechanism used by Buildbot is known as the read/write lock.<a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a> It
 allows either many readers or a single writer but not a combination of readers
 and writers. The general lock has been modified and extended for use in
 Buildbot. Firstly, the general lock allows an infinite number of readers. In
@@ -76,12 +78,22 @@ mode</em>.  As a result of these changes, locks in Buildbot allow a number of
 builds (upto some fixed number) in counting mode, or they allow one build in
 exclusive mode.
 
-   <p>Often, not all slaves are equal. To allow for this situation, Buildbot allows
+   <p>Note that access modes are specified when a lock is used.  That is, it is
+possible to have a single lock that is used by several slaves in counting mode,
+and several slaves in exclusive mode.  In fact, this is the strength of the
+modes: accessing a lock in exclusive mode will prevent all counting-mode
+accesses.
+
+<h3 class="heading">Count</h3>
+
+<p>Often, not all slaves are equal. To allow for this situation, Buildbot allows
 to have a separate upper limit on the count for each slave. In this way, you
 can have at most 3 concurrent builds at a fast slave, 2 at a slightly older
 slave, and 1 at all other slaves.
 
-   <p>The final thing you can specify when you introduce a new lock is its scope. 
+<h3 class="heading">Scope</h3>
+
+<p>The final thing you can specify when you introduce a new lock is its scope. 
 Some constraints are global &ndash; they must be enforced over all slaves. Other
 constraints are local to each slave.  A <em>master lock</em> is used for the
 global constraints. You can ensure for example that at most one build (of all
@@ -90,7 +102,9 @@ builds running at all slaves) accesses the data base server. With a
 you can for example enforce an upper limit to the number of active builds at a
 slave, like above.
 
-   <p>Time for a few examples. Below a master lock is defined to protect a data base,
+<h3 class="heading">Examples</h3>
+
+<p>Time for a few examples. Below a master lock is defined to protect a data base,
 and a slave lock is created to limit the number of builds at each slave.
 
 <pre class="example">     from buildbot import locks
@@ -110,18 +124,20 @@ lock are a bit more complicated, two optional arguments are also specified. The
 three builds, and for the slave called <code>'new'</code> the upper limit is two
 builds running at the same time.
 
-   <p>The next step is using the locks in builds.  Buildbot allows a lock to be used
+   <p>The next step is accessing the locks in builds.  Buildbot allows a lock to be used
 during an entire build (from beginning to end), or only during a single build
 step. In the latter case, the lock is claimed for use just before the step
 starts, and released again when the step ends. To prevent
 deadlocks,<a rel="footnote" href="#fn-2" name="fnd-2"><sup>2</sup></a> it is not possible to claim or release
 locks at other times.
 
-   <p>To use locks, you should add them with a <code>locks</code> argument. 
+   <p>To use locks, you add them with a <code>locks</code> argument to a build or a step. 
 Each use of a lock is either in counting mode (that is, possibly shared with
-other builds) or in exclusive mode. A build or build step proceeds only when it
-has acquired all locks. If a build or step needs a lot of locks, it may be
-starved<a rel="footnote" href="#fn-3" name="fnd-3"><sup>3</sup></a> by other builds that need fewer locks.
+other builds) or in exclusive mode, and this is indicated with the syntax <code>lock.access(mode)</code>, where <code>mode</code> is one of <code>"counting"</code> or <code>"shared"</code>.
+
+   <p>A build or build step proceeds only when it has acquired all locks. If a build
+or step needs a lot of locks, it may be starved<a rel="footnote" href="#fn-3" name="fnd-3"><sup>3</sup></a> by other builds that need
+fewer locks.
 
    <p>To illustrate use of locks, a few examples.
 
@@ -169,6 +185,10 @@ For this purpose, the slave lock called <code>build_lock</code> is defined. Sinc
 the restraint holds for entire builds, the lock is specified in the builder
 with <code>'locks': [build_lock.access('counting')]</code>.
 
+   <p>Note that you will occasionally see <code>lock.access(mode)</code> written as
+<code>LockAccess(lock, mode)</code>.  The two are equivalent, but the former is
+preferred.
+
    <div class="footnote">
 <hr>
 <h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> See
@@ -179,10 +199,10 @@ hold a lock in exclusive mode, and in addition want to claim the lock held by
 the other slave exclusively as well. Since locks allow at most one exclusive
 user, both slaves will wait forever.</p>
 
-   <p class="footnote"><small>[<a name="fn-3" href="#fnd-3">3</a>]</small> Starving is the situation that only a few locks are available,
-and they are immediately grabbed by another build. As a result, it may take a
-long time before all locks needed by the starved build are free at the same
-time.</p>
+   <p class="footnote"><small>[<a name="fn-3" href="#fnd-3">3</a>]</small> Starving is the
+situation that only a few locks are available, and they are immediately grabbed
+by another build. As a result, it may take a long time before all locks needed
+by the starved build are free at the same time.</p>
 
    <hr></div>
 

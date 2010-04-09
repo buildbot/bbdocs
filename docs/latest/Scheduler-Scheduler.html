@@ -6,6 +6,7 @@
 <meta name="generator" content="makeinfo 4.13">
 <link title="Top" rel="start" href="index.html#Top">
 <link rel="up" href="Schedulers.html#Schedulers" title="Schedulers">
+<link rel="prev" href="Change-Filters.html#Change-Filters" title="Change Filters">
 <link rel="next" href="AnyBranchScheduler.html#AnyBranchScheduler" title="AnyBranchScheduler">
 <link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
 <!--
@@ -48,13 +49,14 @@ pageTracker._trackPageview();
 <a name="Scheduler-Scheduler"></a>
 <p>
 Next:&nbsp;<a rel="next" accesskey="n" href="AnyBranchScheduler.html#AnyBranchScheduler">AnyBranchScheduler</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Change-Filters.html#Change-Filters">Change Filters</a>,
 Up:&nbsp;<a rel="up" accesskey="u" href="Schedulers.html#Schedulers">Schedulers</a>
 <hr>
 </div>
 
-<h4 class="subsection">4.7.1 Scheduler Scheduler</h4>
+<h4 class="subsection">4.7.3 Scheduler Scheduler</h4>
 
-<p><a name="index-buildbot_002escheduler_002eScheduler-46"></a>
+<p><a name="index-buildbot_002eschedulers_002ebasic_002eScheduler-47"></a>
 This is the original and still most popular Scheduler class. It follows
 exactly one branch, and starts a configurable tree-stable-timer after
 each change on that branch. When the timer expires, it starts a build
@@ -68,13 +70,7 @@ affect any &ldquo;important&rdquo; files.
 <dt><code>name</code>
 <br><dt><code>builderNames</code>
 <br><dt><code>properties</code>
-<br><dt><code>branch</code><dd>This Scheduler will pay attention to a single branch, ignoring Changes
-that occur on other branches. Setting <code>branch</code> equal to the
-special value of <code>None</code> means it should only pay attention to
-the default branch. Note that <code>None</code> is a keyword, not a string,
-so you want to use <code>None</code> and not <code>"None"</code>.
-
-     <br><dt><code>treeStableTimer</code><dd>The Scheduler will wait for this many seconds before starting the
+<br><dt><code>treeStableTimer</code><dd>The Scheduler will wait for this many seconds before starting the
 build. If new changes are made during this interval, the timer will be
 restarted, so really the build will be started after a change and then
 after this many seconds of inactivity.
@@ -88,19 +84,34 @@ it is not.  Unimportant Changes are accumulated until the build is
 triggered by an important change.  The default value of None means
 that all Changes are important.
 
-     <br><dt><code>categories</code><dd>A list of categories of changes that this scheduler will respond to.  If this
+     <br><dt><code>change_filter</code><dd>
+The change filter that will determine whch changes are recognized by this
+Scheduler.  Note that this is different from <code>fileIsImportant</code>: if the
+change filter filters out a Change, then it is completely ignored by the
+scheduler.  If a Change is allowed by the change filter, but is deemed
+unimportant, then it will not cause builds to start, but will be remembered and
+shown in status displays.
+
+     <br><dt><code>categories (deprecated; use change_filter)</code><dd>A list of categories of changes that this scheduler will respond to.  If this
 is specified, then any non-matching changes are ignored.
+
+     <br><dt><code>branch (deprecated; use change_filter)</code><dd>
+If specified, then this Scheduler will pay attention to a single branch,
+ignoring Changes that occur on other branches. Setting <code>branch</code> equal to
+the special value of <code>None</code> means it should only pay attention to the
+default branch. Note that <code>None</code> is a keyword, not a string, so you want
+to use <code>None</code> and not <code>"None"</code>.
 
    </dl>
 
    <p>Example:
 
-<pre class="example">     from buildbot import scheduler
-     quick = scheduler.Scheduler(name="quick",
+<pre class="example">     from buildbot.schedulers.basic  import Scheduler
+     quick = Scheduler(name="quick",
                          branch=None,
                          treeStableTimer=60,
                          builderNames=["quick-linux", "quick-netbsd"])
-     full = scheduler.Scheduler(name="full",
+     full = Scheduler(name="full",
                          branch=None,
                          treeStableTimer=5*60,
                          builderNames=["full-linux", "full-netbsd", "full-OSX"])
