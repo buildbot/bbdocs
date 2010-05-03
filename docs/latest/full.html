@@ -26,20 +26,6 @@ provided the copyright notice and this notice are preserved.-->
   span.roman { font-family:serif; font-weight:normal; } 
   span.sansserif { font-family:sans-serif; font-weight:normal; } 
 --></style>
-<!-- GA-TRACKING-START -->
-<script type="text/javascript">
-var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-</script>
-<script type="text/javascript">
-try{
-var pageTracker = _gat._getTracker("UA-12313843-4");
-pageTracker._setDomainName("none");
-pageTracker._setAllowLinker(true);
-pageTracker._trackPageview();
-} catch(err) {}
-</script>
-<!-- GA-TRACKING-END -->
 </head>
 <body>
 <h1 class="settitle">BuildBot Manual - latest</h1>
@@ -64,6 +50,10 @@ pageTracker._trackPageview();
 <li><a href="#Installing-the-code">2.2 Installing the code</a>
 <li><a href="#Creating-a-buildmaster">2.3 Creating a buildmaster</a>
 <li><a href="#Upgrading-an-Existing-Buildmaster">2.4 Upgrading an Existing Buildmaster</a>
+<ul>
+<li><a href="#Upgrading-a-Buildmaster-to-Buildbot_002d0_002e7_002e6">2.4.1 Upgrading a Buildmaster to Buildbot-0.7.6</a>
+<li><a href="#Upgrading-a-Buildmaster-to-Buildbot_002d0_002e8_002e0">2.4.2 Upgrading a Buildmaster to Buildbot-0.8.0</a>
+</li></ul>
 <li><a href="#Creating-a-buildslave">2.5 Creating a buildslave</a>
 <ul>
 <li><a href="#Buildslave-Options">2.5.1 Buildslave Options</a>
@@ -898,10 +888,36 @@ incompatibilities (by loading it and printing any errors or deprecation
 warnings that occur). Each buildbot release tries to be compatible
 with configurations that worked cleanly (i.e. without deprecation
 warnings) on the previous release: any functions or classes that are
-to be removed will first be deprecated in a release, to give users a
-chance to start using their replacement.
+to be removed will first be deprecated in a release, to give you a
+chance to start using the replacement.
 
-   <p>The 0.7.6 release introduced the <samp><span class="file">public_html/</span></samp> directory, which
+   <p>The <code>upgrade-master</code> command is idempotent. It is safe to run it
+multiple times. After each upgrade of the buildbot code, you should
+use <code>upgrade-master</code> on all your buildmasters.
+
+   <p>In general, Buildbot slaves and masters can be upgraded independently, although
+some new features will not be available, depending on the master and slave
+versions.
+
+<h3 class="heading">Version-specific Notes</h3>
+
+<ul class="menu">
+<li><a accesskey="1" href="#Upgrading-a-Buildmaster-to-Buildbot_002d0_002e7_002e6">Upgrading a Buildmaster to Buildbot-0.7.6</a>
+<li><a accesskey="2" href="#Upgrading-a-Buildmaster-to-Buildbot_002d0_002e8_002e0">Upgrading a Buildmaster to Buildbot-0.8.0</a>
+</ul>
+
+<div class="node">
+<a name="Upgrading-a-Buildmaster-to-Buildbot-0.7.6"></a>
+<a name="Upgrading-a-Buildmaster-to-Buildbot_002d0_002e7_002e6"></a>
+<p><hr>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Upgrading-a-Buildmaster-to-Buildbot_002d0_002e8_002e0">Upgrading a Buildmaster to Buildbot-0.8.0</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Upgrading-an-Existing-Buildmaster">Upgrading an Existing Buildmaster</a>
+
+</div>
+
+<h4 class="subsection">2.4.1 Upgrading a Buildmaster to Buildbot-0.7.6</h4>
+
+<p>The 0.7.6 release introduced the <samp><span class="file">public_html/</span></samp> directory, which
 contains <samp><span class="file">index.html</span></samp> and other files served by the
 <code>WebStatus</code> and <code>Waterfall</code> status displays. The
 <code>upgrade-master</code> command will create these files if they do not
@@ -909,9 +925,27 @@ already exist. It will not modify existing copies, but it will write a
 new copy in e.g. <samp><span class="file">index.html.new</span></samp> if the new version differs from
 the version that already exists.
 
-   <p>The <code>upgrade-master</code> command is idempotent. It is safe to run it
-multiple times. After each upgrade of the buildbot code, you should
-use <code>upgrade-master</code> on all your buildmasters.
+<div class="node">
+<a name="Upgrading-a-Buildmaster-to-Buildbot-0.8.0"></a>
+<a name="Upgrading-a-Buildmaster-to-Buildbot_002d0_002e8_002e0"></a>
+<p><hr>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Upgrading-a-Buildmaster-to-Buildbot_002d0_002e7_002e6">Upgrading a Buildmaster to Buildbot-0.7.6</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Upgrading-an-Existing-Buildmaster">Upgrading an Existing Buildmaster</a>
+
+</div>
+
+<h4 class="subsection">2.4.2 Upgrading a Buildmaster to Buildbot-0.8.0</h4>
+
+<p>Buildbot-0.8.0 introduces a database backend, which is SQLite by default.  The
+<code>upgrade-master</code> command will automatically create and populate this
+database with the changes the buildmaster has seen.  Note that, as of this
+release, build history is <i>not</i> contained in the database, and is thus not
+migrated.
+
+   <p>The upgrade process renames the Changes pickle (<code>$basedir/changes.pck</code>) to
+<code>changes.pck.old</code> once the upgrade is complete.  To reverse the upgrade,
+simply downgrade Buildbot and move this file back to its original name.  You
+may also wish to delete the state database (<code>state.sqlite</code>).
 
 <div class="node">
 <a name="Creating-a-buildslave"></a>
@@ -1266,11 +1300,10 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Installation">Installation</a>
 
 <h3 class="section">2.9 Maintenance</h3>
 
-<p>It is a good idea to check the buildmaster's status page every once in
-a while, to see if your buildslave is still online. Eventually the
-buildbot will probably be enhanced to send you email (via the
-<samp><span class="file">info/admin</span></samp> email address) when the slave has been offline for
-more than a few hours.
+<p>The buildmaster can be configured to send out email notifications when a
+slave has been offline for a while.  Be sure to configure the buildmaster
+with a contact email address for each slave so these notifications are sent
+to someone who can bring it back online.
 
    <p>If you find you can no longer provide a buildslave to the project, please
 let the project admins know, so they can put out a call for a
@@ -1290,7 +1323,11 @@ top directory. You can use something like the following:
 <pre class="example">     @weekly cd BASEDIR &amp;&amp; find . -mindepth 2 i-path './public_html/*' -prune -o -type f -mtime +14 -exec rm {} \;
      @weekly cd BASEDIR &amp;&amp; find twistd.log* -mtime +14 -exec rm {} \;
 </pre>
-   <div class="node">
+   <p>Alternatively, you can configure a maximum number of old logs to be kept
+using the <code>--log-count</code> command line option when running <code>buildbot
+create-slave</code> or <code>buildbot create-master</code>.
+
+<div class="node">
 <a name="Troubleshooting"></a>
 <p><hr>
 Previous:&nbsp;<a rel="previous" accesskey="p" href="#Maintenance">Maintenance</a>,
@@ -1724,6 +1761,29 @@ full test suite.
 
 <p>The Change also has a <code>comments</code> attribute, which is a string
 containing any checkin comments.
+
+<h3 class="heading">Project</h3>
+
+<p>A change's <i>project</i>, by default the empty string, describes the source code
+that changed.  It is a free-form string which the buildbot administrator can
+use to flexibly discriminate among changes.
+
+   <p>Generally, a project is an independently-buildable unit of source.  This field
+can be used to apply different build steps to different projects.  For example,
+an open-source application might build its Windows client from a separate
+codebase than its POSIX server.  In this case, the change sources should be
+configured to attach an appropriate project string (say, "win-client" and
+"server") to changes from each codebase.  Schedulers would then examine these
+strings and trigger the appropriate builders for each project.
+
+<h3 class="heading">Repository</h3>
+
+<p>A change occurs within the context of a specific repository.  This is generally
+specified with a string, and for most version-control systems, this string
+takes the form of a URL.
+
+   <p>Changes can be filtered on repository, but more often this field is used as a
+hint for the build steps to figure out which code to check out.
 
 <h3 class="heading">Revision</h3>
 
@@ -2530,10 +2590,15 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Global-Configuration">Global Configura
 
 <h4 class="subsection">4.5.2 Project Definitions</h4>
 
-<p>There are a couple of basic settings that you use to tell the buildbot
-what project it is working on. This information is used by status
-reporters to let users find out more about the codebase being
-exercised by this particular Buildbot installation.
+<p>There are a couple of basic settings that you use to tell the buildbot what it
+is working on. This information is used by status reporters to let users find
+out more about the codebase being exercised by this particular Buildbot
+installation.
+
+   <p>Note that these parameters were added long before Buildbot became able to build
+multiple projects in a single buildmaster, and thus assume that there is only
+one project.  While the configuration parameter names may be confusing, a
+suitable choice of name and URL should help users avoid any confusion.
 
 <pre class="example">     c['projectName'] = "Buildbot"
      c['projectURL'] = "http://buildbot.sourceforge.net/"
@@ -4205,7 +4270,9 @@ you want:
    <p>The special argument <code>filter_fn</code> can be used to specify a function that is
 given the entire Change object, and returns a boolean.
 
-   <p>A Change passes the filter only if <i>all</i> arguments are satisfied.
+   <p>A Change passes the filter only if <i>all</i> arguments are satisfied.  If no
+filter object is given to a scheduler, then all changes will be built (subject
+to any other restrictions the scheduler enforces).
 
 <div class="node">
 <a name="Scheduler-Scheduler"></a>
@@ -4573,7 +4640,7 @@ to perform some work for them, perhaps on other buildslaves.
    <p>This class is only useful in conjunction with the <code>Trigger</code> step. 
 Here is a fully-worked example:
 
-<pre class="example">     from buildbot.schedulesr import basic, timed, triggerable
+<pre class="example">     from buildbot.schedulers import basic, timed, triggerable
      from buildbot.process import factory
      from buildbot.steps import trigger
      
@@ -5270,7 +5337,50 @@ each step takes, so it can provide estimates of how long future builds
 will take. If builds are not expected to take a consistent amount of
 time (such as incremental builds in which a random set of files are
 recompiled or tested each time), this should be set to False to
-inhibit progress-tracking. 
+inhibit progress-tracking.
+
+     <br><dt><code>workdir</code><dd>(defaults to 'build'): workdir given to every build step created by
+this factory as default. The workdir can be overridden in a build step
+definition. 
+If this attribute is set to a string, that string will be used
+for constructing the workdir (buildslave base + builder builddir +
+workdir). If this attributed is set to a Python callable, that
+callable will be called with SourceStamp as single parameter and
+is supposed to return a string which will be used as above. 
+The latter is useful in scenarios with multiple repositories
+submitting changes to BuildBot. In this case you likely will want
+to have a dedicated workdir per repository, since otherwise a
+sourcing step with mode = "update" will fail as a workdir with
+a working copy of repository A can't be "updated" for changes
+from a repository B. Here is an example how you can achive
+workdir-per-repo:
+
+     <pre class="example">          #
+          # pre-repository working directory
+          #
+          def workdir (source_stamp):
+              return hashlib.md5 (source_stamp.repository).hexdigest ()[:8]
+          
+          build = factory.BuildFactory()
+          build.workdir = workdir
+          
+          build.addStep (Git (mode = "update"))
+          ...
+          builders.append ({'name': 'mybuilder',
+                            'slavename': 'myslave',
+                            'builddir': 'mybuilder',
+                            'factory': build})
+          
+          # You'll end up with workdirs like:
+          #
+          # Repo1 =&gt; &lt;buildslave-base&gt;/mybuilder/a78890ba
+          # Repo2	=&gt; &lt;buildslave-base&gt;/mybuilder/0823ba88
+          # ...
+</pre>
+     <p>You could make the workdir() function compute other paths, based on
+parts of the repo URL in the sourcestamp, or lookup in a lookup table
+based on repo URL. As long as there is a permanent 1:1 mapping between
+repos and workdir this will work. 
 </dl>
 
 <h3 class="heading">Implementation Note</h3>
@@ -6185,8 +6295,8 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#Source-Checkout">Source Checkout</a>
 There are two basic ways of setting up the checkout step, depending
 upon whether you are using multiple branches or not.
 
-   <p>If all of your builds use the same branch, then you should create the
-<code>SVN</code> step with the <code>svnurl</code> argument:
+   <p>The most versatile way to create the <code>SVN</code> step is with the
+<code>svnurl</code> argument:
 
      <dl>
 <dt><code>svnurl</code><dd>(required): this specifies the <code>URL</code> argument that will be given
@@ -6201,9 +6311,13 @@ Subversion repository which is accessible through HTTP at a URL of
 to your <code>SVN</code> step. 
 </dl>
 
-   <p>If, on the other hand, you are building from multiple branches, then
-you should create the <code>SVN</code> step with the <code>baseURL</code> and
-<code>defaultBranch</code> arguments instead:
+   <p>The <code>svnurl</code> argument can be considered as a universal means to
+create the <code>SVN</code> step as it ignores the branch information in the
+SourceStamp.
+
+   <p>Alternatively, if you are building from multiple branches, then you
+should preferentially create the <code>SVN</code> step with the
+<code>baseURL</code> and <code>defaultBranch</code> arguments instead:
 
      <dl>
 <dt><code>baseURL</code><dd>(required): this specifies the base repository URL, to which a branch
@@ -6213,6 +6327,10 @@ name will be appended. It should probably end in a slash.
 does not provide one of its own. This will be appended to
 <code>baseURL</code> to create the string that will be passed to the
 <code>svn checkout</code> command.
+
+     <p>It is possible to mix to have a mix of <code>SVN</code> steps that use
+either the <code>svnurl</code> or <code>baseURL</code> arguments but not both at
+the same time.
 
      <br><dt><code>username</code><dd>(optional): if specified, this will be passed to the <code>svn</code>
 binary with a <code>--username</code> option.
@@ -7160,7 +7278,8 @@ Up:&nbsp;<a rel="up" accesskey="u" href="#ShellCommand">ShellCommand</a>
 This buildstep is similar to ShellCommand, except that it captures the
 output of the command into a property.  It is usually used like this:
 
-<pre class="example">     f.addStep(SetProperty(command="uname -a", property="uname"))
+<pre class="example">     from buildbot.steps import shell
+     f.addStep(shell.SetProperty(command="uname -a", property="uname"))
 </pre>
    <p>This runs <code>uname -a</code> and captures its stdout, stripped of leading
 and trailing whitespace, in the property "uname".  To avoid stripping,
@@ -8882,33 +9001,80 @@ status. The following table lists the methods that can be invoked
 using this interface.
 
      <dl>
-<dt><code>getAllBuildsInInterval(start, stop)</code><dd>
-Return a list of builds that have completed after the 'start'
-timestamp and before the 'stop' timestamp. This looks at all Builders.
+<dt><code>getAllBuilders()</code><dd>
+Return a list of the names of all builders.
 
-     <p>The timestamps are integers, interpreted as standard unix timestamps
-(seconds since epoch).
+     <br><dt><code>getLastBuildResults(builder_name)</code><dd>
+Return the build result for the last completed build by the given builder.  The
+result is a string, one of "success", "warnings", "failure", "skipped",
+"exception", or "retry".
 
-     <p>Each Build is returned as a tuple in the form: <code>(buildername,
-buildnumber, build_end, branchname, revision, results, text)</code>
+     <br><dt><code>getLastBuilds(builder_name, num_builds)</code><dd>
+Get the last NUM_BUILDS builds completed by the named builder.  The return value is an array, with each build represented as an array with the following items
 
-     <p>The buildnumber is an integer. 'build_end' is an integer (seconds
-since epoch) specifying when the build finished.
+          <ul>
+<li>builder name
+<li>build number
+<li>start time (seconds since epoch)
+<li>end time (seconds since epoch)
+<li>branch
+<li>revision
+<li>result (same format as <code>getLastBuildResults</code>)
+<li>text
+<li>reasons (list of strings giving reasosn for that steps failed)
+</ul>
 
-     <p>The branchname is a string, which may be an empty string to indicate
-None (i.e. the default branch). The revision is a string whose meaning
-is specific to the VC system in use, and comes from the 'got_revision'
-build property. The results are expressed as a string, one of
-('success', 'warnings', 'failure', 'exception'). The text is a list of
-short strings that ought to be joined by spaces and include slightly
-more data about the results of the build.
+     <br><dt><code>getLastBuildsAllBuilders(num_builds)</code><dd>
+Similar to <code>getLastBuilds</code>, but returns the last builds for all builders. 
+This method can consume a lot of buildmaster CPU and disk resources.
+
+     <br><dt><code>getAllBuildsInInterval(start, stop)</code><dd>
+Return a list of builds that have completed after the 'start' timestamp and
+before the 'stop' timestamp, both given as seconds since the epoch. This looks
+at all builders.  Each build is returned in a format similar to, but not the
+same as that for <code>getLastBuilds</code>.  In particular, the start time and
+reasons are omitted.
 
      <br><dt><code>getBuild(builder_name, build_number)</code><dd>
 Return information about a specific build.
 
-     <p>This returns a dictionary (aka &ldquo;struct&rdquo; in XMLRPC terms) with
-complete information about the build. It does not include the contents
-of the log files, but it has just about everything else.
+     <p>This returns a dictionary (a struct in XMLRPC terms) with complete information
+about the build. Because it extracts log information, this call is a very
+heavyweight operation for the buildmaster.
+
+     <p>Keys include:
+
+          <dl>
+<dt><code>builder_name</code><br><dt><code>url</code><br><dt><code>reason</code><br><dt><code>slavename</code><br><dt><code>results</code><br><dt><code>text</code><br><dt><code>reasons</code><dd>
+Just as for <code>getLastBuilds</code>, above.
+
+          <br><dt><code>number</code><dd>
+The build number
+
+          <br><dt><code>branch</code><br><dt><code>revision</code><br><dt><code>start</code><br><dt><code>end</code>
+<br><dt><code>steps</code><dd>
+See below.
+
+          <br><dt><code>full_error</code><br><dt><code>logs</code><dd>
+See below. 
+</dl>
+
+     <p>The <code>steps</code> key is a list of information about each step in the build, with keys
+
+          <dl>
+<dt><code>name</code><br><dt><code>start</code><br><dt><code>end</code><br><dt><code>results</code><dd>
+This is a list of (integer result, text) that is probably not useful to callers.
+
+          <br><dt><code>text</code><dd></dl>
+
+     <p>The <code>full_error</code> and <code>logs</code> keys contains most of the build's
+logfiles, in an odd format.  The <code>full_error</code> key contains a hash keyed by
+step name, but containing only failed logs.  The values are the text of an
+arbitrary one of the logs for each failing step.
+
+     <p>The <code>logs</code> key is a list of logs, each of which is represented by a hash
+with keys <code>name</code>, in the format <code>stepname/logname</code>, and <code>text</code>,
+which is always the constant string <code>HUGE</code>.
 
    </dl>
 

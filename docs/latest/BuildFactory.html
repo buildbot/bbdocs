@@ -28,20 +28,6 @@ provided the copyright notice and this notice are preserved.-->
   span.roman { font-family:serif; font-weight:normal; } 
   span.sansserif { font-family:sans-serif; font-weight:normal; } 
 --></style>
-<!-- GA-TRACKING-START -->
-<script type="text/javascript">
-var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-</script>
-<script type="text/javascript">
-try{
-var pageTracker = _gat._getTracker("UA-12313843-4");
-pageTracker._setDomainName("none");
-pageTracker._setAllowLinker(true);
-pageTracker._trackPageview();
-} catch(err) {}
-</script>
-<!-- GA-TRACKING-END -->
 </head>
 <body>
 <div class="node">
@@ -93,7 +79,50 @@ each step takes, so it can provide estimates of how long future builds
 will take. If builds are not expected to take a consistent amount of
 time (such as incremental builds in which a random set of files are
 recompiled or tested each time), this should be set to False to
-inhibit progress-tracking. 
+inhibit progress-tracking.
+
+     <br><dt><code>workdir</code><dd>(defaults to 'build'): workdir given to every build step created by
+this factory as default. The workdir can be overridden in a build step
+definition. 
+If this attribute is set to a string, that string will be used
+for constructing the workdir (buildslave base + builder builddir +
+workdir). If this attributed is set to a Python callable, that
+callable will be called with SourceStamp as single parameter and
+is supposed to return a string which will be used as above. 
+The latter is useful in scenarios with multiple repositories
+submitting changes to BuildBot. In this case you likely will want
+to have a dedicated workdir per repository, since otherwise a
+sourcing step with mode = "update" will fail as a workdir with
+a working copy of repository A can't be "updated" for changes
+from a repository B. Here is an example how you can achive
+workdir-per-repo:
+
+     <pre class="example">          #
+          # pre-repository working directory
+          #
+          def workdir (source_stamp):
+              return hashlib.md5 (source_stamp.repository).hexdigest ()[:8]
+          
+          build = factory.BuildFactory()
+          build.workdir = workdir
+          
+          build.addStep (Git (mode = "update"))
+          ...
+          builders.append ({'name': 'mybuilder',
+                            'slavename': 'myslave',
+                            'builddir': 'mybuilder',
+                            'factory': build})
+          
+          # You'll end up with workdirs like:
+          #
+          # Repo1 =&gt; &lt;buildslave-base&gt;/mybuilder/a78890ba
+          # Repo2	=&gt; &lt;buildslave-base&gt;/mybuilder/0823ba88
+          # ...
+</pre>
+     <p>You could make the workdir() function compute other paths, based on
+parts of the repo URL in the sourcestamp, or lookup in a lookup table
+based on repo URL. As long as there is a permanent 1:1 mapping between
+repos and workdir this will work. 
 </dl>
 
 <h3 class="heading">Implementation Note</h3>
