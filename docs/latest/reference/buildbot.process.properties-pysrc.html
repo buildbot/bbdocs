@@ -1,0 +1,794 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>buildbot.process.properties</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="buildbot-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot latest</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="buildbot-module.html">Package&nbsp;buildbot</a> ::
+        <a href="buildbot.process-module.html">Package&nbsp;process</a> ::
+        Module&nbsp;properties
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="buildbot.process.properties-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="buildbot.process.properties-module.html">Module buildbot.process.properties</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">re</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">weakref</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package buildbot=buildbot-module.html"><a title="buildbot" class="py-name" href="#" onclick="return doclink('link-0', 'buildbot', 'link-0');">buildbot</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Module buildbot.db.util=buildbot.db.util-module.html,Package buildbot.util=buildbot.util-module.html"><a title="buildbot.db.util
+buildbot.util" class="py-name" href="#" onclick="return doclink('link-1', 'util', 'link-1');">util</a></tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"> </tt>
+<a name="Properties"></a><div id="Properties-def"><a name="L5"></a><tt class="py-lineno">  5</tt> <a class="py-toggle" href="#" id="Properties-toggle" onclick="return toggle('Properties');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildbot.process.properties.Properties-class.html">Properties</a><tt class="py-op">(</tt><tt class="py-base-class">util</tt><tt class="py-op">.</tt><tt class="py-base-class">ComparableMixin</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Properties-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="Properties-expanded"><a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-docstring">    I represent a set of properties that can be interpolated into various</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-docstring">    strings in buildsteps.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-docstring">    @ivar properties: dictionary mapping property values to tuples </tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-docstring">        (value, source), where source is a string identifing the source</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-docstring">        of the property.</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-docstring">    Objects of this class can be read like a dictionary -- in this case,</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-docstring">    only the property value is returned.</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-docstring">    As a special case, a property value of None is returned as an empty </tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-docstring">    string when used as a mapping.</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line">    <tt id="link-2" class="py-name" targets="Variable buildbot.changes.bonsaipoller.BonsaiPoller.compare_attrs=buildbot.changes.bonsaipoller.BonsaiPoller-class.html#compare_attrs,Variable buildbot.changes.freshcvs.FreshCVSSourceNewcred.compare_attrs=buildbot.changes.freshcvs.FreshCVSSourceNewcred-class.html#compare_attrs,Variable buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.compare_attrs=buildbot.changes.mail.BzrLaunchpadEmailMaildirSource-class.html#compare_attrs,Variable buildbot.changes.mail.MaildirSource.compare_attrs=buildbot.changes.mail.MaildirSource-class.html#compare_attrs,Variable buildbot.changes.monotone.MonotoneSource.compare_attrs=buildbot.changes.monotone.MonotoneSource-class.html#compare_attrs,Variable buildbot.changes.p4poller.P4Source.compare_attrs=buildbot.changes.p4poller.P4Source-class.html#compare_attrs,Variable buildbot.changes.pb.PBChangeSource.compare_attrs=buildbot.changes.pb.PBChangeSource-class.html#compare_attrs,Variable buildbot.changes.svnpoller.SVNPoller.compare_attrs=buildbot.changes.svnpoller.SVNPoller-class.html#compare_attrs,Variable buildbot.db.connector.DBConnector.compare_attrs=buildbot.db.connector.DBConnector-class.html#compare_attrs,Variable buildbot.locks.LockAccess.compare_attrs=buildbot.locks.LockAccess-class.html#compare_attrs,Variable buildbot.locks.MasterLock.compare_attrs=buildbot.locks.MasterLock-class.html#compare_attrs,Variable buildbot.locks.SlaveLock.compare_attrs=buildbot.locks.SlaveLock-class.html#compare_attrs,Variable buildbot.manhole.ArbitraryCheckerManhole.compare_attrs=buildbot.manhole.ArbitraryCheckerManhole-class.html#compare_attrs,Variable buildbot.manhole.AuthorizedKeysManhole.compare_attrs=buildbot.manhole.AuthorizedKeysManhole-class.html#compare_attrs,Variable buildbot.manhole.PasswordManhole.compare_attrs=buildbot.manhole.PasswordManhole-class.html#compare_attrs,Variable buildbot.manhole.TelnetManhole.compare_attrs=buildbot.manhole.TelnetManhole-class.html#compare_attrs,Variable buildbot.process.factory.BuildFactory.compare_attrs=buildbot.process.factory.BuildFactory-class.html#compare_attrs,Variable buildbot.process.properties.Properties.compare_attrs=buildbot.process.properties.Properties-class.html#compare_attrs,Variable buildbot.process.properties.WithProperties.compare_attrs=buildbot.process.properties.WithProperties-class.html#compare_attrs,Variable buildbot.schedulers.basic.AnyBranchScheduler.compare_attrs=buildbot.schedulers.basic.AnyBranchScheduler-class.html#compare_attrs,Variable buildbot.schedulers.basic.Dependent.compare_attrs=buildbot.schedulers.basic.Dependent-class.html#compare_attrs,Variable buildbot.schedulers.basic.Scheduler.compare_attrs=buildbot.schedulers.basic.Scheduler-class.html#compare_attrs,Variable buildbot.schedulers.filter.ChangeFilter.compare_attrs=buildbot.schedulers.filter.ChangeFilter-class.html#compare_attrs,Variable buildbot.schedulers.timed.Nightly.compare_attrs=buildbot.schedulers.timed.Nightly-class.html#compare_attrs,Variable buildbot.schedulers.timed.Periodic.compare_attrs=buildbot.schedulers.timed.Periodic-class.html#compare_attrs,Variable buildbot.schedulers.triggerable.Triggerable.compare_attrs=buildbot.schedulers.triggerable.Triggerable-class.html#compare_attrs,Variable buildbot.schedulers.trysched.Try_Jobdir.compare_attrs=buildbot.schedulers.trysched.Try_Jobdir-class.html#compare_attrs,Variable buildbot.schedulers.trysched.Try_Userpass.compare_attrs=buildbot.schedulers.trysched.Try_Userpass-class.html#compare_attrs,Variable buildbot.sourcestamp.SourceStamp.compare_attrs=buildbot.sourcestamp.SourceStamp-class.html#compare_attrs,Variable buildbot.status.client.PBListener.compare_attrs=buildbot.status.client.PBListener-class.html#compare_attrs,Variable buildbot.status.mail.Domain.compare_attrs=buildbot.status.mail.Domain-class.html#compare_attrs,Variable buildbot.status.mail.MailNotifier.compare_attrs=buildbot.status.mail.MailNotifier-class.html#compare_attrs,Variable buildbot.status.tinderbox.TinderboxMailNotifier.compare_attrs=buildbot.status.tinderbox.TinderboxMailNotifier-class.html#compare_attrs,Variable buildbot.status.words.IRC.compare_attrs=buildbot.status.words.IRC-class.html#compare_attrs,Variable buildbot.util.ComparableMixin.compare_attrs=buildbot.util.ComparableMixin-class.html#compare_attrs"><a title="buildbot.changes.bonsaipoller.BonsaiPoller.compare_attrs
+buildbot.changes.freshcvs.FreshCVSSourceNewcred.compare_attrs
+buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.compare_attrs
+buildbot.changes.mail.MaildirSource.compare_attrs
+buildbot.changes.monotone.MonotoneSource.compare_attrs
+buildbot.changes.p4poller.P4Source.compare_attrs
+buildbot.changes.pb.PBChangeSource.compare_attrs
+buildbot.changes.svnpoller.SVNPoller.compare_attrs
+buildbot.db.connector.DBConnector.compare_attrs
+buildbot.locks.LockAccess.compare_attrs
+buildbot.locks.MasterLock.compare_attrs
+buildbot.locks.SlaveLock.compare_attrs
+buildbot.manhole.ArbitraryCheckerManhole.compare_attrs
+buildbot.manhole.AuthorizedKeysManhole.compare_attrs
+buildbot.manhole.PasswordManhole.compare_attrs
+buildbot.manhole.TelnetManhole.compare_attrs
+buildbot.process.factory.BuildFactory.compare_attrs
+buildbot.process.properties.Properties.compare_attrs
+buildbot.process.properties.WithProperties.compare_attrs
+buildbot.schedulers.basic.AnyBranchScheduler.compare_attrs
+buildbot.schedulers.basic.Dependent.compare_attrs
+buildbot.schedulers.basic.Scheduler.compare_attrs
+buildbot.schedulers.filter.ChangeFilter.compare_attrs
+buildbot.schedulers.timed.Nightly.compare_attrs
+buildbot.schedulers.timed.Periodic.compare_attrs
+buildbot.schedulers.triggerable.Triggerable.compare_attrs
+buildbot.schedulers.trysched.Try_Jobdir.compare_attrs
+buildbot.schedulers.trysched.Try_Userpass.compare_attrs
+buildbot.sourcestamp.SourceStamp.compare_attrs
+buildbot.status.client.PBListener.compare_attrs
+buildbot.status.mail.Domain.compare_attrs
+buildbot.status.mail.MailNotifier.compare_attrs
+buildbot.status.tinderbox.TinderboxMailNotifier.compare_attrs
+buildbot.status.words.IRC.compare_attrs
+buildbot.util.ComparableMixin.compare_attrs" class="py-name" href="#" onclick="return doclink('link-2', 'compare_attrs', 'link-2');">compare_attrs</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-string">'properties'</tt><tt class="py-op">,</tt><tt class="py-op">)</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"> </tt>
+<a name="Properties.__init__"></a><div id="Properties.__init__-def"><a name="L23"></a><tt class="py-lineno"> 23</tt> <a class="py-toggle" href="#" id="Properties.__init__-toggle" onclick="return toggle('Properties.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.process.properties.Properties-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-param">kwargs</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Properties.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Properties.__init__-expanded"><a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-docstring">        @param kwargs: initial property values (for testing)</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Variable buildbot.master.BuildMaster.properties=buildbot.master.BuildMaster-class.html#properties,Module buildbot.process.properties=buildbot.process.properties-module.html"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-3', 'properties', 'link-3');">properties</a></tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">pmap</tt> <tt class="py-op">=</tt> <tt id="link-4" class="py-name" targets="Class buildbot.process.properties.PropertyMap=buildbot.process.properties.PropertyMap-class.html"><a title="buildbot.process.properties.PropertyMap" class="py-name" href="#" onclick="return doclink('link-4', 'PropertyMap', 'link-4');">PropertyMap</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">kwargs</tt><tt class="py-op">:</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-5" class="py-name" targets="Method buildbot.buildslave.AbstractBuildSlave.update()=buildbot.buildslave.AbstractBuildSlave-class.html#update,Method buildbot.clients.gtkPanes.Box.update()=buildbot.clients.gtkPanes.Box-class.html#update,Method buildbot.process.properties.Properties.update()=buildbot.process.properties.Properties-class.html#update,Method buildbot.status.progress.Expectations.update()=buildbot.status.progress.Expectations-class.html#update"><a title="buildbot.buildslave.AbstractBuildSlave.update
+buildbot.clients.gtkPanes.Box.update
+buildbot.process.properties.Properties.update
+buildbot.status.progress.Expectations.update" class="py-name" href="#" onclick="return doclink('link-5', 'update', 'link-5');">update</a></tt><tt class="py-op">(</tt><tt class="py-name">kwargs</tt><tt class="py-op">,</tt> <tt class="py-string">"TEST"</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"> </tt>
+<a name="Properties.__getstate__"></a><div id="Properties.__getstate__-def"><a name="L31"></a><tt class="py-lineno"> 31</tt> <a class="py-toggle" href="#" id="Properties.__getstate__-toggle" onclick="return toggle('Properties.__getstate__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.process.properties.Properties-class.html#__getstate__">__getstate__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Properties.__getstate__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Properties.__getstate__-expanded"><a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line">        <tt id="link-6" class="py-name" targets="Variable buildbot.changes.monotone.MonotoneSource.d=buildbot.changes.monotone.MonotoneSource-class.html#d"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-6', 'd', 'link-6');">d</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__dict__</tt><tt class="py-op">.</tt><tt class="py-name">copy</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line">        <tt class="py-keyword">del</tt> <tt id="link-7" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-7', 'd', 'link-6');">d</a></tt><tt class="py-op">[</tt><tt class="py-string">'pmap'</tt><tt class="py-op">]</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-8" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-8', 'd', 'link-6');">d</a></tt> </tt>
+</div><a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"> </tt>
+<a name="Properties.__setstate__"></a><div id="Properties.__setstate__-def"><a name="L36"></a><tt class="py-lineno"> 36</tt> <a class="py-toggle" href="#" id="Properties.__setstate__-toggle" onclick="return toggle('Properties.__setstate__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.process.properties.Properties-class.html#__setstate__">__setstate__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">d</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Properties.__setstate__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Properties.__setstate__-expanded"><a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__dict__</tt> <tt class="py-op">=</tt> <tt id="link-9" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-9', 'd', 'link-6');">d</a></tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">pmap</tt> <tt class="py-op">=</tt> <tt id="link-10" class="py-name"><a title="buildbot.process.properties.PropertyMap" class="py-name" href="#" onclick="return doclink('link-10', 'PropertyMap', 'link-4');">PropertyMap</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"> </tt>
+<a name="Properties.__contains__"></a><div id="Properties.__contains__-def"><a name="L40"></a><tt class="py-lineno"> 40</tt> <a class="py-toggle" href="#" id="Properties.__contains__-toggle" onclick="return toggle('Properties.__contains__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.process.properties.Properties-class.html#__contains__">__contains__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">name</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Properties.__contains__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Properties.__contains__-expanded"><a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-11" class="py-name" targets="Variable buildbot.changes.mail.BonsaiMaildirSource.name=buildbot.changes.mail.BonsaiMaildirSource-class.html#name,Variable buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name=buildbot.changes.mail.BzrLaunchpadEmailMaildirSource-class.html#name,Variable buildbot.changes.mail.FCMaildirSource.name=buildbot.changes.mail.FCMaildirSource-class.html#name,Variable buildbot.changes.mail.MaildirSource.name=buildbot.changes.mail.MaildirSource-class.html#name,Variable buildbot.changes.mail.SVNCommitEmailMaildirSource.name=buildbot.changes.mail.SVNCommitEmailMaildirSource-class.html#name,Variable buildbot.changes.mail.SyncmailMaildirSource.name=buildbot.changes.mail.SyncmailMaildirSource-class.html#name,Variable buildbot.changes.manager.ChangeManager.name=buildbot.changes.manager.ChangeManager-class.html#name,Variable buildbot.process.buildstep.BuildStep.name=buildbot.process.buildstep.BuildStep-class.html#name,Variable buildbot.slave.bot.Bot.name=buildbot.slave.bot.Bot-class.html#name,Variable buildbot.steps.dummy.Dummy.name=buildbot.steps.dummy.Dummy-class.html#name,Variable buildbot.steps.dummy.FailingDummy.name=buildbot.steps.dummy.FailingDummy-class.html#name,Variable buildbot.steps.dummy.RemoteDummy.name=buildbot.steps.dummy.RemoteDummy-class.html#name,Variable buildbot.steps.dummy.Wait.name=buildbot.steps.dummy.Wait-class.html#name,Variable buildbot.steps.master.MasterShellCommand.name=buildbot.steps.master.MasterShellCommand-class.html#name,Variable buildbot.steps.maxq.MaxQ.name=buildbot.steps.maxq.MaxQ-class.html#name,Variable buildbot.steps.package.rpm.rpmbuild.RpmBuild.name=buildbot.steps.package.rpm.rpmbuild.RpmBuild-class.html#name,Variable buildbot.steps.python.BuildEPYDoc.name=buildbot.steps.python.BuildEPYDoc-class.html#name,Variable buildbot.steps.python.PyFlakes.name=buildbot.steps.python.PyFlakes-class.html#name,Variable buildbot.steps.python.PyLint.name=buildbot.steps.python.PyLint-class.html#name,Variable buildbot.steps.python_twisted.BuildDebs.name=buildbot.steps.python_twisted.BuildDebs-class.html#name,Variable buildbot.steps.python_twisted.HLint.name=buildbot.steps.python_twisted.HLint-class.html#name,Variable buildbot.steps.python_twisted.ProcessDocs.name=buildbot.steps.python_twisted.ProcessDocs-class.html#name,Variable buildbot.steps.python_twisted.RemovePYCs.name=buildbot.steps.python_twisted.RemovePYCs-class.html#name,Variable buildbot.steps.python_twisted.Trial.name=buildbot.steps.python_twisted.Trial-class.html#name,Variable buildbot.steps.shell.Compile.name=buildbot.steps.shell.Compile-class.html#name,Variable buildbot.steps.shell.Configure.name=buildbot.steps.shell.Configure-class.html#name,Variable buildbot.steps.shell.SetProperty.name=buildbot.steps.shell.SetProperty-class.html#name,Variable buildbot.steps.shell.ShellCommand.name=buildbot.steps.shell.ShellCommand-class.html#name,Variable buildbot.steps.shell.Test.name=buildbot.steps.shell.Test-class.html#name,Variable buildbot.steps.shell.TreeSize.name=buildbot.steps.shell.TreeSize-class.html#name,Variable buildbot.steps.source.Arch.name=buildbot.steps.source.Arch-class.html#name,Variable buildbot.steps.source.BK.name=buildbot.steps.source.BK-class.html#name,Variable buildbot.steps.source.Bzr.name=buildbot.steps.source.Bzr-class.html#name,Variable buildbot.steps.source.CVS.name=buildbot.steps.source.CVS-class.html#name,Variable buildbot.steps.source.Darcs.name=buildbot.steps.source.Darcs-class.html#name,Variable buildbot.steps.source.Git.name=buildbot.steps.source.Git-class.html#name,Variable buildbot.steps.source.Mercurial.name=buildbot.steps.source.Mercurial-class.html#name,Variable buildbot.steps.source.Monotone.name=buildbot.steps.source.Monotone-class.html#name,Variable buildbot.steps.source.P4.name=buildbot.steps.source.P4-class.html#name,Variable buildbot.steps.source.P4Sync.name=buildbot.steps.source.P4Sync-class.html#name,Variable buildbot.steps.source.SVN.name=buildbot.steps.source.SVN-class.html#name,Variable buildbot.steps.transfer.DirectoryUpload.name=buildbot.steps.transfer.DirectoryUpload-class.html#name,Variable buildbot.steps.transfer.FileDownload.name=buildbot.steps.transfer.FileDownload-class.html#name,Variable buildbot.steps.transfer.FileUpload.name=buildbot.steps.transfer.FileUpload-class.html#name,Variable buildbot.steps.trigger.Trigger.name=buildbot.steps.trigger.Trigger-class.html#name,Variable buildbot.steps.vstudio.VisualStudio.name=buildbot.steps.vstudio.VisualStudio-class.html#name"><a title="buildbot.changes.mail.BonsaiMaildirSource.name
+buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name
+buildbot.changes.mail.FCMaildirSource.name
+buildbot.changes.mail.MaildirSource.name
+buildbot.changes.mail.SVNCommitEmailMaildirSource.name
+buildbot.changes.mail.SyncmailMaildirSource.name
+buildbot.changes.manager.ChangeManager.name
+buildbot.process.buildstep.BuildStep.name
+buildbot.slave.bot.Bot.name
+buildbot.steps.dummy.Dummy.name
+buildbot.steps.dummy.FailingDummy.name
+buildbot.steps.dummy.RemoteDummy.name
+buildbot.steps.dummy.Wait.name
+buildbot.steps.master.MasterShellCommand.name
+buildbot.steps.maxq.MaxQ.name
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.name
+buildbot.steps.python.BuildEPYDoc.name
+buildbot.steps.python.PyFlakes.name
+buildbot.steps.python.PyLint.name
+buildbot.steps.python_twisted.BuildDebs.name
+buildbot.steps.python_twisted.HLint.name
+buildbot.steps.python_twisted.ProcessDocs.name
+buildbot.steps.python_twisted.RemovePYCs.name
+buildbot.steps.python_twisted.Trial.name
+buildbot.steps.shell.Compile.name
+buildbot.steps.shell.Configure.name
+buildbot.steps.shell.SetProperty.name
+buildbot.steps.shell.ShellCommand.name
+buildbot.steps.shell.Test.name
+buildbot.steps.shell.TreeSize.name
+buildbot.steps.source.Arch.name
+buildbot.steps.source.BK.name
+buildbot.steps.source.Bzr.name
+buildbot.steps.source.CVS.name
+buildbot.steps.source.Darcs.name
+buildbot.steps.source.Git.name
+buildbot.steps.source.Mercurial.name
+buildbot.steps.source.Monotone.name
+buildbot.steps.source.P4.name
+buildbot.steps.source.P4Sync.name
+buildbot.steps.source.SVN.name
+buildbot.steps.transfer.DirectoryUpload.name
+buildbot.steps.transfer.FileDownload.name
+buildbot.steps.transfer.FileUpload.name
+buildbot.steps.trigger.Trigger.name
+buildbot.steps.vstudio.VisualStudio.name" class="py-name" href="#" onclick="return doclink('link-11', 'name', 'link-11');">name</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-12" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-12', 'properties', 'link-3');">properties</a></tt> </tt>
+</div><a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"> </tt>
+<a name="Properties.__getitem__"></a><div id="Properties.__getitem__-def"><a name="L43"></a><tt class="py-lineno"> 43</tt> <a class="py-toggle" href="#" id="Properties.__getitem__-toggle" onclick="return toggle('Properties.__getitem__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.process.properties.Properties-class.html#__getitem__">__getitem__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">name</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Properties.__getitem__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Properties.__getitem__-expanded"><a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line">        <tt class="py-docstring">"""Just get the value for this property."""</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line">        <tt class="py-name">rv</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-13" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-13', 'properties', 'link-3');">properties</a></tt><tt class="py-op">[</tt><tt id="link-14" class="py-name"><a title="buildbot.changes.mail.BonsaiMaildirSource.name
+buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name
+buildbot.changes.mail.FCMaildirSource.name
+buildbot.changes.mail.MaildirSource.name
+buildbot.changes.mail.SVNCommitEmailMaildirSource.name
+buildbot.changes.mail.SyncmailMaildirSource.name
+buildbot.changes.manager.ChangeManager.name
+buildbot.process.buildstep.BuildStep.name
+buildbot.slave.bot.Bot.name
+buildbot.steps.dummy.Dummy.name
+buildbot.steps.dummy.FailingDummy.name
+buildbot.steps.dummy.RemoteDummy.name
+buildbot.steps.dummy.Wait.name
+buildbot.steps.master.MasterShellCommand.name
+buildbot.steps.maxq.MaxQ.name
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.name
+buildbot.steps.python.BuildEPYDoc.name
+buildbot.steps.python.PyFlakes.name
+buildbot.steps.python.PyLint.name
+buildbot.steps.python_twisted.BuildDebs.name
+buildbot.steps.python_twisted.HLint.name
+buildbot.steps.python_twisted.ProcessDocs.name
+buildbot.steps.python_twisted.RemovePYCs.name
+buildbot.steps.python_twisted.Trial.name
+buildbot.steps.shell.Compile.name
+buildbot.steps.shell.Configure.name
+buildbot.steps.shell.SetProperty.name
+buildbot.steps.shell.ShellCommand.name
+buildbot.steps.shell.Test.name
+buildbot.steps.shell.TreeSize.name
+buildbot.steps.source.Arch.name
+buildbot.steps.source.BK.name
+buildbot.steps.source.Bzr.name
+buildbot.steps.source.CVS.name
+buildbot.steps.source.Darcs.name
+buildbot.steps.source.Git.name
+buildbot.steps.source.Mercurial.name
+buildbot.steps.source.Monotone.name
+buildbot.steps.source.P4.name
+buildbot.steps.source.P4Sync.name
+buildbot.steps.source.SVN.name
+buildbot.steps.transfer.DirectoryUpload.name
+buildbot.steps.transfer.FileDownload.name
+buildbot.steps.transfer.FileUpload.name
+buildbot.steps.trigger.Trigger.name
+buildbot.steps.vstudio.VisualStudio.name" class="py-name" href="#" onclick="return doclink('link-14', 'name', 'link-11');">name</a></tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">rv</tt> </tt>
+</div><a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"> </tt>
+<a name="Properties.has_key"></a><div id="Properties.has_key-def"><a name="L48"></a><tt class="py-lineno"> 48</tt> <a class="py-toggle" href="#" id="Properties.has_key-toggle" onclick="return toggle('Properties.has_key');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.process.properties.Properties-class.html#has_key">has_key</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">name</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Properties.has_key-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Properties.has_key-expanded"><a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-15', 'properties', 'link-3');">properties</a></tt><tt class="py-op">.</tt><tt id="link-16" class="py-name" targets="Method buildbot.process.properties.Properties.has_key()=buildbot.process.properties.Properties-class.html#has_key"><a title="buildbot.process.properties.Properties.has_key" class="py-name" href="#" onclick="return doclink('link-16', 'has_key', 'link-16');">has_key</a></tt><tt class="py-op">(</tt><tt id="link-17" class="py-name"><a title="buildbot.changes.mail.BonsaiMaildirSource.name
+buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name
+buildbot.changes.mail.FCMaildirSource.name
+buildbot.changes.mail.MaildirSource.name
+buildbot.changes.mail.SVNCommitEmailMaildirSource.name
+buildbot.changes.mail.SyncmailMaildirSource.name
+buildbot.changes.manager.ChangeManager.name
+buildbot.process.buildstep.BuildStep.name
+buildbot.slave.bot.Bot.name
+buildbot.steps.dummy.Dummy.name
+buildbot.steps.dummy.FailingDummy.name
+buildbot.steps.dummy.RemoteDummy.name
+buildbot.steps.dummy.Wait.name
+buildbot.steps.master.MasterShellCommand.name
+buildbot.steps.maxq.MaxQ.name
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.name
+buildbot.steps.python.BuildEPYDoc.name
+buildbot.steps.python.PyFlakes.name
+buildbot.steps.python.PyLint.name
+buildbot.steps.python_twisted.BuildDebs.name
+buildbot.steps.python_twisted.HLint.name
+buildbot.steps.python_twisted.ProcessDocs.name
+buildbot.steps.python_twisted.RemovePYCs.name
+buildbot.steps.python_twisted.Trial.name
+buildbot.steps.shell.Compile.name
+buildbot.steps.shell.Configure.name
+buildbot.steps.shell.SetProperty.name
+buildbot.steps.shell.ShellCommand.name
+buildbot.steps.shell.Test.name
+buildbot.steps.shell.TreeSize.name
+buildbot.steps.source.Arch.name
+buildbot.steps.source.BK.name
+buildbot.steps.source.Bzr.name
+buildbot.steps.source.CVS.name
+buildbot.steps.source.Darcs.name
+buildbot.steps.source.Git.name
+buildbot.steps.source.Mercurial.name
+buildbot.steps.source.Monotone.name
+buildbot.steps.source.P4.name
+buildbot.steps.source.P4Sync.name
+buildbot.steps.source.SVN.name
+buildbot.steps.transfer.DirectoryUpload.name
+buildbot.steps.transfer.FileDownload.name
+buildbot.steps.transfer.FileUpload.name
+buildbot.steps.trigger.Trigger.name
+buildbot.steps.vstudio.VisualStudio.name" class="py-name" href="#" onclick="return doclink('link-17', 'name', 'link-11');">name</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"> </tt>
+<a name="Properties.getProperty"></a><div id="Properties.getProperty-def"><a name="L51"></a><tt class="py-lineno"> 51</tt> <a class="py-toggle" href="#" id="Properties.getProperty-toggle" onclick="return toggle('Properties.getProperty');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.process.properties.Properties-class.html#getProperty">getProperty</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">name</tt><tt class="py-op">,</tt> <tt class="py-param">default</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Properties.getProperty-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Properties.getProperty-expanded"><a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line">        <tt class="py-docstring">"""Get the value for the given property."""</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-18" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-18', 'properties', 'link-3');">properties</a></tt><tt class="py-op">.</tt><tt id="link-19" class="py-name" targets="Method buildbot.clients.tryclient.SourceStampExtractor.get()=buildbot.clients.tryclient.SourceStampExtractor-class.html#get,Method buildbot.util.LRUCache.get()=buildbot.util.LRUCache-class.html#get,Method buildbot.util.LRUCache.get()=buildbot.util.LRUCache-class.html#get"><a title="buildbot.clients.tryclient.SourceStampExtractor.get
+buildbot.util.LRUCache.get
+buildbot.util.LRUCache.get" class="py-name" href="#" onclick="return doclink('link-19', 'get', 'link-19');">get</a></tt><tt class="py-op">(</tt><tt id="link-20" class="py-name"><a title="buildbot.changes.mail.BonsaiMaildirSource.name
+buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name
+buildbot.changes.mail.FCMaildirSource.name
+buildbot.changes.mail.MaildirSource.name
+buildbot.changes.mail.SVNCommitEmailMaildirSource.name
+buildbot.changes.mail.SyncmailMaildirSource.name
+buildbot.changes.manager.ChangeManager.name
+buildbot.process.buildstep.BuildStep.name
+buildbot.slave.bot.Bot.name
+buildbot.steps.dummy.Dummy.name
+buildbot.steps.dummy.FailingDummy.name
+buildbot.steps.dummy.RemoteDummy.name
+buildbot.steps.dummy.Wait.name
+buildbot.steps.master.MasterShellCommand.name
+buildbot.steps.maxq.MaxQ.name
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.name
+buildbot.steps.python.BuildEPYDoc.name
+buildbot.steps.python.PyFlakes.name
+buildbot.steps.python.PyLint.name
+buildbot.steps.python_twisted.BuildDebs.name
+buildbot.steps.python_twisted.HLint.name
+buildbot.steps.python_twisted.ProcessDocs.name
+buildbot.steps.python_twisted.RemovePYCs.name
+buildbot.steps.python_twisted.Trial.name
+buildbot.steps.shell.Compile.name
+buildbot.steps.shell.Configure.name
+buildbot.steps.shell.SetProperty.name
+buildbot.steps.shell.ShellCommand.name
+buildbot.steps.shell.Test.name
+buildbot.steps.shell.TreeSize.name
+buildbot.steps.source.Arch.name
+buildbot.steps.source.BK.name
+buildbot.steps.source.Bzr.name
+buildbot.steps.source.CVS.name
+buildbot.steps.source.Darcs.name
+buildbot.steps.source.Git.name
+buildbot.steps.source.Mercurial.name
+buildbot.steps.source.Monotone.name
+buildbot.steps.source.P4.name
+buildbot.steps.source.P4Sync.name
+buildbot.steps.source.SVN.name
+buildbot.steps.transfer.DirectoryUpload.name
+buildbot.steps.transfer.FileDownload.name
+buildbot.steps.transfer.FileUpload.name
+buildbot.steps.trigger.Trigger.name
+buildbot.steps.vstudio.VisualStudio.name" class="py-name" href="#" onclick="return doclink('link-20', 'name', 'link-11');">name</a></tt><tt class="py-op">,</tt> <tt class="py-op">(</tt><tt class="py-name">default</tt><tt class="py-op">,</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> </tt>
+</div><a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"> </tt>
+<a name="Properties.getPropertySource"></a><div id="Properties.getPropertySource-def"><a name="L55"></a><tt class="py-lineno"> 55</tt> <a class="py-toggle" href="#" id="Properties.getPropertySource-toggle" onclick="return toggle('Properties.getPropertySource');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.process.properties.Properties-class.html#getPropertySource">getPropertySource</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">name</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Properties.getPropertySource-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Properties.getPropertySource-expanded"><a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-21" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-21', 'properties', 'link-3');">properties</a></tt><tt class="py-op">[</tt><tt id="link-22" class="py-name"><a title="buildbot.changes.mail.BonsaiMaildirSource.name
+buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name
+buildbot.changes.mail.FCMaildirSource.name
+buildbot.changes.mail.MaildirSource.name
+buildbot.changes.mail.SVNCommitEmailMaildirSource.name
+buildbot.changes.mail.SyncmailMaildirSource.name
+buildbot.changes.manager.ChangeManager.name
+buildbot.process.buildstep.BuildStep.name
+buildbot.slave.bot.Bot.name
+buildbot.steps.dummy.Dummy.name
+buildbot.steps.dummy.FailingDummy.name
+buildbot.steps.dummy.RemoteDummy.name
+buildbot.steps.dummy.Wait.name
+buildbot.steps.master.MasterShellCommand.name
+buildbot.steps.maxq.MaxQ.name
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.name
+buildbot.steps.python.BuildEPYDoc.name
+buildbot.steps.python.PyFlakes.name
+buildbot.steps.python.PyLint.name
+buildbot.steps.python_twisted.BuildDebs.name
+buildbot.steps.python_twisted.HLint.name
+buildbot.steps.python_twisted.ProcessDocs.name
+buildbot.steps.python_twisted.RemovePYCs.name
+buildbot.steps.python_twisted.Trial.name
+buildbot.steps.shell.Compile.name
+buildbot.steps.shell.Configure.name
+buildbot.steps.shell.SetProperty.name
+buildbot.steps.shell.ShellCommand.name
+buildbot.steps.shell.Test.name
+buildbot.steps.shell.TreeSize.name
+buildbot.steps.source.Arch.name
+buildbot.steps.source.BK.name
+buildbot.steps.source.Bzr.name
+buildbot.steps.source.CVS.name
+buildbot.steps.source.Darcs.name
+buildbot.steps.source.Git.name
+buildbot.steps.source.Mercurial.name
+buildbot.steps.source.Monotone.name
+buildbot.steps.source.P4.name
+buildbot.steps.source.P4Sync.name
+buildbot.steps.source.SVN.name
+buildbot.steps.transfer.DirectoryUpload.name
+buildbot.steps.transfer.FileDownload.name
+buildbot.steps.transfer.FileUpload.name
+buildbot.steps.trigger.Trigger.name
+buildbot.steps.vstudio.VisualStudio.name" class="py-name" href="#" onclick="return doclink('link-22', 'name', 'link-11');">name</a></tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt> </tt>
+</div><a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line"> </tt>
+<a name="Properties.asList"></a><div id="Properties.asList-def"><a name="L58"></a><tt class="py-lineno"> 58</tt> <a class="py-toggle" href="#" id="Properties.asList-toggle" onclick="return toggle('Properties.asList');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.process.properties.Properties-class.html#asList">asList</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Properties.asList-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Properties.asList-expanded"><a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">        <tt class="py-docstring">"""Return the properties as a sorted list of (name, value, source)"""</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">        <tt class="py-name">l</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt> <tt class="py-op">(</tt><tt class="py-name">k</tt><tt class="py-op">,</tt> <tt class="py-name">v</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">v</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt class="py-name">k</tt><tt class="py-op">,</tt><tt class="py-name">v</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-23" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-23', 'properties', 'link-3');">properties</a></tt><tt class="py-op">.</tt><tt id="link-24" class="py-name" targets="Method buildbot.status.persistent_queue.DequeMemoryQueue.items()=buildbot.status.persistent_queue.DequeMemoryQueue-class.html#items,Method buildbot.status.persistent_queue.DiskQueue.items()=buildbot.status.persistent_queue.DiskQueue-class.html#items,Method buildbot.status.persistent_queue.IQueue.items()=buildbot.status.persistent_queue.IQueue-class.html#items,Method buildbot.status.persistent_queue.ListMemoryQueue.items()=buildbot.status.persistent_queue.ListMemoryQueue-class.html#items,Method buildbot.status.persistent_queue.PersistentQueue.items()=buildbot.status.persistent_queue.PersistentQueue-class.html#items"><a title="buildbot.status.persistent_queue.DequeMemoryQueue.items
+buildbot.status.persistent_queue.DiskQueue.items
+buildbot.status.persistent_queue.IQueue.items
+buildbot.status.persistent_queue.ListMemoryQueue.items
+buildbot.status.persistent_queue.PersistentQueue.items" class="py-name" href="#" onclick="return doclink('link-24', 'items', 'link-24');">items</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">]</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">        <tt class="py-name">l</tt><tt class="py-op">.</tt><tt class="py-name">sort</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">l</tt> </tt>
+</div><a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line"> </tt>
+<a name="Properties.__repr__"></a><div id="Properties.__repr__-def"><a name="L64"></a><tt class="py-lineno"> 64</tt> <a class="py-toggle" href="#" id="Properties.__repr__-toggle" onclick="return toggle('Properties.__repr__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.process.properties.Properties-class.html#__repr__">__repr__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Properties.__repr__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Properties.__repr__-expanded"><a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">repr</tt><tt class="py-op">(</tt><tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-op">[</tt> <tt class="py-op">(</tt><tt class="py-name">k</tt><tt class="py-op">,</tt><tt class="py-name">v</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt class="py-name">k</tt><tt class="py-op">,</tt><tt class="py-name">v</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-25" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-25', 'properties', 'link-3');">properties</a></tt><tt class="py-op">.</tt><tt class="py-name">iteritems</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"> </tt>
+<a name="Properties.setProperty"></a><div id="Properties.setProperty-def"><a name="L67"></a><tt class="py-lineno"> 67</tt> <a class="py-toggle" href="#" id="Properties.setProperty-toggle" onclick="return toggle('Properties.setProperty');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.process.properties.Properties-class.html#setProperty">setProperty</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">name</tt><tt class="py-op">,</tt> <tt class="py-param">value</tt><tt class="py-op">,</tt> <tt class="py-param">source</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Properties.setProperty-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Properties.setProperty-expanded"><a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-26" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-26', 'properties', 'link-3');">properties</a></tt><tt class="py-op">[</tt><tt id="link-27" class="py-name"><a title="buildbot.changes.mail.BonsaiMaildirSource.name
+buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name
+buildbot.changes.mail.FCMaildirSource.name
+buildbot.changes.mail.MaildirSource.name
+buildbot.changes.mail.SVNCommitEmailMaildirSource.name
+buildbot.changes.mail.SyncmailMaildirSource.name
+buildbot.changes.manager.ChangeManager.name
+buildbot.process.buildstep.BuildStep.name
+buildbot.slave.bot.Bot.name
+buildbot.steps.dummy.Dummy.name
+buildbot.steps.dummy.FailingDummy.name
+buildbot.steps.dummy.RemoteDummy.name
+buildbot.steps.dummy.Wait.name
+buildbot.steps.master.MasterShellCommand.name
+buildbot.steps.maxq.MaxQ.name
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.name
+buildbot.steps.python.BuildEPYDoc.name
+buildbot.steps.python.PyFlakes.name
+buildbot.steps.python.PyLint.name
+buildbot.steps.python_twisted.BuildDebs.name
+buildbot.steps.python_twisted.HLint.name
+buildbot.steps.python_twisted.ProcessDocs.name
+buildbot.steps.python_twisted.RemovePYCs.name
+buildbot.steps.python_twisted.Trial.name
+buildbot.steps.shell.Compile.name
+buildbot.steps.shell.Configure.name
+buildbot.steps.shell.SetProperty.name
+buildbot.steps.shell.ShellCommand.name
+buildbot.steps.shell.Test.name
+buildbot.steps.shell.TreeSize.name
+buildbot.steps.source.Arch.name
+buildbot.steps.source.BK.name
+buildbot.steps.source.Bzr.name
+buildbot.steps.source.CVS.name
+buildbot.steps.source.Darcs.name
+buildbot.steps.source.Git.name
+buildbot.steps.source.Mercurial.name
+buildbot.steps.source.Monotone.name
+buildbot.steps.source.P4.name
+buildbot.steps.source.P4Sync.name
+buildbot.steps.source.SVN.name
+buildbot.steps.transfer.DirectoryUpload.name
+buildbot.steps.transfer.FileDownload.name
+buildbot.steps.transfer.FileUpload.name
+buildbot.steps.trigger.Trigger.name
+buildbot.steps.vstudio.VisualStudio.name" class="py-name" href="#" onclick="return doclink('link-27', 'name', 'link-11');">name</a></tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-name">value</tt><tt class="py-op">,</tt> <tt id="link-28" class="py-name" targets="Variable buildbot.buildrequest.BuildRequest.source=buildbot.buildrequest.BuildRequest-class.html#source,Variable buildbot.status.builder.BuildStatus.source=buildbot.status.builder.BuildStatus-class.html#source,Module buildbot.steps.source=buildbot.steps.source-module.html"><a title="buildbot.buildrequest.BuildRequest.source
+buildbot.status.builder.BuildStatus.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-28', 'source', 'link-28');">source</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line"> </tt>
+<a name="Properties.update"></a><div id="Properties.update-def"><a name="L70"></a><tt class="py-lineno"> 70</tt> <a class="py-toggle" href="#" id="Properties.update-toggle" onclick="return toggle('Properties.update');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.process.properties.Properties-class.html#update">update</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">dict</tt><tt class="py-op">,</tt> <tt class="py-param">source</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Properties.update-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Properties.update-expanded"><a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">        <tt class="py-docstring">"""Update this object from a dictionary, with an explicit source specified."""</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">k</tt><tt class="py-op">,</tt> <tt class="py-name">v</tt> <tt class="py-keyword">in</tt> <tt class="py-name">dict</tt><tt class="py-op">.</tt><tt id="link-29" class="py-name"><a title="buildbot.status.persistent_queue.DequeMemoryQueue.items
+buildbot.status.persistent_queue.DiskQueue.items
+buildbot.status.persistent_queue.IQueue.items
+buildbot.status.persistent_queue.ListMemoryQueue.items
+buildbot.status.persistent_queue.PersistentQueue.items" class="py-name" href="#" onclick="return doclink('link-29', 'items', 'link-24');">items</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-30" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-30', 'properties', 'link-3');">properties</a></tt><tt class="py-op">[</tt><tt class="py-name">k</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-name">v</tt><tt class="py-op">,</tt> <tt id="link-31" class="py-name"><a title="buildbot.buildrequest.BuildRequest.source
+buildbot.status.builder.BuildStatus.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-31', 'source', 'link-28');">source</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line"> </tt>
+<a name="Properties.updateFromProperties"></a><div id="Properties.updateFromProperties-def"><a name="L75"></a><tt class="py-lineno"> 75</tt> <a class="py-toggle" href="#" id="Properties.updateFromProperties-toggle" onclick="return toggle('Properties.updateFromProperties');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.process.properties.Properties-class.html#updateFromProperties">updateFromProperties</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Properties.updateFromProperties-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Properties.updateFromProperties-expanded"><a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">        <tt class="py-docstring">"""Update this object based on another object; the other object's """</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-32" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-32', 'properties', 'link-3');">properties</a></tt><tt class="py-op">.</tt><tt id="link-33" class="py-name"><a title="buildbot.buildslave.AbstractBuildSlave.update
+buildbot.clients.gtkPanes.Box.update
+buildbot.process.properties.Properties.update
+buildbot.status.progress.Expectations.update" class="py-name" href="#" onclick="return doclink('link-33', 'update', 'link-5');">update</a></tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">.</tt><tt id="link-34" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-34', 'properties', 'link-3');">properties</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line"> </tt>
+<a name="Properties.render"></a><div id="Properties.render-def"><a name="L79"></a><tt class="py-lineno"> 79</tt> <a class="py-toggle" href="#" id="Properties.render-toggle" onclick="return toggle('Properties.render');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.process.properties.Properties-class.html#render">render</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">value</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Properties.render-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Properties.render-expanded"><a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line"><tt class="py-docstring">        Return a variant of value that has any WithProperties objects</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line"><tt class="py-docstring">        substituted.  This recurses into Python's compound data types.</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">        <tt class="py-comment"># we use isinstance to detect Python's standard data types, and call</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-comment"># this function recursively for the values in those types</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-keyword">if</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">value</tt><tt class="py-op">,</tt> <tt class="py-op">(</tt><tt class="py-name">str</tt><tt class="py-op">,</tt> <tt class="py-name">unicode</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">value</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">        <tt class="py-keyword">elif</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">value</tt><tt class="py-op">,</tt> <tt id="link-35" class="py-name" targets="Class buildbot.process.properties.WithProperties=buildbot.process.properties.WithProperties-class.html"><a title="buildbot.process.properties.WithProperties" class="py-name" href="#" onclick="return doclink('link-35', 'WithProperties', 'link-35');">WithProperties</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">value</tt><tt class="py-op">.</tt><tt id="link-36" class="py-name" targets="Method buildbot.process.properties.Properties.render()=buildbot.process.properties.Properties-class.html#render,Method buildbot.process.properties.WithProperties.render()=buildbot.process.properties.WithProperties-class.html#render,Method buildbot.status.web.base.DirectoryLister.render()=buildbot.status.web.base.DirectoryLister-class.html#render,Method buildbot.status.web.base.HtmlResource.render()=buildbot.status.web.base.HtmlResource-class.html#render,Method buildbot.status.web.feeds.XmlResource.render()=buildbot.status.web.feeds.XmlResource-class.html#render,Method buildbot.status.web.logs.HTMLLog.render()=buildbot.status.web.logs.HTMLLog-class.html#render,Method buildbot.status.web.xmlrpc.XMLRPCServer.render()=buildbot.status.web.xmlrpc.XMLRPCServer-class.html#render"><a title="buildbot.process.properties.Properties.render
+buildbot.process.properties.WithProperties.render
+buildbot.status.web.base.DirectoryLister.render
+buildbot.status.web.base.HtmlResource.render
+buildbot.status.web.feeds.XmlResource.render
+buildbot.status.web.logs.HTMLLog.render
+buildbot.status.web.xmlrpc.XMLRPCServer.render" class="py-name" href="#" onclick="return doclink('link-36', 'render', 'link-36');">render</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">pmap</tt><tt class="py-op">)</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">        <tt class="py-keyword">elif</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">value</tt><tt class="py-op">,</tt> <tt class="py-name">list</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-op">[</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-37" class="py-name"><a title="buildbot.process.properties.Properties.render
+buildbot.process.properties.WithProperties.render
+buildbot.status.web.base.DirectoryLister.render
+buildbot.status.web.base.HtmlResource.render
+buildbot.status.web.feeds.XmlResource.render
+buildbot.status.web.logs.HTMLLog.render
+buildbot.status.web.xmlrpc.XMLRPCServer.render" class="py-name" href="#" onclick="return doclink('link-37', 'render', 'link-36');">render</a></tt><tt class="py-op">(</tt><tt class="py-name">e</tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt class="py-name">e</tt> <tt class="py-keyword">in</tt> <tt class="py-name">value</tt> <tt class="py-op">]</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">        <tt class="py-keyword">elif</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">value</tt><tt class="py-op">,</tt> <tt class="py-name">tuple</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">tuple</tt><tt class="py-op">(</tt><tt class="py-op">[</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-38" class="py-name"><a title="buildbot.process.properties.Properties.render
+buildbot.process.properties.WithProperties.render
+buildbot.status.web.base.DirectoryLister.render
+buildbot.status.web.base.HtmlResource.render
+buildbot.status.web.feeds.XmlResource.render
+buildbot.status.web.logs.HTMLLog.render
+buildbot.status.web.xmlrpc.XMLRPCServer.render" class="py-name" href="#" onclick="return doclink('link-38', 'render', 'link-36');">render</a></tt><tt class="py-op">(</tt><tt class="py-name">e</tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt class="py-name">e</tt> <tt class="py-keyword">in</tt> <tt class="py-name">value</tt> <tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">        <tt class="py-keyword">elif</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">value</tt><tt class="py-op">,</tt> <tt class="py-name">dict</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-op">[</tt> <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-39" class="py-name"><a title="buildbot.process.properties.Properties.render
+buildbot.process.properties.WithProperties.render
+buildbot.status.web.base.DirectoryLister.render
+buildbot.status.web.base.HtmlResource.render
+buildbot.status.web.feeds.XmlResource.render
+buildbot.status.web.logs.HTMLLog.render
+buildbot.status.web.xmlrpc.XMLRPCServer.render" class="py-name" href="#" onclick="return doclink('link-39', 'render', 'link-36');">render</a></tt><tt class="py-op">(</tt><tt class="py-name">k</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-40" class="py-name"><a title="buildbot.process.properties.Properties.render
+buildbot.process.properties.WithProperties.render
+buildbot.status.web.base.DirectoryLister.render
+buildbot.status.web.base.HtmlResource.render
+buildbot.status.web.feeds.XmlResource.render
+buildbot.status.web.logs.HTMLLog.render
+buildbot.status.web.xmlrpc.XMLRPCServer.render" class="py-name" href="#" onclick="return doclink('link-40', 'render', 'link-36');">render</a></tt><tt class="py-op">(</tt><tt class="py-name">v</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt class="py-name">k</tt><tt class="py-op">,</tt><tt class="py-name">v</tt> <tt class="py-keyword">in</tt> <tt class="py-name">value</tt><tt class="py-op">.</tt><tt class="py-name">iteritems</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">value</tt> </tt>
+</div></div><a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line"> </tt>
+<a name="PropertyMap"></a><div id="PropertyMap-def"><a name="L99"></a><tt class="py-lineno"> 99</tt> <a class="py-toggle" href="#" id="PropertyMap-toggle" onclick="return toggle('PropertyMap');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildbot.process.properties.PropertyMap-class.html">PropertyMap</a><tt class="py-op">:</tt> </tt>
+</div><div id="PropertyMap-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="PropertyMap-expanded"><a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line"><tt class="py-docstring">    Privately-used mapping object to implement WithProperties' substitutions,</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"><tt class="py-docstring">    including the rendering of None as ''.</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">    <tt id="link-41" class="py-name" targets="Variable buildbot.process.properties.PropertyMap.colon_minus_re=buildbot.process.properties.PropertyMap-class.html#colon_minus_re"><a title="buildbot.process.properties.PropertyMap.colon_minus_re" class="py-name" href="#" onclick="return doclink('link-41', 'colon_minus_re', 'link-41');">colon_minus_re</a></tt> <tt class="py-op">=</tt> <tt class="py-name">re</tt><tt class="py-op">.</tt><tt class="py-name">compile</tt><tt class="py-op">(</tt><tt class="py-string">r"(.*):-(.*)"</tt><tt class="py-op">)</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">    <tt id="link-42" class="py-name" targets="Variable buildbot.process.properties.PropertyMap.colon_plus_re=buildbot.process.properties.PropertyMap-class.html#colon_plus_re"><a title="buildbot.process.properties.PropertyMap.colon_plus_re" class="py-name" href="#" onclick="return doclink('link-42', 'colon_plus_re', 'link-42');">colon_plus_re</a></tt> <tt class="py-op">=</tt> <tt class="py-name">re</tt><tt class="py-op">.</tt><tt class="py-name">compile</tt><tt class="py-op">(</tt><tt class="py-string">r"(.*):\+(.*)"</tt><tt class="py-op">)</tt> </tt>
+<a name="PropertyMap.__init__"></a><div id="PropertyMap.__init__-def"><a name="L106"></a><tt class="py-lineno">106</tt> <a class="py-toggle" href="#" id="PropertyMap.__init__-toggle" onclick="return toggle('PropertyMap.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.process.properties.PropertyMap-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">properties</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="PropertyMap.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="PropertyMap.__init__-expanded"><a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">        <tt class="py-comment"># use weakref here to avoid a reference loop</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-43" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-43', 'properties', 'link-3');">properties</a></tt> <tt class="py-op">=</tt> <tt class="py-name">weakref</tt><tt class="py-op">.</tt><tt class="py-name">ref</tt><tt class="py-op">(</tt><tt id="link-44" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-44', 'properties', 'link-3');">properties</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line"> </tt>
+<a name="PropertyMap.__getitem__"></a><div id="PropertyMap.__getitem__-def"><a name="L110"></a><tt class="py-lineno">110</tt> <a class="py-toggle" href="#" id="PropertyMap.__getitem__-toggle" onclick="return toggle('PropertyMap.__getitem__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.process.properties.PropertyMap-class.html#__getitem__">__getitem__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">key</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="PropertyMap.__getitem__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="PropertyMap.__getitem__-expanded"><a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">        <tt id="link-45" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-45', 'properties', 'link-3');">properties</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-46" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-46', 'properties', 'link-3');">properties</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line">        <tt class="py-keyword">assert</tt> <tt id="link-47" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-47', 'properties', 'link-3');">properties</a></tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line"> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line">        <tt class="py-comment"># %(prop:-repl)s</tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-comment"># if prop exists, use it; otherwise, use repl</tt> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-name">mo</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-48" class="py-name"><a title="buildbot.process.properties.PropertyMap.colon_minus_re" class="py-name" href="#" onclick="return doclink('link-48', 'colon_minus_re', 'link-41');">colon_minus_re</a></tt><tt class="py-op">.</tt><tt class="py-name">match</tt><tt class="py-op">(</tt><tt class="py-name">key</tt><tt class="py-op">)</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">mo</tt><tt class="py-op">:</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">            <tt class="py-name">prop</tt><tt class="py-op">,</tt> <tt class="py-name">repl</tt> <tt class="py-op">=</tt> <tt class="py-name">mo</tt><tt class="py-op">.</tt><tt class="py-name">group</tt><tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">,</tt><tt class="py-number">2</tt><tt class="py-op">)</tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt id="link-49" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-49', 'properties', 'link-3');">properties</a></tt><tt class="py-op">.</tt><tt id="link-50" class="py-name"><a title="buildbot.process.properties.Properties.has_key" class="py-name" href="#" onclick="return doclink('link-50', 'has_key', 'link-16');">has_key</a></tt><tt class="py-op">(</tt><tt class="py-name">prop</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line">                <tt class="py-name">rv</tt> <tt class="py-op">=</tt> <tt id="link-51" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-51', 'properties', 'link-3');">properties</a></tt><tt class="py-op">[</tt><tt class="py-name">prop</tt><tt class="py-op">]</tt> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">                <tt class="py-name">rv</tt> <tt class="py-op">=</tt> <tt class="py-name">repl</tt> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">            <tt class="py-comment"># %(prop:+repl)s</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line"><tt class="py-comment"></tt>            <tt class="py-comment"># if prop exists, use repl; otherwise, an empty string</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line"><tt class="py-comment"></tt>            <tt class="py-name">mo</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-52" class="py-name"><a title="buildbot.process.properties.PropertyMap.colon_plus_re" class="py-name" href="#" onclick="return doclink('link-52', 'colon_plus_re', 'link-42');">colon_plus_re</a></tt><tt class="py-op">.</tt><tt class="py-name">match</tt><tt class="py-op">(</tt><tt class="py-name">key</tt><tt class="py-op">)</tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">mo</tt><tt class="py-op">:</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">                <tt class="py-name">prop</tt><tt class="py-op">,</tt> <tt class="py-name">repl</tt> <tt class="py-op">=</tt> <tt class="py-name">mo</tt><tt class="py-op">.</tt><tt class="py-name">group</tt><tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">,</tt><tt class="py-number">2</tt><tt class="py-op">)</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt id="link-53" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-53', 'properties', 'link-3');">properties</a></tt><tt class="py-op">.</tt><tt id="link-54" class="py-name"><a title="buildbot.process.properties.Properties.has_key" class="py-name" href="#" onclick="return doclink('link-54', 'has_key', 'link-16');">has_key</a></tt><tt class="py-op">(</tt><tt class="py-name">prop</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">                    <tt class="py-name">rv</tt> <tt class="py-op">=</tt> <tt class="py-name">repl</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">                <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">                    <tt class="py-name">rv</tt> <tt class="py-op">=</tt> <tt class="py-string">''</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line">                <tt class="py-name">rv</tt> <tt class="py-op">=</tt> <tt id="link-55" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-55', 'properties', 'link-3');">properties</a></tt><tt class="py-op">[</tt><tt class="py-name">key</tt><tt class="py-op">]</tt> </tt>
+<a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line"> </tt>
+<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line">        <tt class="py-comment"># translate 'None' to an empty string</tt> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-keyword">if</tt> <tt class="py-name">rv</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> <tt class="py-name">rv</tt> <tt class="py-op">=</tt> <tt class="py-string">''</tt> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">rv</tt> </tt>
+</div></div><a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line"> </tt>
+<a name="WithProperties"></a><div id="WithProperties-def"><a name="L140"></a><tt class="py-lineno">140</tt> <a class="py-toggle" href="#" id="WithProperties-toggle" onclick="return toggle('WithProperties');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildbot.process.properties.WithProperties-class.html">WithProperties</a><tt class="py-op">(</tt><tt class="py-base-class">util</tt><tt class="py-op">.</tt><tt class="py-base-class">ComparableMixin</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="WithProperties-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="WithProperties-expanded"><a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line"><tt class="py-docstring">    This is a marker class, used fairly widely to indicate that we</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line"><tt class="py-docstring">    want to interpolate build properties.</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line"> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line">    <tt id="link-56" class="py-name"><a title="buildbot.changes.bonsaipoller.BonsaiPoller.compare_attrs
+buildbot.changes.freshcvs.FreshCVSSourceNewcred.compare_attrs
+buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.compare_attrs
+buildbot.changes.mail.MaildirSource.compare_attrs
+buildbot.changes.monotone.MonotoneSource.compare_attrs
+buildbot.changes.p4poller.P4Source.compare_attrs
+buildbot.changes.pb.PBChangeSource.compare_attrs
+buildbot.changes.svnpoller.SVNPoller.compare_attrs
+buildbot.db.connector.DBConnector.compare_attrs
+buildbot.locks.LockAccess.compare_attrs
+buildbot.locks.MasterLock.compare_attrs
+buildbot.locks.SlaveLock.compare_attrs
+buildbot.manhole.ArbitraryCheckerManhole.compare_attrs
+buildbot.manhole.AuthorizedKeysManhole.compare_attrs
+buildbot.manhole.PasswordManhole.compare_attrs
+buildbot.manhole.TelnetManhole.compare_attrs
+buildbot.process.factory.BuildFactory.compare_attrs
+buildbot.process.properties.Properties.compare_attrs
+buildbot.process.properties.WithProperties.compare_attrs
+buildbot.schedulers.basic.AnyBranchScheduler.compare_attrs
+buildbot.schedulers.basic.Dependent.compare_attrs
+buildbot.schedulers.basic.Scheduler.compare_attrs
+buildbot.schedulers.filter.ChangeFilter.compare_attrs
+buildbot.schedulers.timed.Nightly.compare_attrs
+buildbot.schedulers.timed.Periodic.compare_attrs
+buildbot.schedulers.triggerable.Triggerable.compare_attrs
+buildbot.schedulers.trysched.Try_Jobdir.compare_attrs
+buildbot.schedulers.trysched.Try_Userpass.compare_attrs
+buildbot.sourcestamp.SourceStamp.compare_attrs
+buildbot.status.client.PBListener.compare_attrs
+buildbot.status.mail.Domain.compare_attrs
+buildbot.status.mail.MailNotifier.compare_attrs
+buildbot.status.tinderbox.TinderboxMailNotifier.compare_attrs
+buildbot.status.words.IRC.compare_attrs
+buildbot.util.ComparableMixin.compare_attrs" class="py-name" href="#" onclick="return doclink('link-56', 'compare_attrs', 'link-2');">compare_attrs</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-string">'fmtstring'</tt><tt class="py-op">,</tt> <tt class="py-string">'args'</tt><tt class="py-op">)</tt> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line"> </tt>
+<a name="WithProperties.__init__"></a><div id="WithProperties.__init__-def"><a name="L148"></a><tt class="py-lineno">148</tt> <a class="py-toggle" href="#" id="WithProperties.__init__-toggle" onclick="return toggle('WithProperties.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.process.properties.WithProperties-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">fmtstring</tt><tt class="py-op">,</tt> <tt class="py-op">*</tt><tt class="py-param">args</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="WithProperties.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="WithProperties.__init__-expanded"><a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">fmtstring</tt> <tt class="py-op">=</tt> <tt class="py-name">fmtstring</tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">args</tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt> </tt>
+</div><a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line"> </tt>
+<a name="WithProperties.render"></a><div id="WithProperties.render-def"><a name="L152"></a><tt class="py-lineno">152</tt> <a class="py-toggle" href="#" id="WithProperties.render-toggle" onclick="return toggle('WithProperties.render');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.process.properties.WithProperties-class.html#render">render</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">pmap</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="WithProperties.render-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="WithProperties.render-expanded"><a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">args</tt><tt class="py-op">:</tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line">            <tt class="py-name">strings</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line">            <tt class="py-keyword">for</tt> <tt id="link-57" class="py-name"><a title="buildbot.changes.mail.BonsaiMaildirSource.name
+buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name
+buildbot.changes.mail.FCMaildirSource.name
+buildbot.changes.mail.MaildirSource.name
+buildbot.changes.mail.SVNCommitEmailMaildirSource.name
+buildbot.changes.mail.SyncmailMaildirSource.name
+buildbot.changes.manager.ChangeManager.name
+buildbot.process.buildstep.BuildStep.name
+buildbot.slave.bot.Bot.name
+buildbot.steps.dummy.Dummy.name
+buildbot.steps.dummy.FailingDummy.name
+buildbot.steps.dummy.RemoteDummy.name
+buildbot.steps.dummy.Wait.name
+buildbot.steps.master.MasterShellCommand.name
+buildbot.steps.maxq.MaxQ.name
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.name
+buildbot.steps.python.BuildEPYDoc.name
+buildbot.steps.python.PyFlakes.name
+buildbot.steps.python.PyLint.name
+buildbot.steps.python_twisted.BuildDebs.name
+buildbot.steps.python_twisted.HLint.name
+buildbot.steps.python_twisted.ProcessDocs.name
+buildbot.steps.python_twisted.RemovePYCs.name
+buildbot.steps.python_twisted.Trial.name
+buildbot.steps.shell.Compile.name
+buildbot.steps.shell.Configure.name
+buildbot.steps.shell.SetProperty.name
+buildbot.steps.shell.ShellCommand.name
+buildbot.steps.shell.Test.name
+buildbot.steps.shell.TreeSize.name
+buildbot.steps.source.Arch.name
+buildbot.steps.source.BK.name
+buildbot.steps.source.Bzr.name
+buildbot.steps.source.CVS.name
+buildbot.steps.source.Darcs.name
+buildbot.steps.source.Git.name
+buildbot.steps.source.Mercurial.name
+buildbot.steps.source.Monotone.name
+buildbot.steps.source.P4.name
+buildbot.steps.source.P4Sync.name
+buildbot.steps.source.SVN.name
+buildbot.steps.transfer.DirectoryUpload.name
+buildbot.steps.transfer.FileDownload.name
+buildbot.steps.transfer.FileUpload.name
+buildbot.steps.trigger.Trigger.name
+buildbot.steps.vstudio.VisualStudio.name" class="py-name" href="#" onclick="return doclink('link-57', 'name', 'link-11');">name</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">args</tt><tt class="py-op">:</tt> </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line">                <tt class="py-name">strings</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-name">pmap</tt><tt class="py-op">[</tt><tt id="link-58" class="py-name"><a title="buildbot.changes.mail.BonsaiMaildirSource.name
+buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name
+buildbot.changes.mail.FCMaildirSource.name
+buildbot.changes.mail.MaildirSource.name
+buildbot.changes.mail.SVNCommitEmailMaildirSource.name
+buildbot.changes.mail.SyncmailMaildirSource.name
+buildbot.changes.manager.ChangeManager.name
+buildbot.process.buildstep.BuildStep.name
+buildbot.slave.bot.Bot.name
+buildbot.steps.dummy.Dummy.name
+buildbot.steps.dummy.FailingDummy.name
+buildbot.steps.dummy.RemoteDummy.name
+buildbot.steps.dummy.Wait.name
+buildbot.steps.master.MasterShellCommand.name
+buildbot.steps.maxq.MaxQ.name
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.name
+buildbot.steps.python.BuildEPYDoc.name
+buildbot.steps.python.PyFlakes.name
+buildbot.steps.python.PyLint.name
+buildbot.steps.python_twisted.BuildDebs.name
+buildbot.steps.python_twisted.HLint.name
+buildbot.steps.python_twisted.ProcessDocs.name
+buildbot.steps.python_twisted.RemovePYCs.name
+buildbot.steps.python_twisted.Trial.name
+buildbot.steps.shell.Compile.name
+buildbot.steps.shell.Configure.name
+buildbot.steps.shell.SetProperty.name
+buildbot.steps.shell.ShellCommand.name
+buildbot.steps.shell.Test.name
+buildbot.steps.shell.TreeSize.name
+buildbot.steps.source.Arch.name
+buildbot.steps.source.BK.name
+buildbot.steps.source.Bzr.name
+buildbot.steps.source.CVS.name
+buildbot.steps.source.Darcs.name
+buildbot.steps.source.Git.name
+buildbot.steps.source.Mercurial.name
+buildbot.steps.source.Monotone.name
+buildbot.steps.source.P4.name
+buildbot.steps.source.P4Sync.name
+buildbot.steps.source.SVN.name
+buildbot.steps.transfer.DirectoryUpload.name
+buildbot.steps.transfer.FileDownload.name
+buildbot.steps.transfer.FileUpload.name
+buildbot.steps.trigger.Trigger.name
+buildbot.steps.vstudio.VisualStudio.name" class="py-name" href="#" onclick="return doclink('link-58', 'name', 'link-11');">name</a></tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line">            <tt id="link-59" class="py-name" targets="Function buildbot.process.factory.s()=buildbot.process.factory-module.html#s"><a title="buildbot.process.factory.s" class="py-name" href="#" onclick="return doclink('link-59', 's', 'link-59');">s</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">fmtstring</tt> <tt class="py-op">%</tt> <tt class="py-name">tuple</tt><tt class="py-op">(</tt><tt class="py-name">strings</tt><tt class="py-op">)</tt> </tt>
+<a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line">            <tt id="link-60" class="py-name"><a title="buildbot.process.factory.s" class="py-name" href="#" onclick="return doclink('link-60', 's', 'link-59');">s</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">fmtstring</tt> <tt class="py-op">%</tt> <tt class="py-name">pmap</tt> </tt>
+<a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-61" class="py-name"><a title="buildbot.process.factory.s" class="py-name" href="#" onclick="return doclink('link-61', 's', 'link-59');">s</a></tt> </tt>
+</div></div><a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="buildbot-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot latest</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Tue May 25 18:18:34 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<html lang="en">
+<head>
+<title>Nightly Scheduler - BuildBot Manual - 0.8.0</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.0">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Schedulers.html#Schedulers" title="Schedulers">
+<link rel="prev" href="Periodic-Scheduler.html#Periodic-Scheduler" title="Periodic Scheduler">
+<link rel="next" href="Try-Schedulers.html#Try-Schedulers" title="Try Schedulers">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.0.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Nightly-Scheduler"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Try-Schedulers.html#Try-Schedulers">Try Schedulers</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Periodic-Scheduler.html#Periodic-Scheduler">Periodic Scheduler</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Schedulers.html#Schedulers">Schedulers</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.7.7 Nightly Scheduler</h4>
+
+<p><a name="index-buildbot_002eschedulers_002etimed_002eNightly-53"></a>
+This is highly configurable periodic build scheduler, which triggers
+a build at particular times of day, week, month, or year. The
+configuration syntax is very similar to the well-known <code>crontab</code>
+format, in which you provide values for minute, hour, day, and month
+(some of which can be wildcards), and a build is triggered whenever
+the current time matches the given constraints. This can run a build
+every night, every morning, every weekend, alternate Thursdays,
+on your boss's birthday, etc.
+
+   <p>Pass some subset of <code>minute</code>, <code>hour</code>, <code>dayOfMonth</code>,
+<code>month</code>, and <code>dayOfWeek</code>; each may be a single number or
+a list of valid values. The builds will be triggered whenever the
+current time matches these values. Wildcards are represented by a
+'*' string. All fields default to a wildcard except 'minute', so
+with no fields this defaults to a build every hour, on the hour. 
+The full list of parameters is:
+
+     <dl>
+<dt><code>name</code>
+<br><dt><code>builderNames</code>
+<br><dt><code>properties</code>
+<br><dt><code>branch</code><dd>The branch to build when the time comes.
+
+     <br><dt><code>minute</code><dd>The minute of the hour on which to start the build.  This defaults
+to 0, meaning an hourly build.
+
+     <br><dt><code>hour</code><dd>The hour of the day on which to start the build, in 24-hour notation. 
+This defaults to *, meaning every hour.
+
+     <br><dt><code>month</code><dd>The month in which to start the build, with January = 1.  This defaults
+to *, meaning every month.
+
+     <br><dt><code>dayOfWeek</code><dd>The day of the week to start a build, with Monday = 0.  This defauls
+to *, meaning every day of the week.
+
+     <br><dt><code>onlyIfChanged</code><dd>If this is true, then builds will not be scheduled at the designated time
+unless the source has changed since the previous build. 
+</dl>
+
+   <p>For example, the following master.cfg clause will cause a build to be
+started every night at 3:00am:
+
+<pre class="example">     from buildbot.schedulers import timed
+     s = timed.Nightly(name='nightly',
+             builderNames=['builder1', 'builder2'],
+             hour=3,
+             minute=0)
+</pre>
+   <p>This scheduler will perform a build each monday morning at 6:23am and
+again at 8:23am, but only if someone has committed code in the interim:
+
+<pre class="example">     s = timed.Nightly(name='BeforeWork',
+              builderNames=['builder1'],
+              dayOfWeek=0,
+              hour=[6,8],
+              minute=23,
+              onlyIfChanged=True)
+</pre>
+   <p>The following runs a build every two hours, using Python's <code>range</code>
+function:
+
+<pre class="example">     s = timed.Nightly(name='every2hours',
+             builderNames=['builder1'],
+             hour=range(0, 24, 2))
+</pre>
+   <p>Finally, this example will run only on December 24th:
+
+<pre class="example">     s = timed.Nightly(name='SleighPreflightCheck',
+             builderNames=['flying_circuits', 'radar'],
+             month=12,
+             dayOfMonth=24,
+             hour=12,
+             minute=0)
+</pre>
+   </body></html>
+

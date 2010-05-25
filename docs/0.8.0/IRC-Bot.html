@@ -1,0 +1,140 @@
+<html lang="en">
+<head>
+<title>IRC Bot - BuildBot Manual - 0.8.0</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.0">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Status-Targets.html#Status-Targets" title="Status Targets">
+<link rel="prev" href="MailNotifier.html#MailNotifier" title="MailNotifier">
+<link rel="next" href="PBListener.html#PBListener" title="PBListener">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.0.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="IRC-Bot"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="PBListener.html#PBListener">PBListener</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="MailNotifier.html#MailNotifier">MailNotifier</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Status-Targets.html#Status-Targets">Status Targets</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.13.3 IRC Bot</h4>
+
+<p><a name="index-IRC-125"></a><a name="index-buildbot_002estatus_002ewords_002eIRC-126"></a>
+
+   <p>The <code>buildbot.status.words.IRC</code> status target creates an IRC bot
+which will attach to certain channels and be available for status
+queries. It can also be asked to announce builds as they occur, or be
+told to shut up.
+
+<pre class="example">     from buildbot.status import words
+     irc = words.IRC("irc.example.org", "botnickname",
+                     channels=["channel1", "channel2"],
+                     password="mysecretpassword",
+                     notify_events={
+                       'exception': 1,
+                       'successToFailure': 1,
+                       'failureToSuccess': 1,
+                     })
+     c['status'].append(irc)
+</pre>
+   <p>Take a look at the docstring for <code>words.IRC</code> for more details on
+configuring this service. Note that the <code>useSSL</code> option requires
+<code>PyOpenSSL</code>.  The <code>password</code> argument, if provided, will be sent to
+Nickserv to claim the nickname: some IRC servers will not allow clients to send
+private messages until they have logged in with a password.
+
+   <p>To use the service, you address messages at the buildbot, either
+normally (<code>botnickname: status</code>) or with private messages
+(<code>/msg botnickname status</code>). The buildbot will respond in kind.
+
+   <p>Some of the commands currently available:
+
+     <dl>
+<dt><code>list builders</code><dd>Emit a list of all configured builders
+<br><dt><code>status BUILDER</code><dd>Announce the status of a specific Builder: what it is doing right now. 
+<br><dt><code>status all</code><dd>Announce the status of all Builders
+<br><dt><code>watch BUILDER</code><dd>If the given Builder is currently running, wait until the Build is
+finished and then announce the results. 
+<br><dt><code>last BUILDER</code><dd>Return the results of the last build to run on the given Builder. 
+<br><dt><code>join CHANNEL</code><dd>Join the given IRC channel
+<br><dt><code>leave CHANNEL</code><dd>Leave the given IRC channel
+<br><dt><code>notify on|off|list EVENT</code><dd>Report events relating to builds.  If the command is issued as a
+private message, then the report will be sent back as a private
+message to the user who issued the command.  Otherwise, the report
+will be sent to the channel.  Available events to be notified are:
+
+          <dl>
+<dt><code>started</code><dd>A build has started
+<br><dt><code>finished</code><dd>A build has finished
+<br><dt><code>success</code><dd>A build finished successfully
+<br><dt><code>failed</code><dd>A build failed
+<br><dt><code>exception</code><dd>A build generated and exception
+<br><dt><code>xToY</code><dd>The previous build was x, but this one is Y, where x and Y are each
+one of success, warnings, failure, exception (except Y is
+capitalized).  For example: successToFailure will notify if the
+previous build was successful, but this one failed
+</dl>
+
+     <br><dt><code>help COMMAND</code><dd>Describe a command. Use <code>help commands</code> to get a list of known
+commands. 
+<br><dt><code>source</code><dd>Announce the URL of the Buildbot's home page. 
+<br><dt><code>version</code><dd>Announce the version of this Buildbot. 
+</dl>
+
+   <p>Additionally, the config file may specify default notification options
+as shown in the example earlier.
+
+   <p>If the <code>allowForce=True</code> option was used, some addtional commands
+will be available:
+
+     <dl>
+<dt><code>force build BUILDER REASON</code><dd>Tell the given Builder to start a build of the latest code. The user
+requesting the build and REASON are recorded in the Build status. The
+buildbot will announce the build's status when it finishes.
+
+     <br><dt><code>stop build BUILDER REASON</code><dd>Terminate any running build in the given Builder. REASON will be added
+to the build status to explain why it was stopped. You might use this
+if you committed a bug, corrected it right away, and don't want to
+wait for the first build (which is destined to fail) to complete
+before starting the second (hopefully fixed) build. 
+</dl>
+
+   </body></html>
+
