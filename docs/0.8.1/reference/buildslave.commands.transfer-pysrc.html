@@ -1,0 +1,922 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>buildslave.commands.transfer</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.1</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="buildslave-module.html">Package&nbsp;buildslave</a> ::
+        <a href="buildslave.commands-module.html">Package&nbsp;commands</a> ::
+        Module&nbsp;transfer
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="buildslave.commands.transfer-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="buildslave.commands.transfer-module.html">Module buildslave.commands.transfer</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">os</tt><tt class="py-op">,</tt> <tt class="py-name">tarfile</tt><tt class="py-op">,</tt> <tt class="py-name">tempfile</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt id="link-0" class="py-name" targets="Module buildbot.steps.python=buildbot.steps.python-module.html,Variable buildbot.steps.python_twisted.Trial.python=buildbot.steps.python_twisted.Trial-class.html#python"><a title="buildbot.steps.python
+buildbot.steps.python_twisted.Trial.python" class="py-name" href="#" onclick="return doclink('link-0', 'python', 'link-0');">python</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Method buildbot.changes.monotone.Monotone.log()=buildbot.changes.monotone.Monotone-class.html#log,Method buildbot.status.words.IrcStatusBot.log()=buildbot.status.words.IrcStatusBot-class.html#log"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-1', 'log', 'link-1');">log</a></tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt class="py-name">internet</tt> <tt class="py-keyword">import</tt> <tt class="py-name">defer</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-2" class="py-name" targets="Module buildbot.buildslave=buildbot.buildslave-module.html,Package buildslave=buildslave-module.html"><a title="buildbot.buildslave
+buildslave" class="py-name" href="#" onclick="return doclink('link-2', 'buildslave', 'link-2');">buildslave</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Package buildslave.commands=buildslave.commands-module.html"><a title="buildslave.commands" class="py-name" href="#" onclick="return doclink('link-3', 'commands', 'link-3');">commands</a></tt><tt class="py-op">.</tt><tt id="link-4" class="py-name" targets="Module buildbot.changes.base=buildbot.changes.base-module.html,Module buildbot.clients.base=buildbot.clients.base-module.html,Module buildbot.db.schema.base=buildbot.db.schema.base-module.html,Module buildbot.process.base=buildbot.process.base-module.html,Module buildbot.schedulers.base=buildbot.schedulers.base-module.html,Module buildbot.status.base=buildbot.status.base-module.html,Module buildbot.status.web.base=buildbot.status.web.base-module.html,Module buildslave.commands.base=buildslave.commands.base-module.html"><a title="buildbot.changes.base
+buildbot.clients.base
+buildbot.db.schema.base
+buildbot.process.base
+buildbot.schedulers.base
+buildbot.status.base
+buildbot.status.web.base
+buildslave.commands.base" class="py-name" href="#" onclick="return doclink('link-4', 'base', 'link-4');">base</a></tt> <tt class="py-keyword">import</tt> <tt id="link-5" class="py-name" targets="Class buildslave.commands.base.Command=buildslave.commands.base.Command-class.html"><a title="buildslave.commands.base.Command" class="py-name" href="#" onclick="return doclink('link-5', 'Command', 'link-5');">Command</a></tt><tt class="py-op">,</tt> <tt id="link-6" class="py-name" targets="Variable buildslave.commands.base.command_version=buildslave.commands.base-module.html#command_version"><a title="buildslave.commands.base.command_version" class="py-name" href="#" onclick="return doclink('link-6', 'command_version', 'link-6');">command_version</a></tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-7" class="py-name"><a title="buildbot.buildslave
+buildslave" class="py-name" href="#" onclick="return doclink('link-7', 'buildslave', 'link-2');">buildslave</a></tt><tt class="py-op">.</tt><tt id="link-8" class="py-name"><a title="buildslave.commands" class="py-name" href="#" onclick="return doclink('link-8', 'commands', 'link-3');">commands</a></tt><tt class="py-op">.</tt><tt id="link-9" class="py-name" targets="Module buildslave.commands.registry=buildslave.commands.registry-module.html"><a title="buildslave.commands.registry" class="py-name" href="#" onclick="return doclink('link-9', 'registry', 'link-9');">registry</a></tt> <tt class="py-keyword">import</tt> <tt id="link-10" class="py-name" targets="Function buildslave.commands.registry.registerSlaveCommand()=buildslave.commands.registry-module.html#registerSlaveCommand"><a title="buildslave.commands.registry.registerSlaveCommand" class="py-name" href="#" onclick="return doclink('link-10', 'registerSlaveCommand', 'link-10');">registerSlaveCommand</a></tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"> </tt>
+<a name="SlaveFileUploadCommand"></a><div id="SlaveFileUploadCommand-def"><a name="L9"></a><tt class="py-lineno">  9</tt> <a class="py-toggle" href="#" id="SlaveFileUploadCommand-toggle" onclick="return toggle('SlaveFileUploadCommand');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildslave.commands.transfer.SlaveFileUploadCommand-class.html">SlaveFileUploadCommand</a><tt class="py-op">(</tt><tt class="py-base-class">Command</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SlaveFileUploadCommand-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="SlaveFileUploadCommand-expanded"><a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-docstring">    Upload a file from slave to build master</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-docstring">    Arguments:</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-docstring">        - ['workdir']:   base directory to use</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-docstring">        - ['slavesrc']:  name of the slave-side file to read from</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-docstring">        - ['writer']:    RemoteReference to a transfer._FileWriter object</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-docstring">        - ['maxsize']:   max size (in bytes) of file to write</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-docstring">        - ['blocksize']: max size for each data block</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line">    <tt id="link-11" class="py-name" targets="Module buildbot.clients.debug=buildbot.clients.debug-module.html,Variable buildbot.master.BotMaster.debug=buildbot.master.BotMaster-class.html#debug,Variable buildbot.master.BuildMaster.debug=buildbot.master.BuildMaster-class.html#debug,Variable buildbot.process.buildstep.LoggedRemoteCommand.debug=buildbot.process.buildstep.LoggedRemoteCommand-class.html#debug,Variable buildbot.status.progress.Expectations.debug=buildbot.status.progress.Expectations-class.html#debug,Variable buildbot.status.progress.StepProgress.debug=buildbot.status.progress.StepProgress-class.html#debug,Variable buildslave.commands.base.Command.debug=buildslave.commands.base.Command-class.html#debug,Variable buildslave.commands.base.ShellCommandPP.debug=buildslave.commands.base.ShellCommandPP-class.html#debug,Variable buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug=buildslave.commands.transfer.SlaveDirectoryUploadCommand-class.html#debug,Variable buildslave.commands.transfer.SlaveFileDownloadCommand.debug=buildslave.commands.transfer.SlaveFileDownloadCommand-class.html#debug,Variable buildslave.commands.transfer.SlaveFileUploadCommand.debug=buildslave.commands.transfer.SlaveFileUploadCommand-class.html#debug"><a title="buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug
+buildslave.commands.base.Command.debug
+buildslave.commands.base.ShellCommandPP.debug
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug
+buildslave.commands.transfer.SlaveFileDownloadCommand.debug
+buildslave.commands.transfer.SlaveFileUploadCommand.debug" class="py-name" href="#" onclick="return doclink('link-11', 'debug', 'link-11');">debug</a></tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"> </tt>
+<a name="SlaveFileUploadCommand.setup"></a><div id="SlaveFileUploadCommand.setup-def"><a name="L22"></a><tt class="py-lineno"> 22</tt> <a class="py-toggle" href="#" id="SlaveFileUploadCommand.setup-toggle" onclick="return toggle('SlaveFileUploadCommand.setup');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.transfer.SlaveFileUploadCommand-class.html#setup">setup</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">args</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SlaveFileUploadCommand.setup-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SlaveFileUploadCommand.setup-expanded"><a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Variable buildbot.process.base.Build.workdir=buildbot.process.base.Build-class.html#workdir,Variable buildbot.process.factory.BuildFactory.workdir=buildbot.process.factory.BuildFactory-class.html#workdir,Variable buildbot.process.process_twisted.TwistedBaseFactory.workdir=buildbot.process.process_twisted.TwistedBaseFactory-class.html#workdir,Variable buildbot.process.process_twisted.TwistedBuild.workdir=buildbot.process.process_twisted.TwistedBuild-class.html#workdir"><a title="buildbot.process.base.Build.workdir
+buildbot.process.factory.BuildFactory.workdir
+buildbot.process.process_twisted.TwistedBaseFactory.workdir
+buildbot.process.process_twisted.TwistedBuild.workdir" class="py-name" href="#" onclick="return doclink('link-12', 'workdir', 'link-12');">workdir</a></tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'workdir'</tt><tt class="py-op">]</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-13" class="py-name" targets="Variable buildbot.status.builder.HTMLLogFile.filename=buildbot.status.builder.HTMLLogFile-class.html#filename,Variable buildbot.status.builder.LogFile.filename=buildbot.status.builder.LogFile-class.html#filename"><a title="buildbot.status.builder.HTMLLogFile.filename
+buildbot.status.builder.LogFile.filename" class="py-name" href="#" onclick="return doclink('link-13', 'filename', 'link-13');">filename</a></tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'slavesrc'</tt><tt class="py-op">]</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">writer</tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'writer'</tt><tt class="py-op">]</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-14" class="py-name" targets="Method buildbot.status.progress.BuildProgress.remaining()=buildbot.status.progress.BuildProgress-class.html#remaining,Method buildbot.status.progress.StepProgress.remaining()=buildbot.status.progress.StepProgress-class.html#remaining"><a title="buildbot.status.progress.BuildProgress.remaining
+buildbot.status.progress.StepProgress.remaining" class="py-name" href="#" onclick="return doclink('link-14', 'remaining', 'link-14');">remaining</a></tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'maxsize'</tt><tt class="py-op">]</tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">blocksize</tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'blocksize'</tt><tt class="py-op">]</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name" targets="Variable buildbot.process.buildstep.LoggedRemoteCommand.rc=buildbot.process.buildstep.LoggedRemoteCommand-class.html#rc"><a title="buildbot.process.buildstep.LoggedRemoteCommand.rc" class="py-name" href="#" onclick="return doclink('link-15', 'rc', 'link-15');">rc</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+</div><a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"> </tt>
+<a name="SlaveFileUploadCommand.start"></a><div id="SlaveFileUploadCommand.start-def"><a name="L31"></a><tt class="py-lineno"> 31</tt> <a class="py-toggle" href="#" id="SlaveFileUploadCommand.start-toggle" onclick="return toggle('SlaveFileUploadCommand.start');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.transfer.SlaveFileUploadCommand-class.html#start">start</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SlaveFileUploadCommand.start-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SlaveFileUploadCommand.start-expanded"><a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name"><a title="buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug
+buildslave.commands.base.Command.debug
+buildslave.commands.base.ShellCommandPP.debug
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug
+buildslave.commands.transfer.SlaveFileDownloadCommand.debug
+buildslave.commands.transfer.SlaveFileUploadCommand.debug" class="py-name" href="#" onclick="return doclink('link-16', 'debug', 'link-11');">debug</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line">            <tt id="link-17" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-17', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">'SlaveFileUploadCommand started'</tt><tt class="py-op">)</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line">        <tt class="py-comment"># Open file</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-18" class="py-name" targets="Variable twisted.python.filepath.FilePath.path=twisted.python.filepath.FilePath-class.html#path"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-18', 'path', 'link-18');">path</a></tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-19', 'path', 'link-18');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-20" class="py-name" targets="Variable buildbot.buildrequest.BuildRequest.builder=buildbot.buildrequest.BuildRequest-class.html#builder,Module buildbot.process.builder=buildbot.process.builder-module.html,Module buildbot.status.builder=buildbot.status.builder-module.html,Module buildbot.status.web.builder=buildbot.status.web.builder-module.html,Method buildbot.status.web.builder.StatusResourceBuilder.builder()=buildbot.status.web.builder.StatusResourceBuilder-class.html#builder"><a title="buildbot.buildrequest.BuildRequest.builder
+buildbot.process.builder
+buildbot.status.builder
+buildbot.status.web.builder
+buildbot.status.web.builder.StatusResourceBuilder.builder" class="py-name" href="#" onclick="return doclink('link-20', 'builder', 'link-20');">builder</a></tt><tt class="py-op">.</tt><tt id="link-21" class="py-name" targets="Variable buildbot.status.builder.BuilderStatus.basedir=buildbot.status.builder.BuilderStatus-class.html#basedir"><a title="buildbot.status.builder.BuilderStatus.basedir" class="py-name" href="#" onclick="return doclink('link-21', 'basedir', 'link-21');">basedir</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line">                                 <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="buildbot.process.base.Build.workdir
+buildbot.process.factory.BuildFactory.workdir
+buildbot.process.process_twisted.TwistedBaseFactory.workdir
+buildbot.process.process_twisted.TwistedBuild.workdir" class="py-name" href="#" onclick="return doclink('link-22', 'workdir', 'link-12');">workdir</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line">                                 <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-23" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-23', 'path', 'link-18');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">expanduser</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-24" class="py-name"><a title="buildbot.status.builder.HTMLLogFile.filename
+buildbot.status.builder.LogFile.filename" class="py-name" href="#" onclick="return doclink('link-24', 'filename', 'link-13');">filename</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">fp</tt> <tt class="py-op">=</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-25" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-25', 'path', 'link-18');">path</a></tt><tt class="py-op">,</tt> <tt class="py-string">'rb'</tt><tt class="py-op">)</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-26" class="py-name"><a title="buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug
+buildslave.commands.base.Command.debug
+buildslave.commands.base.ShellCommandPP.debug
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug
+buildslave.commands.transfer.SlaveFileDownloadCommand.debug
+buildslave.commands.transfer.SlaveFileUploadCommand.debug" class="py-name" href="#" onclick="return doclink('link-26', 'debug', 'link-11');">debug</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">                <tt id="link-27" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-27', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">'Opened %r for upload'</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-28" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-28', 'path', 'link-18');">path</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt><tt class="py-op">:</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line">            <tt class="py-comment"># TODO: this needs cleanup</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">fp</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt> <tt class="py-op">=</tt> <tt class="py-string">'Cannot open file %r for upload'</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-29" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-29', 'path', 'link-18');">path</a></tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-30" class="py-name"><a title="buildbot.process.buildstep.LoggedRemoteCommand.rc" class="py-name" href="#" onclick="return doclink('link-30', 'rc', 'link-15');">rc</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-31" class="py-name"><a title="buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug
+buildslave.commands.base.Command.debug
+buildslave.commands.base.ShellCommandPP.debug
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug
+buildslave.commands.transfer.SlaveFileDownloadCommand.debug
+buildslave.commands.transfer.SlaveFileUploadCommand.debug" class="py-name" href="#" onclick="return doclink('link-31', 'debug', 'link-11');">debug</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">                <tt id="link-32" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-32', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">'Cannot open file %r for upload'</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-33" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-33', 'path', 'link-18');">path</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-34" class="py-name" targets="Method buildslave.commands.base.Command.sendStatus()=buildslave.commands.base.Command-class.html#sendStatus,Method buildslave.commands.base.ShellCommand.sendStatus()=buildslave.commands.base.ShellCommand-class.html#sendStatus"><a title="buildslave.commands.base.Command.sendStatus
+buildslave.commands.base.ShellCommand.sendStatus" class="py-name" href="#" onclick="return doclink('link-34', 'sendStatus', 'link-34');">sendStatus</a></tt><tt class="py-op">(</tt><tt class="py-op">{</tt><tt class="py-string">'header'</tt><tt class="py-op">:</tt> <tt class="py-string">"sending %s"</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-35" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-35', 'path', 'link-18');">path</a></tt><tt class="py-op">}</tt><tt class="py-op">)</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">        <tt id="link-36" class="py-name" targets="Variable buildbot.changes.monotone.MonotoneSource.d=buildbot.changes.monotone.MonotoneSource-class.html#d"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-36', 'd', 'link-36');">d</a></tt> <tt class="py-op">=</tt> <tt class="py-name">defer</tt><tt class="py-op">.</tt><tt class="py-name">Deferred</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-37" class="py-name" targets="Variable buildslave.commands.base.Command._reactor=buildslave.commands.base.Command-class.html#_reactor,Variable buildslave.commands.base.ShellCommand._reactor=buildslave.commands.base.ShellCommand-class.html#_reactor"><a title="buildslave.commands.base.Command._reactor
+buildslave.commands.base.ShellCommand._reactor" class="py-name" href="#" onclick="return doclink('link-37', '_reactor', 'link-37');">_reactor</a></tt><tt class="py-op">.</tt><tt class="py-name">callLater</tt><tt class="py-op">(</tt><tt class="py-number">0</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_loop</tt><tt class="py-op">,</tt> <tt id="link-38" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-38', 'd', 'link-36');">d</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">_close</tt><tt class="py-op">(</tt><tt class="py-param">res</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">            <tt class="py-comment"># close the file, but pass through any errors from _loop</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">            <tt class="py-name">d1</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">writer</tt><tt class="py-op">.</tt><tt class="py-name">callRemote</tt><tt class="py-op">(</tt><tt class="py-string">"close"</tt><tt class="py-op">)</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">            <tt class="py-name">d1</tt><tt class="py-op">.</tt><tt class="py-name">addErrback</tt><tt class="py-op">(</tt><tt id="link-39" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-39', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt id="link-40" class="py-name" targets="Method buildbot.clients.debug.DebugWidget.err()=buildbot.clients.debug.DebugWidget-class.html#err,Variable buildbot.status.web.auth.AuthBase.err=buildbot.status.web.auth.AuthBase-class.html#err"><a title="buildbot.clients.debug.DebugWidget.err
+buildbot.status.web.auth.AuthBase.err" class="py-name" href="#" onclick="return doclink('link-40', 'err', 'link-40');">err</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">            <tt class="py-name">d1</tt><tt class="py-op">.</tt><tt class="py-name">addCallback</tt><tt class="py-op">(</tt><tt class="py-keyword">lambda</tt> <tt class="py-name">ignored</tt><tt class="py-op">:</tt> <tt class="py-name">res</tt><tt class="py-op">)</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">d1</tt> </tt>
+</div><a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">        <tt id="link-41" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-41', 'd', 'link-36');">d</a></tt><tt class="py-op">.</tt><tt class="py-name">addBoth</tt><tt class="py-op">(</tt><tt class="py-name">_close</tt><tt class="py-op">)</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">        <tt id="link-42" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-42', 'd', 'link-36');">d</a></tt><tt class="py-op">.</tt><tt class="py-name">addBoth</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-43" class="py-name" targets="Variable buildbot.process.base.Build.finished=buildbot.process.base.Build-class.html#finished,Method buildbot.process.buildstep.BuildStep.finished()=buildbot.process.buildstep.BuildStep-class.html#finished,Method buildbot.scripts.logwatcher.LogWatcher.finished()=buildbot.scripts.logwatcher.LogWatcher-class.html#finished,Variable buildbot.status.builder.BuildStatus.finished=buildbot.status.builder.BuildStatus-class.html#finished,Variable buildbot.status.builder.BuildStepStatus.finished=buildbot.status.builder.BuildStepStatus-class.html#finished,Variable buildbot.status.builder.Event.finished=buildbot.status.builder.Event-class.html#finished,Variable buildbot.status.builder.LogFile.finished=buildbot.status.builder.LogFile-class.html#finished,Method buildbot.status.web.logs.TextLog.finished()=buildbot.status.web.logs.TextLog-class.html#finished,Method buildbot.steps.maxq.MaxQ.finished()=buildbot.steps.maxq.MaxQ-class.html#finished,Variable buildbot.steps.python_twisted.TrialTestCaseCounter.finished=buildbot.steps.python_twisted.TrialTestCaseCounter-class.html#finished,Method buildbot.steps.transfer.DirectoryUpload.finished()=buildbot.steps.transfer.DirectoryUpload-class.html#finished,Method buildbot.steps.vstudio.VisualStudio.finished()=buildbot.steps.vstudio.VisualStudio-class.html#finished,Method buildslave.commands.base.DummyCommand.finished()=buildslave.commands.base.DummyCommand-class.html#finished,Method buildslave.commands.base.ShellCommand.finished()=buildslave.commands.base.ShellCommand-class.html#finished,Method buildslave.commands.base.WaitCommand.finished()=buildslave.commands.base.WaitCommand-class.html#finished,Method buildslave.commands.transfer.SlaveDirectoryUploadCommand.finished()=buildslave.commands.transfer.SlaveDirectoryUploadCommand-class.html#finished,Method buildslave.commands.transfer.SlaveFileDownloadCommand.finished()=buildslave.commands.transfer.SlaveFileDownloadCommand-class.html#finished,Method buildslave.commands.transfer.SlaveFileUploadCommand.finished()=buildslave.commands.transfer.SlaveFileUploadCommand-class.html#finished,Method buildslave.scripts.logwatcher.LogWatcher.finished()=buildslave.scripts.logwatcher.LogWatcher-class.html#finished"><a title="buildbot.process.base.Build.finished
+buildbot.process.buildstep.BuildStep.finished
+buildbot.scripts.logwatcher.LogWatcher.finished
+buildbot.status.builder.BuildStatus.finished
+buildbot.status.builder.BuildStepStatus.finished
+buildbot.status.builder.Event.finished
+buildbot.status.builder.LogFile.finished
+buildbot.status.web.logs.TextLog.finished
+buildbot.steps.maxq.MaxQ.finished
+buildbot.steps.python_twisted.TrialTestCaseCounter.finished
+buildbot.steps.transfer.DirectoryUpload.finished
+buildbot.steps.vstudio.VisualStudio.finished
+buildslave.commands.base.DummyCommand.finished
+buildslave.commands.base.ShellCommand.finished
+buildslave.commands.base.WaitCommand.finished
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.finished
+buildslave.commands.transfer.SlaveFileDownloadCommand.finished
+buildslave.commands.transfer.SlaveFileUploadCommand.finished
+buildslave.scripts.logwatcher.LogWatcher.finished" class="py-name" href="#" onclick="return doclink('link-43', 'finished', 'link-43');">finished</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-44" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-44', 'd', 'link-36');">d</a></tt> </tt>
+</div><a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line"> </tt>
+<a name="SlaveFileUploadCommand._loop"></a><div id="SlaveFileUploadCommand._loop-def"><a name="L65"></a><tt class="py-lineno"> 65</tt> <a class="py-toggle" href="#" id="SlaveFileUploadCommand._loop-toggle" onclick="return toggle('SlaveFileUploadCommand._loop');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.transfer.SlaveFileUploadCommand-class.html#_loop">_loop</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">fire_when_done</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SlaveFileUploadCommand._loop-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SlaveFileUploadCommand._loop-expanded"><a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">        <tt id="link-45" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-45', 'd', 'link-36');">d</a></tt> <tt class="py-op">=</tt> <tt class="py-name">defer</tt><tt class="py-op">.</tt><tt class="py-name">maybeDeferred</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_writeBlock</tt><tt class="py-op">)</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">_done</tt><tt class="py-op">(</tt><tt class="py-param">finished</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt id="link-46" class="py-name"><a title="buildbot.process.base.Build.finished
+buildbot.process.buildstep.BuildStep.finished
+buildbot.scripts.logwatcher.LogWatcher.finished
+buildbot.status.builder.BuildStatus.finished
+buildbot.status.builder.BuildStepStatus.finished
+buildbot.status.builder.Event.finished
+buildbot.status.builder.LogFile.finished
+buildbot.status.web.logs.TextLog.finished
+buildbot.steps.maxq.MaxQ.finished
+buildbot.steps.python_twisted.TrialTestCaseCounter.finished
+buildbot.steps.transfer.DirectoryUpload.finished
+buildbot.steps.vstudio.VisualStudio.finished
+buildslave.commands.base.DummyCommand.finished
+buildslave.commands.base.ShellCommand.finished
+buildslave.commands.base.WaitCommand.finished
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.finished
+buildslave.commands.transfer.SlaveFileDownloadCommand.finished
+buildslave.commands.transfer.SlaveFileUploadCommand.finished
+buildslave.scripts.logwatcher.LogWatcher.finished" class="py-name" href="#" onclick="return doclink('link-46', 'finished', 'link-43');">finished</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">                <tt class="py-name">fire_when_done</tt><tt class="py-op">.</tt><tt class="py-name">callback</tt><tt class="py-op">(</tt><tt class="py-name">None</tt><tt class="py-op">)</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_loop</tt><tt class="py-op">(</tt><tt class="py-name">fire_when_done</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">_err</tt><tt class="py-op">(</tt><tt class="py-param">why</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">            <tt class="py-name">fire_when_done</tt><tt class="py-op">.</tt><tt class="py-name">errback</tt><tt class="py-op">(</tt><tt class="py-name">why</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">        <tt id="link-47" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-47', 'd', 'link-36');">d</a></tt><tt class="py-op">.</tt><tt class="py-name">addCallbacks</tt><tt class="py-op">(</tt><tt class="py-name">_done</tt><tt class="py-op">,</tt> <tt class="py-name">_err</tt><tt class="py-op">)</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">None</tt> </tt>
+</div><a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line"> </tt>
+<a name="SlaveFileUploadCommand._writeBlock"></a><div id="SlaveFileUploadCommand._writeBlock-def"><a name="L77"></a><tt class="py-lineno"> 77</tt> <a class="py-toggle" href="#" id="SlaveFileUploadCommand._writeBlock-toggle" onclick="return toggle('SlaveFileUploadCommand._writeBlock');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.transfer.SlaveFileUploadCommand-class.html#_writeBlock">_writeBlock</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SlaveFileUploadCommand._writeBlock-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SlaveFileUploadCommand._writeBlock-expanded"><a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">        <tt class="py-docstring">"""Write a block of data to the remote writer"""</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line"> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-48" class="py-name" targets="Variable buildslave.commands.base.Command.interrupted=buildslave.commands.base.Command-class.html#interrupted"><a title="buildslave.commands.base.Command.interrupted" class="py-name" href="#" onclick="return doclink('link-48', 'interrupted', 'link-48');">interrupted</a></tt> <tt class="py-keyword">or</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">fp</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-49" class="py-name"><a title="buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug
+buildslave.commands.base.Command.debug
+buildslave.commands.base.ShellCommandPP.debug
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug
+buildslave.commands.transfer.SlaveFileDownloadCommand.debug
+buildslave.commands.transfer.SlaveFileUploadCommand.debug" class="py-name" href="#" onclick="return doclink('link-49', 'debug', 'link-11');">debug</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">                <tt id="link-50" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-50', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">'SlaveFileUploadCommand._writeBlock(): end'</tt><tt class="py-op">)</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">True</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line"> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">        <tt id="link-51" class="py-name" targets="Variable buildbot.process.buildstep.OutputProgressObserver.length=buildbot.process.buildstep.OutputProgressObserver-class.html#length,Variable buildbot.status.builder.LogFile.length=buildbot.status.builder.LogFile-class.html#length"><a title="buildbot.process.buildstep.OutputProgressObserver.length
+buildbot.status.builder.LogFile.length" class="py-name" href="#" onclick="return doclink('link-51', 'length', 'link-51');">length</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">blocksize</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-52" class="py-name"><a title="buildbot.status.progress.BuildProgress.remaining
+buildbot.status.progress.StepProgress.remaining" class="py-name" href="#" onclick="return doclink('link-52', 'remaining', 'link-14');">remaining</a></tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt> <tt class="py-keyword">and</tt> <tt id="link-53" class="py-name"><a title="buildbot.process.buildstep.OutputProgressObserver.length
+buildbot.status.builder.LogFile.length" class="py-name" href="#" onclick="return doclink('link-53', 'length', 'link-51');">length</a></tt> <tt class="py-op">&gt;</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-54" class="py-name"><a title="buildbot.status.progress.BuildProgress.remaining
+buildbot.status.progress.StepProgress.remaining" class="py-name" href="#" onclick="return doclink('link-54', 'remaining', 'link-14');">remaining</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">            <tt id="link-55" class="py-name"><a title="buildbot.process.buildstep.OutputProgressObserver.length
+buildbot.status.builder.LogFile.length" class="py-name" href="#" onclick="return doclink('link-55', 'length', 'link-51');">length</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-56" class="py-name"><a title="buildbot.status.progress.BuildProgress.remaining
+buildbot.status.progress.StepProgress.remaining" class="py-name" href="#" onclick="return doclink('link-56', 'remaining', 'link-14');">remaining</a></tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line"> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt id="link-57" class="py-name"><a title="buildbot.process.buildstep.OutputProgressObserver.length
+buildbot.status.builder.LogFile.length" class="py-name" href="#" onclick="return doclink('link-57', 'length', 'link-51');">length</a></tt> <tt class="py-op">&lt;=</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt> <tt class="py-op">=</tt> <tt class="py-string">'Maximum filesize reached, truncating file %r'</tt> \ </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">                                <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-58" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-58', 'path', 'link-18');">path</a></tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-59" class="py-name"><a title="buildbot.process.buildstep.LoggedRemoteCommand.rc" class="py-name" href="#" onclick="return doclink('link-59', 'rc', 'link-15');">rc</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">            <tt class="py-name">data</tt> <tt class="py-op">=</tt> <tt class="py-string">''</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">            <tt class="py-name">data</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">fp</tt><tt class="py-op">.</tt><tt class="py-name">read</tt><tt class="py-op">(</tt><tt id="link-60" class="py-name"><a title="buildbot.process.buildstep.OutputProgressObserver.length
+buildbot.status.builder.LogFile.length" class="py-name" href="#" onclick="return doclink('link-60', 'length', 'link-51');">length</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line"> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-61" class="py-name"><a title="buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug
+buildslave.commands.base.Command.debug
+buildslave.commands.base.ShellCommandPP.debug
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug
+buildslave.commands.transfer.SlaveFileDownloadCommand.debug
+buildslave.commands.transfer.SlaveFileUploadCommand.debug" class="py-name" href="#" onclick="return doclink('link-61', 'debug', 'link-11');">debug</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">            <tt id="link-62" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-62', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">'SlaveFileUploadCommand._writeBlock(): '</tt><tt class="py-op">+</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">                    <tt class="py-string">'allowed=%d readlen=%d'</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt id="link-63" class="py-name"><a title="buildbot.process.buildstep.OutputProgressObserver.length
+buildbot.status.builder.LogFile.length" class="py-name" href="#" onclick="return doclink('link-63', 'length', 'link-51');">length</a></tt><tt class="py-op">,</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">data</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">data</tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">            <tt id="link-64" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-64', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">"EOF: callRemote(close)"</tt><tt class="py-op">)</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">True</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line"> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-65" class="py-name"><a title="buildbot.status.progress.BuildProgress.remaining
+buildbot.status.progress.StepProgress.remaining" class="py-name" href="#" onclick="return doclink('link-65', 'remaining', 'link-14');">remaining</a></tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-66" class="py-name"><a title="buildbot.status.progress.BuildProgress.remaining
+buildbot.status.progress.StepProgress.remaining" class="py-name" href="#" onclick="return doclink('link-66', 'remaining', 'link-14');">remaining</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-67" class="py-name"><a title="buildbot.status.progress.BuildProgress.remaining
+buildbot.status.progress.StepProgress.remaining" class="py-name" href="#" onclick="return doclink('link-67', 'remaining', 'link-14');">remaining</a></tt> <tt class="py-op">-</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">data</tt><tt class="py-op">)</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">            <tt class="py-keyword">assert</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-68" class="py-name"><a title="buildbot.status.progress.BuildProgress.remaining
+buildbot.status.progress.StepProgress.remaining" class="py-name" href="#" onclick="return doclink('link-68', 'remaining', 'link-14');">remaining</a></tt> <tt class="py-op">&gt;=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">        <tt id="link-69" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-69', 'd', 'link-36');">d</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">writer</tt><tt class="py-op">.</tt><tt class="py-name">callRemote</tt><tt class="py-op">(</tt><tt class="py-string">'write'</tt><tt class="py-op">,</tt> <tt class="py-name">data</tt><tt class="py-op">)</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line">        <tt id="link-70" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-70', 'd', 'link-36');">d</a></tt><tt class="py-op">.</tt><tt class="py-name">addCallback</tt><tt class="py-op">(</tt><tt class="py-keyword">lambda</tt> <tt class="py-name">res</tt><tt class="py-op">:</tt> <tt class="py-name">False</tt><tt class="py-op">)</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-71" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-71', 'd', 'link-36');">d</a></tt> </tt>
+</div><a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line"> </tt>
+<a name="SlaveFileUploadCommand.interrupt"></a><div id="SlaveFileUploadCommand.interrupt-def"><a name="L112"></a><tt class="py-lineno">112</tt> <a class="py-toggle" href="#" id="SlaveFileUploadCommand.interrupt-toggle" onclick="return toggle('SlaveFileUploadCommand.interrupt');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.transfer.SlaveFileUploadCommand-class.html#interrupt">interrupt</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SlaveFileUploadCommand.interrupt-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SlaveFileUploadCommand.interrupt-expanded"><a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-72" class="py-name"><a title="buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug
+buildslave.commands.base.Command.debug
+buildslave.commands.base.ShellCommandPP.debug
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug
+buildslave.commands.transfer.SlaveFileDownloadCommand.debug
+buildslave.commands.transfer.SlaveFileUploadCommand.debug" class="py-name" href="#" onclick="return doclink('link-72', 'debug', 'link-11');">debug</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line">            <tt id="link-73" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-73', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">'interrupted'</tt><tt class="py-op">)</tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-74" class="py-name"><a title="buildslave.commands.base.Command.interrupted" class="py-name" href="#" onclick="return doclink('link-74', 'interrupted', 'link-48');">interrupted</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt> <tt class="py-op">=</tt> <tt class="py-string">'Upload of %r interrupted'</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-75" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-75', 'path', 'link-18');">path</a></tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-76" class="py-name"><a title="buildbot.process.buildstep.LoggedRemoteCommand.rc" class="py-name" href="#" onclick="return doclink('link-76', 'rc', 'link-15');">rc</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-77" class="py-name"><a title="buildslave.commands.base.Command.interrupted" class="py-name" href="#" onclick="return doclink('link-77', 'interrupted', 'link-48');">interrupted</a></tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+</div><a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">        <tt class="py-comment"># the next _writeBlock call will notice the .interrupted flag</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line"> </tt>
+<a name="SlaveFileUploadCommand.finished"></a><div id="SlaveFileUploadCommand.finished-def"><a name="L123"></a><tt class="py-lineno">123</tt> <a class="py-toggle" href="#" id="SlaveFileUploadCommand.finished-toggle" onclick="return toggle('SlaveFileUploadCommand.finished');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.transfer.SlaveFileUploadCommand-class.html#finished">finished</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">res</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SlaveFileUploadCommand.finished-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SlaveFileUploadCommand.finished-expanded"><a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-78" class="py-name"><a title="buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug
+buildslave.commands.base.Command.debug
+buildslave.commands.base.ShellCommandPP.debug
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug
+buildslave.commands.transfer.SlaveFileDownloadCommand.debug
+buildslave.commands.transfer.SlaveFileUploadCommand.debug" class="py-name" href="#" onclick="return doclink('link-78', 'debug', 'link-11');">debug</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">            <tt id="link-79" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-79', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">'finished: stderr=%r, rc=%r'</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-80" class="py-name"><a title="buildbot.process.buildstep.LoggedRemoteCommand.rc" class="py-name" href="#" onclick="return doclink('link-80', 'rc', 'link-15');">rc</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-81" class="py-name"><a title="buildslave.commands.base.Command.sendStatus
+buildslave.commands.base.ShellCommand.sendStatus" class="py-name" href="#" onclick="return doclink('link-81', 'sendStatus', 'link-34');">sendStatus</a></tt><tt class="py-op">(</tt><tt class="py-op">{</tt><tt class="py-string">'rc'</tt><tt class="py-op">:</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-82" class="py-name"><a title="buildbot.process.buildstep.LoggedRemoteCommand.rc" class="py-name" href="#" onclick="return doclink('link-82', 'rc', 'link-15');">rc</a></tt><tt class="py-op">}</tt><tt class="py-op">)</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-83" class="py-name"><a title="buildslave.commands.base.Command.sendStatus
+buildslave.commands.base.ShellCommand.sendStatus" class="py-name" href="#" onclick="return doclink('link-83', 'sendStatus', 'link-34');">sendStatus</a></tt><tt class="py-op">(</tt><tt class="py-op">{</tt><tt class="py-string">'stderr'</tt><tt class="py-op">:</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt><tt class="py-op">,</tt> <tt class="py-string">'rc'</tt><tt class="py-op">:</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-84" class="py-name"><a title="buildbot.process.buildstep.LoggedRemoteCommand.rc" class="py-name" href="#" onclick="return doclink('link-84', 'rc', 'link-15');">rc</a></tt><tt class="py-op">}</tt><tt class="py-op">)</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">res</tt> </tt>
+</div></div><a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line"> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line"><tt id="link-85" class="py-name"><a title="buildslave.commands.registry.registerSlaveCommand" class="py-name" href="#" onclick="return doclink('link-85', 'registerSlaveCommand', 'link-10');">registerSlaveCommand</a></tt><tt class="py-op">(</tt><tt class="py-string">"uploadFile"</tt><tt class="py-op">,</tt> <tt id="link-86" class="py-name" targets="Class buildslave.commands.transfer.SlaveFileUploadCommand=buildslave.commands.transfer.SlaveFileUploadCommand-class.html"><a title="buildslave.commands.transfer.SlaveFileUploadCommand" class="py-name" href="#" onclick="return doclink('link-86', 'SlaveFileUploadCommand', 'link-86');">SlaveFileUploadCommand</a></tt><tt class="py-op">,</tt> <tt id="link-87" class="py-name"><a title="buildslave.commands.base.command_version" class="py-name" href="#" onclick="return doclink('link-87', 'command_version', 'link-6');">command_version</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line"> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line"> </tt>
+<a name="SlaveDirectoryUploadCommand"></a><div id="SlaveDirectoryUploadCommand-def"><a name="L135"></a><tt class="py-lineno">135</tt> <a class="py-toggle" href="#" id="SlaveDirectoryUploadCommand-toggle" onclick="return toggle('SlaveDirectoryUploadCommand');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildslave.commands.transfer.SlaveDirectoryUploadCommand-class.html">SlaveDirectoryUploadCommand</a><tt class="py-op">(</tt><tt class="py-base-class">SlaveFileUploadCommand</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SlaveDirectoryUploadCommand-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="SlaveDirectoryUploadCommand-expanded"><a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line"><tt class="py-docstring">    Upload a directory from slave to build master</tt> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line"><tt class="py-docstring">    Arguments:</tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line"><tt class="py-docstring">        - ['workdir']:   base directory to use</tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line"><tt class="py-docstring">        - ['slavesrc']:  name of the slave-side directory to read from</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line"><tt class="py-docstring">        - ['writer']:    RemoteReference to a transfer._DirectoryWriter object</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line"><tt class="py-docstring">        - ['maxsize']:   max size (in bytes) of file to write</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line"><tt class="py-docstring">        - ['blocksize']: max size for each data block</tt> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line"><tt class="py-docstring">        - ['compress']:  one of [None, 'bz2', 'gz']</tt> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line">    <tt id="link-88" class="py-name"><a title="buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug
+buildslave.commands.base.Command.debug
+buildslave.commands.base.ShellCommandPP.debug
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug
+buildslave.commands.transfer.SlaveFileDownloadCommand.debug
+buildslave.commands.transfer.SlaveFileUploadCommand.debug" class="py-name" href="#" onclick="return doclink('link-88', 'debug', 'link-11');">debug</a></tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line"> </tt>
+<a name="SlaveDirectoryUploadCommand.setup"></a><div id="SlaveDirectoryUploadCommand.setup-def"><a name="L149"></a><tt class="py-lineno">149</tt> <a class="py-toggle" href="#" id="SlaveDirectoryUploadCommand.setup-toggle" onclick="return toggle('SlaveDirectoryUploadCommand.setup');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.transfer.SlaveDirectoryUploadCommand-class.html#setup">setup</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">args</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SlaveDirectoryUploadCommand.setup-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SlaveDirectoryUploadCommand.setup-expanded"><a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-89" class="py-name"><a title="buildbot.process.base.Build.workdir
+buildbot.process.factory.BuildFactory.workdir
+buildbot.process.process_twisted.TwistedBaseFactory.workdir
+buildbot.process.process_twisted.TwistedBuild.workdir" class="py-name" href="#" onclick="return doclink('link-89', 'workdir', 'link-12');">workdir</a></tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'workdir'</tt><tt class="py-op">]</tt> </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dirname</tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'slavesrc'</tt><tt class="py-op">]</tt> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">writer</tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'writer'</tt><tt class="py-op">]</tt> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-90" class="py-name"><a title="buildbot.status.progress.BuildProgress.remaining
+buildbot.status.progress.StepProgress.remaining" class="py-name" href="#" onclick="return doclink('link-90', 'remaining', 'link-14');">remaining</a></tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'maxsize'</tt><tt class="py-op">]</tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">blocksize</tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'blocksize'</tt><tt class="py-op">]</tt> </tt>
+<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">compress</tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'compress'</tt><tt class="py-op">]</tt> </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-91" class="py-name"><a title="buildbot.process.buildstep.LoggedRemoteCommand.rc" class="py-name" href="#" onclick="return doclink('link-91', 'rc', 'link-15');">rc</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+</div><a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line"> </tt>
+<a name="SlaveDirectoryUploadCommand.start"></a><div id="SlaveDirectoryUploadCommand.start-def"><a name="L159"></a><tt class="py-lineno">159</tt> <a class="py-toggle" href="#" id="SlaveDirectoryUploadCommand.start-toggle" onclick="return toggle('SlaveDirectoryUploadCommand.start');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.transfer.SlaveDirectoryUploadCommand-class.html#start">start</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SlaveDirectoryUploadCommand.start-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SlaveDirectoryUploadCommand.start-expanded"><a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-92" class="py-name"><a title="buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug
+buildslave.commands.base.Command.debug
+buildslave.commands.base.ShellCommandPP.debug
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug
+buildslave.commands.transfer.SlaveFileDownloadCommand.debug
+buildslave.commands.transfer.SlaveFileUploadCommand.debug" class="py-name" href="#" onclick="return doclink('link-92', 'debug', 'link-11');">debug</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line">            <tt id="link-93" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-93', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">'SlaveDirectoryUploadCommand started'</tt><tt class="py-op">)</tt> </tt>
+<a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line"> </tt>
+<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-94" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-94', 'path', 'link-18');">path</a></tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-95" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-95', 'path', 'link-18');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-96" class="py-name"><a title="buildbot.buildrequest.BuildRequest.builder
+buildbot.process.builder
+buildbot.status.builder
+buildbot.status.web.builder
+buildbot.status.web.builder.StatusResourceBuilder.builder" class="py-name" href="#" onclick="return doclink('link-96', 'builder', 'link-20');">builder</a></tt><tt class="py-op">.</tt><tt id="link-97" class="py-name"><a title="buildbot.status.builder.BuilderStatus.basedir" class="py-name" href="#" onclick="return doclink('link-97', 'basedir', 'link-21');">basedir</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line">                                 <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-98" class="py-name"><a title="buildbot.process.base.Build.workdir
+buildbot.process.factory.BuildFactory.workdir
+buildbot.process.process_twisted.TwistedBaseFactory.workdir
+buildbot.process.process_twisted.TwistedBuild.workdir" class="py-name" href="#" onclick="return doclink('link-98', 'workdir', 'link-12');">workdir</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line">                                 <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-99" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-99', 'path', 'link-18');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">expanduser</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dirname</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-100" class="py-name"><a title="buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug
+buildslave.commands.base.Command.debug
+buildslave.commands.base.ShellCommandPP.debug
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug
+buildslave.commands.transfer.SlaveFileDownloadCommand.debug
+buildslave.commands.transfer.SlaveFileUploadCommand.debug" class="py-name" href="#" onclick="return doclink('link-100', 'debug', 'link-11');">debug</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line">            <tt id="link-101" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-101', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">"path: %r"</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-102" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-102', 'path', 'link-18');">path</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line"> </tt>
+<a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line">        <tt class="py-comment"># Create temporary archive</tt> </tt>
+<a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line">        <tt class="py-name">fd</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">tarname</tt> <tt class="py-op">=</tt> <tt class="py-name">tempfile</tt><tt class="py-op">.</tt><tt class="py-name">mkstemp</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line">        <tt class="py-name">fileobj</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">fdopen</tt><tt class="py-op">(</tt><tt class="py-name">fd</tt><tt class="py-op">,</tt> <tt class="py-string">'w'</tt><tt class="py-op">)</tt> </tt>
+<a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">compress</tt> <tt class="py-op">==</tt> <tt class="py-string">'bz2'</tt><tt class="py-op">:</tt> </tt>
+<a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line">            <tt id="link-103" class="py-name" targets="Variable buildbot.steps.vstudio.VisualStudio.mode=buildbot.steps.vstudio.VisualStudio-class.html#mode"><a title="buildbot.steps.vstudio.VisualStudio.mode" class="py-name" href="#" onclick="return doclink('link-103', 'mode', 'link-103');">mode</a></tt><tt class="py-op">=</tt><tt class="py-string">'w|bz2'</tt> </tt>
+<a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line">        <tt class="py-keyword">elif</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">compress</tt> <tt class="py-op">==</tt> <tt class="py-string">'gz'</tt><tt class="py-op">:</tt> </tt>
+<a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line">            <tt id="link-104" class="py-name"><a title="buildbot.steps.vstudio.VisualStudio.mode" class="py-name" href="#" onclick="return doclink('link-104', 'mode', 'link-103');">mode</a></tt><tt class="py-op">=</tt><tt class="py-string">'w|gz'</tt> </tt>
+<a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line">            <tt id="link-105" class="py-name"><a title="buildbot.steps.vstudio.VisualStudio.mode" class="py-name" href="#" onclick="return doclink('link-105', 'mode', 'link-103');">mode</a></tt> <tt class="py-op">=</tt> <tt class="py-string">'w'</tt> </tt>
+<a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line">        <tt class="py-name">archive</tt> <tt class="py-op">=</tt> <tt class="py-name">tarfile</tt><tt class="py-op">.</tt><tt class="py-name">open</tt><tt class="py-op">(</tt><tt id="link-106" class="py-name" targets="Variable buildbot.changes.mail.BonsaiMaildirSource.name=buildbot.changes.mail.BonsaiMaildirSource-class.html#name,Variable buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name=buildbot.changes.mail.BzrLaunchpadEmailMaildirSource-class.html#name,Variable buildbot.changes.mail.FCMaildirSource.name=buildbot.changes.mail.FCMaildirSource-class.html#name,Variable buildbot.changes.mail.MaildirSource.name=buildbot.changes.mail.MaildirSource-class.html#name,Variable buildbot.changes.mail.SVNCommitEmailMaildirSource.name=buildbot.changes.mail.SVNCommitEmailMaildirSource-class.html#name,Variable buildbot.changes.mail.SyncmailMaildirSource.name=buildbot.changes.mail.SyncmailMaildirSource-class.html#name,Variable buildbot.changes.manager.ChangeManager.name=buildbot.changes.manager.ChangeManager-class.html#name,Variable buildbot.process.buildstep.BuildStep.name=buildbot.process.buildstep.BuildStep-class.html#name,Variable buildbot.steps.dummy.Dummy.name=buildbot.steps.dummy.Dummy-class.html#name,Variable buildbot.steps.dummy.FailingDummy.name=buildbot.steps.dummy.FailingDummy-class.html#name,Variable buildbot.steps.dummy.RemoteDummy.name=buildbot.steps.dummy.RemoteDummy-class.html#name,Variable buildbot.steps.dummy.Wait.name=buildbot.steps.dummy.Wait-class.html#name,Variable buildbot.steps.master.MasterShellCommand.name=buildbot.steps.master.MasterShellCommand-class.html#name,Variable buildbot.steps.maxq.MaxQ.name=buildbot.steps.maxq.MaxQ-class.html#name,Variable buildbot.steps.package.rpm.rpmbuild.RpmBuild.name=buildbot.steps.package.rpm.rpmbuild.RpmBuild-class.html#name,Variable buildbot.steps.python.BuildEPYDoc.name=buildbot.steps.python.BuildEPYDoc-class.html#name,Variable buildbot.steps.python.PyFlakes.name=buildbot.steps.python.PyFlakes-class.html#name,Variable buildbot.steps.python.PyLint.name=buildbot.steps.python.PyLint-class.html#name,Variable buildbot.steps.python_twisted.BuildDebs.name=buildbot.steps.python_twisted.BuildDebs-class.html#name,Variable buildbot.steps.python_twisted.HLint.name=buildbot.steps.python_twisted.HLint-class.html#name,Variable buildbot.steps.python_twisted.ProcessDocs.name=buildbot.steps.python_twisted.ProcessDocs-class.html#name,Variable buildbot.steps.python_twisted.RemovePYCs.name=buildbot.steps.python_twisted.RemovePYCs-class.html#name,Variable buildbot.steps.python_twisted.Trial.name=buildbot.steps.python_twisted.Trial-class.html#name,Variable buildbot.steps.shell.Compile.name=buildbot.steps.shell.Compile-class.html#name,Variable buildbot.steps.shell.Configure.name=buildbot.steps.shell.Configure-class.html#name,Variable buildbot.steps.shell.SetProperty.name=buildbot.steps.shell.SetProperty-class.html#name,Variable buildbot.steps.shell.ShellCommand.name=buildbot.steps.shell.ShellCommand-class.html#name,Variable buildbot.steps.shell.Test.name=buildbot.steps.shell.Test-class.html#name,Variable buildbot.steps.shell.TreeSize.name=buildbot.steps.shell.TreeSize-class.html#name,Variable buildbot.steps.source.Arch.name=buildbot.steps.source.Arch-class.html#name,Variable buildbot.steps.source.BK.name=buildbot.steps.source.BK-class.html#name,Variable buildbot.steps.source.Bzr.name=buildbot.steps.source.Bzr-class.html#name,Variable buildbot.steps.source.CVS.name=buildbot.steps.source.CVS-class.html#name,Variable buildbot.steps.source.Darcs.name=buildbot.steps.source.Darcs-class.html#name,Variable buildbot.steps.source.Git.name=buildbot.steps.source.Git-class.html#name,Variable buildbot.steps.source.Mercurial.name=buildbot.steps.source.Mercurial-class.html#name,Variable buildbot.steps.source.Monotone.name=buildbot.steps.source.Monotone-class.html#name,Variable buildbot.steps.source.P4.name=buildbot.steps.source.P4-class.html#name,Variable buildbot.steps.source.P4Sync.name=buildbot.steps.source.P4Sync-class.html#name,Variable buildbot.steps.source.SVN.name=buildbot.steps.source.SVN-class.html#name,Variable buildbot.steps.transfer.DirectoryUpload.name=buildbot.steps.transfer.DirectoryUpload-class.html#name,Variable buildbot.steps.transfer.FileDownload.name=buildbot.steps.transfer.FileDownload-class.html#name,Variable buildbot.steps.transfer.FileUpload.name=buildbot.steps.transfer.FileUpload-class.html#name,Variable buildbot.steps.trigger.Trigger.name=buildbot.steps.trigger.Trigger-class.html#name,Variable buildbot.steps.vstudio.VisualStudio.name=buildbot.steps.vstudio.VisualStudio-class.html#name,Variable buildslave.bot.Bot.name=buildslave.bot.Bot-class.html#name"><a title="buildbot.changes.mail.BonsaiMaildirSource.name
+buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name
+buildbot.changes.mail.FCMaildirSource.name
+buildbot.changes.mail.MaildirSource.name
+buildbot.changes.mail.SVNCommitEmailMaildirSource.name
+buildbot.changes.mail.SyncmailMaildirSource.name
+buildbot.changes.manager.ChangeManager.name
+buildbot.process.buildstep.BuildStep.name
+buildbot.steps.dummy.Dummy.name
+buildbot.steps.dummy.FailingDummy.name
+buildbot.steps.dummy.RemoteDummy.name
+buildbot.steps.dummy.Wait.name
+buildbot.steps.master.MasterShellCommand.name
+buildbot.steps.maxq.MaxQ.name
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.name
+buildbot.steps.python.BuildEPYDoc.name
+buildbot.steps.python.PyFlakes.name
+buildbot.steps.python.PyLint.name
+buildbot.steps.python_twisted.BuildDebs.name
+buildbot.steps.python_twisted.HLint.name
+buildbot.steps.python_twisted.ProcessDocs.name
+buildbot.steps.python_twisted.RemovePYCs.name
+buildbot.steps.python_twisted.Trial.name
+buildbot.steps.shell.Compile.name
+buildbot.steps.shell.Configure.name
+buildbot.steps.shell.SetProperty.name
+buildbot.steps.shell.ShellCommand.name
+buildbot.steps.shell.Test.name
+buildbot.steps.shell.TreeSize.name
+buildbot.steps.source.Arch.name
+buildbot.steps.source.BK.name
+buildbot.steps.source.Bzr.name
+buildbot.steps.source.CVS.name
+buildbot.steps.source.Darcs.name
+buildbot.steps.source.Git.name
+buildbot.steps.source.Mercurial.name
+buildbot.steps.source.Monotone.name
+buildbot.steps.source.P4.name
+buildbot.steps.source.P4Sync.name
+buildbot.steps.source.SVN.name
+buildbot.steps.transfer.DirectoryUpload.name
+buildbot.steps.transfer.FileDownload.name
+buildbot.steps.transfer.FileUpload.name
+buildbot.steps.trigger.Trigger.name
+buildbot.steps.vstudio.VisualStudio.name
+buildslave.bot.Bot.name" class="py-name" href="#" onclick="return doclink('link-106', 'name', 'link-106');">name</a></tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">tarname</tt><tt class="py-op">,</tt> <tt id="link-107" class="py-name"><a title="buildbot.steps.vstudio.VisualStudio.mode" class="py-name" href="#" onclick="return doclink('link-107', 'mode', 'link-103');">mode</a></tt><tt class="py-op">=</tt><tt id="link-108" class="py-name"><a title="buildbot.steps.vstudio.VisualStudio.mode" class="py-name" href="#" onclick="return doclink('link-108', 'mode', 'link-103');">mode</a></tt><tt class="py-op">,</tt> <tt class="py-name">fileobj</tt><tt class="py-op">=</tt><tt class="py-name">fileobj</tt><tt class="py-op">)</tt> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line">        <tt class="py-name">archive</tt><tt class="py-op">.</tt><tt id="link-109" class="py-name" targets="Method buildbot.process.mtrlogobserver.MtrTestFailData.add()=buildbot.process.mtrlogobserver.MtrTestFailData-class.html#add,Method buildbot.util.LRUCache.add()=buildbot.util.LRUCache-class.html#add,Method buildbot.util.collections.KeyedSets.add()=buildbot.util.collections.KeyedSets-class.html#add,Method buildbot.util.loop.Loop.add()=buildbot.util.loop.Loop-class.html#add"><a title="buildbot.process.mtrlogobserver.MtrTestFailData.add
+buildbot.util.LRUCache.add
+buildbot.util.collections.KeyedSets.add
+buildbot.util.loop.Loop.add" class="py-name" href="#" onclick="return doclink('link-109', 'add', 'link-109');">add</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-110" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-110', 'path', 'link-18');">path</a></tt><tt class="py-op">,</tt> <tt class="py-string">''</tt><tt class="py-op">)</tt> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line">        <tt class="py-name">archive</tt><tt class="py-op">.</tt><tt class="py-name">close</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line">        <tt class="py-name">fileobj</tt><tt class="py-op">.</tt><tt class="py-name">close</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line"> </tt>
+<a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line">        <tt class="py-comment"># Transfer it</tt> </tt>
+<a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">fp</tt> <tt class="py-op">=</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">tarname</tt><tt class="py-op">,</tt> <tt class="py-string">'rb'</tt><tt class="py-op">)</tt> </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line"> </tt>
+<a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-111" class="py-name"><a title="buildslave.commands.base.Command.sendStatus
+buildslave.commands.base.ShellCommand.sendStatus" class="py-name" href="#" onclick="return doclink('link-111', 'sendStatus', 'link-34');">sendStatus</a></tt><tt class="py-op">(</tt><tt class="py-op">{</tt><tt class="py-string">'header'</tt><tt class="py-op">:</tt> <tt class="py-string">"sending %s"</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-112" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-112', 'path', 'link-18');">path</a></tt><tt class="py-op">}</tt><tt class="py-op">)</tt> </tt>
+<a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line"> </tt>
+<a name="L188"></a><tt class="py-lineno">188</tt>  <tt class="py-line">        <tt id="link-113" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-113', 'd', 'link-36');">d</a></tt> <tt class="py-op">=</tt> <tt class="py-name">defer</tt><tt class="py-op">.</tt><tt class="py-name">Deferred</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-114" class="py-name"><a title="buildslave.commands.base.Command._reactor
+buildslave.commands.base.ShellCommand._reactor" class="py-name" href="#" onclick="return doclink('link-114', '_reactor', 'link-37');">_reactor</a></tt><tt class="py-op">.</tt><tt class="py-name">callLater</tt><tt class="py-op">(</tt><tt class="py-number">0</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_loop</tt><tt class="py-op">,</tt> <tt id="link-115" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-115', 'd', 'link-36');">d</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">unpack</tt><tt class="py-op">(</tt><tt class="py-param">res</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line">            <tt class="py-comment"># unpack the archive, but pass through any errors from _loop</tt> </tt>
+<a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line">            <tt class="py-name">d1</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">writer</tt><tt class="py-op">.</tt><tt class="py-name">callRemote</tt><tt class="py-op">(</tt><tt class="py-string">"unpack"</tt><tt class="py-op">)</tt> </tt>
+<a name="L193"></a><tt class="py-lineno">193</tt>  <tt class="py-line">            <tt class="py-name">d1</tt><tt class="py-op">.</tt><tt class="py-name">addErrback</tt><tt class="py-op">(</tt><tt id="link-116" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-116', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt id="link-117" class="py-name"><a title="buildbot.clients.debug.DebugWidget.err
+buildbot.status.web.auth.AuthBase.err" class="py-name" href="#" onclick="return doclink('link-117', 'err', 'link-40');">err</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line">            <tt class="py-name">d1</tt><tt class="py-op">.</tt><tt class="py-name">addCallback</tt><tt class="py-op">(</tt><tt class="py-keyword">lambda</tt> <tt class="py-name">ignored</tt><tt class="py-op">:</tt> <tt class="py-name">res</tt><tt class="py-op">)</tt> </tt>
+<a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">d1</tt> </tt>
+</div><a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line">        <tt id="link-118" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-118', 'd', 'link-36');">d</a></tt><tt class="py-op">.</tt><tt class="py-name">addCallback</tt><tt class="py-op">(</tt><tt class="py-name">unpack</tt><tt class="py-op">)</tt> </tt>
+<a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line">        <tt id="link-119" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-119', 'd', 'link-36');">d</a></tt><tt class="py-op">.</tt><tt class="py-name">addBoth</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-120" class="py-name"><a title="buildbot.process.base.Build.finished
+buildbot.process.buildstep.BuildStep.finished
+buildbot.scripts.logwatcher.LogWatcher.finished
+buildbot.status.builder.BuildStatus.finished
+buildbot.status.builder.BuildStepStatus.finished
+buildbot.status.builder.Event.finished
+buildbot.status.builder.LogFile.finished
+buildbot.status.web.logs.TextLog.finished
+buildbot.steps.maxq.MaxQ.finished
+buildbot.steps.python_twisted.TrialTestCaseCounter.finished
+buildbot.steps.transfer.DirectoryUpload.finished
+buildbot.steps.vstudio.VisualStudio.finished
+buildslave.commands.base.DummyCommand.finished
+buildslave.commands.base.ShellCommand.finished
+buildslave.commands.base.WaitCommand.finished
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.finished
+buildslave.commands.transfer.SlaveFileDownloadCommand.finished
+buildslave.commands.transfer.SlaveFileUploadCommand.finished
+buildslave.scripts.logwatcher.LogWatcher.finished" class="py-name" href="#" onclick="return doclink('link-120', 'finished', 'link-43');">finished</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-121" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-121', 'd', 'link-36');">d</a></tt> </tt>
+</div><a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line"> </tt>
+<a name="SlaveDirectoryUploadCommand.finished"></a><div id="SlaveDirectoryUploadCommand.finished-def"><a name="L200"></a><tt class="py-lineno">200</tt> <a class="py-toggle" href="#" id="SlaveDirectoryUploadCommand.finished-toggle" onclick="return toggle('SlaveDirectoryUploadCommand.finished');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.transfer.SlaveDirectoryUploadCommand-class.html#finished">finished</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">res</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SlaveDirectoryUploadCommand.finished-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SlaveDirectoryUploadCommand.finished-expanded"><a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">fp</tt><tt class="py-op">.</tt><tt class="py-name">close</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line">        <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-122" class="py-name" targets="Method buildbot.util.loop.Loop.remove()=buildbot.util.loop.Loop-class.html#remove"><a title="buildbot.util.loop.Loop.remove" class="py-name" href="#" onclick="return doclink('link-122', 'remove', 'link-122');">remove</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">tarname</tt><tt class="py-op">)</tt> </tt>
+<a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-123" class="py-name"><a title="buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug
+buildslave.commands.base.Command.debug
+buildslave.commands.base.ShellCommandPP.debug
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug
+buildslave.commands.transfer.SlaveFileDownloadCommand.debug
+buildslave.commands.transfer.SlaveFileUploadCommand.debug" class="py-name" href="#" onclick="return doclink('link-123', 'debug', 'link-11');">debug</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line">            <tt id="link-124" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-124', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">'finished: stderr=%r, rc=%r'</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-125" class="py-name"><a title="buildbot.process.buildstep.LoggedRemoteCommand.rc" class="py-name" href="#" onclick="return doclink('link-125', 'rc', 'link-15');">rc</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L206"></a><tt class="py-lineno">206</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-126" class="py-name"><a title="buildslave.commands.base.Command.sendStatus
+buildslave.commands.base.ShellCommand.sendStatus" class="py-name" href="#" onclick="return doclink('link-126', 'sendStatus', 'link-34');">sendStatus</a></tt><tt class="py-op">(</tt><tt class="py-op">{</tt><tt class="py-string">'rc'</tt><tt class="py-op">:</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-127" class="py-name"><a title="buildbot.process.buildstep.LoggedRemoteCommand.rc" class="py-name" href="#" onclick="return doclink('link-127', 'rc', 'link-15');">rc</a></tt><tt class="py-op">}</tt><tt class="py-op">)</tt> </tt>
+<a name="L207"></a><tt class="py-lineno">207</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L208"></a><tt class="py-lineno">208</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-128" class="py-name"><a title="buildslave.commands.base.Command.sendStatus
+buildslave.commands.base.ShellCommand.sendStatus" class="py-name" href="#" onclick="return doclink('link-128', 'sendStatus', 'link-34');">sendStatus</a></tt><tt class="py-op">(</tt><tt class="py-op">{</tt><tt class="py-string">'stderr'</tt><tt class="py-op">:</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt><tt class="py-op">,</tt> <tt class="py-string">'rc'</tt><tt class="py-op">:</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-129" class="py-name"><a title="buildbot.process.buildstep.LoggedRemoteCommand.rc" class="py-name" href="#" onclick="return doclink('link-129', 'rc', 'link-15');">rc</a></tt><tt class="py-op">}</tt><tt class="py-op">)</tt> </tt>
+<a name="L209"></a><tt class="py-lineno">209</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">res</tt> </tt>
+</div></div><a name="L210"></a><tt class="py-lineno">210</tt>  <tt class="py-line"> </tt>
+<a name="L211"></a><tt class="py-lineno">211</tt>  <tt class="py-line"><tt id="link-130" class="py-name"><a title="buildslave.commands.registry.registerSlaveCommand" class="py-name" href="#" onclick="return doclink('link-130', 'registerSlaveCommand', 'link-10');">registerSlaveCommand</a></tt><tt class="py-op">(</tt><tt class="py-string">"uploadDirectory"</tt><tt class="py-op">,</tt> <tt id="link-131" class="py-name" targets="Class buildslave.commands.transfer.SlaveDirectoryUploadCommand=buildslave.commands.transfer.SlaveDirectoryUploadCommand-class.html"><a title="buildslave.commands.transfer.SlaveDirectoryUploadCommand" class="py-name" href="#" onclick="return doclink('link-131', 'SlaveDirectoryUploadCommand', 'link-131');">SlaveDirectoryUploadCommand</a></tt><tt class="py-op">,</tt> <tt id="link-132" class="py-name"><a title="buildslave.commands.base.command_version" class="py-name" href="#" onclick="return doclink('link-132', 'command_version', 'link-6');">command_version</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L212"></a><tt class="py-lineno">212</tt>  <tt class="py-line"> </tt>
+<a name="L213"></a><tt class="py-lineno">213</tt>  <tt class="py-line"> </tt>
+<a name="SlaveFileDownloadCommand"></a><div id="SlaveFileDownloadCommand-def"><a name="L214"></a><tt class="py-lineno">214</tt> <a class="py-toggle" href="#" id="SlaveFileDownloadCommand-toggle" onclick="return toggle('SlaveFileDownloadCommand');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildslave.commands.transfer.SlaveFileDownloadCommand-class.html">SlaveFileDownloadCommand</a><tt class="py-op">(</tt><tt class="py-base-class">Command</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SlaveFileDownloadCommand-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="SlaveFileDownloadCommand-expanded"><a name="L215"></a><tt class="py-lineno">215</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L216"></a><tt class="py-lineno">216</tt>  <tt class="py-line"><tt class="py-docstring">    Download a file from master to slave</tt> </tt>
+<a name="L217"></a><tt class="py-lineno">217</tt>  <tt class="py-line"><tt class="py-docstring">    Arguments:</tt> </tt>
+<a name="L218"></a><tt class="py-lineno">218</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L219"></a><tt class="py-lineno">219</tt>  <tt class="py-line"><tt class="py-docstring">        - ['workdir']:   base directory to use</tt> </tt>
+<a name="L220"></a><tt class="py-lineno">220</tt>  <tt class="py-line"><tt class="py-docstring">        - ['slavedest']: name of the slave-side file to be created</tt> </tt>
+<a name="L221"></a><tt class="py-lineno">221</tt>  <tt class="py-line"><tt class="py-docstring">        - ['reader']:    RemoteReference to a transfer._FileReader object</tt> </tt>
+<a name="L222"></a><tt class="py-lineno">222</tt>  <tt class="py-line"><tt class="py-docstring">        - ['maxsize']:   max size (in bytes) of file to write</tt> </tt>
+<a name="L223"></a><tt class="py-lineno">223</tt>  <tt class="py-line"><tt class="py-docstring">        - ['blocksize']: max size for each data block</tt> </tt>
+<a name="L224"></a><tt class="py-lineno">224</tt>  <tt class="py-line"><tt class="py-docstring">        - ['mode']:      access mode for the new file</tt> </tt>
+<a name="L225"></a><tt class="py-lineno">225</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L226"></a><tt class="py-lineno">226</tt>  <tt class="py-line">    <tt id="link-133" class="py-name"><a title="buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug
+buildslave.commands.base.Command.debug
+buildslave.commands.base.ShellCommandPP.debug
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug
+buildslave.commands.transfer.SlaveFileDownloadCommand.debug
+buildslave.commands.transfer.SlaveFileUploadCommand.debug" class="py-name" href="#" onclick="return doclink('link-133', 'debug', 'link-11');">debug</a></tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L227"></a><tt class="py-lineno">227</tt>  <tt class="py-line"> </tt>
+<a name="SlaveFileDownloadCommand.setup"></a><div id="SlaveFileDownloadCommand.setup-def"><a name="L228"></a><tt class="py-lineno">228</tt> <a class="py-toggle" href="#" id="SlaveFileDownloadCommand.setup-toggle" onclick="return toggle('SlaveFileDownloadCommand.setup');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.transfer.SlaveFileDownloadCommand-class.html#setup">setup</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">args</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SlaveFileDownloadCommand.setup-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SlaveFileDownloadCommand.setup-expanded"><a name="L229"></a><tt class="py-lineno">229</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-134" class="py-name"><a title="buildbot.process.base.Build.workdir
+buildbot.process.factory.BuildFactory.workdir
+buildbot.process.process_twisted.TwistedBaseFactory.workdir
+buildbot.process.process_twisted.TwistedBuild.workdir" class="py-name" href="#" onclick="return doclink('link-134', 'workdir', 'link-12');">workdir</a></tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'workdir'</tt><tt class="py-op">]</tt> </tt>
+<a name="L230"></a><tt class="py-lineno">230</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-135" class="py-name"><a title="buildbot.status.builder.HTMLLogFile.filename
+buildbot.status.builder.LogFile.filename" class="py-name" href="#" onclick="return doclink('link-135', 'filename', 'link-13');">filename</a></tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'slavedest'</tt><tt class="py-op">]</tt> </tt>
+<a name="L231"></a><tt class="py-lineno">231</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">reader</tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'reader'</tt><tt class="py-op">]</tt> </tt>
+<a name="L232"></a><tt class="py-lineno">232</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">bytes_remaining</tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'maxsize'</tt><tt class="py-op">]</tt> </tt>
+<a name="L233"></a><tt class="py-lineno">233</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">blocksize</tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'blocksize'</tt><tt class="py-op">]</tt> </tt>
+<a name="L234"></a><tt class="py-lineno">234</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-136" class="py-name"><a title="buildbot.steps.vstudio.VisualStudio.mode" class="py-name" href="#" onclick="return doclink('link-136', 'mode', 'link-103');">mode</a></tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'mode'</tt><tt class="py-op">]</tt> </tt>
+<a name="L235"></a><tt class="py-lineno">235</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L236"></a><tt class="py-lineno">236</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-137" class="py-name"><a title="buildbot.process.buildstep.LoggedRemoteCommand.rc" class="py-name" href="#" onclick="return doclink('link-137', 'rc', 'link-15');">rc</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+</div><a name="L237"></a><tt class="py-lineno">237</tt>  <tt class="py-line"> </tt>
+<a name="SlaveFileDownloadCommand.start"></a><div id="SlaveFileDownloadCommand.start-def"><a name="L238"></a><tt class="py-lineno">238</tt> <a class="py-toggle" href="#" id="SlaveFileDownloadCommand.start-toggle" onclick="return toggle('SlaveFileDownloadCommand.start');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.transfer.SlaveFileDownloadCommand-class.html#start">start</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SlaveFileDownloadCommand.start-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SlaveFileDownloadCommand.start-expanded"><a name="L239"></a><tt class="py-lineno">239</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-138" class="py-name"><a title="buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug
+buildslave.commands.base.Command.debug
+buildslave.commands.base.ShellCommandPP.debug
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug
+buildslave.commands.transfer.SlaveFileDownloadCommand.debug
+buildslave.commands.transfer.SlaveFileUploadCommand.debug" class="py-name" href="#" onclick="return doclink('link-138', 'debug', 'link-11');">debug</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L240"></a><tt class="py-lineno">240</tt>  <tt class="py-line">            <tt id="link-139" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-139', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">'SlaveFileDownloadCommand starting'</tt><tt class="py-op">)</tt> </tt>
+<a name="L241"></a><tt class="py-lineno">241</tt>  <tt class="py-line"> </tt>
+<a name="L242"></a><tt class="py-lineno">242</tt>  <tt class="py-line">        <tt class="py-comment"># Open file</tt> </tt>
+<a name="L243"></a><tt class="py-lineno">243</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-140" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-140', 'path', 'link-18');">path</a></tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-141" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-141', 'path', 'link-18');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-142" class="py-name"><a title="buildbot.buildrequest.BuildRequest.builder
+buildbot.process.builder
+buildbot.status.builder
+buildbot.status.web.builder
+buildbot.status.web.builder.StatusResourceBuilder.builder" class="py-name" href="#" onclick="return doclink('link-142', 'builder', 'link-20');">builder</a></tt><tt class="py-op">.</tt><tt id="link-143" class="py-name"><a title="buildbot.status.builder.BuilderStatus.basedir" class="py-name" href="#" onclick="return doclink('link-143', 'basedir', 'link-21');">basedir</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L244"></a><tt class="py-lineno">244</tt>  <tt class="py-line">                                 <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-144" class="py-name"><a title="buildbot.process.base.Build.workdir
+buildbot.process.factory.BuildFactory.workdir
+buildbot.process.process_twisted.TwistedBaseFactory.workdir
+buildbot.process.process_twisted.TwistedBuild.workdir" class="py-name" href="#" onclick="return doclink('link-144', 'workdir', 'link-12');">workdir</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L245"></a><tt class="py-lineno">245</tt>  <tt class="py-line">                                 <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-145" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-145', 'path', 'link-18');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">expanduser</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-146" class="py-name"><a title="buildbot.status.builder.HTMLLogFile.filename
+buildbot.status.builder.LogFile.filename" class="py-name" href="#" onclick="return doclink('link-146', 'filename', 'link-13');">filename</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L246"></a><tt class="py-lineno">246</tt>  <tt class="py-line"> </tt>
+<a name="L247"></a><tt class="py-lineno">247</tt>  <tt class="py-line">        <tt class="py-name">dirname</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-147" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-147', 'path', 'link-18');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">dirname</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-148" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-148', 'path', 'link-18');">path</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L248"></a><tt class="py-lineno">248</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-149" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-149', 'path', 'link-18');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">exists</tt><tt class="py-op">(</tt><tt class="py-name">dirname</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L249"></a><tt class="py-lineno">249</tt>  <tt class="py-line">            <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">makedirs</tt><tt class="py-op">(</tt><tt class="py-name">dirname</tt><tt class="py-op">)</tt> </tt>
+<a name="L250"></a><tt class="py-lineno">250</tt>  <tt class="py-line"> </tt>
+<a name="L251"></a><tt class="py-lineno">251</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L252"></a><tt class="py-lineno">252</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">fp</tt> <tt class="py-op">=</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-150" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-150', 'path', 'link-18');">path</a></tt><tt class="py-op">,</tt> <tt class="py-string">'wb'</tt><tt class="py-op">)</tt> </tt>
+<a name="L253"></a><tt class="py-lineno">253</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-151" class="py-name"><a title="buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug
+buildslave.commands.base.Command.debug
+buildslave.commands.base.ShellCommandPP.debug
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug
+buildslave.commands.transfer.SlaveFileDownloadCommand.debug
+buildslave.commands.transfer.SlaveFileUploadCommand.debug" class="py-name" href="#" onclick="return doclink('link-151', 'debug', 'link-11');">debug</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L254"></a><tt class="py-lineno">254</tt>  <tt class="py-line">                <tt id="link-152" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-152', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">'Opened %r for download'</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-153" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-153', 'path', 'link-18');">path</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L255"></a><tt class="py-lineno">255</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-154" class="py-name"><a title="buildbot.steps.vstudio.VisualStudio.mode" class="py-name" href="#" onclick="return doclink('link-154', 'mode', 'link-103');">mode</a></tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L256"></a><tt class="py-lineno">256</tt>  <tt class="py-line">                <tt class="py-comment"># note: there is a brief window during which the new file</tt> </tt>
+<a name="L257"></a><tt class="py-lineno">257</tt>  <tt class="py-line">                <tt class="py-comment"># will have the buildslave's default (umask) mode before we</tt> </tt>
+<a name="L258"></a><tt class="py-lineno">258</tt>  <tt class="py-line">                <tt class="py-comment"># set the new one. Don't use this mode= feature to keep files</tt> </tt>
+<a name="L259"></a><tt class="py-lineno">259</tt>  <tt class="py-line">                <tt class="py-comment"># private: use the buildslave's umask for that instead. (it</tt> </tt>
+<a name="L260"></a><tt class="py-lineno">260</tt>  <tt class="py-line">                <tt class="py-comment"># is possible to call os.umask() before and after the open()</tt> </tt>
+<a name="L261"></a><tt class="py-lineno">261</tt>  <tt class="py-line">                <tt class="py-comment"># call, but cleaning up from exceptions properly is more of a</tt> </tt>
+<a name="L262"></a><tt class="py-lineno">262</tt>  <tt class="py-line">                <tt class="py-comment"># nuisance that way).</tt> </tt>
+<a name="L263"></a><tt class="py-lineno">263</tt>  <tt class="py-line">                <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">chmod</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-155" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-155', 'path', 'link-18');">path</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-156" class="py-name"><a title="buildbot.steps.vstudio.VisualStudio.mode" class="py-name" href="#" onclick="return doclink('link-156', 'mode', 'link-103');">mode</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L264"></a><tt class="py-lineno">264</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt> <tt class="py-name">IOError</tt><tt class="py-op">:</tt> </tt>
+<a name="L265"></a><tt class="py-lineno">265</tt>  <tt class="py-line">            <tt class="py-comment"># TODO: this still needs cleanup</tt> </tt>
+<a name="L266"></a><tt class="py-lineno">266</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">fp</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L267"></a><tt class="py-lineno">267</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt> <tt class="py-op">=</tt> <tt class="py-string">'Cannot open file %r for download'</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-157" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-157', 'path', 'link-18');">path</a></tt> </tt>
+<a name="L268"></a><tt class="py-lineno">268</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-158" class="py-name"><a title="buildbot.process.buildstep.LoggedRemoteCommand.rc" class="py-name" href="#" onclick="return doclink('link-158', 'rc', 'link-15');">rc</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L269"></a><tt class="py-lineno">269</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-159" class="py-name"><a title="buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug
+buildslave.commands.base.Command.debug
+buildslave.commands.base.ShellCommandPP.debug
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug
+buildslave.commands.transfer.SlaveFileDownloadCommand.debug
+buildslave.commands.transfer.SlaveFileUploadCommand.debug" class="py-name" href="#" onclick="return doclink('link-159', 'debug', 'link-11');">debug</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L270"></a><tt class="py-lineno">270</tt>  <tt class="py-line">                <tt id="link-160" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-160', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">'Cannot open file %r for download'</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-161" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-161', 'path', 'link-18');">path</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L271"></a><tt class="py-lineno">271</tt>  <tt class="py-line"> </tt>
+<a name="L272"></a><tt class="py-lineno">272</tt>  <tt class="py-line">        <tt id="link-162" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-162', 'd', 'link-36');">d</a></tt> <tt class="py-op">=</tt> <tt class="py-name">defer</tt><tt class="py-op">.</tt><tt class="py-name">Deferred</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L273"></a><tt class="py-lineno">273</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-163" class="py-name"><a title="buildslave.commands.base.Command._reactor
+buildslave.commands.base.ShellCommand._reactor" class="py-name" href="#" onclick="return doclink('link-163', '_reactor', 'link-37');">_reactor</a></tt><tt class="py-op">.</tt><tt class="py-name">callLater</tt><tt class="py-op">(</tt><tt class="py-number">0</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_loop</tt><tt class="py-op">,</tt> <tt id="link-164" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-164', 'd', 'link-36');">d</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L274"></a><tt class="py-lineno">274</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">_close</tt><tt class="py-op">(</tt><tt class="py-param">res</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L275"></a><tt class="py-lineno">275</tt>  <tt class="py-line">            <tt class="py-comment"># close the file, but pass through any errors from _loop</tt> </tt>
+<a name="L276"></a><tt class="py-lineno">276</tt>  <tt class="py-line">            <tt class="py-name">d1</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">reader</tt><tt class="py-op">.</tt><tt class="py-name">callRemote</tt><tt class="py-op">(</tt><tt class="py-string">'close'</tt><tt class="py-op">)</tt> </tt>
+<a name="L277"></a><tt class="py-lineno">277</tt>  <tt class="py-line">            <tt class="py-name">d1</tt><tt class="py-op">.</tt><tt class="py-name">addErrback</tt><tt class="py-op">(</tt><tt id="link-165" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-165', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt id="link-166" class="py-name"><a title="buildbot.clients.debug.DebugWidget.err
+buildbot.status.web.auth.AuthBase.err" class="py-name" href="#" onclick="return doclink('link-166', 'err', 'link-40');">err</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L278"></a><tt class="py-lineno">278</tt>  <tt class="py-line">            <tt class="py-name">d1</tt><tt class="py-op">.</tt><tt class="py-name">addCallback</tt><tt class="py-op">(</tt><tt class="py-keyword">lambda</tt> <tt class="py-name">ignored</tt><tt class="py-op">:</tt> <tt class="py-name">res</tt><tt class="py-op">)</tt> </tt>
+<a name="L279"></a><tt class="py-lineno">279</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">d1</tt> </tt>
+</div><a name="L280"></a><tt class="py-lineno">280</tt>  <tt class="py-line">        <tt id="link-167" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-167', 'd', 'link-36');">d</a></tt><tt class="py-op">.</tt><tt class="py-name">addBoth</tt><tt class="py-op">(</tt><tt class="py-name">_close</tt><tt class="py-op">)</tt> </tt>
+<a name="L281"></a><tt class="py-lineno">281</tt>  <tt class="py-line">        <tt id="link-168" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-168', 'd', 'link-36');">d</a></tt><tt class="py-op">.</tt><tt class="py-name">addBoth</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-169" class="py-name"><a title="buildbot.process.base.Build.finished
+buildbot.process.buildstep.BuildStep.finished
+buildbot.scripts.logwatcher.LogWatcher.finished
+buildbot.status.builder.BuildStatus.finished
+buildbot.status.builder.BuildStepStatus.finished
+buildbot.status.builder.Event.finished
+buildbot.status.builder.LogFile.finished
+buildbot.status.web.logs.TextLog.finished
+buildbot.steps.maxq.MaxQ.finished
+buildbot.steps.python_twisted.TrialTestCaseCounter.finished
+buildbot.steps.transfer.DirectoryUpload.finished
+buildbot.steps.vstudio.VisualStudio.finished
+buildslave.commands.base.DummyCommand.finished
+buildslave.commands.base.ShellCommand.finished
+buildslave.commands.base.WaitCommand.finished
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.finished
+buildslave.commands.transfer.SlaveFileDownloadCommand.finished
+buildslave.commands.transfer.SlaveFileUploadCommand.finished
+buildslave.scripts.logwatcher.LogWatcher.finished" class="py-name" href="#" onclick="return doclink('link-169', 'finished', 'link-43');">finished</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L282"></a><tt class="py-lineno">282</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-170" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-170', 'd', 'link-36');">d</a></tt> </tt>
+</div><a name="L283"></a><tt class="py-lineno">283</tt>  <tt class="py-line"> </tt>
+<a name="SlaveFileDownloadCommand._loop"></a><div id="SlaveFileDownloadCommand._loop-def"><a name="L284"></a><tt class="py-lineno">284</tt> <a class="py-toggle" href="#" id="SlaveFileDownloadCommand._loop-toggle" onclick="return toggle('SlaveFileDownloadCommand._loop');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.transfer.SlaveFileDownloadCommand-class.html#_loop">_loop</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">fire_when_done</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SlaveFileDownloadCommand._loop-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SlaveFileDownloadCommand._loop-expanded"><a name="L285"></a><tt class="py-lineno">285</tt>  <tt class="py-line">        <tt id="link-171" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-171', 'd', 'link-36');">d</a></tt> <tt class="py-op">=</tt> <tt class="py-name">defer</tt><tt class="py-op">.</tt><tt class="py-name">maybeDeferred</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_readBlock</tt><tt class="py-op">)</tt> </tt>
+<a name="L286"></a><tt class="py-lineno">286</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">_done</tt><tt class="py-op">(</tt><tt class="py-param">finished</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L287"></a><tt class="py-lineno">287</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt id="link-172" class="py-name"><a title="buildbot.process.base.Build.finished
+buildbot.process.buildstep.BuildStep.finished
+buildbot.scripts.logwatcher.LogWatcher.finished
+buildbot.status.builder.BuildStatus.finished
+buildbot.status.builder.BuildStepStatus.finished
+buildbot.status.builder.Event.finished
+buildbot.status.builder.LogFile.finished
+buildbot.status.web.logs.TextLog.finished
+buildbot.steps.maxq.MaxQ.finished
+buildbot.steps.python_twisted.TrialTestCaseCounter.finished
+buildbot.steps.transfer.DirectoryUpload.finished
+buildbot.steps.vstudio.VisualStudio.finished
+buildslave.commands.base.DummyCommand.finished
+buildslave.commands.base.ShellCommand.finished
+buildslave.commands.base.WaitCommand.finished
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.finished
+buildslave.commands.transfer.SlaveFileDownloadCommand.finished
+buildslave.commands.transfer.SlaveFileUploadCommand.finished
+buildslave.scripts.logwatcher.LogWatcher.finished" class="py-name" href="#" onclick="return doclink('link-172', 'finished', 'link-43');">finished</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L288"></a><tt class="py-lineno">288</tt>  <tt class="py-line">                <tt class="py-name">fire_when_done</tt><tt class="py-op">.</tt><tt class="py-name">callback</tt><tt class="py-op">(</tt><tt class="py-name">None</tt><tt class="py-op">)</tt> </tt>
+<a name="L289"></a><tt class="py-lineno">289</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L290"></a><tt class="py-lineno">290</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_loop</tt><tt class="py-op">(</tt><tt class="py-name">fire_when_done</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L291"></a><tt class="py-lineno">291</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">_err</tt><tt class="py-op">(</tt><tt class="py-param">why</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L292"></a><tt class="py-lineno">292</tt>  <tt class="py-line">            <tt class="py-name">fire_when_done</tt><tt class="py-op">.</tt><tt class="py-name">errback</tt><tt class="py-op">(</tt><tt class="py-name">why</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L293"></a><tt class="py-lineno">293</tt>  <tt class="py-line">        <tt id="link-173" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-173', 'd', 'link-36');">d</a></tt><tt class="py-op">.</tt><tt class="py-name">addCallbacks</tt><tt class="py-op">(</tt><tt class="py-name">_done</tt><tt class="py-op">,</tt> <tt class="py-name">_err</tt><tt class="py-op">)</tt> </tt>
+<a name="L294"></a><tt class="py-lineno">294</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">None</tt> </tt>
+</div><a name="L295"></a><tt class="py-lineno">295</tt>  <tt class="py-line"> </tt>
+<a name="SlaveFileDownloadCommand._readBlock"></a><div id="SlaveFileDownloadCommand._readBlock-def"><a name="L296"></a><tt class="py-lineno">296</tt> <a class="py-toggle" href="#" id="SlaveFileDownloadCommand._readBlock-toggle" onclick="return toggle('SlaveFileDownloadCommand._readBlock');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.transfer.SlaveFileDownloadCommand-class.html#_readBlock">_readBlock</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SlaveFileDownloadCommand._readBlock-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SlaveFileDownloadCommand._readBlock-expanded"><a name="L297"></a><tt class="py-lineno">297</tt>  <tt class="py-line">        <tt class="py-docstring">"""Read a block of data from the remote reader."""</tt> </tt>
+<a name="L298"></a><tt class="py-lineno">298</tt>  <tt class="py-line"> </tt>
+<a name="L299"></a><tt class="py-lineno">299</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-174" class="py-name"><a title="buildslave.commands.base.Command.interrupted" class="py-name" href="#" onclick="return doclink('link-174', 'interrupted', 'link-48');">interrupted</a></tt> <tt class="py-keyword">or</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">fp</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L300"></a><tt class="py-lineno">300</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-175" class="py-name"><a title="buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug
+buildslave.commands.base.Command.debug
+buildslave.commands.base.ShellCommandPP.debug
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug
+buildslave.commands.transfer.SlaveFileDownloadCommand.debug
+buildslave.commands.transfer.SlaveFileUploadCommand.debug" class="py-name" href="#" onclick="return doclink('link-175', 'debug', 'link-11');">debug</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L301"></a><tt class="py-lineno">301</tt>  <tt class="py-line">                <tt id="link-176" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-176', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">'SlaveFileDownloadCommand._readBlock(): end'</tt><tt class="py-op">)</tt> </tt>
+<a name="L302"></a><tt class="py-lineno">302</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">True</tt> </tt>
+<a name="L303"></a><tt class="py-lineno">303</tt>  <tt class="py-line"> </tt>
+<a name="L304"></a><tt class="py-lineno">304</tt>  <tt class="py-line">        <tt id="link-177" class="py-name"><a title="buildbot.process.buildstep.OutputProgressObserver.length
+buildbot.status.builder.LogFile.length" class="py-name" href="#" onclick="return doclink('link-177', 'length', 'link-51');">length</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">blocksize</tt> </tt>
+<a name="L305"></a><tt class="py-lineno">305</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">bytes_remaining</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt> <tt class="py-keyword">and</tt> <tt id="link-178" class="py-name"><a title="buildbot.process.buildstep.OutputProgressObserver.length
+buildbot.status.builder.LogFile.length" class="py-name" href="#" onclick="return doclink('link-178', 'length', 'link-51');">length</a></tt> <tt class="py-op">&gt;</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">bytes_remaining</tt><tt class="py-op">:</tt> </tt>
+<a name="L306"></a><tt class="py-lineno">306</tt>  <tt class="py-line">            <tt id="link-179" class="py-name"><a title="buildbot.process.buildstep.OutputProgressObserver.length
+buildbot.status.builder.LogFile.length" class="py-name" href="#" onclick="return doclink('link-179', 'length', 'link-51');">length</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">bytes_remaining</tt> </tt>
+<a name="L307"></a><tt class="py-lineno">307</tt>  <tt class="py-line"> </tt>
+<a name="L308"></a><tt class="py-lineno">308</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt id="link-180" class="py-name"><a title="buildbot.process.buildstep.OutputProgressObserver.length
+buildbot.status.builder.LogFile.length" class="py-name" href="#" onclick="return doclink('link-180', 'length', 'link-51');">length</a></tt> <tt class="py-op">&lt;=</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L309"></a><tt class="py-lineno">309</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L310"></a><tt class="py-lineno">310</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt> <tt class="py-op">=</tt> <tt class="py-string">'Maximum filesize reached, truncating file %r'</tt> \ </tt>
+<a name="L311"></a><tt class="py-lineno">311</tt>  <tt class="py-line">                                <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-181" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-181', 'path', 'link-18');">path</a></tt> </tt>
+<a name="L312"></a><tt class="py-lineno">312</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-182" class="py-name"><a title="buildbot.process.buildstep.LoggedRemoteCommand.rc" class="py-name" href="#" onclick="return doclink('link-182', 'rc', 'link-15');">rc</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L313"></a><tt class="py-lineno">313</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">True</tt> </tt>
+<a name="L314"></a><tt class="py-lineno">314</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L315"></a><tt class="py-lineno">315</tt>  <tt class="py-line">            <tt id="link-183" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-183', 'd', 'link-36');">d</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">reader</tt><tt class="py-op">.</tt><tt class="py-name">callRemote</tt><tt class="py-op">(</tt><tt class="py-string">'read'</tt><tt class="py-op">,</tt> <tt id="link-184" class="py-name"><a title="buildbot.process.buildstep.OutputProgressObserver.length
+buildbot.status.builder.LogFile.length" class="py-name" href="#" onclick="return doclink('link-184', 'length', 'link-51');">length</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L316"></a><tt class="py-lineno">316</tt>  <tt class="py-line">            <tt id="link-185" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-185', 'd', 'link-36');">d</a></tt><tt class="py-op">.</tt><tt class="py-name">addCallback</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_writeData</tt><tt class="py-op">)</tt> </tt>
+<a name="L317"></a><tt class="py-lineno">317</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt id="link-186" class="py-name"><a title="buildbot.changes.monotone.MonotoneSource.d" class="py-name" href="#" onclick="return doclink('link-186', 'd', 'link-36');">d</a></tt> </tt>
+</div><a name="L318"></a><tt class="py-lineno">318</tt>  <tt class="py-line"> </tt>
+<a name="SlaveFileDownloadCommand._writeData"></a><div id="SlaveFileDownloadCommand._writeData-def"><a name="L319"></a><tt class="py-lineno">319</tt> <a class="py-toggle" href="#" id="SlaveFileDownloadCommand._writeData-toggle" onclick="return toggle('SlaveFileDownloadCommand._writeData');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.transfer.SlaveFileDownloadCommand-class.html#_writeData">_writeData</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">data</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SlaveFileDownloadCommand._writeData-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SlaveFileDownloadCommand._writeData-expanded"><a name="L320"></a><tt class="py-lineno">320</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-187" class="py-name"><a title="buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug
+buildslave.commands.base.Command.debug
+buildslave.commands.base.ShellCommandPP.debug
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug
+buildslave.commands.transfer.SlaveFileDownloadCommand.debug
+buildslave.commands.transfer.SlaveFileUploadCommand.debug" class="py-name" href="#" onclick="return doclink('link-187', 'debug', 'link-11');">debug</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L321"></a><tt class="py-lineno">321</tt>  <tt class="py-line">            <tt id="link-188" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-188', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">'SlaveFileDownloadCommand._readBlock(): readlen=%d'</tt> <tt class="py-op">%</tt> </tt>
+<a name="L322"></a><tt class="py-lineno">322</tt>  <tt class="py-line">                    <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">data</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L323"></a><tt class="py-lineno">323</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">data</tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L324"></a><tt class="py-lineno">324</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">True</tt> </tt>
+<a name="L325"></a><tt class="py-lineno">325</tt>  <tt class="py-line"> </tt>
+<a name="L326"></a><tt class="py-lineno">326</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">bytes_remaining</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L327"></a><tt class="py-lineno">327</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">bytes_remaining</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">bytes_remaining</tt> <tt class="py-op">-</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">data</tt><tt class="py-op">)</tt> </tt>
+<a name="L328"></a><tt class="py-lineno">328</tt>  <tt class="py-line">            <tt class="py-keyword">assert</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">bytes_remaining</tt> <tt class="py-op">&gt;=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L329"></a><tt class="py-lineno">329</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">fp</tt><tt class="py-op">.</tt><tt id="link-189" class="py-name" targets="Method buildbot.process.subunitlogobserver.DiscardStream.write()=buildbot.process.subunitlogobserver.DiscardStream-class.html#write"><a title="buildbot.process.subunitlogobserver.DiscardStream.write" class="py-name" href="#" onclick="return doclink('link-189', 'write', 'link-189');">write</a></tt><tt class="py-op">(</tt><tt class="py-name">data</tt><tt class="py-op">)</tt> </tt>
+<a name="L330"></a><tt class="py-lineno">330</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">False</tt> </tt>
+</div><a name="L331"></a><tt class="py-lineno">331</tt>  <tt class="py-line"> </tt>
+<a name="SlaveFileDownloadCommand.interrupt"></a><div id="SlaveFileDownloadCommand.interrupt-def"><a name="L332"></a><tt class="py-lineno">332</tt> <a class="py-toggle" href="#" id="SlaveFileDownloadCommand.interrupt-toggle" onclick="return toggle('SlaveFileDownloadCommand.interrupt');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.transfer.SlaveFileDownloadCommand-class.html#interrupt">interrupt</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SlaveFileDownloadCommand.interrupt-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SlaveFileDownloadCommand.interrupt-expanded"><a name="L333"></a><tt class="py-lineno">333</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-190" class="py-name"><a title="buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug
+buildslave.commands.base.Command.debug
+buildslave.commands.base.ShellCommandPP.debug
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug
+buildslave.commands.transfer.SlaveFileDownloadCommand.debug
+buildslave.commands.transfer.SlaveFileUploadCommand.debug" class="py-name" href="#" onclick="return doclink('link-190', 'debug', 'link-11');">debug</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L334"></a><tt class="py-lineno">334</tt>  <tt class="py-line">            <tt id="link-191" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-191', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">'interrupted'</tt><tt class="py-op">)</tt> </tt>
+<a name="L335"></a><tt class="py-lineno">335</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-192" class="py-name"><a title="buildslave.commands.base.Command.interrupted" class="py-name" href="#" onclick="return doclink('link-192', 'interrupted', 'link-48');">interrupted</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L336"></a><tt class="py-lineno">336</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> </tt>
+<a name="L337"></a><tt class="py-lineno">337</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L338"></a><tt class="py-lineno">338</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt> <tt class="py-op">=</tt> <tt class="py-string">'Download of %r interrupted'</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-193" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-193', 'path', 'link-18');">path</a></tt> </tt>
+<a name="L339"></a><tt class="py-lineno">339</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-194" class="py-name"><a title="buildbot.process.buildstep.LoggedRemoteCommand.rc" class="py-name" href="#" onclick="return doclink('link-194', 'rc', 'link-15');">rc</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L340"></a><tt class="py-lineno">340</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-195" class="py-name"><a title="buildslave.commands.base.Command.interrupted" class="py-name" href="#" onclick="return doclink('link-195', 'interrupted', 'link-48');">interrupted</a></tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+</div><a name="L341"></a><tt class="py-lineno">341</tt>  <tt class="py-line">        <tt class="py-comment"># now we wait for the next read request to return. _readBlock will</tt> </tt>
+<a name="L342"></a><tt class="py-lineno">342</tt>  <tt class="py-line">        <tt class="py-comment"># abandon the file when it sees self.interrupted set.</tt> </tt>
+<a name="L343"></a><tt class="py-lineno">343</tt>  <tt class="py-line"> </tt>
+<a name="SlaveFileDownloadCommand.finished"></a><div id="SlaveFileDownloadCommand.finished-def"><a name="L344"></a><tt class="py-lineno">344</tt> <a class="py-toggle" href="#" id="SlaveFileDownloadCommand.finished-toggle" onclick="return toggle('SlaveFileDownloadCommand.finished');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.transfer.SlaveFileDownloadCommand-class.html#finished">finished</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">res</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SlaveFileDownloadCommand.finished-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SlaveFileDownloadCommand.finished-expanded"><a name="L345"></a><tt class="py-lineno">345</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">fp</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L346"></a><tt class="py-lineno">346</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">fp</tt><tt class="py-op">.</tt><tt class="py-name">close</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L347"></a><tt class="py-lineno">347</tt>  <tt class="py-line"> </tt>
+<a name="L348"></a><tt class="py-lineno">348</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-196" class="py-name"><a title="buildbot.clients.debug
+buildbot.master.BotMaster.debug
+buildbot.master.BuildMaster.debug
+buildbot.process.buildstep.LoggedRemoteCommand.debug
+buildbot.status.progress.Expectations.debug
+buildbot.status.progress.StepProgress.debug
+buildslave.commands.base.Command.debug
+buildslave.commands.base.ShellCommandPP.debug
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.debug
+buildslave.commands.transfer.SlaveFileDownloadCommand.debug
+buildslave.commands.transfer.SlaveFileUploadCommand.debug" class="py-name" href="#" onclick="return doclink('link-196', 'debug', 'link-11');">debug</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L349"></a><tt class="py-lineno">349</tt>  <tt class="py-line">            <tt id="link-197" class="py-name"><a title="buildbot.changes.monotone.Monotone.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-197', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">'finished: stderr=%r, rc=%r'</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-198" class="py-name"><a title="buildbot.process.buildstep.LoggedRemoteCommand.rc" class="py-name" href="#" onclick="return doclink('link-198', 'rc', 'link-15');">rc</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L350"></a><tt class="py-lineno">350</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L351"></a><tt class="py-lineno">351</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-199" class="py-name"><a title="buildslave.commands.base.Command.sendStatus
+buildslave.commands.base.ShellCommand.sendStatus" class="py-name" href="#" onclick="return doclink('link-199', 'sendStatus', 'link-34');">sendStatus</a></tt><tt class="py-op">(</tt><tt class="py-op">{</tt><tt class="py-string">'rc'</tt><tt class="py-op">:</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-200" class="py-name"><a title="buildbot.process.buildstep.LoggedRemoteCommand.rc" class="py-name" href="#" onclick="return doclink('link-200', 'rc', 'link-15');">rc</a></tt><tt class="py-op">}</tt><tt class="py-op">)</tt> </tt>
+<a name="L352"></a><tt class="py-lineno">352</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L353"></a><tt class="py-lineno">353</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-201" class="py-name"><a title="buildslave.commands.base.Command.sendStatus
+buildslave.commands.base.ShellCommand.sendStatus" class="py-name" href="#" onclick="return doclink('link-201', 'sendStatus', 'link-34');">sendStatus</a></tt><tt class="py-op">(</tt><tt class="py-op">{</tt><tt class="py-string">'stderr'</tt><tt class="py-op">:</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt><tt class="py-op">,</tt> <tt class="py-string">'rc'</tt><tt class="py-op">:</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-202" class="py-name"><a title="buildbot.process.buildstep.LoggedRemoteCommand.rc" class="py-name" href="#" onclick="return doclink('link-202', 'rc', 'link-15');">rc</a></tt><tt class="py-op">}</tt><tt class="py-op">)</tt> </tt>
+<a name="L354"></a><tt class="py-lineno">354</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">res</tt> </tt>
+</div></div><a name="L355"></a><tt class="py-lineno">355</tt>  <tt class="py-line"> </tt>
+<a name="L356"></a><tt class="py-lineno">356</tt>  <tt class="py-line"><tt id="link-203" class="py-name"><a title="buildslave.commands.registry.registerSlaveCommand" class="py-name" href="#" onclick="return doclink('link-203', 'registerSlaveCommand', 'link-10');">registerSlaveCommand</a></tt><tt class="py-op">(</tt><tt class="py-string">"downloadFile"</tt><tt class="py-op">,</tt> <tt id="link-204" class="py-name" targets="Class buildslave.commands.transfer.SlaveFileDownloadCommand=buildslave.commands.transfer.SlaveFileDownloadCommand-class.html"><a title="buildslave.commands.transfer.SlaveFileDownloadCommand" class="py-name" href="#" onclick="return doclink('link-204', 'SlaveFileDownloadCommand', 'link-204');">SlaveFileDownloadCommand</a></tt><tt class="py-op">,</tt> <tt id="link-205" class="py-name"><a title="buildslave.commands.base.command_version" class="py-name" href="#" onclick="return doclink('link-205', 'command_version', 'link-6');">command_version</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L357"></a><tt class="py-lineno">357</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.1</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Jul  7 10:07:12 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

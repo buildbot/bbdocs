@@ -1,0 +1,105 @@
+<html lang="en">
+<head>
+<title>Builder - BuildBot Manual - 0.8.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Concepts.html#Concepts" title="Concepts">
+<link rel="prev" href="BuildRequest.html#BuildRequest" title="BuildRequest">
+<link rel="next" href="Users.html#Users" title="Users">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Builder"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Users.html#Users">Users</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="BuildRequest.html#BuildRequest">BuildRequest</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Concepts.html#Concepts">Concepts</a>
+<hr>
+</div>
+
+<h3 class="section">3.5 Builder</h3>
+
+<p><a name="index-Builder-9"></a>
+The Buildmaster runs a collection of Builders, each of which handles a single
+type of build (e.g. full versus quick), on one or more build slaves.   Builders
+serve as a kind of queue for a particular type of build.  Each Builder gets a
+separate column in the waterfall display. In general, each Builder runs
+independently (although various kinds of interlocks can cause one Builder to
+have an effect on another).
+
+   <p>Each <code>Builder</code> is a long-lived object which controls a sequence of Builds. 
+Each Builder is created when the config file is first parsed, and lives forever
+(or rather until it is removed from the config file). It mediates the
+connections to the buildslaves that do all the work, and is responsible for
+creating the <code>Build</code> objects that decide <em>how</em> a build is performed
+(i.e., which steps are executed in what order).
+
+   <p>Each <code>Builder</code> gets a unique name, and the path name of a
+directory where it gets to do all its work (there is a
+buildmaster-side directory for keeping status information, as well as
+a buildslave-side directory where the actual checkout/compile/test
+commands are executed). It also gets a <code>BuildFactory</code>, which is
+responsible for creating new <code>Build</code> instances: because the
+<code>Build</code> instance is what actually performs each build, choosing
+the <code>BuildFactory</code> is the way to specify what happens each time a
+build is done.
+
+   <p>Each <code>Builder</code> is associated with one of more <code>BuildSlaves</code>. 
+A <code>Builder</code> which is used to perform OS-X builds (as opposed to
+Linux or Solaris builds) should naturally be associated with an
+OS-X-based buildslave.
+
+   <p>If multiple buildslaves are available for any given Builder, you will
+have some measure of redundancy: in case one slave goes offline, the
+others can still keep the Builder working. In addition, multiple
+buildslaves will allow multiple simultaneous builds for the same
+Builder, which might be useful if you have a lot of forced or &ldquo;try&rdquo;
+builds taking place.
+
+   <p>If you use this feature, it is important to make sure that the
+buildslaves are all, in fact, capable of running the given build. The
+slave hosts should be configured similarly, otherwise you will spend a
+lot of time trying (unsuccessfully) to reproduce a failure that only
+occurs on some of the buildslaves and not the others. Different
+platforms, operating systems, versions of major programs or libraries,
+all these things mean you should use separate Builders.
+
+   </body></html>
+

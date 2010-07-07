@@ -1,0 +1,94 @@
+<html lang="en">
+<head>
+<title>Merging BuildRequests - BuildBot Manual - 0.8.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Global-Configuration.html#Global-Configuration" title="Global Configuration">
+<link rel="prev" href="Data-Lifetime.html#Data-Lifetime" title="Data Lifetime">
+<link rel="next" href="Prioritizing-Builders.html#Prioritizing-Builders" title="Prioritizing Builders">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Merging-BuildRequests"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Prioritizing-Builders.html#Prioritizing-Builders">Prioritizing Builders</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Data-Lifetime.html#Data-Lifetime">Data Lifetime</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Global-Configuration.html#Global-Configuration">Global Configuration</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.5.5 Merging BuildRequests</h4>
+
+<p><a name="index-c_005b_0027mergeRequests_0027_005d-25"></a>
+By default, buildbot merges BuildRequests that have compatible
+SourceStamps.
+
+   <p>This can be disabled for any particular Builder by passing
+<code>mergeRequests=False</code> to the BuilderConfig definition, see <a href="Builders.html#Builders">Builders</a>. 
+For example:
+
+<pre class="example">     c['builders'] = [
+       BuilderConfig(name='test-i386', slavename='bot-i386', builddir='test-i386',
+                     factory=f, mergeRequests=False),
+      ]
+</pre>
+   <p>For more precise control, this behaviour can be customized with the
+buildmaster's <code>c['mergeRequests']</code> configuration key. This key
+specifies a function which is called with three arguments: a
+<code>Builder</code> and two <code>BuildRequest</code> objects. It should return
+true if the requests can be merged. For example:
+
+<pre class="example">     def mergeRequests(builder, req1, req2):
+         """Don't merge buildrequest at all"""
+         return False
+     c['mergeRequests'] = mergeRequests
+</pre>
+   <p>In many cases, the details of the SourceStamps and BuildRequests are important. 
+In this example, only BuildRequests with the same "reason" are merged; thus
+developers forcing builds for different reasons will see distinct builds.
+
+<pre class="example">     def mergeRequests(builder, req1, req2):
+         if req1.source.canBeMergedWith(req2.source) and  req1.reason == req2.reason:
+            return True
+         return False
+     c['mergeRequests'] = mergeRequests
+</pre>
+   </body></html>
+

@@ -1,0 +1,130 @@
+<html lang="en">
+<head>
+<title>Scheduler Scheduler - BuildBot Manual - 0.8.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Schedulers.html#Schedulers" title="Schedulers">
+<link rel="prev" href="Change-Filters.html#Change-Filters" title="Change Filters">
+<link rel="next" href="AnyBranchScheduler.html#AnyBranchScheduler" title="AnyBranchScheduler">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Scheduler-Scheduler"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="AnyBranchScheduler.html#AnyBranchScheduler">AnyBranchScheduler</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Change-Filters.html#Change-Filters">Change Filters</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Schedulers.html#Schedulers">Schedulers</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.7.3 Scheduler Scheduler</h4>
+
+<p><a name="index-buildbot_002eschedulers_002ebasic_002eScheduler-47"></a>
+This is the original and still most popular Scheduler class. It follows
+exactly one branch, and starts a configurable tree-stable-timer after
+each change on that branch. When the timer expires, it starts a build
+on some set of Builders. The Scheduler accepts a <code>fileIsImportant</code>
+function which can be used to ignore some Changes if they do not
+affect any &ldquo;important&rdquo; files.
+
+   <p>The arguments to this scheduler are:
+
+     <dl>
+<dt><code>name</code>
+<br><dt><code>builderNames</code>
+<br><dt><code>properties</code>
+<br><dt><code>treeStableTimer</code><dd>The Scheduler will wait for this many seconds before starting the
+build. If new changes are made during this interval, the timer will be
+restarted, so really the build will be started after a change and then
+after this many seconds of inactivity.
+
+     <p>If treeStableTimer is <code>None</code>, then a separate build is started
+immediately for each Change.
+
+     <br><dt><code>fileIsImportant</code><dd>A callable which takes one argument, a Change instance, and returns
+<code>True</code> if the change is worth building, and <code>False</code> if
+it is not.  Unimportant Changes are accumulated until the build is
+triggered by an important change.  The default value of None means
+that all Changes are important.
+
+     <br><dt><code>change_filter</code><dd>
+The change filter that will determine whch changes are recognized by this
+Scheduler.  Note that this is different from <code>fileIsImportant</code>: if the
+change filter filters out a Change, then it is completely ignored by the
+scheduler.  If a Change is allowed by the change filter, but is deemed
+unimportant, then it will not cause builds to start, but will be remembered and
+shown in status displays.
+
+     <br><dt><code>categories (deprecated; use change_filter)</code><dd>A list of categories of changes that this scheduler will respond to.  If this
+is specified, then any non-matching changes are ignored.
+
+     <br><dt><code>branch (deprecated; use change_filter)</code><dd>
+If specified, then this Scheduler will pay attention to a single branch,
+ignoring Changes that occur on other branches. Setting <code>branch</code> equal to
+the special value of <code>None</code> means it should only pay attention to the
+default branch. Note that <code>None</code> is a keyword, not a string, so you want
+to use <code>None</code> and not <code>"None"</code>.
+
+   </dl>
+
+   <p>Example:
+
+<pre class="example">     from buildbot.schedulers.basic  import Scheduler
+     quick = Scheduler(name="quick",
+                         branch=None,
+                         treeStableTimer=60,
+                         builderNames=["quick-linux", "quick-netbsd"])
+     full = Scheduler(name="full",
+                         branch=None,
+                         treeStableTimer=5*60,
+                         builderNames=["full-linux", "full-netbsd", "full-OSX"])
+     c['schedulers'] = [quick, full]
+</pre>
+   <p>In this example, the two &ldquo;quick&rdquo; builders are triggered 60 seconds
+after the tree has been changed. The &ldquo;full&rdquo; builds do not run quite
+so quickly (they wait 5 minutes), so hopefully if the quick builds
+fail due to a missing file or really simple typo, the developer can
+discover and fix the problem before the full builds are started. Both
+Schedulers only pay attention to the default branch: any changes
+on other branches are ignored by these Schedulers. Each Scheduler
+triggers a different set of Builders, referenced by name.
+
+   </body></html>
+

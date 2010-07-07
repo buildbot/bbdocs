@@ -1,0 +1,91 @@
+<html lang="en">
+<head>
+<title>Keeping State in Tests - BuildBot Manual - 0.8.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Buildbot-Tests.html#Buildbot-Tests" title="Buildbot Tests">
+<link rel="prev" href="Toward-Better-Buildbot-Tests.html#Toward-Better-Buildbot-Tests" title="Toward Better Buildbot Tests">
+<link rel="next" href="Better-Debugging-through-Monkeypatching.html#Better-Debugging-through-Monkeypatching" title="Better Debugging through Monkeypatching">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Keeping-State-in-Tests"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Better-Debugging-through-Monkeypatching.html#Better-Debugging-through-Monkeypatching">Better Debugging through Monkeypatching</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Toward-Better-Buildbot-Tests.html#Toward-Better-Buildbot-Tests">Toward Better Buildbot Tests</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Buildbot-Tests.html#Buildbot-Tests">Buildbot Tests</a>
+<hr>
+</div>
+
+<h4 class="subsection">7.9.2 Keeping State in Tests</h4>
+
+<p>Python does not allow assignment to anything but the innermost local scope or
+the global scope with the <code>global</code> keyword.  This presents a problem when
+creating nested functions:
+
+<pre class="example">     def test_localVariable(self):
+         cb_called = False
+         def cb():
+             cb_called = True
+         cb()
+         self.assertTrue(cb_called) # will fail!
+</pre>
+   <p>The <code>cb_called = True</code> assigns to a <i>different variable</i> than
+<code>cb_called = False</code>.  In production code, it's usually best to work around
+such problems, but in tests this is often the clearest way to express the
+behavior under test.
+
+   <p>The solution is to change something in a common mutable object.  While a simple
+list can serve as such a mutable object, this leads to code that is hard to
+read.  Instead, use <code>State</code>:
+
+<pre class="example">     from buildbot.test.state import State
+     
+     def test_localVariable(self):
+         state = State(cb_called=False)
+         def cb():
+             state.cb_called = True
+         cb()
+         self.assertTrue(state.cb_called) # passes
+</pre>
+   <p>This is almost as readable as the first example, but it actually works.
+
+   </body></html>
+

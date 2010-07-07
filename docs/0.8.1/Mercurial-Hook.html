@@ -1,0 +1,150 @@
+<html lang="en">
+<head>
+<title>Mercurial Hook - BuildBot Manual - 0.8.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="PBChangeSource.html#PBChangeSource" title="PBChangeSource">
+<link rel="next" href="Bzr-Hook.html#Bzr-Hook" title="Bzr Hook">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Mercurial-Hook"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Bzr-Hook.html#Bzr-Hook">Bzr Hook</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="PBChangeSource.html#PBChangeSource">PBChangeSource</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.6.5.1 Mercurial Hook</h5>
+
+<p>Since Mercurial is written in python, the hook script can invoke
+Buildbot's <code>sendchange</code> function directly, rather than having to
+spawn an external process. This function delivers the same sort of
+changes as <code>buildbot sendchange</code> and the various hook scripts in
+contrib/, so you'll need to add a <code>pb.PBChangeSource</code> to your
+buildmaster to receive these changes.
+
+   <p>To set this up, first choose a Mercurial repository that represents
+your central &ldquo;official&rdquo; source tree. This will be the same
+repository that your buildslaves will eventually pull from. Install
+Buildbot on the machine that hosts this repository, using the same
+version of python as Mercurial is using (so that the Mercurial hook
+can import code from buildbot). Then add the following to the
+<code>.hg/hgrc</code> file in that repository, replacing the buildmaster
+hostname/portnumber as appropriate for your buildbot:
+
+<pre class="example">     [hooks]
+     changegroup.buildbot = python:buildbot.changes.hgbuildbot.hook
+     
+     [hgbuildbot]
+     master = buildmaster.example.org:9987
+</pre>
+   <p>(Note that Mercurial lets you define multiple <code>changegroup</code> hooks
+by giving them distinct names, like <code>changegroup.foo</code> and
+<code>changegroup.bar</code>, which is why we use
+<code>changegroup.buildbot</code> in this example. There is nothing magical
+about the &ldquo;buildbot&rdquo; suffix in the hook name. The
+<code>[hgbuildbot]</code> section <em>is</em> special, however, as it is the
+only section that the buildbot hook pays attention to.)
+
+   <p>Also note that this runs as a <code>changegroup</code> hook, rather than as
+an <code>incoming</code> hook. The <code>changegroup</code> hook is run with
+multiple revisions at a time (say, if multiple revisions are being
+pushed to this repository in a single <samp><span class="command">hg push</span></samp> command),
+whereas the <code>incoming</code> hook is run with just one revision at a
+time. The <code>hgbuildbot.hook</code> function will only work with the
+<code>changegroup</code> hook.
+
+   <p>The <code>[hgbuildbot]</code> section has two other parameters that you
+might specify, both of which control the name of the branch that is
+attached to the changes coming from this hook.
+
+   <p>One common branch naming policy for Mercurial repositories is to use
+it just like Darcs: each branch goes into a separate repository, and
+all the branches for a single project share a common parent directory. 
+For example, you might have <samp><span class="file">/var/repos/PROJECT/trunk/</span></samp> and
+<samp><span class="file">/var/repos/PROJECT/release</span></samp>. To use this style, use the
+<code>branchtype = dirname</code> setting, which simply uses the last
+component of the repository's enclosing directory as the branch name:
+
+<pre class="example">     [hgbuildbot]
+     master = buildmaster.example.org:9987
+     branchtype = dirname
+</pre>
+   <p>Another approach is to use Mercurial's built-in branches (the kind
+created with <samp><span class="command">hg branch</span></samp> and listed with <samp><span class="command">hg
+branches</span></samp>). This feature associates persistent names with particular
+lines of descent within a single repository. (note that the buildbot
+<code>source.Mercurial</code> checkout step does not yet support this kind
+of branch). To have the commit hook deliver this sort of branch name
+with the Change object, use <code>branchtype = inrepo</code>:
+
+<pre class="example">     [hgbuildbot]
+     master = buildmaster.example.org:9987
+     branchtype = inrepo
+</pre>
+   <p>Finally, if you want to simply specify the branchname directly, for
+all changes, use <code>branch = BRANCHNAME</code>. This overrides
+<code>branchtype</code>:
+
+<pre class="example">     [hgbuildbot]
+     master = buildmaster.example.org:9987
+     branch = trunk
+</pre>
+   <p>If you use <code>branch=</code> like this, you'll need to put a separate
+.hgrc in each repository. If you use <code>branchtype=</code>, you may be
+able to use the same .hgrc for all your repositories, stored in
+<samp><span class="file">~/.hgrc</span></samp> or <samp><span class="file">/etc/mercurial/hgrc</span></samp>.
+
+   <p>As twisted needs to hook some Signals, and that some web server are
+strictly forbiding that, the parameter <code>fork</code> in the
+<code>[hgbuildbot]</code> section will instruct mercurial to fork before
+sending the change request. Then as the created process will be of short
+life, it is considered as safe to disable the signal restriction in
+the Apache setting like that <code>WSGIRestrictSignal Off</code>. Refer to the
+documentation of your web server for other way to do the same.
+
+   <p>The <code>category</code> parameter sets the category for any changes generated from
+the hook.  Likewise, the <code>project</code> parameter sets the project.  Changes'
+<code>repository</code> attributes are formed from the Mercurial repo path by
+stripping <code>strip</code> slashes.
+
+   </body></html>
+

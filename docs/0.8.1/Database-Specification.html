@@ -1,0 +1,97 @@
+<html lang="en">
+<head>
+<title>Database Specification - BuildBot Manual - 0.8.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Global-Configuration.html#Global-Configuration" title="Global Configuration">
+<link rel="next" href="Project-Definitions.html#Project-Definitions" title="Project Definitions">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Database-Specification"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Project-Definitions.html#Project-Definitions">Project Definitions</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Global-Configuration.html#Global-Configuration">Global Configuration</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.5.1 Database Specification</h4>
+
+<p>Buildbot requires a connection to a database to maintain certain state
+information, such as tracking pending build requests.  By default this is
+stored in a sqlite file called 'state.sqlite' in the base directory of your
+master.  This can be overridden with the <code>db_url</code> parameter.
+
+   <p>This parameter is of the form:
+
+   <p>driver://[username:password@]host:port/database[?args]
+
+   <p>For sqlite databases, since there is no host and port, relative paths are
+specified with <code>sqlite:///</code> and absolute paths with <code>sqlite:////</code>
+
+<pre class="example">     c['db_url'] = "sqlite:///state.sqlite"
+     c['db_url'] = "mysql://user:pass@somehost.com/database_name?max_idle=300"
+</pre>
+   <p>When using a MySQL database, multiple buildbot masters can share the same
+database.  Keep in mind that there is a single namespace for schedulers and
+builders for all masters using the same database.  One suggested configuration
+is to have one buildbot master configured with just the schedulers and change
+sources, and then other masters configured with just the builders.  To enable
+this mode, you will need to set the <code>multiMaster</code> option so that buildbot
+doesn't complain about missing schedulers or builders.  You'll also need to set
+<code>db_poll_interval</code> so the masters with builders check the database for new
+builds at the configured interval.
+
+   <p>The <code>max_idle</code> argument for MySQL connections should be set to something
+less than the wait_timeout configured for your server.  This ensures that
+connections are closed and re-opened after the configured amount of idle time. 
+If you see errors such as <code>_mysql_exceptions.OperationalError: (2006,
+'MySQL server has gone away')</code>, this means your <code>max_idle</code> setting is
+probably too high. <code>show global variables like 'wait_timeout';</code> will show
+what the currently configured wait_timeout is on your MySQL server.
+
+<pre class="example">     # Enable multiMaster mode; disables warnings about unknown builders and
+     # schedulers
+     c['multiMaster'] = True
+     # Check for new build requests every 60 seconds
+     c['db_poll_interval'] = 60
+</pre>
+   </body></html>
+
