@@ -1,0 +1,111 @@
+<html lang="en">
+<head>
+<title>Source Tree Specifications - BuildBot Manual - 0.8.2</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.2">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Version-Control-Systems.html#Version-Control-Systems" title="Version Control Systems">
+<link rel="prev" href="Generalizing-VC-Systems.html#Generalizing-VC-Systems" title="Generalizing VC Systems">
+<link rel="next" href="How-Different-VC-Systems-Specify-Sources.html#How-Different-VC-Systems-Specify-Sources" title="How Different VC Systems Specify Sources">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.2.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Source-Tree-Specifications"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="How-Different-VC-Systems-Specify-Sources.html#How-Different-VC-Systems-Specify-Sources">How Different VC Systems Specify Sources</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Generalizing-VC-Systems.html#Generalizing-VC-Systems">Generalizing VC Systems</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Version-Control-Systems.html#Version-Control-Systems">Version Control Systems</a>
+<hr>
+</div>
+
+<h4 class="subsection">3.1.2 Source Tree Specifications</h4>
+
+<p>So for the Buildbot's purposes we treat each VC system as a server
+which can take a list of specifications as input and produce a source
+tree as output. Some of these specifications are static: they are
+attributes of the builder and do not change over time. Others are more
+variable: each build will have a different value. The repository is
+changed over time by a sequence of Changes, each of which represents a
+single developer making changes to some set of files. These Changes
+are cumulative.
+
+   <p>For normal builds, the Buildbot wants to get well-defined source trees
+that contain specific Changes, and exclude other Changes that may have
+occurred after the desired ones. We assume that the Changes arrive at
+the buildbot (through one of the mechanisms described in see <a href="Change-Sources.html#Change-Sources">Change Sources</a>) in the same order in which they are committed to the
+repository. The Buildbot waits for the tree to become &ldquo;stable&rdquo;
+before initiating a build, for two reasons. The first is that
+developers frequently make multiple related commits in quick
+succession, even when the VC system provides ways to make atomic
+transactions involving multiple files at the same time. Running a
+build in the middle of these sets of changes would use an inconsistent
+set of source files, and is likely to fail (and is certain to be less
+useful than a build which uses the full set of changes). The
+tree-stable-timer is intended to avoid these useless builds that
+include some of the developer's changes but not all. The second reason
+is that some VC systems (i.e. CVS) do not provide repository-wide
+transaction numbers, so that timestamps are the only way to refer to
+a specific repository state. These timestamps may be somewhat
+ambiguous, due to processing and notification delays. By waiting until
+the tree has been stable for, say, 10 minutes, we can choose a
+timestamp from the middle of that period to use for our source
+checkout, and then be reasonably sure that any clock-skew errors will
+not cause the build to be performed on an inconsistent set of source
+files.
+
+   <p>The Schedulers always use the tree-stable-timer, with a timeout that
+is configured to reflect a reasonable tradeoff between build latency
+and change frequency. When the VC system provides coherent
+repository-wide revision markers (such as Subversion's revision
+numbers, or in fact anything other than CVS's timestamps), the
+resulting Build is simply performed against a source tree defined by
+that revision marker. When the VC system does not provide this, a
+timestamp from the middle of the tree-stable period is used to
+generate the source tree<a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a>.
+
+   <div class="footnote">
+<hr>
+<h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> this <code>checkoutDelay</code> defaults
+to half the tree-stable timer, but it can be overridden with an
+argument to the Source Step</p>
+
+   <hr></div>
+
+   </body></html>
+

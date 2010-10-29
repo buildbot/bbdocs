@@ -1,0 +1,178 @@
+<html lang="en">
+<head>
+<title>CVSMaildirSource - BuildBot Manual - 0.8.2</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.2">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Mail_002dparsing-ChangeSources.html#Mail_002dparsing-ChangeSources" title="Mail-parsing ChangeSources">
+<link rel="prev" href="Parsing-Email-Change-Messages.html#Parsing-Email-Change-Messages" title="Parsing Email Change Messages">
+<link rel="next" href="FCMaildirSource.html#FCMaildirSource" title="FCMaildirSource">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.2.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="CVSMaildirSource"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="FCMaildirSource.html#FCMaildirSource">FCMaildirSource</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Parsing-Email-Change-Messages.html#Parsing-Email-Change-Messages">Parsing Email Change Messages</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Mail_002dparsing-ChangeSources.html#Mail_002dparsing-ChangeSources">Mail-parsing ChangeSources</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.6.4.4 CVSMaildirSource</h5>
+
+<p><a name="index-buildbot_002echanges_002email_002eCVSMaildirSource-40"></a>
+This parser works with the <samp><span class="file">buildbot_cvs_maildir.py</span></samp> script in the
+contrib directory.
+
+   <p>The script sends an email containing all the files submitted in
+one directory. It is invoked by using the <samp><span class="file">CVSROOT/loginfo</span></samp> facility.
+
+   <p>The Buildbot's <code>CVSMaildirSource</code> knows how to parse
+these messages and turn them into Change objects. It takes two parameters,
+the directory name of the maildir root, and an optional function to create
+a URL for each file. The function takes three parameters:
+
+<pre class="example">      file   - file name
+      oldRev - old revision of the file
+      newRev - new revision of the file
+</pre>
+   <p>It must return, oldly enough, a url for the file in question. For example:
+
+<pre class="example">     def fileToUrl( file, oldRev, newRev ):
+         return 'http://example.com/cgi-bin/cvsweb.cgi/' + file + '?rev=' + newRev
+     
+     from buildbot.changes.mail import CVSMaildirSource
+     c['change_source'] = CVSMaildirSource("/home/buildbot/Mail", urlmaker=fileToUrl)
+</pre>
+   <h4 class="subheading">Configuration of CVS and buildbot_cvs_mail.py</h4>
+
+<p>CVS must be configured to invoke the buildbot_cvs_mail.py script when files
+are checked in. This is done via the CVS loginfo configuration file.
+
+   <p>To update this, first do:
+
+<pre class="example">     cvs checkout CVSROOT
+</pre>
+   <p>cd to the CVSROOT directory and edit the file loginfo, adding a line like:
+
+<pre class="example">     SomeModule /cvsroot/CVSROOT/buildbot_cvs_mail.py --cvsroot :ext:example.com:/cvsroot -e buildbot -P SomeModule %{sVv}
+</pre>
+   <p><em>NOTE:</em> For cvs version 1.12.x, the '<code>--path %p</code>' option is required. 
+Version 1.11.x and 1.12.x report the directory path differently.
+
+   <p>The above example you put the buildbot_cvs_mail.py script under /cvsroot/CVSROOT. 
+It can be anywhere. Run the script with &ndash;help to see all the options. 
+At the very least, the
+options <code>-e</code> (email) and <code>-P</code> (project) should be specified. The line must end with <code>%{sVv}</code>
+This is expanded to the files that were modified.
+
+   <p>Additional entries can be added to support more modules.
+
+   <p>The following is an abreviated form of buildbot_cvs_mail.py &ndash;help
+
+<pre class="example">     
+     Usage:
+     
+         buildbot-cvs-mail [options] %{sVv}
+     
+     Where options are:
+     
+         --category=category
+         -C
+             Catagory for change. This becomes the Change.cagatory attribute.
+             This may not make sense to specify it here, as category is meant
+             to distinguish the diffrent types of bots inside a same project,
+             such as "test", "docs", "full"
+     
+         --cvsroot=&lt;path&gt;
+         -c
+             CVSROOT for use by buildbot slaves to checkout code.
+             This becomes the Change.repository attribute.
+             Exmaple: :ext:myhost:/cvsroot
+     
+         --email=email
+         -e email
+             Email address of the buildbot.
+     
+         --fromhost=hostname
+         -f hostname
+             The hostname that email messages appear to be coming from.  The From:
+             header of the outgoing message will look like user@hostname.  By
+             default, hostname is the machine's fully qualified domain name.
+     
+         --help / -h
+             Print this text.
+     
+         -m hostname
+         --mailhost=hostname
+             The hostname of an available SMTP server.  The default is
+             'localhost'.
+     
+         --mailport=port
+             The port number of SMTP server.  The default is '25'.
+     
+         --quiet / -q
+             Don't print as much status to stdout.
+     
+         --path=path
+         -p path
+             The path for the files in this update. This comes from the %p parameter
+             in loginfo for CVS version 1.12.x. Do not use this for CVS version 1.11.x
+     
+         --project=project
+         -P project
+             The project for the source. Use the CVS module being modified. This
+             becomes the Change.project attribute.
+     
+         -R ADDR
+         --reply-to=ADDR
+           Add a "Reply-To: ADDR" header to the email message.
+     
+         -t
+         --testing
+           Construct message and send to stdout for testing
+     
+     The rest of the command line arguments are:
+     
+         %{sVv}
+             CVS %{sVv} loginfo expansion.  When invoked by CVS, this will be a single
+             string containing the files that are changing.
+</pre>
+   </body></html>
+

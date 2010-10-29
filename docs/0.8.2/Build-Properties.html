@@ -1,0 +1,104 @@
+<html lang="en">
+<head>
+<title>Build Properties - BuildBot Manual - 0.8.2</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.2">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Concepts.html#Concepts" title="Concepts">
+<link rel="prev" href="Users.html#Users" title="Users">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.2.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Build-Properties"></a>
+<p>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Users.html#Users">Users</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Concepts.html#Concepts">Concepts</a>
+<hr>
+</div>
+
+<h3 class="section">3.8 Build Properties</h3>
+
+<p><a name="index-Properties-15"></a>
+Each build has a set of &ldquo;Build Properties&rdquo;, which can be used by its
+BuildSteps to modify their actions.  These properties, in the form of
+key-value pairs, provide a general framework for dynamically altering
+the behavior of a build based on its circumstances.
+
+   <p>Properties come from a number of places:
+     <ul>
+<li>global configuration &ndash;
+These properties apply to all builds. 
+<li>schedulers &ndash;
+A scheduler can specify properties available to all the builds it
+starts. 
+<li>changes &ndash;
+A change can have properties attached to it. These are usually specified
+through a change source (see <a href="Change-Sources.html#Change-Sources">Change Sources</a>), the "Force Build" form on the web interface (see <a href="WebStatus.html#WebStatus">WebStatus</a>), or sendchange (see <a href="sendchange.html#sendchange">sendchange</a>). 
+<li>buildslaves &ndash;
+A buildslave can pass properties on to the builds it performs. 
+<li>builds &ndash;
+A build automatically sets a number of properties on itself. 
+<li>builders &ndash;
+A builder can set properties on all the builds it runs. 
+<li>steps &ndash;
+The steps of a build can set properties that are available to subsequent
+steps.  In particular, source steps set a number of properties. 
+</ul>
+
+   <p>Properties are very flexible, and can be used to implement all manner
+of functionality.  Here are some examples:
+
+   <p>Most Source steps record the revision that they checked out in
+the <code>got_revision</code> property.  A later step could use this
+property to specify the name of a fully-built tarball, dropped in an
+easily-acessible directory for later testing.
+
+   <p>Some projects want to perform nightly builds as well as bulding in response to
+committed changes.  Such a project would run two schedulers, both pointing to
+the same set of builders, but could provide an <code>is_nightly</code> property so
+that steps can distinguish the nightly builds, perhaps to run more
+resource-intensive tests.
+
+   <p>Some projects have different build processes on different systems. 
+Rather than create a build factory for each slave, the steps can use
+buildslave properties to identify the unique aspects of each slave
+and adapt the build process dynamically.
+
+   </body></html>
+

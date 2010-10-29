@@ -1,0 +1,577 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>buildslave.commands.svn</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.2</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="buildslave-module.html">Package&nbsp;buildslave</a> ::
+        <a href="buildslave.commands-module.html">Package&nbsp;commands</a> ::
+        Module&nbsp;svn
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="buildslave.commands.svn-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="buildslave.commands.svn-module.html">Module buildslave.commands.svn</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">os</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">xml</tt><tt class="py-op">.</tt><tt class="py-name">dom</tt><tt class="py-op">.</tt><tt class="py-name">minidom</tt> <tt class="py-keyword">import</tt> <tt class="py-name">parseString</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt id="link-0" class="py-name" targets="Module buildbot.steps.python=buildbot.steps.python-module.html,Variable buildbot.steps.python_twisted.Trial.python=buildbot.steps.python_twisted.Trial-class.html#python"><a title="buildbot.steps.python
+buildbot.steps.python_twisted.Trial.python" class="py-name" href="#" onclick="return doclink('link-0', 'python', 'link-0');">python</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Method buildbot.status.words.IrcStatusBot.log()=buildbot.status.words.IrcStatusBot-class.html#log"><a title="buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-1', 'log', 'link-1');">log</a></tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt class="py-name">internet</tt> <tt class="py-keyword">import</tt> <tt class="py-name">defer</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-2" class="py-name" targets="Module buildbot.buildslave=buildbot.buildslave-module.html,Package buildslave=buildslave-module.html"><a title="buildbot.buildslave
+buildslave" class="py-name" href="#" onclick="return doclink('link-2', 'buildslave', 'link-2');">buildslave</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Package buildslave.commands=buildslave.commands-module.html"><a title="buildslave.commands" class="py-name" href="#" onclick="return doclink('link-3', 'commands', 'link-3');">commands</a></tt><tt class="py-op">.</tt><tt id="link-4" class="py-name" targets="Module buildbot.changes.base=buildbot.changes.base-module.html,Module buildbot.clients.base=buildbot.clients.base-module.html,Module buildbot.db.schema.base=buildbot.db.schema.base-module.html,Module buildbot.process.base=buildbot.process.base-module.html,Module buildbot.schedulers.base=buildbot.schedulers.base-module.html,Module buildbot.status.base=buildbot.status.base-module.html,Module buildbot.status.web.base=buildbot.status.web.base-module.html,Module buildbot.status.web.hooks.base=buildbot.status.web.hooks.base-module.html,Module buildslave.commands.base=buildslave.commands.base-module.html"><a title="buildbot.changes.base
+buildbot.clients.base
+buildbot.db.schema.base
+buildbot.process.base
+buildbot.schedulers.base
+buildbot.status.base
+buildbot.status.web.base
+buildbot.status.web.hooks.base
+buildslave.commands.base" class="py-name" href="#" onclick="return doclink('link-4', 'base', 'link-4');">base</a></tt> <tt class="py-keyword">import</tt> <tt id="link-5" class="py-name" targets="Class buildslave.commands.base.SourceBaseCommand=buildslave.commands.base.SourceBaseCommand-class.html"><a title="buildslave.commands.base.SourceBaseCommand" class="py-name" href="#" onclick="return doclink('link-5', 'SourceBaseCommand', 'link-5');">SourceBaseCommand</a></tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-6" class="py-name"><a title="buildbot.buildslave
+buildslave" class="py-name" href="#" onclick="return doclink('link-6', 'buildslave', 'link-2');">buildslave</a></tt> <tt class="py-keyword">import</tt> <tt id="link-7" class="py-name" targets="Module buildslave.runprocess=buildslave.runprocess-module.html"><a title="buildslave.runprocess" class="py-name" href="#" onclick="return doclink('link-7', 'runprocess', 'link-7');">runprocess</a></tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-8" class="py-name"><a title="buildbot.buildslave
+buildslave" class="py-name" href="#" onclick="return doclink('link-8', 'buildslave', 'link-2');">buildslave</a></tt><tt class="py-op">.</tt><tt id="link-9" class="py-name"><a title="buildslave.commands" class="py-name" href="#" onclick="return doclink('link-9', 'commands', 'link-3');">commands</a></tt> <tt class="py-keyword">import</tt> <tt id="link-10" class="py-name" targets="Module buildslave.commands.utils=buildslave.commands.utils-module.html"><a title="buildslave.commands.utils" class="py-name" href="#" onclick="return doclink('link-10', 'utils', 'link-10');">utils</a></tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-11" class="py-name"><a title="buildbot.buildslave
+buildslave" class="py-name" href="#" onclick="return doclink('link-11', 'buildslave', 'link-2');">buildslave</a></tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Module buildbot.db.util=buildbot.db.util-module.html,Package buildbot.util=buildbot.util-module.html,Module buildslave.util=buildslave.util-module.html"><a title="buildbot.db.util
+buildbot.util
+buildslave.util" class="py-name" href="#" onclick="return doclink('link-12', 'util', 'link-12');">util</a></tt> <tt class="py-keyword">import</tt> <tt id="link-13" class="py-name" targets="Class buildslave.util.Obfuscated=buildslave.util.Obfuscated-class.html"><a title="buildslave.util.Obfuscated" class="py-name" href="#" onclick="return doclink('link-13', 'Obfuscated', 'link-13');">Obfuscated</a></tt> </tt>
+<a name="SVN"></a><div id="SVN-def"><a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt> <a class="py-toggle" href="#" id="SVN-toggle" onclick="return toggle('SVN');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildslave.commands.svn.SVN-class.html">SVN</a><tt class="py-op">(</tt><tt class="py-base-class">SourceBaseCommand</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SVN-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="SVN-expanded"><a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line">    <tt class="py-docstring">"""Subversion-specific VC operation. In addition to the arguments</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-docstring">    handled by SourceBaseCommand, this command reads the following keys:</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-docstring">    ['svnurl'] (required): the SVN repository string</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-docstring">    ['username']:          Username passed to the svn command</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-docstring">    ['password']:          Password passed to the svn command</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-docstring">    ['keep_on_purge']:     Files and directories to keep between updates</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-docstring">    ['ignore_ignores']:    Ignore ignores when purging changes</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-docstring">    ['always_purge']:      Always purge local changes after each build</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-docstring">    ['depth']:             Pass depth argument to subversion 1.5+</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line">    <tt id="link-14" class="py-name" targets="Variable buildslave.commands.bk.BK.header=buildslave.commands.bk.BK-class.html#header,Variable buildslave.commands.bzr.Bzr.header=buildslave.commands.bzr.Bzr-class.html#header,Variable buildslave.commands.cvs.CVS.header=buildslave.commands.cvs.CVS-class.html#header,Variable buildslave.commands.darcs.Darcs.header=buildslave.commands.darcs.Darcs-class.html#header,Variable buildslave.commands.git.Git.header=buildslave.commands.git.Git-class.html#header,Variable buildslave.commands.hg.Mercurial.header=buildslave.commands.hg.Mercurial-class.html#header,Variable buildslave.commands.p4.P4.header=buildslave.commands.p4.P4-class.html#header,Variable buildslave.commands.p4.P4Sync.header=buildslave.commands.p4.P4Sync-class.html#header,Variable buildslave.commands.svn.SVN.header=buildslave.commands.svn.SVN-class.html#header"><a title="buildslave.commands.bk.BK.header
+buildslave.commands.bzr.Bzr.header
+buildslave.commands.cvs.CVS.header
+buildslave.commands.darcs.Darcs.header
+buildslave.commands.git.Git.header
+buildslave.commands.hg.Mercurial.header
+buildslave.commands.p4.P4.header
+buildslave.commands.p4.P4Sync.header
+buildslave.commands.svn.SVN.header" class="py-name" href="#" onclick="return doclink('link-14', 'header', 'link-14');">header</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"svn operation"</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"> </tt>
+<a name="SVN.setup"></a><div id="SVN.setup-def"><a name="L27"></a><tt class="py-lineno"> 27</tt> <a class="py-toggle" href="#" id="SVN.setup-toggle" onclick="return toggle('SVN.setup');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.svn.SVN-class.html#setup">setup</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">args</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SVN.setup-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SVN.setup-expanded"><a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line">        <tt id="link-15" class="py-name"><a title="buildslave.commands.base.SourceBaseCommand" class="py-name" href="#" onclick="return doclink('link-15', 'SourceBaseCommand', 'link-5');">SourceBaseCommand</a></tt><tt class="py-op">.</tt><tt id="link-16" class="py-name" targets="Method buildbot.status.client.PBListener.setup()=buildbot.status.client.PBListener-class.html#setup,Method buildbot.status.mail.MailNotifier.setup()=buildbot.status.mail.MailNotifier-class.html#setup,Method buildslave.commands.base.Command.setup()=buildslave.commands.base.Command-class.html#setup,Method buildslave.commands.base.SourceBaseCommand.setup()=buildslave.commands.base.SourceBaseCommand-class.html#setup,Method buildslave.commands.bk.BK.setup()=buildslave.commands.bk.BK-class.html#setup,Method buildslave.commands.bzr.Bzr.setup()=buildslave.commands.bzr.Bzr-class.html#setup,Method buildslave.commands.cvs.CVS.setup()=buildslave.commands.cvs.CVS-class.html#setup,Method buildslave.commands.darcs.Darcs.setup()=buildslave.commands.darcs.Darcs-class.html#setup,Method buildslave.commands.git.Git.setup()=buildslave.commands.git.Git-class.html#setup,Method buildslave.commands.hg.Mercurial.setup()=buildslave.commands.hg.Mercurial-class.html#setup,Method buildslave.commands.p4.P4.setup()=buildslave.commands.p4.P4-class.html#setup,Method buildslave.commands.p4.P4Base.setup()=buildslave.commands.p4.P4Base-class.html#setup,Method buildslave.commands.p4.P4Sync.setup()=buildslave.commands.p4.P4Sync-class.html#setup,Method buildslave.commands.svn.SVN.setup()=buildslave.commands.svn.SVN-class.html#setup,Method buildslave.commands.transfer.SlaveDirectoryUploadCommand.setup()=buildslave.commands.transfer.SlaveDirectoryUploadCommand-class.html#setup,Method buildslave.commands.transfer.SlaveFileDownloadCommand.setup()=buildslave.commands.transfer.SlaveFileDownloadCommand-class.html#setup,Method buildslave.commands.transfer.SlaveFileUploadCommand.setup()=buildslave.commands.transfer.SlaveFileUploadCommand-class.html#setup,Method buildslave.interfaces.ISlaveCommand.setup()=buildslave.interfaces.ISlaveCommand-class.html#setup"><a title="buildbot.status.client.PBListener.setup
+buildbot.status.mail.MailNotifier.setup
+buildslave.commands.base.Command.setup
+buildslave.commands.base.SourceBaseCommand.setup
+buildslave.commands.bk.BK.setup
+buildslave.commands.bzr.Bzr.setup
+buildslave.commands.cvs.CVS.setup
+buildslave.commands.darcs.Darcs.setup
+buildslave.commands.git.Git.setup
+buildslave.commands.hg.Mercurial.setup
+buildslave.commands.p4.P4.setup
+buildslave.commands.p4.P4Base.setup
+buildslave.commands.p4.P4Sync.setup
+buildslave.commands.svn.SVN.setup
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.setup
+buildslave.commands.transfer.SlaveFileDownloadCommand.setup
+buildslave.commands.transfer.SlaveFileUploadCommand.setup
+buildslave.interfaces.ISlaveCommand.setup" class="py-name" href="#" onclick="return doclink('link-16', 'setup', 'link-16');">setup</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt> <tt class="py-name">args</tt><tt class="py-op">)</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">svnurl</tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'svnurl'</tt><tt class="py-op">]</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-17" class="py-name" targets="Variable buildslave.commands.base.SourceBaseCommand.sourcedata=buildslave.commands.base.SourceBaseCommand-class.html#sourcedata"><a title="buildslave.commands.base.SourceBaseCommand.sourcedata" class="py-name" href="#" onclick="return doclink('link-17', 'sourcedata', 'link-17');">sourcedata</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"%s\n"</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">svnurl</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">keep_on_purge</tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">.</tt><tt id="link-18" class="py-name" targets="Method buildbot.clients.tryclient.SourceStampExtractor.get()=buildbot.clients.tryclient.SourceStampExtractor-class.html#get,Method buildbot.util.LRUCache.get()=buildbot.util.LRUCache-class.html#get,Method buildbot.util.LRUCache.get()=buildbot.util.LRUCache-class.html#get"><a title="buildbot.clients.tryclient.SourceStampExtractor.get
+buildbot.util.LRUCache.get
+buildbot.util.LRUCache.get" class="py-name" href="#" onclick="return doclink('link-18', 'get', 'link-18');">get</a></tt><tt class="py-op">(</tt><tt class="py-string">'keep_on_purge'</tt><tt class="py-op">,</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">keep_on_purge</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-string">".buildbot-sourcedata"</tt><tt class="py-op">)</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">ignore_ignores</tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name"><a title="buildbot.clients.tryclient.SourceStampExtractor.get
+buildbot.util.LRUCache.get
+buildbot.util.LRUCache.get" class="py-name" href="#" onclick="return doclink('link-19', 'get', 'link-18');">get</a></tt><tt class="py-op">(</tt><tt class="py-string">'ignore_ignores'</tt><tt class="py-op">,</tt> <tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">always_purge</tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">.</tt><tt id="link-20" class="py-name"><a title="buildbot.clients.tryclient.SourceStampExtractor.get
+buildbot.util.LRUCache.get
+buildbot.util.LRUCache.get" class="py-name" href="#" onclick="return doclink('link-20', 'get', 'link-18');">get</a></tt><tt class="py-op">(</tt><tt class="py-string">'always_purge'</tt><tt class="py-op">,</tt> <tt class="py-name">False</tt><tt class="py-op">)</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">exported_rev</tt> <tt class="py-op">=</tt> <tt class="py-string">'HEAD'</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line"> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">svn_args</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">args</tt><tt class="py-op">.</tt><tt id="link-21" class="py-name" targets="Method buildbot.process.properties.Properties.has_key()=buildbot.process.properties.Properties-class.html#has_key"><a title="buildbot.process.properties.Properties.has_key" class="py-name" href="#" onclick="return doclink('link-21', 'has_key', 'link-21');">has_key</a></tt><tt class="py-op">(</tt><tt class="py-string">'username'</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">svn_args</tt><tt class="py-op">.</tt><tt class="py-name">extend</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-string">"--username"</tt><tt class="py-op">,</tt> <tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'username'</tt><tt class="py-op">]</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">args</tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="buildbot.process.properties.Properties.has_key" class="py-name" href="#" onclick="return doclink('link-22', 'has_key', 'link-21');">has_key</a></tt><tt class="py-op">(</tt><tt class="py-string">'password'</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">svn_args</tt><tt class="py-op">.</tt><tt class="py-name">extend</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-string">"--password"</tt><tt class="py-op">,</tt> <tt id="link-23" class="py-name"><a title="buildslave.util.Obfuscated" class="py-name" href="#" onclick="return doclink('link-23', 'Obfuscated', 'link-13');">Obfuscated</a></tt><tt class="py-op">(</tt><tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'password'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-string">"XXXX"</tt><tt class="py-op">)</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">args</tt><tt class="py-op">.</tt><tt id="link-24" class="py-name"><a title="buildbot.clients.tryclient.SourceStampExtractor.get
+buildbot.util.LRUCache.get
+buildbot.util.LRUCache.get" class="py-name" href="#" onclick="return doclink('link-24', 'get', 'link-18');">get</a></tt><tt class="py-op">(</tt><tt class="py-string">'extra_args'</tt><tt class="py-op">,</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">svn_args</tt><tt class="py-op">.</tt><tt class="py-name">extend</tt><tt class="py-op">(</tt><tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'extra_args'</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">args</tt><tt class="py-op">.</tt><tt id="link-25" class="py-name"><a title="buildbot.process.properties.Properties.has_key" class="py-name" href="#" onclick="return doclink('link-25', 'has_key', 'link-21');">has_key</a></tt><tt class="py-op">(</tt><tt class="py-string">'depth'</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">svn_args</tt><tt class="py-op">.</tt><tt class="py-name">extend</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-string">"--depth"</tt><tt class="py-op">,</tt><tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'depth'</tt><tt class="py-op">]</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"> </tt>
+<a name="SVN._dovccmd"></a><div id="SVN._dovccmd-def"><a name="L49"></a><tt class="py-lineno"> 49</tt> <a class="py-toggle" href="#" id="SVN._dovccmd-toggle" onclick="return toggle('SVN._dovccmd');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.svn.SVN-class.html#_dovccmd">_dovccmd</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">command</tt><tt class="py-op">,</tt> <tt class="py-param">args</tt><tt class="py-op">,</tt> <tt class="py-param">rootdir</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">cb</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-param">kwargs</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SVN._dovccmd-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SVN._dovccmd-expanded"><a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line">        <tt id="link-26" class="py-name" targets="Module buildslave.commands.svn=buildslave.commands.svn-module.html"><a title="buildslave.commands.svn" class="py-name" href="#" onclick="return doclink('link-26', 'svn', 'link-26');">svn</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-27" class="py-name" targets="Method buildslave.commands.base.SourceBaseCommand.getCommand()=buildslave.commands.base.SourceBaseCommand-class.html#getCommand,Function buildslave.commands.utils.getCommand()=buildslave.commands.utils-module.html#getCommand"><a title="buildslave.commands.base.SourceBaseCommand.getCommand
+buildslave.commands.utils.getCommand" class="py-name" href="#" onclick="return doclink('link-27', 'getCommand', 'link-27');">getCommand</a></tt><tt class="py-op">(</tt><tt class="py-string">"svn"</tt><tt class="py-op">)</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">rootdir</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line">            <tt class="py-name">rootdir</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-28" class="py-name" targets="Variable twisted.python.filepath.FilePath.path=twisted.python.filepath.FilePath-class.html#path"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-28', 'path', 'link-28');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-29" class="py-name" targets="Variable buildbot.buildrequest.BuildRequest.builder=buildbot.buildrequest.BuildRequest-class.html#builder,Module buildbot.process.builder=buildbot.process.builder-module.html,Module buildbot.status.builder=buildbot.status.builder-module.html,Module buildbot.status.web.builder=buildbot.status.web.builder-module.html,Method buildbot.status.web.builder.StatusResourceBuilder.builder()=buildbot.status.web.builder.StatusResourceBuilder-class.html#builder"><a title="buildbot.buildrequest.BuildRequest.builder
+buildbot.process.builder
+buildbot.status.builder
+buildbot.status.web.builder
+buildbot.status.web.builder.StatusResourceBuilder.builder" class="py-name" href="#" onclick="return doclink('link-29', 'builder', 'link-29');">builder</a></tt><tt class="py-op">.</tt><tt id="link-30" class="py-name" targets="Variable buildbot.status.builder.BuilderStatus.basedir=buildbot.status.builder.BuilderStatus-class.html#basedir"><a title="buildbot.status.builder.BuilderStatus.basedir" class="py-name" href="#" onclick="return doclink('link-30', 'basedir', 'link-30');">basedir</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">srcdir</tt><tt class="py-op">)</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">        <tt class="py-name">fullCmd</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt id="link-31" class="py-name"><a title="buildslave.commands.svn" class="py-name" href="#" onclick="return doclink('link-31', 'svn', 'link-26');">svn</a></tt><tt class="py-op">,</tt> <tt id="link-32" class="py-name" targets="Variable buildbot.steps.python.BuildEPYDoc.command=buildbot.steps.python.BuildEPYDoc-class.html#command,Variable buildbot.steps.python.PyFlakes.command=buildbot.steps.python.PyFlakes-class.html#command,Variable buildbot.steps.python_twisted.RemovePYCs.command=buildbot.steps.python_twisted.RemovePYCs-class.html#command,Variable buildbot.steps.shell.Compile.command=buildbot.steps.shell.Compile-class.html#command,Variable buildbot.steps.shell.Configure.command=buildbot.steps.shell.Configure-class.html#command,Variable buildbot.steps.shell.PerlModuleTest.command=buildbot.steps.shell.PerlModuleTest-class.html#command,Variable buildbot.steps.shell.ShellCommand.command=buildbot.steps.shell.ShellCommand-class.html#command,Variable buildbot.steps.shell.Test.command=buildbot.steps.shell.Test-class.html#command,Variable buildbot.steps.shell.TreeSize.command=buildbot.steps.shell.TreeSize-class.html#command,Variable buildslave.bot.SlaveBuilder.command=buildslave.bot.SlaveBuilder-class.html#command"><a title="buildbot.steps.python.BuildEPYDoc.command
+buildbot.steps.python.PyFlakes.command
+buildbot.steps.python_twisted.RemovePYCs.command
+buildbot.steps.shell.Compile.command
+buildbot.steps.shell.Configure.command
+buildbot.steps.shell.PerlModuleTest.command
+buildbot.steps.shell.ShellCommand.command
+buildbot.steps.shell.Test.command
+buildbot.steps.shell.TreeSize.command
+buildslave.bot.SlaveBuilder.command" class="py-name" href="#" onclick="return doclink('link-32', 'command', 'link-32');">command</a></tt><tt class="py-op">,</tt> <tt class="py-string">'--non-interactive'</tt><tt class="py-op">,</tt> <tt class="py-string">'--no-auth-cache'</tt><tt class="py-op">]</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line">        <tt class="py-name">fullCmd</tt><tt class="py-op">.</tt><tt class="py-name">extend</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">svn_args</tt><tt class="py-op">)</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">        <tt class="py-name">fullCmd</tt><tt class="py-op">.</tt><tt class="py-name">extend</tt><tt class="py-op">(</tt><tt class="py-name">args</tt><tt class="py-op">)</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">        <tt class="py-name">c</tt> <tt class="py-op">=</tt> <tt id="link-33" class="py-name"><a title="buildslave.runprocess" class="py-name" href="#" onclick="return doclink('link-33', 'runprocess', 'link-7');">runprocess</a></tt><tt class="py-op">.</tt><tt id="link-34" class="py-name" targets="Class buildslave.runprocess.RunProcess=buildslave.runprocess.RunProcess-class.html"><a title="buildslave.runprocess.RunProcess" class="py-name" href="#" onclick="return doclink('link-34', 'RunProcess', 'link-34');">RunProcess</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-35" class="py-name"><a title="buildbot.buildrequest.BuildRequest.builder
+buildbot.process.builder
+buildbot.status.builder
+buildbot.status.web.builder
+buildbot.status.web.builder.StatusResourceBuilder.builder" class="py-name" href="#" onclick="return doclink('link-35', 'builder', 'link-29');">builder</a></tt><tt class="py-op">,</tt> <tt class="py-name">fullCmd</tt><tt class="py-op">,</tt> <tt class="py-name">rootdir</tt><tt class="py-op">,</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">                         <tt class="py-name">environ</tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">env</tt><tt class="py-op">,</tt> <tt class="py-name">sendRC</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">,</tt> <tt id="link-36" class="py-name" targets="Method buildbot.scripts.logwatcher.LogWatcher.timeout()=buildbot.scripts.logwatcher.LogWatcher-class.html#timeout,Method buildslave.scripts.logwatcher.LogWatcher.timeout()=buildslave.scripts.logwatcher.LogWatcher-class.html#timeout"><a title="buildbot.scripts.logwatcher.LogWatcher.timeout
+buildslave.scripts.logwatcher.LogWatcher.timeout" class="py-name" href="#" onclick="return doclink('link-36', 'timeout', 'link-36');">timeout</a></tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-37" class="py-name"><a title="buildbot.scripts.logwatcher.LogWatcher.timeout
+buildslave.scripts.logwatcher.LogWatcher.timeout" class="py-name" href="#" onclick="return doclink('link-37', 'timeout', 'link-36');">timeout</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">                         <tt class="py-name">maxTime</tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">maxTime</tt><tt class="py-op">,</tt> <tt id="link-38" class="py-name" targets="Variable buildslave.bot.Bot.usePTY=buildslave.bot.Bot-class.html#usePTY"><a title="buildslave.bot.Bot.usePTY" class="py-name" href="#" onclick="return doclink('link-38', 'usePTY', 'link-38');">usePTY</a></tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-name">kwargs</tt><tt class="py-op">)</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-39" class="py-name"><a title="buildbot.steps.python.BuildEPYDoc.command
+buildbot.steps.python.PyFlakes.command
+buildbot.steps.python_twisted.RemovePYCs.command
+buildbot.steps.shell.Compile.command
+buildbot.steps.shell.Configure.command
+buildbot.steps.shell.PerlModuleTest.command
+buildbot.steps.shell.ShellCommand.command
+buildbot.steps.shell.Test.command
+buildbot.steps.shell.TreeSize.command
+buildslave.bot.SlaveBuilder.command" class="py-name" href="#" onclick="return doclink('link-39', 'command', 'link-32');">command</a></tt> <tt class="py-op">=</tt> <tt class="py-name">c</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">        <tt class="py-name">d</tt> <tt class="py-op">=</tt> <tt class="py-name">c</tt><tt class="py-op">.</tt><tt id="link-40" class="py-name" targets="Method buildbot.db.connector.DBConnector.start()=buildbot.db.connector.DBConnector-class.html#start,Method buildbot.interfaces.IChangeSource.start()=buildbot.interfaces.IChangeSource-class.html#start,Method buildbot.process.buildstep.BuildStep.start()=buildbot.process.buildstep.BuildStep-class.html#start,Method buildbot.process.buildstep.LoggedRemoteCommand.start()=buildbot.process.buildstep.LoggedRemoteCommand-class.html#start,Method buildbot.process.buildstep.RemoteCommand.start()=buildbot.process.buildstep.RemoteCommand-class.html#start,Method buildbot.process.buildstep.RemoteShellCommand.start()=buildbot.process.buildstep.RemoteShellCommand-class.html#start,Method buildbot.process.mtrlogobserver.MTR.start()=buildbot.process.mtrlogobserver.MTR-class.html#start,Method buildbot.scripts.logwatcher.LogWatcher.start()=buildbot.scripts.logwatcher.LogWatcher-class.html#start,Function buildbot.scripts.startup.start()=buildbot.scripts.startup-module.html#start,Method buildbot.status.progress.StepProgress.start()=buildbot.status.progress.StepProgress-class.html#start,Method buildbot.steps.dummy.Dummy.start()=buildbot.steps.dummy.Dummy-class.html#start,Method buildbot.steps.dummy.FailingDummy.start()=buildbot.steps.dummy.FailingDummy-class.html#start,Method buildbot.steps.dummy.RemoteDummy.start()=buildbot.steps.dummy.RemoteDummy-class.html#start,Method buildbot.steps.dummy.Wait.start()=buildbot.steps.dummy.Wait-class.html#start,Method buildbot.steps.master.MasterShellCommand.start()=buildbot.steps.master.MasterShellCommand-class.html#start,Method buildbot.steps.package.rpm.rpmbuild.RpmBuild.start()=buildbot.steps.package.rpm.rpmbuild.RpmBuild-class.html#start,Method buildbot.steps.python_twisted.HLint.start()=buildbot.steps.python_twisted.HLint-class.html#start,Method buildbot.steps.python_twisted.Trial.start()=buildbot.steps.python_twisted.Trial-class.html#start,Method buildbot.steps.shell.ShellCommand.start()=buildbot.steps.shell.ShellCommand-class.html#start,Method buildbot.steps.shell.WarningCountingShellCommand.start()=buildbot.steps.shell.WarningCountingShellCommand-class.html#start,Method buildbot.steps.source.Source.start()=buildbot.steps.source.Source-class.html#start,Method buildbot.steps.transfer.DirectoryUpload.start()=buildbot.steps.transfer.DirectoryUpload-class.html#start,Method buildbot.steps.transfer.FileDownload.start()=buildbot.steps.transfer.FileDownload-class.html#start,Method buildbot.steps.transfer.FileUpload.start()=buildbot.steps.transfer.FileUpload-class.html#start,Method buildbot.steps.transfer.JSONPropertiesDownload.start()=buildbot.steps.transfer.JSONPropertiesDownload-class.html#start,Method buildbot.steps.transfer.StringDownload.start()=buildbot.steps.transfer.StringDownload-class.html#start,Method buildbot.steps.trigger.Trigger.start()=buildbot.steps.trigger.Trigger-class.html#start,Method buildbot.steps.vstudio.VC6.start()=buildbot.steps.vstudio.VC6-class.html#start,Method buildbot.steps.vstudio.VC7.start()=buildbot.steps.vstudio.VC7-class.html#start,Method buildbot.steps.vstudio.VC8.start()=buildbot.steps.vstudio.VC8-class.html#start,Method buildbot.steps.vstudio.VCExpress9.start()=buildbot.steps.vstudio.VCExpress9-class.html#start,Method buildslave.commands.base.Command.start()=buildslave.commands.base.Command-class.html#start,Method buildslave.commands.base.SourceBaseCommand.start()=buildslave.commands.base.SourceBaseCommand-class.html#start,Method buildslave.commands.bzr.Bzr.start()=buildslave.commands.bzr.Bzr-class.html#start,Method buildslave.commands.cvs.CVS.start()=buildslave.commands.cvs.CVS-class.html#start,Method buildslave.commands.shell.SlaveShellCommand.start()=buildslave.commands.shell.SlaveShellCommand-class.html#start,Method buildslave.commands.transfer.SlaveDirectoryUploadCommand.start()=buildslave.commands.transfer.SlaveDirectoryUploadCommand-class.html#start,Method buildslave.commands.transfer.SlaveFileDownloadCommand.start()=buildslave.commands.transfer.SlaveFileDownloadCommand-class.html#start,Method buildslave.commands.transfer.SlaveFileUploadCommand.start()=buildslave.commands.transfer.SlaveFileUploadCommand-class.html#start,Method buildslave.interfaces.ISlaveCommand.start()=buildslave.interfaces.ISlaveCommand-class.html#start,Method buildslave.runprocess.LogFileWatcher.start()=buildslave.runprocess.LogFileWatcher-class.html#start,Method buildslave.runprocess.RunProcess.start()=buildslave.runprocess.RunProcess-class.html#start,Method buildslave.scripts.logwatcher.LogWatcher.start()=buildslave.scripts.logwatcher.LogWatcher-class.html#start,Function buildslave.scripts.startup.start()=buildslave.scripts.startup-module.html#start"><a title="buildbot.db.connector.DBConnector.start
+buildbot.interfaces.IChangeSource.start
+buildbot.process.buildstep.BuildStep.start
+buildbot.process.buildstep.LoggedRemoteCommand.start
+buildbot.process.buildstep.RemoteCommand.start
+buildbot.process.buildstep.RemoteShellCommand.start
+buildbot.process.mtrlogobserver.MTR.start
+buildbot.scripts.logwatcher.LogWatcher.start
+buildbot.scripts.startup.start
+buildbot.status.progress.StepProgress.start
+buildbot.steps.dummy.Dummy.start
+buildbot.steps.dummy.FailingDummy.start
+buildbot.steps.dummy.RemoteDummy.start
+buildbot.steps.dummy.Wait.start
+buildbot.steps.master.MasterShellCommand.start
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.start
+buildbot.steps.python_twisted.HLint.start
+buildbot.steps.python_twisted.Trial.start
+buildbot.steps.shell.ShellCommand.start
+buildbot.steps.shell.WarningCountingShellCommand.start
+buildbot.steps.source.Source.start
+buildbot.steps.transfer.DirectoryUpload.start
+buildbot.steps.transfer.FileDownload.start
+buildbot.steps.transfer.FileUpload.start
+buildbot.steps.transfer.JSONPropertiesDownload.start
+buildbot.steps.transfer.StringDownload.start
+buildbot.steps.trigger.Trigger.start
+buildbot.steps.vstudio.VC6.start
+buildbot.steps.vstudio.VC7.start
+buildbot.steps.vstudio.VC8.start
+buildbot.steps.vstudio.VCExpress9.start
+buildslave.commands.base.Command.start
+buildslave.commands.base.SourceBaseCommand.start
+buildslave.commands.bzr.Bzr.start
+buildslave.commands.cvs.CVS.start
+buildslave.commands.shell.SlaveShellCommand.start
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.start
+buildslave.commands.transfer.SlaveFileDownloadCommand.start
+buildslave.commands.transfer.SlaveFileUploadCommand.start
+buildslave.interfaces.ISlaveCommand.start
+buildslave.runprocess.LogFileWatcher.start
+buildslave.runprocess.RunProcess.start
+buildslave.scripts.logwatcher.LogWatcher.start
+buildslave.scripts.startup.start" class="py-name" href="#" onclick="return doclink('link-40', 'start', 'link-40');">start</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">cb</tt><tt class="py-op">:</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">            <tt class="py-name">d</tt><tt class="py-op">.</tt><tt class="py-name">addCallback</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_abandonOnFailure</tt><tt class="py-op">)</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">            <tt class="py-name">d</tt><tt class="py-op">.</tt><tt class="py-name">addCallback</tt><tt class="py-op">(</tt><tt class="py-name">cb</tt><tt class="py-op">)</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">d</tt> </tt>
+</div><a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line"> </tt>
+<a name="SVN.sourcedirIsUpdateable"></a><div id="SVN.sourcedirIsUpdateable-def"><a name="L66"></a><tt class="py-lineno"> 66</tt> <a class="py-toggle" href="#" id="SVN.sourcedirIsUpdateable-toggle" onclick="return toggle('SVN.sourcedirIsUpdateable');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.svn.SVN-class.html#sourcedirIsUpdateable">sourcedirIsUpdateable</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SVN.sourcedirIsUpdateable-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SVN.sourcedirIsUpdateable-expanded"><a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-41" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-41', 'path', 'link-28');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">isdir</tt><tt class="py-op">(</tt><tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-42" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-42', 'path', 'link-28');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-43" class="py-name"><a title="buildbot.buildrequest.BuildRequest.builder
+buildbot.process.builder
+buildbot.status.builder
+buildbot.status.web.builder
+buildbot.status.web.builder.StatusResourceBuilder.builder" class="py-name" href="#" onclick="return doclink('link-43', 'builder', 'link-29');">builder</a></tt><tt class="py-op">.</tt><tt id="link-44" class="py-name"><a title="buildbot.status.builder.BuilderStatus.basedir" class="py-name" href="#" onclick="return doclink('link-44', 'basedir', 'link-30');">basedir</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">                                          <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">srcdir</tt><tt class="py-op">,</tt> <tt class="py-string">".svn"</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line"> </tt>
+<a name="SVN.doVCUpdate"></a><div id="SVN.doVCUpdate-def"><a name="L70"></a><tt class="py-lineno"> 70</tt> <a class="py-toggle" href="#" id="SVN.doVCUpdate-toggle" onclick="return toggle('SVN.doVCUpdate');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.svn.SVN-class.html#doVCUpdate">doVCUpdate</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SVN.doVCUpdate-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SVN.doVCUpdate-expanded"><a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-45" class="py-name" targets="Method buildslave.commands.base.SourceBaseCommand.sourcedirIsPatched()=buildslave.commands.base.SourceBaseCommand-class.html#sourcedirIsPatched"><a title="buildslave.commands.base.SourceBaseCommand.sourcedirIsPatched" class="py-name" href="#" onclick="return doclink('link-45', 'sourcedirIsPatched', 'link-45');">sourcedirIsPatched</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-keyword">or</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">always_purge</tt><tt class="py-op">:</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_purgeAndUpdate</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">        <tt id="link-46" class="py-name" targets="Variable buildbot.changes.changes.Change.revision=buildbot.changes.changes.Change-class.html#revision,Variable buildbot.sourcestamp.SourceStamp.revision=buildbot.sourcestamp.SourceStamp-class.html#revision"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-46', 'revision', 'link-46');">revision</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'revision'</tt><tt class="py-op">]</tt> <tt class="py-keyword">or</tt> <tt class="py-string">'HEAD'</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">        <tt class="py-comment"># update: possible for mode in ('copy', 'update')</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_dovccmd</tt><tt class="py-op">(</tt><tt class="py-string">'update'</tt><tt class="py-op">,</tt> <tt class="py-op">[</tt><tt class="py-string">'--revision'</tt><tt class="py-op">,</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt id="link-47" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-47', 'revision', 'link-46');">revision</a></tt><tt class="py-op">)</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line"> </tt>
+<a name="SVN.doVCFull"></a><div id="SVN.doVCFull-def"><a name="L77"></a><tt class="py-lineno"> 77</tt> <a class="py-toggle" href="#" id="SVN.doVCFull-toggle" onclick="return toggle('SVN.doVCFull');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.svn.SVN-class.html#doVCFull">doVCFull</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SVN.doVCFull-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SVN.doVCFull-expanded"><a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">        <tt id="link-48" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-48', 'revision', 'link-46');">revision</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'revision'</tt><tt class="py-op">]</tt> <tt class="py-keyword">or</tt> <tt class="py-string">'HEAD'</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">        <tt class="py-name">args</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">'--revision'</tt><tt class="py-op">,</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt id="link-49" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-49', 'revision', 'link-46');">revision</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">svnurl</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">srcdir</tt><tt class="py-op">]</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line"> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-50" class="py-name" targets="Variable buildbot.steps.vstudio.VisualStudio.mode=buildbot.steps.vstudio.VisualStudio-class.html#mode"><a title="buildbot.steps.vstudio.VisualStudio.mode" class="py-name" href="#" onclick="return doclink('link-50', 'mode', 'link-50');">mode</a></tt> <tt class="py-op">==</tt> <tt class="py-string">'export'</tt><tt class="py-op">:</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt id="link-51" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-51', 'revision', 'link-46');">revision</a></tt> <tt class="py-op">==</tt> <tt class="py-string">'HEAD'</tt><tt class="py-op">:</tt> <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-52" class="py-name" targets="Method buildslave.commands.svn.SVN.doSVNExport()=buildslave.commands.svn.SVN-class.html#doSVNExport"><a title="buildslave.commands.svn.SVN.doSVNExport" class="py-name" href="#" onclick="return doclink('link-52', 'doSVNExport', 'link-52');">doSVNExport</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> <tt id="link-53" class="py-name"><a title="buildbot.steps.python.BuildEPYDoc.command
+buildbot.steps.python.PyFlakes.command
+buildbot.steps.python_twisted.RemovePYCs.command
+buildbot.steps.shell.Compile.command
+buildbot.steps.shell.Configure.command
+buildbot.steps.shell.PerlModuleTest.command
+buildbot.steps.shell.ShellCommand.command
+buildbot.steps.shell.Test.command
+buildbot.steps.shell.TreeSize.command
+buildslave.bot.SlaveBuilder.command" class="py-name" href="#" onclick="return doclink('link-53', 'command', 'link-32');">command</a></tt> <tt class="py-op">=</tt> <tt class="py-string">'export'</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">            <tt class="py-comment"># mode=='clobber', or copy/update on a broken workspace</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">            <tt id="link-54" class="py-name"><a title="buildbot.steps.python.BuildEPYDoc.command
+buildbot.steps.python.PyFlakes.command
+buildbot.steps.python_twisted.RemovePYCs.command
+buildbot.steps.shell.Compile.command
+buildbot.steps.shell.Configure.command
+buildbot.steps.shell.PerlModuleTest.command
+buildbot.steps.shell.ShellCommand.command
+buildbot.steps.shell.Test.command
+buildbot.steps.shell.TreeSize.command
+buildslave.bot.SlaveBuilder.command" class="py-name" href="#" onclick="return doclink('link-54', 'command', 'link-32');">command</a></tt> <tt class="py-op">=</tt> <tt class="py-string">'checkout'</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_dovccmd</tt><tt class="py-op">(</tt><tt id="link-55" class="py-name"><a title="buildbot.steps.python.BuildEPYDoc.command
+buildbot.steps.python.PyFlakes.command
+buildbot.steps.python_twisted.RemovePYCs.command
+buildbot.steps.shell.Compile.command
+buildbot.steps.shell.Configure.command
+buildbot.steps.shell.PerlModuleTest.command
+buildbot.steps.shell.ShellCommand.command
+buildbot.steps.shell.Test.command
+buildbot.steps.shell.TreeSize.command
+buildslave.bot.SlaveBuilder.command" class="py-name" href="#" onclick="return doclink('link-55', 'command', 'link-32');">command</a></tt><tt class="py-op">,</tt> <tt class="py-name">args</tt><tt class="py-op">,</tt> <tt class="py-name">rootdir</tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-56" class="py-name"><a title="buildbot.buildrequest.BuildRequest.builder
+buildbot.process.builder
+buildbot.status.builder
+buildbot.status.web.builder
+buildbot.status.web.builder.StatusResourceBuilder.builder" class="py-name" href="#" onclick="return doclink('link-56', 'builder', 'link-29');">builder</a></tt><tt class="py-op">.</tt><tt id="link-57" class="py-name"><a title="buildbot.status.builder.BuilderStatus.basedir" class="py-name" href="#" onclick="return doclink('link-57', 'basedir', 'link-30');">basedir</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line"> </tt>
+<a name="SVN.doSVNExport"></a><div id="SVN.doSVNExport-def"><a name="L89"></a><tt class="py-lineno"> 89</tt> <a class="py-toggle" href="#" id="SVN.doSVNExport-toggle" onclick="return toggle('SVN.doSVNExport');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.svn.SVN-class.html#doSVNExport">doSVNExport</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SVN.doSVNExport-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SVN.doSVNExport-expanded"><a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">        <tt class="py-docstring">''' Since svnversion cannot be used on a svn export, we find the HEAD</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line"><tt class="py-docstring">            revision from the repository and pass it to the --revision arg'''</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line"> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">parseInfo</tt><tt class="py-op">(</tt><tt class="py-param">res</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">            <tt class="py-name">answer</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">i</tt><tt class="py-op">.</tt><tt class="py-name">split</tt><tt class="py-op">(</tt><tt class="py-string">': '</tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt class="py-name">i</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-58" class="py-name"><a title="buildbot.steps.python.BuildEPYDoc.command
+buildbot.steps.python.PyFlakes.command
+buildbot.steps.python_twisted.RemovePYCs.command
+buildbot.steps.shell.Compile.command
+buildbot.steps.shell.Configure.command
+buildbot.steps.shell.PerlModuleTest.command
+buildbot.steps.shell.ShellCommand.command
+buildbot.steps.shell.Test.command
+buildbot.steps.shell.TreeSize.command
+buildslave.bot.SlaveBuilder.command" class="py-name" href="#" onclick="return doclink('link-58', 'command', 'link-32');">command</a></tt><tt class="py-op">.</tt><tt class="py-name">stdout</tt><tt class="py-op">.</tt><tt class="py-name">splitlines</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-keyword">if</tt> <tt class="py-name">i</tt><tt class="py-op">]</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">            <tt class="py-name">answer</tt> <tt class="py-op">=</tt> <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-name">answer</tt><tt class="py-op">)</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">exported_rev</tt> <tt class="py-op">=</tt> <tt class="py-name">answer</tt><tt class="py-op">[</tt><tt class="py-string">'Revision'</tt><tt class="py-op">]</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">exported_rev</tt> </tt>
+</div><a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line"> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">exportCmd</tt><tt class="py-op">(</tt><tt class="py-param">res</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">            <tt class="py-name">args</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">'--revision'</tt><tt class="py-op">,</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">res</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">svnurl</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">srcdir</tt><tt class="py-op">]</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_dovccmd</tt><tt class="py-op">(</tt><tt class="py-string">'export'</tt><tt class="py-op">,</tt> <tt class="py-name">args</tt><tt class="py-op">,</tt> <tt class="py-name">rootdir</tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-59" class="py-name"><a title="buildbot.buildrequest.BuildRequest.builder
+buildbot.process.builder
+buildbot.status.builder
+buildbot.status.web.builder
+buildbot.status.web.builder.StatusResourceBuilder.builder" class="py-name" href="#" onclick="return doclink('link-59', 'builder', 'link-29');">builder</a></tt><tt class="py-op">.</tt><tt id="link-60" class="py-name"><a title="buildbot.status.builder.BuilderStatus.basedir" class="py-name" href="#" onclick="return doclink('link-60', 'basedir', 'link-30');">basedir</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">        <tt class="py-name">svn_info_d</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_dovccmd</tt><tt class="py-op">(</tt><tt class="py-string">'info'</tt><tt class="py-op">,</tt> <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">svnurl</tt><tt class="py-op">,</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">rootdir</tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-61" class="py-name"><a title="buildbot.buildrequest.BuildRequest.builder
+buildbot.process.builder
+buildbot.status.builder
+buildbot.status.web.builder
+buildbot.status.web.builder.StatusResourceBuilder.builder" class="py-name" href="#" onclick="return doclink('link-61', 'builder', 'link-29');">builder</a></tt><tt class="py-op">.</tt><tt id="link-62" class="py-name"><a title="buildbot.status.builder.BuilderStatus.basedir" class="py-name" href="#" onclick="return doclink('link-62', 'basedir', 'link-30');">basedir</a></tt><tt class="py-op">,</tt> <tt class="py-name">keepStdout</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line"> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">        <tt class="py-name">svn_info_d</tt><tt class="py-op">.</tt><tt class="py-name">addCallbacks</tt><tt class="py-op">(</tt><tt class="py-name">parseInfo</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_abandonOnFailure</tt><tt class="py-op">)</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">        <tt class="py-name">svn_info_d</tt><tt class="py-op">.</tt><tt class="py-name">addCallbacks</tt><tt class="py-op">(</tt><tt class="py-name">exportCmd</tt><tt class="py-op">)</tt>  </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line"> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">svn_info_d</tt> </tt>
+</div><a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line"> </tt>
+<a name="SVN._purgeAndUpdate"></a><div id="SVN._purgeAndUpdate-def"><a name="L110"></a><tt class="py-lineno">110</tt> <a class="py-toggle" href="#" id="SVN._purgeAndUpdate-toggle" onclick="return toggle('SVN._purgeAndUpdate');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.svn.SVN-class.html#_purgeAndUpdate">_purgeAndUpdate</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SVN._purgeAndUpdate-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SVN._purgeAndUpdate-expanded"><a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">        <tt class="py-docstring">"""svn revert has several corner cases that make it unpractical.</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line"><tt class="py-docstring">        Use the Force instead and delete everything that shows up in status."""</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line">        <tt class="py-name">args</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">'--xml'</tt><tt class="py-op">]</tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">ignore_ignores</tt><tt class="py-op">:</tt> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">            <tt class="py-name">args</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-string">'--no-ignore'</tt><tt class="py-op">)</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_dovccmd</tt><tt class="py-op">(</tt><tt class="py-string">'status'</tt><tt class="py-op">,</tt> <tt class="py-name">args</tt><tt class="py-op">,</tt> <tt class="py-name">keepStdout</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">,</tt> <tt class="py-name">sendStdout</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">,</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">                             <tt class="py-name">cb</tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_purgeAndUpdate2</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line"> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">staticmethod</tt> </tt>
+<a name="SVN.getUnversionedFiles"></a><div id="SVN.getUnversionedFiles-def"><a name="L121"></a><tt class="py-lineno">121</tt> <a class="py-toggle" href="#" id="SVN.getUnversionedFiles-toggle" onclick="return toggle('SVN.getUnversionedFiles');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.svn.SVN-class.html#getUnversionedFiles">getUnversionedFiles</a><tt class="py-op">(</tt><tt class="py-param">stdout</tt><tt class="py-op">,</tt> <tt class="py-param">keep_on_purge</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SVN.getUnversionedFiles-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SVN.getUnversionedFiles-expanded"><a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">        <tt class="py-docstring">"""Delete everything that shown up on status."""</tt> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line">        <tt class="py-name">result_xml</tt> <tt class="py-op">=</tt> <tt class="py-name">parseString</tt><tt class="py-op">(</tt><tt class="py-name">stdout</tt><tt class="py-op">)</tt> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">entry</tt> <tt class="py-keyword">in</tt> <tt class="py-name">result_xml</tt><tt class="py-op">.</tt><tt class="py-name">getElementsByTagName</tt><tt class="py-op">(</tt><tt class="py-string">'entry'</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-name">wc_status</tt><tt class="py-op">,</tt><tt class="py-op">)</tt> <tt class="py-op">=</tt> <tt class="py-name">entry</tt><tt class="py-op">.</tt><tt class="py-name">getElementsByTagName</tt><tt class="py-op">(</tt><tt class="py-string">'wc-status'</tt><tt class="py-op">)</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">wc_status</tt><tt class="py-op">.</tt><tt class="py-name">getAttribute</tt><tt class="py-op">(</tt><tt class="py-string">'item'</tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-string">'external'</tt><tt class="py-op">:</tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">                <tt class="py-keyword">continue</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">wc_status</tt><tt class="py-op">.</tt><tt class="py-name">getAttribute</tt><tt class="py-op">(</tt><tt class="py-string">'item'</tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-string">'missing'</tt><tt class="py-op">:</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">                <tt class="py-keyword">continue</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">            <tt id="link-63" class="py-name" targets="Variable buildbot.status.builder.HTMLLogFile.filename=buildbot.status.builder.HTMLLogFile-class.html#filename,Variable buildbot.status.builder.LogFile.filename=buildbot.status.builder.LogFile-class.html#filename"><a title="buildbot.status.builder.HTMLLogFile.filename
+buildbot.status.builder.LogFile.filename" class="py-name" href="#" onclick="return doclink('link-63', 'filename', 'link-63');">filename</a></tt> <tt class="py-op">=</tt> <tt class="py-name">entry</tt><tt class="py-op">.</tt><tt class="py-name">getAttribute</tt><tt class="py-op">(</tt><tt class="py-string">'path'</tt><tt class="py-op">)</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt id="link-64" class="py-name"><a title="buildbot.status.builder.HTMLLogFile.filename
+buildbot.status.builder.LogFile.filename" class="py-name" href="#" onclick="return doclink('link-64', 'filename', 'link-63');">filename</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">keep_on_purge</tt><tt class="py-op">:</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">                <tt class="py-keyword">continue</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line">            <tt class="py-keyword">yield</tt> <tt id="link-65" class="py-name"><a title="buildbot.status.builder.HTMLLogFile.filename
+buildbot.status.builder.LogFile.filename" class="py-name" href="#" onclick="return doclink('link-65', 'filename', 'link-63');">filename</a></tt> </tt>
+</div><a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line"> </tt>
+<a name="SVN._purgeAndUpdate2"></a><div id="SVN._purgeAndUpdate2-def"><a name="L135"></a><tt class="py-lineno">135</tt> <a class="py-toggle" href="#" id="SVN._purgeAndUpdate2-toggle" onclick="return toggle('SVN._purgeAndUpdate2');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.svn.SVN-class.html#_purgeAndUpdate2">_purgeAndUpdate2</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">res</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SVN._purgeAndUpdate2-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SVN._purgeAndUpdate2-expanded"><a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt id="link-66" class="py-name"><a title="buildbot.status.builder.HTMLLogFile.filename
+buildbot.status.builder.LogFile.filename" class="py-name" href="#" onclick="return doclink('link-66', 'filename', 'link-63');">filename</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-67" class="py-name" targets="Static Method buildslave.commands.svn.SVN.getUnversionedFiles()=buildslave.commands.svn.SVN-class.html#getUnversionedFiles"><a title="buildslave.commands.svn.SVN.getUnversionedFiles" class="py-name" href="#" onclick="return doclink('link-67', 'getUnversionedFiles', 'link-67');">getUnversionedFiles</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-68" class="py-name"><a title="buildbot.steps.python.BuildEPYDoc.command
+buildbot.steps.python.PyFlakes.command
+buildbot.steps.python_twisted.RemovePYCs.command
+buildbot.steps.shell.Compile.command
+buildbot.steps.shell.Configure.command
+buildbot.steps.shell.PerlModuleTest.command
+buildbot.steps.shell.ShellCommand.command
+buildbot.steps.shell.Test.command
+buildbot.steps.shell.TreeSize.command
+buildslave.bot.SlaveBuilder.command" class="py-name" href="#" onclick="return doclink('link-68', 'command', 'link-32');">command</a></tt><tt class="py-op">.</tt><tt class="py-name">stdout</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">keep_on_purge</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line">            <tt class="py-name">filepath</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-69" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-69', 'path', 'link-28');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-70" class="py-name"><a title="buildbot.buildrequest.BuildRequest.builder
+buildbot.process.builder
+buildbot.status.builder
+buildbot.status.web.builder
+buildbot.status.web.builder.StatusResourceBuilder.builder" class="py-name" href="#" onclick="return doclink('link-70', 'builder', 'link-29');">builder</a></tt><tt class="py-op">.</tt><tt id="link-71" class="py-name"><a title="buildbot.status.builder.BuilderStatus.basedir" class="py-name" href="#" onclick="return doclink('link-71', 'basedir', 'link-30');">basedir</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-72" class="py-name" targets="Variable buildbot.process.base.Build.workdir=buildbot.process.base.Build-class.html#workdir,Variable buildbot.process.factory.BuildFactory.workdir=buildbot.process.factory.BuildFactory-class.html#workdir,Variable buildbot.process.process_twisted.TwistedBaseFactory.workdir=buildbot.process.process_twisted.TwistedBaseFactory-class.html#workdir,Variable buildbot.process.process_twisted.TwistedBuild.workdir=buildbot.process.process_twisted.TwistedBuild-class.html#workdir"><a title="buildbot.process.base.Build.workdir
+buildbot.process.factory.BuildFactory.workdir
+buildbot.process.process_twisted.TwistedBaseFactory.workdir
+buildbot.process.process_twisted.TwistedBuild.workdir" class="py-name" href="#" onclick="return doclink('link-72', 'workdir', 'link-72');">workdir</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line">                        <tt id="link-73" class="py-name"><a title="buildbot.status.builder.HTMLLogFile.filename
+buildbot.status.builder.LogFile.filename" class="py-name" href="#" onclick="return doclink('link-73', 'filename', 'link-63');">filename</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-74" class="py-name" targets="Method buildslave.commands.base.Command.sendStatus()=buildslave.commands.base.Command-class.html#sendStatus,Method buildslave.runprocess.RunProcess.sendStatus()=buildslave.runprocess.RunProcess-class.html#sendStatus"><a title="buildslave.commands.base.Command.sendStatus
+buildslave.runprocess.RunProcess.sendStatus" class="py-name" href="#" onclick="return doclink('link-74', 'sendStatus', 'link-74');">sendStatus</a></tt><tt class="py-op">(</tt><tt class="py-op">{</tt><tt class="py-string">'stdout'</tt><tt class="py-op">:</tt> <tt class="py-string">"%s\n"</tt> <tt class="py-op">%</tt> <tt class="py-name">filepath</tt><tt class="py-op">}</tt><tt class="py-op">)</tt> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-75" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-75', 'path', 'link-28');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">isfile</tt><tt class="py-op">(</tt><tt class="py-name">filepath</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line">                <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">chmod</tt><tt class="py-op">(</tt><tt class="py-name">filepath</tt><tt class="py-op">,</tt> <tt class="py-number">0700</tt><tt class="py-op">)</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line">                <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-76" class="py-name" targets="Method buildbot.util.loop.Loop.remove()=buildbot.util.loop.Loop-class.html#remove"><a title="buildbot.util.loop.Loop.remove" class="py-name" href="#" onclick="return doclink('link-76', 'remove', 'link-76');">remove</a></tt><tt class="py-op">(</tt><tt class="py-name">filepath</tt><tt class="py-op">)</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line">                <tt id="link-77" class="py-name"><a title="buildslave.commands.utils" class="py-name" href="#" onclick="return doclink('link-77', 'utils', 'link-10');">utils</a></tt><tt class="py-op">.</tt><tt class="py-name">rmdirRecursive</tt><tt class="py-op">(</tt><tt class="py-name">filepath</tt><tt class="py-op">)</tt> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line">        <tt class="py-comment"># Now safe to update.</tt> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line">        <tt id="link-78" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-78', 'revision', 'link-46');">revision</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'revision'</tt><tt class="py-op">]</tt> <tt class="py-keyword">or</tt> <tt class="py-string">'HEAD'</tt> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_dovccmd</tt><tt class="py-op">(</tt><tt class="py-string">'update'</tt><tt class="py-op">,</tt> <tt class="py-op">[</tt><tt class="py-string">'--revision'</tt><tt class="py-op">,</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt id="link-79" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-79', 'revision', 'link-46');">revision</a></tt><tt class="py-op">)</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line">                             <tt class="py-name">keepStdout</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line"> </tt>
+<a name="SVN.getSvnVersionCommand"></a><div id="SVN.getSvnVersionCommand-def"><a name="L150"></a><tt class="py-lineno">150</tt> <a class="py-toggle" href="#" id="SVN.getSvnVersionCommand-toggle" onclick="return toggle('SVN.getSvnVersionCommand');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.svn.SVN-class.html#getSvnVersionCommand">getSvnVersionCommand</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SVN.getSvnVersionCommand-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SVN.getSvnVersionCommand-expanded"><a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line"><tt class="py-docstring">        Get the (shell) command used to determine SVN revision number</tt> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line"><tt class="py-docstring">        of checked-out code</tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line"><tt class="py-docstring">        return: list of strings, passable as the command argument to RunProcess</tt> </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line">        <tt class="py-comment"># svn checkout operations finish with 'Checked out revision 16657.'</tt> </tt>
+<a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line">        <tt class="py-comment"># svn update operations finish the line 'At revision 16654.'</tt> </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line">        <tt class="py-comment"># But we don't use those. Instead, run 'svnversion'.</tt> </tt>
+<a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">        <tt class="py-name">svnversion_command</tt> <tt class="py-op">=</tt> <tt id="link-80" class="py-name"><a title="buildslave.commands.utils" class="py-name" href="#" onclick="return doclink('link-80', 'utils', 'link-10');">utils</a></tt><tt class="py-op">.</tt><tt id="link-81" class="py-name"><a title="buildslave.commands.base.SourceBaseCommand.getCommand
+buildslave.commands.utils.getCommand" class="py-name" href="#" onclick="return doclink('link-81', 'getCommand', 'link-27');">getCommand</a></tt><tt class="py-op">(</tt><tt class="py-string">"svnversion"</tt><tt class="py-op">)</tt> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line">        <tt class="py-comment"># older versions of 'svnversion' (1.1.4) require the WC_PATH</tt> </tt>
+<a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line">        <tt class="py-comment"># argument, newer ones (1.3.1) do not.</tt> </tt>
+<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-op">[</tt><tt class="py-name">svnversion_command</tt><tt class="py-op">,</tt> <tt class="py-string">"."</tt><tt class="py-op">]</tt> </tt>
+</div><a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line"> </tt>
+<a name="SVN.parseGotRevision"></a><div id="SVN.parseGotRevision-def"><a name="L165"></a><tt class="py-lineno">165</tt> <a class="py-toggle" href="#" id="SVN.parseGotRevision-toggle" onclick="return toggle('SVN.parseGotRevision');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.svn.SVN-class.html#parseGotRevision">parseGotRevision</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SVN.parseGotRevision-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SVN.parseGotRevision-expanded"><a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-82" class="py-name"><a title="buildbot.steps.vstudio.VisualStudio.mode" class="py-name" href="#" onclick="return doclink('link-82', 'mode', 'link-50');">mode</a></tt> <tt class="py-op">==</tt> <tt class="py-string">'export'</tt><tt class="py-op">:</tt> </tt>
+<a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line">            <tt class="py-name">ss_rev</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'revision'</tt><tt class="py-op">]</tt> </tt>
+<a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line">            <tt class="py-name">got_revision</tt> <tt class="py-op">=</tt> <tt class="py-name">ss_rev</tt> <tt class="py-keyword">and</tt> <tt class="py-name">ss_rev</tt> <tt class="py-keyword">or</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">exported_rev</tt> </tt>
+<a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">defer</tt><tt class="py-op">.</tt><tt class="py-name">succeed</tt><tt class="py-op">(</tt><tt class="py-name">got_revision</tt><tt class="py-op">)</tt> </tt>
+<a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line"> </tt>
+<a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line">        <tt class="py-name">c</tt> <tt class="py-op">=</tt> <tt id="link-83" class="py-name"><a title="buildslave.runprocess" class="py-name" href="#" onclick="return doclink('link-83', 'runprocess', 'link-7');">runprocess</a></tt><tt class="py-op">.</tt><tt id="link-84" class="py-name"><a title="buildslave.runprocess.RunProcess" class="py-name" href="#" onclick="return doclink('link-84', 'RunProcess', 'link-34');">RunProcess</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-85" class="py-name"><a title="buildbot.buildrequest.BuildRequest.builder
+buildbot.process.builder
+buildbot.status.builder
+buildbot.status.web.builder
+buildbot.status.web.builder.StatusResourceBuilder.builder" class="py-name" href="#" onclick="return doclink('link-85', 'builder', 'link-29');">builder</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line">                         <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-86" class="py-name" targets="Method buildslave.commands.svn.SVN.getSvnVersionCommand()=buildslave.commands.svn.SVN-class.html#getSvnVersionCommand"><a title="buildslave.commands.svn.SVN.getSvnVersionCommand" class="py-name" href="#" onclick="return doclink('link-86', 'getSvnVersionCommand', 'link-86');">getSvnVersionCommand</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line">                         <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-87" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-87', 'path', 'link-28');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-88" class="py-name"><a title="buildbot.buildrequest.BuildRequest.builder
+buildbot.process.builder
+buildbot.status.builder
+buildbot.status.web.builder
+buildbot.status.web.builder.StatusResourceBuilder.builder" class="py-name" href="#" onclick="return doclink('link-88', 'builder', 'link-29');">builder</a></tt><tt class="py-op">.</tt><tt id="link-89" class="py-name"><a title="buildbot.status.builder.BuilderStatus.basedir" class="py-name" href="#" onclick="return doclink('link-89', 'basedir', 'link-30');">basedir</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">srcdir</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line">                         <tt class="py-name">environ</tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">env</tt><tt class="py-op">,</tt> <tt id="link-90" class="py-name"><a title="buildbot.scripts.logwatcher.LogWatcher.timeout
+buildslave.scripts.logwatcher.LogWatcher.timeout" class="py-name" href="#" onclick="return doclink('link-90', 'timeout', 'link-36');">timeout</a></tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-91" class="py-name"><a title="buildbot.scripts.logwatcher.LogWatcher.timeout
+buildslave.scripts.logwatcher.LogWatcher.timeout" class="py-name" href="#" onclick="return doclink('link-91', 'timeout', 'link-36');">timeout</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line">                         <tt class="py-name">sendStdout</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">,</tt> <tt class="py-name">sendStderr</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">,</tt> <tt class="py-name">sendRC</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">,</tt> </tt>
+<a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line">                         <tt class="py-name">keepStdout</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">,</tt> <tt id="link-92" class="py-name"><a title="buildslave.bot.Bot.usePTY" class="py-name" href="#" onclick="return doclink('link-92', 'usePTY', 'link-38');">usePTY</a></tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">)</tt> </tt>
+<a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line">        <tt class="py-name">d</tt> <tt class="py-op">=</tt> <tt class="py-name">c</tt><tt class="py-op">.</tt><tt id="link-93" class="py-name"><a title="buildbot.db.connector.DBConnector.start
+buildbot.interfaces.IChangeSource.start
+buildbot.process.buildstep.BuildStep.start
+buildbot.process.buildstep.LoggedRemoteCommand.start
+buildbot.process.buildstep.RemoteCommand.start
+buildbot.process.buildstep.RemoteShellCommand.start
+buildbot.process.mtrlogobserver.MTR.start
+buildbot.scripts.logwatcher.LogWatcher.start
+buildbot.scripts.startup.start
+buildbot.status.progress.StepProgress.start
+buildbot.steps.dummy.Dummy.start
+buildbot.steps.dummy.FailingDummy.start
+buildbot.steps.dummy.RemoteDummy.start
+buildbot.steps.dummy.Wait.start
+buildbot.steps.master.MasterShellCommand.start
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.start
+buildbot.steps.python_twisted.HLint.start
+buildbot.steps.python_twisted.Trial.start
+buildbot.steps.shell.ShellCommand.start
+buildbot.steps.shell.WarningCountingShellCommand.start
+buildbot.steps.source.Source.start
+buildbot.steps.transfer.DirectoryUpload.start
+buildbot.steps.transfer.FileDownload.start
+buildbot.steps.transfer.FileUpload.start
+buildbot.steps.transfer.JSONPropertiesDownload.start
+buildbot.steps.transfer.StringDownload.start
+buildbot.steps.trigger.Trigger.start
+buildbot.steps.vstudio.VC6.start
+buildbot.steps.vstudio.VC7.start
+buildbot.steps.vstudio.VC8.start
+buildbot.steps.vstudio.VCExpress9.start
+buildslave.commands.base.Command.start
+buildslave.commands.base.SourceBaseCommand.start
+buildslave.commands.bzr.Bzr.start
+buildslave.commands.cvs.CVS.start
+buildslave.commands.shell.SlaveShellCommand.start
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.start
+buildslave.commands.transfer.SlaveFileDownloadCommand.start
+buildslave.commands.transfer.SlaveFileUploadCommand.start
+buildslave.interfaces.ISlaveCommand.start
+buildslave.runprocess.LogFileWatcher.start
+buildslave.runprocess.RunProcess.start
+buildslave.scripts.logwatcher.LogWatcher.start
+buildslave.scripts.startup.start" class="py-name" href="#" onclick="return doclink('link-93', 'start', 'link-40');">start</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">_parse</tt><tt class="py-op">(</tt><tt class="py-param">res</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line">            <tt class="py-name">r_raw</tt> <tt class="py-op">=</tt> <tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">stdout</tt><tt class="py-op">.</tt><tt id="link-94" class="py-name" targets="Function buildbot.changes.hgbuildbot.strip()=buildbot.changes.hgbuildbot-module.html#strip"><a title="buildbot.changes.hgbuildbot.strip" class="py-name" href="#" onclick="return doclink('link-94', 'strip', 'link-94');">strip</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line">            <tt class="py-comment"># Extract revision from the version "number" string</tt> </tt>
+<a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line">            <tt class="py-name">r</tt> <tt class="py-op">=</tt> <tt class="py-name">r_raw</tt><tt class="py-op">.</tt><tt class="py-name">rstrip</tt><tt class="py-op">(</tt><tt class="py-string">'MS'</tt><tt class="py-op">)</tt> </tt>
+<a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line">            <tt class="py-name">r</tt> <tt class="py-op">=</tt> <tt class="py-name">r</tt><tt class="py-op">.</tt><tt class="py-name">split</tt><tt class="py-op">(</tt><tt class="py-string">':'</tt><tt class="py-op">)</tt><tt class="py-op">[</tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">]</tt> </tt>
+<a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line">            <tt class="py-name">got_version</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line">            <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line">                <tt class="py-name">got_version</tt> <tt class="py-op">=</tt> <tt class="py-name">int</tt><tt class="py-op">(</tt><tt class="py-name">r</tt><tt class="py-op">)</tt> </tt>
+<a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line">            <tt class="py-keyword">except</tt> <tt class="py-name">ValueError</tt><tt class="py-op">:</tt> </tt>
+<a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line">                <tt class="py-name">msg</tt> <tt class="py-op">=</tt><tt class="py-op">(</tt><tt class="py-string">"SVN.parseGotRevision unable to parse output "</tt> </tt>
+<a name="L188"></a><tt class="py-lineno">188</tt>  <tt class="py-line">                      <tt class="py-string">"of svnversion: '%s'"</tt> <tt class="py-op">%</tt> <tt class="py-name">r_raw</tt><tt class="py-op">)</tt> </tt>
+<a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line">                <tt id="link-95" class="py-name"><a title="buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-95', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-name">msg</tt><tt class="py-op">)</tt> </tt>
+<a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-96" class="py-name"><a title="buildslave.commands.base.Command.sendStatus
+buildslave.runprocess.RunProcess.sendStatus" class="py-name" href="#" onclick="return doclink('link-96', 'sendStatus', 'link-74');">sendStatus</a></tt><tt class="py-op">(</tt><tt class="py-op">{</tt><tt class="py-string">'header'</tt><tt class="py-op">:</tt> <tt class="py-name">msg</tt> <tt class="py-op">+</tt> <tt class="py-string">"\n"</tt><tt class="py-op">}</tt><tt class="py-op">)</tt> </tt>
+<a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">got_version</tt> </tt>
+</div><a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line">        <tt class="py-name">d</tt><tt class="py-op">.</tt><tt class="py-name">addCallback</tt><tt class="py-op">(</tt><tt class="py-name">_parse</tt><tt class="py-op">)</tt> </tt>
+<a name="L193"></a><tt class="py-lineno">193</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">d</tt> </tt>
+</div></div><a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.2</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Fri Oct 29 10:00:44 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
