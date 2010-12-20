@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>buildslave.commands.shell.SlaveShellCommand</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.3</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="buildslave-module.html">Package&nbsp;buildslave</a> ::
+        <a href="buildslave.commands-module.html">Package&nbsp;commands</a> ::
+        <a href="buildslave.commands.shell-module.html">Module&nbsp;shell</a> ::
+        Class&nbsp;SlaveShellCommand
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="buildslave.commands.shell.SlaveShellCommand-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class SlaveShellCommand</h1><p class="nomargin-top"><span class="codelink"><a href="buildslave.commands.shell-pysrc.html#SlaveShellCommand">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+<a href="buildslave.commands.base.Command-class.html">base.Command</a> --+
+               |
+              <strong class="uidshort">SlaveShellCommand</strong>
+</pre>
+
+<hr />
+<p>This is a Command which runs a shell command. The args dict contains 
+  the following keys:</p>
+  <ul>
+    <li>
+      ['command'] (required): a shell command to run. If this is a string, 
+      it will be run with /bin/sh (['/bin/sh', '-c', command]). If it is a 
+      list (preferred), it will be used directly.
+    </li>
+    <li>
+      ['workdir'] (required): subdirectory in which the command will be 
+      run, relative to the builder dir
+    </li>
+    <li>
+      ['env']: a dict of environment variables to augment/replace 
+      os.environ . PYTHONPATH is treated specially, and should be a list of
+      path components to be prepended to any existing PYTHONPATH 
+      environment variable.
+    </li>
+    <li>
+      ['initial_stdin']: a string which will be written to the command's 
+      stdin as soon as it starts
+    </li>
+    <li>
+      ['keep_stdin_open']: unless True, the command's stdin will be closed 
+      as soon as initial_stdin has been written. Set this to True if you 
+      plan to write to stdin after the command has been started.
+    </li>
+    <li>
+      ['want_stdout']: 0 if stdout should be thrown away
+    </li>
+    <li>
+      ['want_stderr']: 0 if stderr should be thrown away
+    </li>
+    <li>
+      ['usePTY']: True or False if the command should use a PTY (defaults 
+      to configuration of the slave)
+    </li>
+    <li>
+      ['not_really']: 1 to skip execution and return rc=0
+    </li>
+    <li>
+      ['timeout']: seconds of silence to tolerate before killing command
+    </li>
+    <li>
+      ['maxTime']: seconds before killing command
+    </li>
+    <li>
+      ['logfiles']: dict mapping LogFile name to the workdir-relative 
+      filename of a local log file. This local file will be watched just 
+      like 'tail -f', and all changes will be written to 'log' status 
+      updates.
+    </li>
+    <li>
+      ['logEnviron']: False to not log the environment variables on the 
+      slave
+    </li>
+  </ul>
+  <p>ShellCommand creates the following status messages:</p>
+  <ul>
+    <li>
+      {'stdout': data} : when stdout data is available
+    </li>
+    <li>
+      {'stderr': data} : when stderr data is available
+    </li>
+    <li>
+      {'header': data} : when headers (command start/stop) are available
+    </li>
+    <li>
+      {'log': (logfile_name, data)} : when log files have new contents
+    </li>
+    <li>
+      {'rc': rc} : when the process has terminated
+    </li>
+  </ul>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="buildslave.commands.shell.SlaveShellCommand-class.html#start" class="summary-sig-name">start</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Start the command.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildslave.commands.shell-pysrc.html#SlaveShellCommand.start">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="buildslave.commands.shell.SlaveShellCommand-class.html#interrupt" class="summary-sig-name">interrupt</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Override this in a subclass to allow commands to be interrupted.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildslave.commands.shell-pysrc.html#SlaveShellCommand.interrupt">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="writeStdin"></a><span class="summary-sig-name">writeStdin</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">data</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildslave.commands.shell-pysrc.html#SlaveShellCommand.writeStdin">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="closeStdin"></a><span class="summary-sig-name">closeStdin</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildslave.commands.shell-pysrc.html#SlaveShellCommand.closeStdin">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="buildslave.commands.base.Command-class.html">base.Command</a></code></b>:
+      <code><a href="buildslave.commands.base.Command-class.html#__init__">__init__</a></code>,
+      <code><a href="buildslave.commands.base.Command-class.html#__providedBy__">__providedBy__</a></code>,
+      <code><a href="buildslave.commands.base.Command-class.html#__provides__">__provides__</a></code>,
+      <code><a href="buildslave.commands.base.Command-class.html#doInterrupt">doInterrupt</a></code>,
+      <code><a href="buildslave.commands.base.Command-class.html#doStart">doStart</a></code>,
+      <code><a href="buildslave.commands.base.Command-class.html#sendStatus">sendStatus</a></code>,
+      <code><a href="buildslave.commands.base.Command-class.html#setup">setup</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variables</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="buildslave.commands.base.Command-class.html">base.Command</a></code></b>:
+      <code><a href="buildslave.commands.base.Command-class.html#__implemented__">__implemented__</a></code>,
+      <code><a href="buildslave.commands.base.Command-class.html#debug">debug</a></code>,
+      <code><a href="buildslave.commands.base.Command-class.html#interrupted">interrupted</a></code>,
+      <code><a href="buildslave.commands.base.Command-class.html#running">running</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Method Details</span></td>
+</tr>
+</table>
+<a name="start"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">start</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="buildslave.commands.shell-pysrc.html#SlaveShellCommand.start">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Start the command. This method should return a Deferred that will fire
+  when the command has completed. The Deferred's argument will be 
+  ignored.</p>
+  <p>This method should be overridden by subclasses.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="buildslave.commands.base.Command-class.html#start">base.Command.start</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="interrupt"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">interrupt</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="buildslave.commands.shell-pysrc.html#SlaveShellCommand.interrupt">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Override this in a subclass to allow commands to be interrupted. May 
+  be called multiple times, test and set self.interrupted=True if this 
+  matters.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="buildslave.commands.base.Command-class.html#interrupt">base.Command.interrupt</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.3</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Sun Dec 19 18:26:46 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

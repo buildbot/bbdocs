@@ -1,0 +1,198 @@
+<html lang="en">
+<head>
+<title>Master-Slave API - BuildBot Manual - 0.8.3</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.3">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Developer-Information.html#Developer-Information" title="Developer Information">
+<link rel="prev" href="Obfuscating-Passwords.html#Obfuscating-Passwords" title="Obfuscating Passwords">
+<link rel="next" href="Twisted-Idioms.html#Twisted-Idioms" title="Twisted Idioms">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.3.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Master-Slave-API"></a>
+<a name="Master_002dSlave-API"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Twisted-Idioms.html#Twisted-Idioms">Twisted Idioms</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Obfuscating-Passwords.html#Obfuscating-Passwords">Obfuscating Passwords</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Developer-Information.html#Developer-Information">Developer Information</a>
+<hr>
+</div>
+
+<h3 class="section">8.7 Master-Slave API</h3>
+
+<p>This section is a (very incomplete) description of the master-slave interface. 
+The interface is based on Twisted's Perspective Broker.
+
+<h3 class="heading">Connection</h3>
+
+<p>The slave connects to the master, using the parameters supplied to
+<code>buildslave create-slave</code>.  It uses a reconnecting process with an
+exponential backoff, and will automatically reconnect on disconnection.
+
+   <p><a name="index-buildslave_002ebot_002eBot-161"></a>
+Once connected, the slave authenticates with the Twisted Cred (newcred)
+mechanism, using the username and password supplied to <code>buildslave
+create-slave</code>.  The "mind" is the slave bot instance (class
+<code>buildslave.bot.Bot</code>).
+
+   <p><a name="index-buildbot_002emaster_002eDispatcher-162"></a><a name="index-buildbot_002ebuildslave_002eBuildSlave-163"></a>
+On the master side, the realm is implemented by
+<code>buildbot.master.Dispatcher</code>, which examines the username of incoming
+avatar requests.  There are special cases for <code>change</code>, <code>debug</code>, and
+<code>statusClient</code>, which are not discussed here.  For all other usernames,
+the botmaster is consulted, and if a slave with that name is configured, its
+<code>buildbot.buildslave.BuildSlave</code> instance is returned as the perspective.
+
+<h3 class="heading">Build Slaves</h3>
+
+<p>At this point, the master-side BuildSlave object has a pointer to the remote,
+slave-side Bot object in <code>self.slave</code>, and the slave-side Bot object has a
+reference to the master-side BuildSlave object in <code>self.perspective</code>.
+
+<h4 class="subheading">Bot methods</h4>
+
+<p>The slave-side object has the following remote methods:
+
+     <dl>
+<dt><code>remote_getCommands</code><dd>Returns a list of <code>(name, version)</code> for all commands the slave recognizes
+
+     <br><dt><code>remote_setBuilderList</code><dd>Given a list of builders and their build directories, ensures that those
+builders, and only those builders, are running.  This can be called after the
+initial connection is established, with a new list, to add or remove builders.
+
+     <p>This method returns a dictionary of <code>SlaveBuilder</code> objects - see below
+
+     <br><dt><code>remote_print</code><dd>Adds a message to the slave logfile
+
+     <br><dt><code>remote_getSlaveInfo</code><dd>Returns the contents of the slave's <samp><span class="file">info/</span></samp> directory. Also contains the keys
+
+          <dl>
+<dt><code>environ</code><dd>copy of the slaves environment
+<br><dt><code>system</code><dd>OS the slave is running (extracted from pythons os.name)
+<br><dt><code>basedir</code><dd>base directory where slave is running
+</dl>
+
+     <br><dt><code>remote_getVersion</code><dd>Returns the slave's version
+
+   </dl>
+
+<h4 class="subheading">BuildSlave methods</h4>
+
+<p>The master-side object has the following method:
+
+     <dl>
+<dt><code>perspective_keepalive</code><dd>Does nothing - used to keep traffic flowing over the TCP connection
+
+   </dl>
+
+<h3 class="heading">Slave Builders</h3>
+
+<p><a name="index-buildslave_002ebot_002eSlaveBuilder-164"></a><a name="index-buildbot_002eprocess_002ebuilder_002eBuilder-165"></a>
+Each build slave has a set of builders which can run on it.  These are represented
+by distinct classes on the master and slave, just like the BuildSlave and Bot objects
+described above.
+
+   <p>On the slave side, builders are represented as instances of the
+<code>buildslave.bot.SlaveBuilder</code> class.  On the master side, they are
+represented by the <code>buildbot.process.builder.SlaveBuilder</code> class.  The
+following will refer to these as the slave-side and master-side SlaveBuilder
+classes.  Each object keeps a reference to its opposite in <code>self.remote</code>.
+
+<h4 class="subheading">slave-side SlaveBuilder methods</h4>
+
+     <dl>
+<dt><code>remote_setMaster</code><dd>Provides a reference to the master-side SlaveBuilder
+
+     <br><dt><code>remote_print</code><dd>Adds a message to the slave logfile; used to check round-trip connectivity
+
+     <br><dt><code>remote_startBuild</code><dd>Indicates that a build is about to start, and that any subsequent
+commands are part of that build
+
+     <br><dt><code>remote_startCommand</code><dd>Invokes a command on the slave side
+
+     <br><dt><code>remote_interruptCommand</code><dd>Interrupts the currently-running command
+
+     <br><dt><code>remote_shutdown</code><dd>Shuts down the slave cleanly
+
+</dl>
+
+<h4 class="subheading">master-side SlaveBuilder methods</h4>
+
+<p>The master side does not have any remotely-callable methods.
+
+<h3 class="heading">Setup</h3>
+
+<p>After the initial connection and trading of a mind (Bot) for an avatar
+(BuildSlave), the master calls the Bot's <code>setBuilderList</code> method to set up
+the proper slave builders on the slave side.  This method returns a reference to
+each of the new slave-side SlaveBuilder objects.  Each of these is handed to the
+corresponding master-side SlaveBuilder object.  This immediately calls the remote
+<code>setMaster</code> method, then the <code>print</code> method.
+
+<h3 class="heading">Pinging</h3>
+
+<p>To ping a remote SlaveBuilder, the master calls the <code>print</code> method.
+
+<h3 class="heading">Building</h3>
+
+<p>When a build starts, the msater calls the slave's <code>startBuild</code> method. 
+Each BuildStep instance will subsequently call the <code>startCommand</code> method,
+passing a reference to itself as the <code>stepRef</code> parameter.  The
+<code>startCommand</code> method returns immediately, and the end of the command is
+signalled with a call to a method on the master-side BuildStep object.
+
+<h4 class="subheading">master-side BuildStep methods</h4>
+
+     <dl>
+<dt><code>remote_update</code><dd>Update information about the running command.  See below for the format.
+
+     <br><dt><code>remote_complete</code><dd>Signal that the command is complete, either successfully or with a Twisted failure.
+
+</dl>
+
+   <p>Updates from the slave are a list of individual update elements.  Each update
+element is, in turn, a list of the form <code>[data, 0]</code> where the 0 is present
+for historical reasons.  The data is a dictionary, with keys describing the
+contents, e.g., <code>header</code>, <code>stdout</code>, or the name of a logfile.  If the
+key is <code>rc</code>, then the value is the exit status of the command.  No further
+updates should be sent after an <code>rc</code>.
+
+   </body></html>
+

@@ -1,0 +1,138 @@
+<html lang="en">
+<head>
+<title>WithProperties - BuildBot Manual - 0.8.3</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.3">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Using-Build-Properties.html#Using-Build-Properties" title="Using Build Properties">
+<link rel="next" href="Common-Build-Properties.html#Common-Build-Properties" title="Common Build Properties">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.3.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="WithProperties"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Common-Build-Properties.html#Common-Build-Properties">Common Build Properties</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Using-Build-Properties.html#Using-Build-Properties">Using Build Properties</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.11.2.1 WithProperties</h5>
+
+<p><a name="index-WithProperties-75"></a>
+You can use build properties in ShellCommands by using the
+<code>WithProperties</code> wrapper when setting the arguments of
+the ShellCommand. This interpolates the named build properties
+into the generated shell command.  Most step parameters accept
+<code>WithProperties</code>.  Please file bugs for any parameters which
+do not.
+
+<pre class="example">     from buildbot.steps.shell import ShellCommand
+     from buildbot.process.properties import WithProperties
+     
+     f.addStep(ShellCommand(
+               command=["tar", "czf",
+                        WithProperties("build-%s.tar.gz", "revision"),
+                        "source"]))
+</pre>
+   <p>If this BuildStep were used in a tree obtained from Subversion, it
+would create a tarball with a name like <samp><span class="file">build-1234.tar.gz</span></samp>.
+
+   <p>The <code>WithProperties</code> function does <code>printf</code>-style string
+interpolation, using strings obtained by calling
+<code>build.getProperty(propname)</code>. Note that for every <code>%s</code> (or
+<code>%d</code>, etc), you must have exactly one additional argument to
+indicate which build property you want to insert.
+
+   <p>You can also use python dictionary-style string interpolation by using
+the <code>%(propname)s</code> syntax. In this form, the property name goes
+in the parentheses, and WithProperties takes <em>no</em> additional
+arguments:
+
+<pre class="example">     f.addStep(ShellCommand(
+               command=["tar", "czf",
+                        WithProperties("build-%(revision)s.tar.gz"),
+                        "source"]))
+</pre>
+   <p>Don't forget the extra &ldquo;s&rdquo; after the closing parenthesis! This is
+the cause of many confusing errors.
+
+   <p>The dictionary-style interpolation supports a number of more advanced
+syntaxes, too.
+
+     <dl>
+<dt><code>propname:-replacement</code><dd>If <code>propname</code> exists, substitute its value; otherwise,
+substitute <code>replacement</code>.  <code>replacement</code> may be empty
+(<code>%(propname:-)s</code>)
+
+     <br><dt><code>propname:~replacement</code><dd>Like <code>propname:-replacement</code>, but only substitutes the value
+of property <code>propname</code> if it is something Python regards as "true". 
+Python considers <code>None</code>, 0, empty lists, and the empty string to be
+false, so such values will be replaced by <code>replacement</code>.
+
+     <br><dt><code>propname:+replacement</code><dd>If <code>propname</code> exists, substitute <code>replacement</code>; otherwise,
+substitute an empty string.
+
+   </dl>
+
+   <p>Although these are similar to shell substitutions, no other
+substitutions are currently supported, and <code>replacement</code> in the
+above cannot contain more substitutions.
+
+   <p>If you need to do more complex substitution, you can pass keyword
+arguments to <code>WithProperties</code>. The value of each keyword argument
+should be a function that takes one argument (the existing properties)
+and returns a string value that will be used to replace that key:
+
+<pre class="example">     WithProperties('%(now)s', now=lambda _: time.clock())
+</pre>
+   <pre class="example">     def determine_foo(props):
+         if props.has_key('bar'):
+             return props['bar']
+         elif props.has_key('baz'):
+             return props['baz']
+         return 'qux'
+     
+     WithProperties('%(foo)s', foo=determine_foo)
+</pre>
+   <p>Note: like python, you can either do positional-argument interpolation
+<em>or</em> keyword-argument interpolation, not both. Thus you cannot use
+a string like <code>WithProperties("foo-%(revision)s-%s", "branch")</code>.
+
+   </body></html>
+

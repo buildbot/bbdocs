@@ -1,0 +1,913 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>buildbot.process.builder.Builder</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.3</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="buildbot-module.html">Package&nbsp;buildbot</a> ::
+        <a href="buildbot.process-module.html">Package&nbsp;process</a> ::
+        <a href="buildbot.process.builder-module.html">Module&nbsp;builder</a> ::
+        Class&nbsp;Builder
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="buildbot.process.builder.Builder-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class Builder</h1><p class="nomargin-top"><span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+  twisted.spread.jelly.Jellyable --+        
+                                   |        
+ twisted.spread.flavors.Serializable --+    
+                                       |    
+    twisted.spread.flavors.Referenceable --+
+                                           |
+ twisted.application.service.Service --+   |
+                                       |   |
+twisted.application.service.MultiService --+
+                                           |
+                                          <strong class="uidshort">Builder</strong>
+</pre>
+
+<hr />
+<p>I manage all Builds of a given type.</p>
+  <p>Each Builder is created by an entry in the config file (the 
+  c['builders'] list), with a number of parameters.</p>
+  <p>One of these parameters is the <a 
+  href="buildbot.process.factory.BuildFactory-class.html" 
+  class="link">buildbot.process.factory.BuildFactory</a> object that is 
+  associated with this Builder. The factory is responsible for creating new
+  <a href="buildbot.process.base.Build-class.html" class="link">Build</a> 
+  objects. Each Build object defines when and how the build is performed, 
+  so a new Factory or Builder should be defined to control this 
+  behavior.</p>
+  <p>The Builder holds on to a number of <a 
+  href="buildbot.buildrequest.BuildRequest-class.html" 
+  class="link">base.BuildRequest</a> objects in a list named 
+  <code>.buildable</code>. Incoming BuildRequest objects will be added to 
+  this list, or (if possible) merged into an existing request. When a slave
+  becomes available, I will use my <code>BuildFactory</code> to turn the 
+  request into a new <code>Build</code> object. The 
+  <code>BuildRequest</code> is forgotten, the <code>Build</code> goes into 
+  <code>.building</code> while it runs. Once the build finishes, I will 
+  discard it.</p>
+  <p>I maintain a list of available SlaveBuilders, one for each connected 
+  slave that the <code>slavenames</code> parameter says we can use. Some of
+  these will be idle, some of them will be busy running builds for me. If 
+  there are multiple slaves, I can run multiple builds at once.</p>
+  <p>I also manage forced builds, progress expectation (ETA) management, 
+  and some status delivery chores.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="buildbot.process.builder.Builder-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">setup</span>,
+        <span class="summary-sig-arg">builder_status</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="setBotmaster"></a><span class="summary-sig-name">setBotmaster</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">botmaster</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.setBotmaster">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="compareToSetup"></a><span class="summary-sig-name">compareToSetup</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">setup</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.compareToSetup">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__repr__"></a><span class="summary-sig-name">__repr__</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.__repr__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="triggerNewBuildCheck"></a><span class="summary-sig-name">triggerNewBuildCheck</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.triggerNewBuildCheck">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="buildbot.process.builder.Builder-class.html#run" class="summary-sig-name">run</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Check for work to be done.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.run">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getBuildable"></a><span class="summary-sig-name">getBuildable</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">limit</span>=<span class="summary-sig-default">None</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.getBuildable">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="buildbot.process.builder.Builder-class.html#getOldestRequestTime" class="summary-sig-name">getOldestRequestTime</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns the timestamp of the oldest build request for this builder.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.getOldestRequestTime">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="cancelBuildRequest"></a><span class="summary-sig-name">cancelBuildRequest</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">brid</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.cancelBuildRequest">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="buildbot.process.builder.Builder-class.html#consumeTheSoulOfYourPredecessor" class="summary-sig-name">consumeTheSoulOfYourPredecessor</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">old</span>)</span><br />
+      Suck the brain out of an old Builder.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.consumeTheSoulOfYourPredecessor">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="reclaimAllBuilds"></a><span class="summary-sig-name">reclaimAllBuilds</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.reclaimAllBuilds">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getBuild"></a><span class="summary-sig-name">getBuild</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">number</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.getBuild">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="fireTestEvent"></a><span class="summary-sig-name">fireTestEvent</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>,
+        <span class="summary-sig-arg">fire_with</span>=<span class="summary-sig-default">None</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.fireTestEvent">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="addLatentSlave"></a><span class="summary-sig-name">addLatentSlave</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">slave</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.addLatentSlave">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type"><code class="link">twisted.internet.defer.Deferred</code></span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="buildbot.process.builder.Builder-class.html#attached" class="summary-sig-name">attached</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">slave</span>,
+        <span class="summary-sig-arg">remote</span>,
+        <span class="summary-sig-arg">commands</span>)</span><br />
+      This is invoked by the BuildSlave when the self.slavename bot 
+      registers their builder.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.attached">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="detached"></a><span class="summary-sig-name">detached</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">slave</span>)</span><br />
+      This is called when the connection to the bot is lost.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.detached">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="updateBigStatus"></a><span class="summary-sig-name">updateBigStatus</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.updateBigStatus">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="buildbot.process.builder.Builder-class.html#startBuild" class="summary-sig-name">startBuild</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">build</span>,
+        <span class="summary-sig-arg">sb</span>)</span><br />
+      Start a build on the given slave.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.startBuild">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="setupProperties"></a><span class="summary-sig-name">setupProperties</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">props</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.setupProperties">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="buildbot.process.builder.Builder-class.html#buildFinished" class="summary-sig-name">buildFinished</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">build</span>,
+        <span class="summary-sig-arg">sb</span>,
+        <span class="summary-sig-arg">bids</span>)</span><br />
+      This is called when the Build has finished (either success or 
+      failure).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.buildFinished">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="buildbot.process.builder.Builder-class.html#setExpectations" class="summary-sig-name">setExpectations</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">progress</span>)</span><br />
+      Mark the build as successful and update expectations for the next 
+      build.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.setExpectations">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="shutdownSlave"></a><span class="summary-sig-name">shutdownSlave</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.shutdownSlave">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>twisted.spread.flavors.Referenceable</code></b>:
+      <code>__provides__</code>,
+      <code>jellyFor</code>,
+      <code>remoteMessageReceived</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>twisted.spread.flavors.Serializable</code></b>:
+      <code>processUniqueID</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>twisted.spread.jelly.Jellyable</code></b>:
+      <code>__providedBy__</code>,
+      <code>getStateFor</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>twisted.application.service.MultiService</code></b>:
+      <code>__iter__</code>,
+      <code>addService</code>,
+      <code>getServiceNamed</code>,
+      <code>privilegedStartService</code>,
+      <code>removeService</code>,
+      <code>startService</code>,
+      <code>stopService</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>twisted.application.service.Service</code></b>:
+      <code>__getstate__</code>,
+      <code>disownServiceParent</code>,
+      <code>setName</code>,
+      <code>setServiceParent</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="expectations"></a><span class="summary-name">expectations</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="CHOOSE_SLAVES_RANDOMLY"></a><span class="summary-name">CHOOSE_SLAVES_RANDOMLY</span> = <code title="True">True</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="RECLAIM_INTERVAL"></a><span class="summary-name">RECLAIM_INTERVAL</span> = <code title="3600">3600</code>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>twisted.spread.flavors.Referenceable</code></b>:
+      <code>__implemented__</code>,
+      <code>perspective</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>twisted.application.service.Service</code></b>:
+      <code>name</code>,
+      <code>parent</code>,
+      <code>running</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== INSTANCE VARIABLES ==================== -->
+<a name="section-InstanceVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">list of <a href="buildbot.buildrequest.BuildRequest-class.html" 
+      class="link">buildbot.process.base.BuildRequest</a></span>
+    </td><td class="summary">
+        <a name="buildable"></a><span class="summary-name">buildable</span><br />
+      BuildRequests that are ready to build, but which are waiting for a 
+      buildslave to be available.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">list of <a href="buildbot.process.base.Build-class.html" 
+      class="link">buildbot.process.base.Build</a></span>
+    </td><td class="summary">
+        <a name="building"></a><span class="summary-name">building</span><br />
+      Builds that are actively running
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">list of <a href="buildbot.buildslave.BuildSlave-class.html" 
+      class="link">buildbot.buildslave.BuildSlave</a> objects</span>
+    </td><td class="summary">
+        <a name="slaves"></a><span class="summary-name">slaves</span><br />
+      the slaves currently available for building
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Method Details</span></td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">setup</span>,
+        <span class="sig-arg">builder_status</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>setup</code></strong> (dict) - builder setup data, as stored in BuildmasterConfig['builders'].  
+          Contains name, slavename(s), builddir, slavebuilddir, factory, 
+          locks.</li>
+        <li><strong class="pname"><code>builder_status</code></strong> (<a href="buildbot.status.builder.BuilderStatus-class.html" 
+          class="link">buildbot.status.builder.BuilderStatus</a>)</li>
+    </ul></dd>
+    <dt>Overrides:
+        twisted.application.service.MultiService.__init__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="run"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">run</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.run">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Check for work to be done. This should be called any time I might be 
+  able to start a job:</p>
+  <ul>
+    <li>
+      when the Builder is first created
+    </li>
+    <li>
+      when a new job has been added to the [buildrequests] DB table
+    </li>
+    <li>
+      when a slave has connected
+    </li>
+  </ul>
+  <p>If I have both an available slave and the database contains a 
+  BuildRequest that I can handle, I will claim the BuildRequest and start 
+  the build. When the build finishes, I will retire the BuildRequest.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getOldestRequestTime"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getOldestRequestTime</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.getOldestRequestTime">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Returns the timestamp of the oldest build request for this 
+  builder.</p>
+  <p>If there are no build requests, None is returned.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="consumeTheSoulOfYourPredecessor"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">consumeTheSoulOfYourPredecessor</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">old</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.consumeTheSoulOfYourPredecessor">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Suck the brain out of an old Builder.</p>
+  <p>This takes all the runtime state from an existing Builder and moves it
+  into ourselves. This is used when a Builder is changed in the master.cfg 
+  file: the new Builder has a different factory, but we want all the builds
+  that were queued for the old one to get processed by the new one. Any 
+  builds which are already running will keep running. The new Builder will 
+  get as many of the old SlaveBuilder objects as it wants.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="attached"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">attached</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">slave</span>,
+        <span class="sig-arg">remote</span>,
+        <span class="sig-arg">commands</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.attached">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>This is invoked by the BuildSlave when the self.slavename bot 
+  registers their builder.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>slave</code></strong> (<a href="buildbot.buildslave.BuildSlave-class.html" 
+          class="link">buildbot.buildslave.BuildSlave</a>) - the BuildSlave that represents the buildslave as a whole</li>
+        <li><strong class="pname"><code>remote</code></strong> (<code class="link">twisted.spread.pb.RemoteReference</code>) - a reference to the <code 
+          class="link">buildbot.slave.bot.SlaveBuilder</code></li>
+        <li><strong class="pname"><code>commands</code></strong> (dict: string -&gt; string, or None) - provides the slave's version of each RemoteCommand</li>
+    </ul></dd>
+    <dt>Returns: <code class="link">twisted.internet.defer.Deferred</code></dt>
+        <dd>a Deferred that fires (with 'self') when the slave-side builder 
+          is fully attached and ready to accept commands.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="startBuild"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">startBuild</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">build</span>,
+        <span class="sig-arg">sb</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.startBuild">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Start a build on the given slave.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>build</code></strong> - the <a href="buildbot.process.base.Build-class.html" 
+          class="link">base.Build</a> to start</li>
+        <li><strong class="pname"><code>sb</code></strong> - the <a href="buildbot.process.builder.SlaveBuilder-class.html" 
+          class="link">SlaveBuilder</a> which will host this build</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>a Deferred which fires with a <a 
+          href="buildbot.interfaces.IBuildControl-class.html" 
+          class="link">buildbot.interfaces.IBuildControl</a> that can be 
+          used to stop the Build, or to access a <a 
+          href="buildbot.interfaces.IBuildStatus-class.html" 
+          class="link">buildbot.interfaces.IBuildStatus</a> which will 
+          watch the Build as it runs.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="buildFinished"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">buildFinished</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">build</span>,
+        <span class="sig-arg">sb</span>,
+        <span class="sig-arg">bids</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.buildFinished">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>This is called when the Build has finished (either success or 
+  failure). Any exceptions during the build are reported with 
+  results=FAILURE, not with an errback.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="setExpectations"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">setExpectations</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">progress</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="buildbot.process.builder-pysrc.html#Builder.setExpectations">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Mark the build as successful and update expectations for the next 
+  build. Only call this when the build did not fail in any way that would 
+  invalidate the time expectations generated by it. (if the compile failed 
+  and thus terminated early, we can't use the last build to predict how 
+  long the next one will take).</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.3</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Sun Dec 19 18:26:44 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

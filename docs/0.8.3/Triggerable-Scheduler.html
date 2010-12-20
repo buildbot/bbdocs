@@ -1,0 +1,120 @@
+<html lang="en">
+<head>
+<title>Triggerable Scheduler - BuildBot Manual - 0.8.3</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.3">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Schedulers.html#Schedulers" title="Schedulers">
+<link rel="prev" href="Try-Schedulers.html#Try-Schedulers" title="Try Schedulers">
+<link rel="next" href="Scheduler-Index.html#Scheduler-Index" title="Scheduler Index">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.3.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Triggerable-Scheduler"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Scheduler-Index.html#Scheduler-Index">Scheduler Index</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Try-Schedulers.html#Try-Schedulers">Try Schedulers</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Schedulers.html#Schedulers">Schedulers</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.7.9 Triggerable Scheduler</h4>
+
+<p><a name="index-Triggers-61"></a><a name="index-buildbot_002eschedulers_002etriggerable_002eTriggerable-62"></a>
+The <code>Triggerable</code> scheduler waits to be triggered by a Trigger
+step (see <a href="Triggering-Schedulers.html#Triggering-Schedulers">Triggering Schedulers</a>) in another build. That step
+can optionally wait for the scheduler's builds to complete. This
+provides two advantages over Dependent schedulers. First, the same
+scheduler can be triggered from multiple builds. Second, the ability
+to wait for a Triggerable's builds to complete provides a form of
+"subroutine call", where one or more builds can "call" a scheduler
+to perform some work for them, perhaps on other buildslaves.
+
+   <p>The parameters are just the basics:
+
+     <dl>
+<dt><code>name</code><br><dt><code>builderNames</code><br><dt><code>properties</code><dd></dl>
+
+   <p>This class is only useful in conjunction with the <code>Trigger</code> step. 
+Here is a fully-worked example:
+
+<pre class="example">     from buildbot.schedulers import basic, timed, triggerable
+     from buildbot.process import factory
+     from buildbot.steps import trigger
+     
+     checkin = basic.Scheduler(name="checkin",
+                 branch=None,
+                 treeStableTimer=5*60,
+                 builderNames=["checkin"])
+     nightly = timed.Nightly(name='nightly',
+                 builderNames=['nightly'],
+                 hour=3,
+                 minute=0)
+     
+     mktarball = triggerable.Triggerable(name="mktarball",
+                     builderNames=["mktarball"])
+     build = triggerable.Triggerable(name="build-all-platforms",
+                     builderNames=["build-all-platforms"])
+     test = triggerable.Triggerable(name="distributed-test",
+                     builderNames=["distributed-test"])
+     package = triggerable.Triggerable(name="package-all-platforms",
+                     builderNames=["package-all-platforms"])
+     
+     c['schedulers'] = [mktarball, checkin, nightly, build, test, package]
+     
+     # on checkin, make a tarball, build it, and test it
+     checkin_factory = factory.BuildFactory()
+     checkin_factory.addStep(trigger.Trigger(schedulerNames=['mktarball'],
+                                            waitForFinish=True))
+     checkin_factory.addStep(trigger.Trigger(schedulerNames=['build-all-platforms'],
+                                        waitForFinish=True))
+     checkin_factory.addStep(trigger.Trigger(schedulerNames=['distributed-test'],
+                                       waitForFinish=True))
+     
+     # and every night, make a tarball, build it, and package it
+     nightly_factory = factory.BuildFactory()
+     nightly_factory.addStep(trigger.Trigger(schedulerNames=['mktarball'],
+                                            waitForFinish=True))
+     nightly_factory.addStep(trigger.Trigger(schedulerNames=['build-all-platforms'],
+                                        waitForFinish=True))
+     nightly_factory.addStep(trigger.Trigger(schedulerNames=['package-all-platforms'],
+                                          waitForFinish=True))
+</pre>
+   </body></html>
+

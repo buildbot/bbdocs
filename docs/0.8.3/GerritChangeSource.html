@@ -1,0 +1,120 @@
+<html lang="en">
+<head>
+<title>GerritChangeSource - BuildBot Manual - 0.8.3</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.3">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Change-Sources.html#Change-Sources" title="Change Sources">
+<link rel="prev" href="GitPoller.html#GitPoller" title="GitPoller">
+<link rel="next" href="Change-Source-Index.html#Change-Source-Index" title="Change Source Index">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.3.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="GerritChangeSource"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Change-Source-Index.html#Change-Source-Index">Change Source Index</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="GitPoller.html#GitPoller">GitPoller</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Change-Sources.html#Change-Sources">Change Sources</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.6.10 GerritChangeSource</h4>
+
+<p><a name="index-buildbot_002echanges_002egerritchangesource_002eGerritChangeSource-46"></a>
+The <code>GerritChangeSource</code> class connects to a Gerrit server by its SSH
+interface and uses its event source mechanism,
+<a href="http://gerrit.googlecode.com/svn/documentation/2.1.6/cmd-stream-events.html">gerrit stream-events</a>.
+
+   <p>This class adds a change to the buildbot system for each of the following events:
+     <dl>
+<dt><code>patchset-created</code><dd>A change is proposed for review. Automatic checks like <code>checkpatch.pl</code> can be
+automatically triggered. Beware of what kind of automatic task you trigger. 
+At this point, no trusted human has reviewed the code, and a patch could be
+specially crafted by an attacker to compromise your buildslaves. 
+<br><dt><code>ref-updated</code><dd>A change has been merged into the repository. Typically, this kind of event can lead
+to a complete rebuild of the project, and upload binaries to an incremental build
+results server. 
+</dl>
+
+   <p>This class will populate the property list of the triggered build with the info
+received from Gerrit server in JSON format.
+
+   <p>In case of &ldquo;patchset-created&rdquo; event, these properties will be:
+     <dl>
+<dt><code>event.change.branch</code><dd>Branch of the Change
+<br><dt><code>event.change.id</code><dd>Change's ID in the Gerrit system (the ChangeId: in commit comments)
+<br><dt><code>event.change.number</code><dd>Change's number in Gerrit system
+<br><dt><code>event.change.owner.email</code><dd>Change's owner email (owner is first uploader)
+<br><dt><code>event.change.owner.name</code><dd>Change's owner name
+<br><dt><code>event.change.project</code><dd>Project of the Change
+<br><dt><code>event.change.subject</code><dd>Change's subject
+<br><dt><code>event.change.url</code><dd>URL of the Change in the Gerrit's web interface
+<br><dt><code>event.patchSet.number</code><dd>Patchset's version number
+<br><dt><code>event.patchSet.ref</code><dd>Patchset's Gerrit "virtual branch"
+<br><dt><code>event.patchSet.revision</code><dd>Patchset's Git commit ID
+<br><dt><code>event.patchSet.uploader.email</code><dd>Patchset uploader's email (owner is first uploader)
+<br><dt><code>event.patchSet.uploader.name</code><dd>Patchset uploader's name (owner is first uploader)
+<br><dt><code>event.type</code><dd>Event type (&ldquo;patchset-created&rdquo;)
+<br><dt><code>event.uploader.email</code><dd>Patchset uploader's email
+<br><dt><code>event.uploader.name</code><dd>Patchset uploader's name
+</dl>
+
+   <p>In case of &ldquo;ref-updated&rdquo; event, these properties will be:
+     <dl>
+<dt><code>event.refUpdate.newRev</code><dd>New Git commit ID (after merger)
+<br><dt><code>event.refUpdate.oldRev</code><dd>Previous Git commit ID (before merger)
+<br><dt><code>event.refUpdate.project</code><dd>Project that was updated
+<br><dt><code>event.refUpdate.refName</code><dd>Branch that was updated
+<br><dt><code>event.submitter.email</code><dd>Submitter's email (merger responsible)
+<br><dt><code>event.submitter.name</code><dd>Submitter's name (merger responsible)
+<br><dt><code>event.type</code><dd>Event type (&ldquo;ref-updated&rdquo;)
+<br><dt><code>event.submitter.email</code><dd>Submitter's email (merger responsible)
+<br><dt><code>event.submitter.name</code><dd>Submitter's name (merger responsible)
+</dl>
+
+<h3 class="heading">Example</h3>
+
+<pre class="example">     from buildbot.changes.gerritchangesource import GerritChangeSource
+     c['change_source'] = GerritChangeSource(gerrit_server, gerrit_user)
+</pre>
+   <p>see
+<code>master/docs/examples/repo_gerrit.cfg</code> in the Buildbot distribution for an example setup of <code>GerritChangeSource</code>.
+
+   </body></html>
+

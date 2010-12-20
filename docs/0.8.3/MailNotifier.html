@@ -1,0 +1,378 @@
+<html lang="en">
+<head>
+<title>MailNotifier - BuildBot Manual - 0.8.3</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.3">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Status-Targets.html#Status-Targets" title="Status Targets">
+<link rel="prev" href="WebStatus.html#WebStatus" title="WebStatus">
+<link rel="next" href="IRC-Bot.html#IRC-Bot" title="IRC Bot">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.3.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="MailNotifier"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="IRC-Bot.html#IRC-Bot">IRC Bot</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="WebStatus.html#WebStatus">WebStatus</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Status-Targets.html#Status-Targets">Status Targets</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.13.2 MailNotifier</h4>
+
+<p><a name="index-email-135"></a><a name="index-mail-136"></a><a name="index-buildbot_002estatus_002email_002eMailNotifier-137"></a>
+The buildbot can also send email when builds finish. The most common
+use of this is to tell developers when their change has caused the
+build to fail. It is also quite common to send a message to a mailing
+list (usually named &ldquo;builds&rdquo; or similar) about every build.
+
+   <p>The <code>MailNotifier</code> status target is used to accomplish this. You
+configure it by specifying who mail should be sent to, under what
+circumstances mail should be sent, and how to deliver the mail. It can
+be configured to only send out mail for certain builders, and only
+send messages when the build fails, or when the builder transitions
+from success to failure. It can also be configured to include various
+build logs in each message.
+
+   <p>By default, the message will be sent to the Interested Users list (see <a href="Doing-Things-With-Users.html#Doing-Things-With-Users">Doing Things With Users</a>), which includes all developers who made changes in the
+build. You can add additional recipients with the extraRecipients argument. 
+You can also add interested users by setting the <code>owners</code> build property
+to a list of users in the scheduler constructor (see <a href="Configuring-Schedulers.html#Configuring-Schedulers">Configuring Schedulers</a>).
+
+   <p>Each MailNotifier sends mail to a single set of recipients. To send
+different kinds of mail to different recipients, use multiple
+MailNotifiers.
+
+   <p>The following simple example will send an email upon the completion of
+each build, to just those developers whose Changes were included in
+the build. The email contains a description of the Build, its results,
+and URLs where more information can be obtained.
+
+<pre class="example">     from buildbot.status.mail import MailNotifier
+     mn = MailNotifier(fromaddr="buildbot@example.org", lookup="example.org")
+     c['status'].append(mn)
+</pre>
+   <p>To get a simple one-message-per-build (say, for a mailing list), use
+the following form instead. This form does not send mail to individual
+developers (and thus does not need the <code>lookup=</code> argument,
+explained below), instead it only ever sends mail to the &ldquo;extra
+recipients&rdquo; named in the arguments:
+
+<pre class="example">     mn = MailNotifier(fromaddr="buildbot@example.org",
+                       sendToInterestedUsers=False,
+                       extraRecipients=['listaddr@example.org'])
+</pre>
+   <p>If your SMTP host requires authentication before it allows you to send emails,
+this can also be done by specifying &ldquo;smtpUser&rdquo; and &ldquo;smptPassword&rdquo;:
+
+<pre class="example">     mn = MailNotifier(fromaddr="myuser@gmail.com",
+                       sendToInterestedUsers=False,
+                       extraRecipients=["listaddr@example.org"],
+                       relayhost="smtp.gmail.com", smtpPort=587,
+                       smtpUser="myuser@gmail.com", smtpPassword="mypassword")
+</pre>
+   <p>If you want to require Transport Layer Security (TLS), then you can also
+set &ldquo;useTls&rdquo;:
+
+<pre class="example">     mn = MailNotifier(fromaddr="myuser@gmail.com",
+                       sendToInterestedUsers=False,
+                       extraRecipients=["listaddr@example.org"],
+                       useTls=True, relayhost="smtp.gmail.com", smtpPort=587,
+                       smtpUser="myuser@gmail.com", smtpPassword="mypassword")
+</pre>
+   <p>In some cases it is desirable to have different information then what is
+provided in a standard MailNotifier message. For this purpose MailNotifier
+provides the argument <code>messageFormatter</code> (a function) which allows for the
+creation of messages with unique content.
+
+   <p>For example, if only short emails are desired (e.g., for delivery to phones)
+
+<pre class="example">     from buildbot.status.builder import Results
+     def messageFormatter(mode, name, build, results, master_status):
+         result = Results[results]
+     
+         text = list()
+         text.append("STATUS: %s" % result.title())
+         return {
+             'body' : "\n".join(text),
+             'type' : 'plain'
+         }
+     
+     mn = MailNotifier(fromaddr="buildbot@example.org",
+                       sendToInterestedUsers=False,
+                       mode='problem',
+                       extraRecipients=['listaddr@example.org'],
+                       messageFormatter=messageFormatter)
+</pre>
+   <p>Another example of a function delivering a customized html email
+containing the last 80 log lines of the last build step is given
+below:
+
+<pre class="example">     from buildbot.status.builder import Results
+     
+     def html_message_formatter(mode, name, build, results, master_status):
+         """Provide a customized message to BuildBot's MailNotifier.
+     
+         The last 80 lines of the log are provided as well as the changes
+         relevant to the build.  Message content is formatted as html.
+         """
+         result = Results[results]
+     
+         limit_lines = 80
+         text = list()
+         text.append(u'&lt;h4&gt;Build status: %s&lt;/h4&gt;' % result.upper())
+         text.append(u'&lt;table cellspacing="10"&gt;&lt;tr&gt;')
+         text.append(u"&lt;td&gt;Buildslave for this Build:&lt;/td&gt;&lt;td&gt;&lt;b&gt;%s&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;" % build.getSlavename())
+         if master_status.getURLForThing(build):
+             text.append(u'&lt;tr&gt;&lt;td&gt;Complete logs for all build steps:&lt;/td&gt;&lt;td&gt;&lt;a href="%s"&gt;%s&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;'
+                         % (master_status.getURLForThing(build),
+                            master_status.getURLForThing(build))
+                         )
+             text.append(u'&lt;tr&gt;&lt;td&gt;Build Reason:&lt;/td&gt;&lt;td&gt;%s&lt;/td&gt;&lt;/tr&gt;' % build.getReason())
+             source = u""
+             ss = build.getSourceStamp()
+             if ss.branch:
+                 source += u"[branch %s] " % ss.branch
+             if ss.revision:
+                 source +=  ss.revision
+             else:
+                 source += u"HEAD"
+             if ss.patch:
+                 source += u" (plus patch)"
+             text.append(u"&lt;tr&gt;&lt;td&gt;Build Source Stamp:&lt;/td&gt;&lt;td&gt;&lt;b&gt;%s&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;" % source)
+             text.append(u"&lt;tr&gt;&lt;td&gt;Blamelist:&lt;/td&gt;&lt;td&gt;%s&lt;/td&gt;&lt;/tr&gt;" % ",".join(build.getResponsibleUsers()))
+             text.append(u'&lt;/table&gt;')
+             if ss.changes:
+                 text.append(u'&lt;h4&gt;Recent Changes:&lt;/h4&gt;')
+                 for c in ss.changes:
+                     cd = c.asDict()
+                     when = datetime.datetime.fromtimestamp(cd['when'] ).ctime()
+                     text.append(u'&lt;table cellspacing="10"&gt;')
+                     text.append(u'&lt;tr&gt;&lt;td&gt;Repository:&lt;/td&gt;&lt;td&gt;%s&lt;/td&gt;&lt;/tr&gt;' % cd['repository'] )
+                     text.append(u'&lt;tr&gt;&lt;td&gt;Project:&lt;/td&gt;&lt;td&gt;%s&lt;/td&gt;&lt;/tr&gt;' % cd['project'] )
+                     text.append(u'&lt;tr&gt;&lt;td&gt;Time:&lt;/td&gt;&lt;td&gt;%s&lt;/td&gt;&lt;/tr&gt;' % when)
+                     text.append(u'&lt;tr&gt;&lt;td&gt;Changed by:&lt;/td&gt;&lt;td&gt;%s&lt;/td&gt;&lt;/tr&gt;' % cd['who'] )
+                     text.append(u'&lt;tr&gt;&lt;td&gt;Comments:&lt;/td&gt;&lt;td&gt;%s&lt;/td&gt;&lt;/tr&gt;' % cd['comments'] )
+                     text.append(u'&lt;/table&gt;')
+                     files = cd['files']
+                     if files:
+                         text.append(u'&lt;table cellspacing="10"&gt;&lt;tr&gt;&lt;th align="left"&gt;Files&lt;/th&gt;&lt;th&gt;URL&lt;/th&gt;&lt;/tr&gt;')
+                         for file in files:
+                             text.append(u'&lt;tr&gt;&lt;td&gt;%s:&lt;/td&gt;&lt;td&gt;%s&lt;/td&gt;&lt;/tr&gt;' % (file['name'], file['url']))
+                         text.append(u'&lt;/table&gt;')
+             text.append(u'&lt;br&gt;')
+             # get log for last step
+             logs = build.getLogs()
+             # logs within a step are in reverse order. Search back until we find stdio
+             for log in reversed(logs):
+                 if log.getName() == 'stdio':
+                     break
+             name = "%s.%s" % (log.getStep().getName(), log.getName())
+             status, dummy = log.getStep().getResults()
+             content = log.getText().splitlines() # Note: can be VERY LARGE
+             url = u'%s/steps/%s/logs/%s' % (master_status.getURLForThing(build),
+                                            log.getStep().getName(),
+                                            log.getName())
+     
+             text.append(u'&lt;i&gt;Detailed log of last build step:&lt;/i&gt; &lt;a href="%s"&gt;%s&lt;/a&gt;'
+                         % (url, url))
+             text.append(u'&lt;br&gt;')
+             text.append(u'&lt;h4&gt;Last %d lines of "%s"&lt;/h4&gt;' % (limit_lines, name))
+             unilist = list()
+             for line in content[len(content)-limit_lines:]:
+                 unilist.append(cgi.escape(unicode(line,'utf-8')))
+             text.append(u'&lt;pre&gt;'.join([uniline for uniline in unilist]))
+             text.append(u'&lt;/pre&gt;')
+             text.append(u'&lt;br&gt;&lt;br&gt;')
+             text.append(u'&lt;b&gt;-The BuildBot&lt;/b&gt;')
+             return {
+                 'body': u"\n".join(text),
+                 'type': 'html'
+                 }
+     
+     mn = MailNotifier(fromaddr="buildbot@example.org",
+                       sendToInterestedUsers=False,
+                       mode='failing',
+                       extraRecipients=['listaddr@example.org'],
+                       messageFormatter=message_formatter)
+</pre>
+   <h3 class="heading">MailNotifier arguments</h3>
+
+     <dl>
+<dt><code>fromaddr</code><dd>The email address to be used in the 'From' header.
+
+     <br><dt><code>sendToInterestedUsers</code><dd>(boolean). If True (the default), send mail to all of the Interested
+Users. If False, only send mail to the extraRecipients list.
+
+     <br><dt><code>extraRecipients</code><dd>(list of strings). A list of email addresses to which messages should
+be sent (in addition to the InterestedUsers list, which includes any
+developers who made Changes that went into this build). It is a good
+idea to create a small mailing list and deliver to that, then let
+subscribers come and go as they please.
+
+     <br><dt><code>subject</code><dd>(string). A string to be used as the subject line of the message. 
+<code>%(builder)s</code> will be replaced with the name of the builder which
+provoked the message.
+
+     <br><dt><code>mode</code><dd>(string). Default to 'all'. One of:
+          <dl>
+<dt><code>all</code><dd>Send mail about all builds, both passing and failing
+<br><dt><code>change</code><dd>Only send mail about builds which change status
+<br><dt><code>failing</code><dd>Only send mail about builds which fail
+<br><dt><code>warning</code><dd>Only send mail about builds which fail or generate warnings
+<br><dt><code>passing</code><dd>Only send mail about builds which succeed
+<br><dt><code>problem</code><dd>Only send mail about a build which failed when the previous build has passed. 
+If your builds usually pass, then this will only send mail when a problem
+occurs. 
+</dl>
+
+     <br><dt><code>builders</code><dd>(list of strings). A list of builder names for which mail should be
+sent. Defaults to None (send mail for all builds). Use either builders
+or categories, but not both.
+
+     <br><dt><code>categories</code><dd>(list of strings). A list of category names to serve status
+information for. Defaults to None (all categories). Use either
+builders or categories, but not both.
+
+     <br><dt><code>addLogs</code><dd>(boolean). If True, include all build logs as attachments to the
+messages. These can be quite large. This can also be set to a list of
+log names, to send a subset of the logs. Defaults to False.
+
+     <br><dt><code>addPatch</code><dd>(boolean). If True, include the patch content if a patch was present. 
+Patches are usually used on a Try server. 
+Defaults to True.
+
+     <br><dt><code>relayhost</code><dd>(string). The host to which the outbound SMTP connection should be
+made. Defaults to 'localhost'
+
+     <br><dt><code>smtpPort</code><dd>(int). The port that will be used on outbound SMTP
+connections. Defaults to 25.
+
+     <br><dt><code>useTls</code><dd>(boolean). When this argument is <code>True</code> (default is <code>False</code>)
+<code>MailNotifier</code> sends emails using TLS and authenticates with the
+<code>relayhost</code>. When using TLS the arguments <code>smtpUser</code> and
+<code>smtpPassword</code> must also be specified.
+
+     <br><dt><code>smtpUser</code><dd>(string). The user name to use when authenticating with the
+<code>relayhost</code>.
+
+     <br><dt><code>smtpPassword</code><dd>(string). The password that will be used when authenticating with the
+<code>relayhost</code>.
+
+     <br><dt><code>lookup</code><dd>(implementor of <code>IEmailLookup</code>). Object which provides
+IEmailLookup, which is responsible for mapping User names (which come
+from the VC system) into valid email addresses. If not provided, the
+notifier will only be able to send mail to the addresses in the
+extraRecipients list. Most of the time you can use a simple Domain
+instance. As a shortcut, you can pass as string: this will be treated
+as if you had provided Domain(str). For example,
+lookup='twistedmatrix.com' will allow mail to be sent to all
+developers whose SVN usernames match their twistedmatrix.com account
+names. See buildbot/status/mail.py for more details.
+
+     <br><dt><code>messageFormatter</code><dd>
+This is a optional function that can be used to generate a custom mail message. 
+A <code>messageFormatter</code> function takes the mail mode (<code>mode</code>), builder
+name (<code>name</code>), the build status (<code>build</code>), the result code
+(<code>results</code>), and the BuildMaster status (<code>master_status</code>).  It
+returns a dictionary. The <code>body</code> key gives a string that is the complete
+text of the message. The <code>type</code> key is the message type ('plain' or
+'html'). The 'html' type should be used when generating an HTML message.  The
+<code>subject</code> key is optional, but gives the subject for the email.
+
+     <br><dt><code>extraHeaders</code><dd>(dictionary) A dictionary containing key/value pairs of extra headers to add
+to sent e-mails. Both the keys and the values may be a WithProperties instance.
+
+</dl>
+
+   <p>As a help to those writing <code>messageFormatter</code> functions, the following
+table describes how to get some useful pieces of information from the various
+status objects:
+
+     <dl>
+<dt>&bull;Name of the builder that generated this event<dd><code>name</code>
+<br><dt>&bull;Name of the project<dd><code>master_status.getProjectName()</code>
+<br><dt>&bull;MailNotifier mode<dd><code>mode</code> (one of <code>all, failing, problem, change, passing</code>)
+<br><dt>&bull;Builder result as a string<dd>
+     <pre class="example">          from buildbot.status.builder import Results
+          result_str = Results[results]
+          # one of 'success', 'warnings', 'failure', 'skipped', or 'exception'
+</pre>
+     <br><dt>&bull;URL to build page<dd><code>master_status.getURLForThing(build)</code>
+<br><dt>&bull;URL to buildbot main page.<dd><code>master_status.getBuildbotURL()</code>
+<br><dt>&bull;Build text<dd><code>build.getText()</code>
+<br><dt>&bull;Mapping of property names to values<dd><code>build.getProperties()</code> (a <code>Properties</code> instance)
+<br><dt>&bull;Slave name<dd><code>build.getSlavename()</code>
+<br><dt>&bull;Build reason (from a forced build)<dd><code>build.getReason()</code>
+<br><dt>&bull;List of responsible users<dd><code>build.getResponsibleUsers()</code>
+<br><dt>&bull;Source information (only valid if ss is not None)<dd>
+     <pre class="example">          ss = build.getSourceStamp()
+          if ss:
+              branch = ss.branch
+              revision = ss.revision
+              patch = ss.patch
+              changes = ss.changes # list
+</pre>
+     <p>A change object has the following useful information:
+          <dl>
+<dt><code>who</code><dd>(str) who made this change
+<br><dt><code>revision</code><dd>(str) what VC revision is this change
+<br><dt><code>branch</code><dd>(str) on what branch did this change occur
+<br><dt><code>when</code><dd>(str) when did this change occur
+<br><dt><code>files</code><dd>(list of str) what files were affected in this change
+<br><dt><code>comments</code><dd>(str) comments reguarding the change. 
+</dl>
+     The <code>Change</code> methods asText and asDict can be used to format the
+information above.  asText returns a list of strings and asDict returns
+a dictonary suitable for html/mail rendering. 
+<br><dt>&bull;Log information<dd>
+     <pre class="example">          logs = list()
+          for log in build.getLogs():
+              log_name = "%s.%s" % (log.getStep().getName(), log.getName())
+              log_status, dummy = log.getStep().getResults()
+              log_body = log.getText().splitlines() # Note: can be VERY LARGE
+              log_url = '%s/steps/%s/logs/%s' % (master_status.getURLForThing(build),
+                                                 log.getStep().getName(),
+                                                 log.getName())
+              logs.append((log_name, log_url, log_body, log_status))
+</pre>
+     </dl>
+
+   </body></html>
+

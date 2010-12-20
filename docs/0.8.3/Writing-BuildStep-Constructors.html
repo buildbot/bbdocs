@@ -1,0 +1,114 @@
+<html lang="en">
+<head>
+<title>Writing BuildStep Constructors - BuildBot Manual - 0.8.3</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.3">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Writing-New-BuildSteps.html#Writing-New-BuildSteps" title="Writing New BuildSteps">
+<link rel="next" href="BuildStep-LogFiles.html#BuildStep-LogFiles" title="BuildStep LogFiles">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.3.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Writing-BuildStep-Constructors"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="BuildStep-LogFiles.html#BuildStep-LogFiles">BuildStep LogFiles</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Writing-New-BuildSteps.html#Writing-New-BuildSteps">Writing New BuildSteps</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.11.12.1 Writing BuildStep Constructors</h5>
+
+<p>BuildStep classes have some extra equipment, because they are their own
+factories.  Consider the use of a BuildStep in <samp><span class="file">master.cfg</span></samp>:
+
+<pre class="example">     f.addStep(MyStep(someopt="stuff", anotheropt=1))
+</pre>
+   <p>This creates a single instance of class <code>MyStep</code>.  However, Buildbot needs
+a new object each time the step is executed.  this is accomplished by storing
+the information required to instantiate a new object in the <code>factory</code>
+attribute.  When the time comes to construct a new Build, BuildFactory consults
+this attribute (via <code>getStepFactory</code>) and instantiates a new step object.
+
+   <p>When writing a new step class, then, keep in mind are that you cannot do
+anything "interesting" in the constructor &ndash; limit yourself to checking and
+storing arguments.  To ensure that these arguments are provided to any new
+objects, call <code>self.addFactoryArguments</code> with any keyword arguments your
+constructor needs.
+
+   <p>Keep a <code>**kwargs</code> argument on the end of your options, and pass that up to
+the parent class's constructor.
+
+   <p>The whole thing looks like this:
+
+<pre class="example">     class Frobinfy(LoggingBuildStep):
+         def __init__(self,
+                 frob_what="frobee",
+                 frob_how_many=None,
+                 frob_how=None,
+                 **kwargs):
+     
+             # check
+             if frob_how_many is None:
+                 raise TypeError("Frobinfy argument how_many is required")
+     
+             # call parent
+             LoggingBuildStep.__init__(self, **kwargs)
+     
+             # set Frobnify attributes
+             self.frob_what = frob_what
+             self.frob_how_many = how_many
+             self.frob_how = frob_how
+     
+             # and record arguments for later
+             self.addFactoryArguments(
+                 frob_what=frob_what,
+                 frob_how_many=frob_how_many,
+                 frob_how=frob_how)
+     
+     class FastFrobnify(Frobnify):
+         def __init__(self,
+                 speed=5,
+                 **kwargs)
+             Frobnify.__init__(self, **kwargs)
+             self.speed = speed
+             self.addFactoryArguments(
+                 speed=speed)
+</pre>
+   </body></html>
+
