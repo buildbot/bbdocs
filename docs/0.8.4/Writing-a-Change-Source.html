@@ -1,0 +1,78 @@
+<html lang="en">
+<head>
+<title>Writing a Change Source - BuildBot Manual - 0.8.4</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.4">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Writing-Change-Sources.html#Writing-Change-Sources" title="Writing Change Sources">
+<link rel="next" href="Writing-a-Change-Poller.html#Writing-a-Change-Poller" title="Writing a Change Poller">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.4.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Writing-a-Change-Source"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Writing-a-Change-Poller.html#Writing-a-Change-Poller">Writing a Change Poller</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Writing-Change-Sources.html#Writing-Change-Sources">Writing Change Sources</a>
+<hr>
+</div>
+
+<h4 class="subsection">5.1.1 Writing a Change Source</h4>
+
+<p><a name="index-buildbot_002echanges_002ebase_002eChangeSource-154"></a>
+A custom change source must implement <code>buildbot.interfaces.IChangeSource</code>.
+
+   <p>The easiest way to do this is to subclass
+<code>buildbot.changes.base.ChangeSource</code>, implementing the <code>describe</code>
+method to describe the instance.  <code>ChangeSource</code> is a Twisted service, so
+you will need to implement the <code>startService</code> and <code>stopService</code>
+methods to control the means by which your change source receives
+notifications.
+
+   <p>When the class does receive a change, it should call
+<code>self.master.addChange(..)</code> to submit it to the buildmaster.  This method
+shares the same parameters as <code>master.db.changes.addChange</code>, so consult
+the API documentation for that function for details on the available arguments.
+
+   <p>You will probably also want to set <code>compare_attrs</code> to the list of object
+attributes which Buildbot will use to compare one change source to another when
+reconfiguring.  During reconfiguration, if the new change source is different
+from the old, then the old will be stopped and the new started.
+
+   </body></html>
+

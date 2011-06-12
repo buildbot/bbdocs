@@ -1,0 +1,278 @@
+<html lang="en">
+<head>
+<title>WebStatus Configuration Parameters - BuildBot Manual - 0.8.4</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.4">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="WebStatus.html#WebStatus" title="WebStatus">
+<link rel="prev" href="Buildbot-Web-Resources.html#Buildbot-Web-Resources" title="Buildbot Web Resources">
+<link rel="next" href="Change-Hooks.html#Change-Hooks" title="Change Hooks">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.4.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="WebStatus-Configuration-Parameters"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Change-Hooks.html#Change-Hooks">Change Hooks</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Buildbot-Web-Resources.html#Buildbot-Web-Resources">Buildbot Web Resources</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="WebStatus.html#WebStatus">WebStatus</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.14.1.2 WebStatus Configuration Parameters</h5>
+
+<h3 class="heading">HTTP Connection</h3>
+
+<p>The most common way to run a <code>WebStatus</code> is on a regular TCP
+port. To do this, just pass in the TCP port number when you create the
+<code>WebStatus</code> instance; this is called the <code>http_port</code> argument:
+
+<pre class="example">     from buildbot.status.html import WebStatus
+     c['status'].append(http_port=WebStatus(http_port=8080))
+</pre>
+   <p>The <code>http_port</code> argument is actually a &ldquo;strports specification&rdquo; for the
+port that the web server should listen on. This can be a simple port number, or
+a string like <code>http_port="tcp:8080:interface=127.0.0.1"</code> (to limit
+connections to the loopback interface, and therefore to clients running on the
+same host)<a rel="footnote" href="#fn-1" name="fnd-1"><sup>1</sup></a>.
+
+   <p>If instead (or in addition) you provide the <code>distrib_port</code>
+argument, a twisted.web distributed server will be started either on a
+TCP port (if <code>distrib_port</code> is like <code>"tcp:12345"</code>) or more
+likely on a UNIX socket (if <code>distrib_port</code> is like
+<code>"unix:/path/to/socket"</code>).
+
+   <p>The <code>public_html</code> option gives the path to a regular directory of HTML
+files that will be displayed alongside the various built-in URLs buildbot
+supplies.  This is most often used to supply CSS files (<code>/buildbot.css</code>)
+and a top-level navigational file (<code>/index.html</code>), but can also serve any
+other files required - even build results!
+
+<h3 class="heading">Authorization</h3>
+
+<p>The buildbot web status is, by default, read-only.  It displays lots of
+information, but users are not allowed to affect the operation of the
+buildmaster.  However, there are a number of supported activities that can
+be enabled, and Buildbot can also perform rudimentary username/password
+authentication.  The actions are:
+
+     <dl>
+<dt><code>forceBuild</code><dd>
+force a particular builder to begin building, optionally with a specific revision, branch, etc.
+
+     <br><dt><code>forceAllBuilds</code><dd>
+force <i>all</i> builders to start building
+
+     <br><dt><code>pingBuilder</code><dd>
+"ping" a builder's buildslaves to check that they are alive
+
+     <br><dt><code>gracefulShutdown</code><dd>
+gracefully shut down a slave when it is finished with its current build
+
+     <br><dt><code>stopBuild</code><dd>
+stop a running build
+
+     <br><dt><code>stopAllBuilds</code><dd>
+stop all running builds
+
+     <br><dt><code>cancelPendingBuild</code><dd>
+cancel a build that has not yet started
+
+     <br><dt><code>stopChange</code><dd>
+cancel builds that include a given change number
+
+     <br><dt><code>cleanShutdown</code><dd>
+shut down the master gracefully, without interrupting builds
+
+   </dl>
+
+   <p>For each of these actions, you can configure buildbot to never allow the
+action, always allow the action, allow the action to any authenticated user, or
+check with a function of your creation to determine whether the action is OK.
+
+   <p>This is all configured with the <code>Authz</code> class:
+
+<pre class="example">     from buildbot.status.html import WebStatus
+     from buildbot.status.web.authz import Authz
+     authz = Authz(
+         forceBuild=True,
+         stopBuild=True)
+     c['status'].append(http_port=WebStatus(http_port=8080, authz=authz))
+</pre>
+   <p>Each of the actions listed above is an option to <code>Authz</code>.  You can specify
+<code>False</code> (the default) to prohibit that action or <code>True</code> to enable it.
+
+<h3 class="heading">Authentication</h3>
+
+<p>If you do not wish to allow strangers to perform actions, but do want
+developers to have such access, you will need to add some authentication
+support.  Pass an instance of <code>status.web.auth.IAuth</code> as a <code>auth</code>
+keyword argument to <code>Authz</code>, and specify the action as <code>"auth"</code>.
+
+<pre class="example">     from buildbot.status.html import WebStatus
+     from buildbot.status.web.authz import Authz
+     from buildbot.status.web.auth import BasicAuth
+     users = [('bob', 'secret-pass'), ('jill', 'super-pass')]
+     authz = Authz(auth=BasicAuth(users),
+         forceBuild='auth', # only authenticated users
+         pingBuilder=True, # but anyone can do this
+     )
+     c['status'].append(WebStatus(http_port=8080, authz=authz))
+     # or
+     from buildbot.status.web.auth import HTPasswdAuth
+     auth = (HTPasswdAuth('/path/to/htpasswd'))
+</pre>
+   <p>The class <code>BasicAuth</code> implements a basic authentication mechanism using a
+list of user/password tuples provided from the configuration file.  The class
+<code>HTPasswdAuth</code> implements an authentication against an <samp><span class="file">.htpasswd</span></samp>
+file.
+
+   <p>If you need still-more flexibility, pass a function for the authentication
+action.  That function will be called with an authenticated username and some
+action-specific arguments, and should return true if the action is authorized.
+
+<pre class="example">     def canForceBuild(username, builder_status):
+         if builder_status.getName() == 'smoketest':
+             return True # any authenticated user can run smoketest
+         elif username == 'releng':
+             return True # releng can force whatever they want
+         else:
+             return False # otherwise, no way.
+     
+     authz = Authz(auth=BasicAuth(users),
+         forceBuild=canForceBuild)
+</pre>
+   <p>The <code>forceBuild</code> and <code>pingBuilder</code> actions both supply a
+BuilderStatus object.  The <code>stopBuild</code> action supplies a BuildStatus
+object.  The <code>cancelPendingBuild</code> action supplies a <code>BuildRequest</code>. 
+The remainder do not supply any extra arguments.
+
+<h3 class="heading">Logging configuration</h3>
+
+<p>The WebStatus uses a separate log file (http.log) to avoid clutter
+buildbot's default log (twistd.log) with request/response messages. 
+This log is also, by default, rotated in the same way as the twistd.log
+file, but you can also customize the rotation logic with the following
+parameters if you need a different behaviour.
+
+<h4 class="subheading">rotateLength</h4>
+
+<p>An integer defining the file size at which log files are rotated.
+
+<h4 class="subheading">maxRotatedFiles</h4>
+
+<p>The maximum number of old log files to keep.
+
+<h3 class="heading">URL-decorating options</h3>
+
+<p>These arguments adds an URL link to various places in the WebStatus,
+such as revisions, repositories, projects and, optionally, ticket/bug references
+in change comments.
+
+<h4 class="subheading">revlink</h4>
+
+<p>The <code>revlink</code> is used to create links from revision IDs in the web status
+to a web-view of your source control system. The parameter's value must be a
+format string, a dict mapping a string (repository name) to format strings, or a callable.
+
+   <p>The format string should use '%s' to insert the revision id in the url.  For
+example, for Buildbot on github:
+<code>revlink='http://github.com/buildbot/buildbot/tree/%s'</code> (The revision ID
+will be URL encoded before inserted in the replacement string)
+
+   <p>The callable takes the revision id and repository argument, and should return
+an URL to the revision.  Note that the revision id may not always be in the
+form you expect, so code defensively.  In particular, a revision of "??" may be
+supplied when no other information is available.
+
+   <p>Note that SourceStamps that are not created from version-control changes (e.g.,
+those created by a Nightly or Periodic scheduler) will have an empty repository
+string, as the respository is not known.
+
+<h4 class="subheading">changecommentlink</h4>
+
+<p>The <code>changecommentlink</code> argument can be used to create links to
+ticket-ids from change comments (i.e. #123).
+
+   <p>The argument can either be a tuple of three strings, a dictionary mapping
+strings (project names) to tuples or a callable taking a changetext
+(a <code>jinja2.Markup</code> instance) and a project name, returning a the
+same change text with additional links/html tags added to it.
+
+   <p>If the tuple is used, it should contain three strings where the first
+element is a regex that
+searches for strings (with match groups), the second is a replace-string
+that, when substituted with \1 etc, yields the URL and the third
+is the title attribute of the link. 
+(The <code>&lt;a href="" title=""&gt;&lt;/a&gt;</code> is added by the system.) 
+So, for Trac tickets (#42, etc):
+<code>changecommentlink(r"#(\d+)", r"http://buildbot.net/trac/ticket/\1", r"Ticket \g&lt;0&gt;")</code> .
+
+<h4 class="subheading">projects</h4>
+
+<p>A dictionary from strings to strings, mapping project names to URLs,
+or a callable taking a project name and returning an URL.
+
+<h4 class="subheading">repositories</h4>
+
+<p>Same as the projects arg above, a dict or callable mapping project names
+to URLs.
+
+<h3 class="heading">Display-Specific Options</h3>
+
+<p>The <code>order_console_by_time</code> option affects the rendering of the console;
+see the description of the console above.
+
+   <p>The <code>numbuilds</code> option determines the number of builds that most status
+displays will show.  It can usually be overriden in the URL, e.g.,
+<code>?numbuilds=13</code>.
+
+   <p>The <code>num_events</code> option gives the default number of events that the
+waterfall will display.  The <code>num_events_max</code> gives the maximum number of
+events displayed, even if the web browser requests more.
+
+   <div class="footnote">
+<hr>
+<h4>Footnotes</h4><p class="footnote"><small>[<a name="fn-1" href="#fnd-1">1</a>]</small> It may even be possible to provide SSL access by using a
+specification like <code>"ssl:12345:privateKey=mykey.pen:certKey=cert.pem"</code>,
+but this is completely untested</p>
+
+   <hr></div>
+
+   </body></html>
+

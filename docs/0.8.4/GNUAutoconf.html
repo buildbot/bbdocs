@@ -1,0 +1,122 @@
+<html lang="en">
+<head>
+<title>GNUAutoconf - BuildBot Manual - 0.8.4</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.4">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Build-Factories.html#Build-Factories" title="Build Factories">
+<link rel="prev" href="BuildFactory.html#BuildFactory" title="BuildFactory">
+<link rel="next" href="BasicBuildFactory.html#BasicBuildFactory" title="BasicBuildFactory">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.4.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="GNUAutoconf"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="BasicBuildFactory.html#BasicBuildFactory">BasicBuildFactory</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="BuildFactory.html#BuildFactory">BuildFactory</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Build-Factories.html#Build-Factories">Build Factories</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.11.2 GNUAutoconf</h4>
+
+<p><a name="index-buildbot_002eprocess_002efactory_002eGNUAutoconf-70"></a>
+<a href="http://www.gnu.org/software/autoconf/">GNU Autoconf</a> is a
+software portability tool, intended to make it possible to write
+programs in C (and other languages) which will run on a variety of
+UNIX-like systems. Most GNU software is built using autoconf. It is
+frequently used in combination with GNU automake. These tools both
+encourage a build process which usually looks like this:
+
+<pre class="example">     % CONFIG_ENV=foo ./configure --with-flags
+     % make all
+     % make check
+     # make install
+</pre>
+   <p>(except of course the Buildbot always skips the <code>make install</code>
+part).
+
+   <p>The Buildbot's <code>buildbot.process.factory.GNUAutoconf</code> factory is
+designed to build projects which use GNU autoconf and/or automake. The
+configuration environment variables, the configure flags, and command
+lines used for the compile and test are all configurable, in general
+the default values will be suitable.
+
+   <p>Example:
+
+<pre class="example">     f = factory.GNUAutoconf(source=source.SVN(svnurl=URL, mode="copy"),
+                             flags=["--disable-nls"])
+</pre>
+   <p>Required Arguments:
+
+     <dl>
+<dt><code>source</code><dd>This argument must be a step specification tuple that provides a
+BuildStep to generate the source tree. 
+</dl>
+
+   <p>Optional Arguments:
+
+     <dl>
+<dt><code>configure</code><dd>The command used to configure the tree. Defaults to
+<code>./configure</code>. Accepts either a string or a list of shell argv
+elements.
+
+     <br><dt><code>configureEnv</code><dd>The environment used for the initial configuration step. This accepts
+a dictionary which will be merged into the buildslave's normal
+environment. This is commonly used to provide things like
+<code>CFLAGS="-O2 -g"</code> (to turn off debug symbols during the compile). 
+Defaults to an empty dictionary.
+
+     <br><dt><code>configureFlags</code><dd>A list of flags to be appended to the argument list of the configure
+command. This is commonly used to enable or disable specific features
+of the autoconf-controlled package, like <code>["--without-x"]</code> to
+disable windowing support. Defaults to an empty list.
+
+     <br><dt><code>compile</code><dd>this is a shell command or list of argv values which is used to
+actually compile the tree. It defaults to <code>make all</code>. If set to
+None, the compile step is skipped.
+
+     <br><dt><code>test</code><dd>this is a shell command or list of argv values which is used to run
+the tree's self-tests. It defaults to <code>make check</code>. If set to
+None, the test step is skipped.
+
+   </dl>
+
+   </body></html>
+

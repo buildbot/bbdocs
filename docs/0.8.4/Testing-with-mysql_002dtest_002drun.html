@@ -1,0 +1,134 @@
+<html lang="en">
+<head>
+<title>Testing with mysql-test-run - BuildBot Manual - 0.8.4</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.4">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="ShellCommand.html#ShellCommand" title="ShellCommand">
+<link rel="prev" href="PerlModuleTest.html#PerlModuleTest" title="PerlModuleTest">
+<link rel="next" href="SetProperty.html#SetProperty" title="SetProperty">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.4.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Testing-with-mysql-test-run"></a>
+<a name="Testing-with-mysql_002dtest_002drun"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="SetProperty.html#SetProperty">SetProperty</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="PerlModuleTest.html#PerlModuleTest">PerlModuleTest</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="ShellCommand.html#ShellCommand">ShellCommand</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.12.4.8 Testing with mysql-test-run</h5>
+
+<p>The <code>process.mtrlogobserver.MTR</code> class is a subclass of <code>Test</code>
+(<a href="Test.html#Test">Test</a>). It is used to run test suites using the mysql-test-run program,
+as used in MySQL, Drizzle, MariaDB, and MySQL storage engine plugins.
+
+   <p>The shell command to run the test suite is specified in the same way as for
+the Test class. The MTR class will parse the output of running the test suite,
+and use the count of tests executed so far to provide more accurate completion
+time estimates. Any test failures that occur during the test are summarized on
+the Waterfall Display.
+
+   <p>Server error logs are added as additional log files, useful to debug test
+failures.
+
+   <p>Optionally, data about the test run and any test failures can be inserted into
+a database for further analysis and report generation. To use this facility,
+create an instance of <code>twisted.enterprise.adbapi.ConnectionPool</code> with
+connections to the database. The necessary tables can be created automatically
+by setting <code>autoCreateTables</code> to <code>True</code>, or manually using the SQL
+found in the <samp><span class="file">mtrlogobserver.py</span></samp> source file.
+
+   <p>One problem with specifying a database is that each reload of the
+configuration will get a new instance of <code>ConnectionPool</code> (even if the
+connection parameters are the same). To avoid that Buildbot thinks the builder
+configuration has changed because of this, use the
+<code>process.mtrlogobserver.EqConnectionPool</code> subclass of
+<code>ConnectionPool</code>, which implements an equiality operation that avoids
+this problem.
+
+   <p>Example use:
+
+<pre class="example">     from buildbot.process.mtrlogobserver import MTR, EqConnectionPool
+     myPool = EqConnectionPool("MySQLdb", "host", "buildbot", "password", "db")
+     myFactory.addStep(MTR(workdir="mysql-test", dbpool=myPool,
+                           command=["perl", "mysql-test-run.pl", "--force"]))
+</pre>
+   <p><code>MTR</code> arguments:
+
+     <dl>
+<dt><code>textLimit</code><dd>Maximum number of test failures to show on the waterfall page (to not flood
+the page in case of a large number of test failures). Defaults to 5.
+
+     <br><dt><code>testNameLimit</code><dd>Maximum length of test names to show unabbreviated in the waterfall page, to
+avoid excessive column width. Defaults to 16.
+
+     <br><dt><code>parallel</code><dd>Value of <code>--parallel</code> option used for mysql-test-run.pl (number of processes
+used to run the test suite in parallel). Defaults to 4. This is used to
+determine the number of server error log files to download from the
+slave. Specifying a too high value does not hurt (as nonexisting error logs
+will be ignored), however if using <code>--parallel</code> value greater than the default
+it needs to be specified, or some server error logs will be missing.
+
+     <br><dt><code>dbpool</code><dd>An instance of twisted.enterprise.adbapi.ConnectionPool, or None.  Defaults to
+None. If specified, results are inserted into the database using the
+ConnectionPool.
+
+     <br><dt><code>autoCreateTables</code><dd>Boolean, defaults to False. If True (and <code>dbpool</code> is specified), the
+necessary database tables will be created automatically if they do not exist
+already. Alternatively, the tables can be created manually from the SQL
+statements found in the mtrlogobserver.py source file.
+
+     <br><dt><code>test_type</code><dd>Short string that will be inserted into the database in the row for the test
+run. Defaults to the empty string, but can be specified to identify different
+types of test runs.
+
+     <br><dt><code>test_info</code><dd>Descriptive string that will be inserted into the database in the row for the test
+run. Defaults to the empty string, but can be specified as a user-readable
+description of this particular test run.
+
+     <br><dt><code>mtr_subdir</code><dd>The subdirectory in which to look for server error log files. Defaults to
+&ldquo;mysql-test&rdquo;, which is usually correct. WithProperties is supported.
+
+   </dl>
+
+   </body></html>
+

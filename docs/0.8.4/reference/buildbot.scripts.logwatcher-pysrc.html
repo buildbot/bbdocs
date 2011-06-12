@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>buildbot.scripts.logwatcher</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.4</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="buildbot-module.html">Package&nbsp;buildbot</a> ::
+        <a href="buildbot.scripts-module.html">Package&nbsp;scripts</a> ::
+        Module&nbsp;logwatcher
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="buildbot.scripts.logwatcher-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="buildbot.scripts.logwatcher-module.html">Module buildbot.scripts.logwatcher</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># This file is part of Buildbot.  Buildbot is free software: you can</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment"># redistribute it and/or modify it under the terms of the GNU General Public</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"># License as published by the Free Software Foundation, version 2.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but WITHOUT</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"># ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"># FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"># details.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License along with</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment"># this program; if not, write to the Free Software Foundation, Inc., 51</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment"># Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment"># Copyright Buildbot Team Members</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">os</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt id="link-0" class="py-name" targets="Module buildbot.steps.python=buildbot.steps.python-module.html,Variable buildbot.steps.python_twisted.Trial.python=buildbot.steps.python_twisted.Trial-class.html#python"><a title="buildbot.steps.python
+buildbot.steps.python_twisted.Trial.python" class="py-name" href="#" onclick="return doclink('link-0', 'python', 'link-0');">python</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Method buildbot.scripts.reconfig.Reconfigurator.failure()=buildbot.scripts.reconfig.Reconfigurator-class.html#failure"><a title="buildbot.scripts.reconfig.Reconfigurator.failure" class="py-name" href="#" onclick="return doclink('link-1', 'failure', 'link-1');">failure</a></tt> <tt class="py-keyword">import</tt> <tt class="py-name">Failure</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt class="py-name">internet</tt> <tt class="py-keyword">import</tt> <tt class="py-name">defer</tt><tt class="py-op">,</tt> <tt id="link-2" class="py-name" targets="Variable buildbot.process.botmaster.BotMaster.reactor=buildbot.process.botmaster.BotMaster-class.html#reactor,Variable buildbot.steps.python_twisted.Trial.reactor=buildbot.steps.python_twisted.Trial-class.html#reactor"><a title="buildbot.process.botmaster.BotMaster.reactor
+buildbot.steps.python_twisted.Trial.reactor" class="py-name" href="#" onclick="return doclink('link-2', 'reactor', 'link-2');">reactor</a></tt><tt class="py-op">,</tt> <tt class="py-name">protocol</tt><tt class="py-op">,</tt> <tt class="py-name">error</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt class="py-name">protocols</tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Module buildbot.schedulers.basic=buildbot.schedulers.basic-module.html"><a title="buildbot.schedulers.basic" class="py-name" href="#" onclick="return doclink('link-3', 'basic', 'link-3');">basic</a></tt> <tt class="py-keyword">import</tt> <tt class="py-name">LineOnlyReceiver</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"> </tt>
+<a name="FakeTransport"></a><div id="FakeTransport-def"><a name="L22"></a><tt class="py-lineno"> 22</tt> <a class="py-toggle" href="#" id="FakeTransport-toggle" onclick="return toggle('FakeTransport');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildbot.scripts.logwatcher.FakeTransport-class.html">FakeTransport</a><tt class="py-op">:</tt> </tt>
+</div><div id="FakeTransport-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="FakeTransport-expanded"><a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line">    <tt id="link-4" class="py-name" targets="Variable buildbot.scripts.logwatcher.FakeTransport.disconnecting=buildbot.scripts.logwatcher.FakeTransport-class.html#disconnecting,Variable buildslave.scripts.logwatcher.FakeTransport.disconnecting=buildslave.scripts.logwatcher.FakeTransport-class.html#disconnecting"><a title="buildbot.scripts.logwatcher.FakeTransport.disconnecting
+buildslave.scripts.logwatcher.FakeTransport.disconnecting" class="py-name" href="#" onclick="return doclink('link-4', 'disconnecting', 'link-4');">disconnecting</a></tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+</div><a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"> </tt>
+<a name="BuildmasterTimeoutError"></a><div id="BuildmasterTimeoutError-def"><a name="L25"></a><tt class="py-lineno"> 25</tt> <a class="py-toggle" href="#" id="BuildmasterTimeoutError-toggle" onclick="return toggle('BuildmasterTimeoutError');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildbot.scripts.logwatcher.BuildmasterTimeoutError-class.html">BuildmasterTimeoutError</a><tt class="py-op">(</tt><tt class="py-base-class">Exception</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BuildmasterTimeoutError-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="BuildmasterTimeoutError-expanded"><a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line">    <tt class="py-keyword">pass</tt> </tt>
+</div><a name="BuildslaveTimeoutError"></a><div id="BuildslaveTimeoutError-def"><a name="L27"></a><tt class="py-lineno"> 27</tt> <a class="py-toggle" href="#" id="BuildslaveTimeoutError-toggle" onclick="return toggle('BuildslaveTimeoutError');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildbot.scripts.logwatcher.BuildslaveTimeoutError-class.html">BuildslaveTimeoutError</a><tt class="py-op">(</tt><tt class="py-base-class">Exception</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BuildslaveTimeoutError-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="BuildslaveTimeoutError-expanded"><a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line">    <tt class="py-keyword">pass</tt> </tt>
+</div><a name="ReconfigError"></a><div id="ReconfigError-def"><a name="L29"></a><tt class="py-lineno"> 29</tt> <a class="py-toggle" href="#" id="ReconfigError-toggle" onclick="return toggle('ReconfigError');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildbot.scripts.logwatcher.ReconfigError-class.html">ReconfigError</a><tt class="py-op">(</tt><tt class="py-base-class">Exception</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ReconfigError-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="ReconfigError-expanded"><a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line">    <tt class="py-keyword">pass</tt> </tt>
+</div><a name="BuildSlaveDetectedError"></a><div id="BuildSlaveDetectedError-def"><a name="L31"></a><tt class="py-lineno"> 31</tt> <a class="py-toggle" href="#" id="BuildSlaveDetectedError-toggle" onclick="return toggle('BuildSlaveDetectedError');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildbot.scripts.logwatcher.BuildSlaveDetectedError-class.html">BuildSlaveDetectedError</a><tt class="py-op">(</tt><tt class="py-base-class">Exception</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BuildSlaveDetectedError-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="BuildSlaveDetectedError-expanded"><a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line">    <tt class="py-keyword">pass</tt> </tt>
+</div><a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"> </tt>
+<a name="TailProcess"></a><div id="TailProcess-def"><a name="L34"></a><tt class="py-lineno"> 34</tt> <a class="py-toggle" href="#" id="TailProcess-toggle" onclick="return toggle('TailProcess');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildbot.scripts.logwatcher.TailProcess-class.html">TailProcess</a><tt class="py-op">(</tt><tt class="py-base-class">protocol</tt><tt class="py-op">.</tt><tt class="py-base-class">ProcessProtocol</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="TailProcess-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="TailProcess-expanded"><a name="TailProcess.outReceived"></a><div id="TailProcess.outReceived-def"><a name="L35"></a><tt class="py-lineno"> 35</tt> <a class="py-toggle" href="#" id="TailProcess.outReceived-toggle" onclick="return toggle('TailProcess.outReceived');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.scripts.logwatcher.TailProcess-class.html#outReceived">outReceived</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">data</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="TailProcess.outReceived-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="TailProcess.outReceived-expanded"><a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">lw</tt><tt class="py-op">.</tt><tt class="py-name">dataReceived</tt><tt class="py-op">(</tt><tt class="py-name">data</tt><tt class="py-op">)</tt> </tt>
+</div><a name="TailProcess.errReceived"></a><div id="TailProcess.errReceived-def"><a name="L37"></a><tt class="py-lineno"> 37</tt> <a class="py-toggle" href="#" id="TailProcess.errReceived-toggle" onclick="return toggle('TailProcess.errReceived');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.scripts.logwatcher.TailProcess-class.html#errReceived">errReceived</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">data</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="TailProcess.errReceived-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="TailProcess.errReceived-expanded"><a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"ERR: '%s'"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">data</tt><tt class="py-op">,</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"> </tt>
+<a name="LogWatcher"></a><div id="LogWatcher-def"><a name="L41"></a><tt class="py-lineno"> 41</tt> <a class="py-toggle" href="#" id="LogWatcher-toggle" onclick="return toggle('LogWatcher');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildbot.scripts.logwatcher.LogWatcher-class.html">LogWatcher</a><tt class="py-op">(</tt><tt class="py-base-class">LineOnlyReceiver</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="LogWatcher-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="LogWatcher-expanded"><a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">    <tt id="link-5" class="py-name" targets="Variable buildbot.scripts.logwatcher.LogWatcher.POLL_INTERVAL=buildbot.scripts.logwatcher.LogWatcher-class.html#POLL_INTERVAL,Variable buildslave.runprocess.LogFileWatcher.POLL_INTERVAL=buildslave.runprocess.LogFileWatcher-class.html#POLL_INTERVAL,Variable buildslave.scripts.logwatcher.LogWatcher.POLL_INTERVAL=buildslave.scripts.logwatcher.LogWatcher-class.html#POLL_INTERVAL"><a title="buildbot.scripts.logwatcher.LogWatcher.POLL_INTERVAL
+buildslave.runprocess.LogFileWatcher.POLL_INTERVAL
+buildslave.scripts.logwatcher.LogWatcher.POLL_INTERVAL" class="py-name" href="#" onclick="return doclink('link-5', 'POLL_INTERVAL', 'link-5');">POLL_INTERVAL</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0.1</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line">    <tt id="link-6" class="py-name" targets="Variable buildbot.scripts.logwatcher.LogWatcher.TIMEOUT_DELAY=buildbot.scripts.logwatcher.LogWatcher-class.html#TIMEOUT_DELAY,Variable buildslave.scripts.logwatcher.LogWatcher.TIMEOUT_DELAY=buildslave.scripts.logwatcher.LogWatcher-class.html#TIMEOUT_DELAY"><a title="buildbot.scripts.logwatcher.LogWatcher.TIMEOUT_DELAY
+buildslave.scripts.logwatcher.LogWatcher.TIMEOUT_DELAY" class="py-name" href="#" onclick="return doclink('link-6', 'TIMEOUT_DELAY', 'link-6');">TIMEOUT_DELAY</a></tt> <tt class="py-op">=</tt> <tt class="py-number">10.0</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line">    <tt id="link-7" class="py-name" targets="Variable buildbot.scripts.logwatcher.LogWatcher.delimiter=buildbot.scripts.logwatcher.LogWatcher-class.html#delimiter,Variable buildslave.scripts.logwatcher.LogWatcher.delimiter=buildslave.scripts.logwatcher.LogWatcher-class.html#delimiter"><a title="buildbot.scripts.logwatcher.LogWatcher.delimiter
+buildslave.scripts.logwatcher.LogWatcher.delimiter" class="py-name" href="#" onclick="return doclink('link-7', 'delimiter', 'link-7');">delimiter</a></tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">linesep</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"> </tt>
+<a name="LogWatcher.__init__"></a><div id="LogWatcher.__init__-def"><a name="L46"></a><tt class="py-lineno"> 46</tt> <a class="py-toggle" href="#" id="LogWatcher.__init__-toggle" onclick="return toggle('LogWatcher.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.scripts.logwatcher.LogWatcher-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">logfile</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="LogWatcher.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="LogWatcher.__init__-expanded"><a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-8" class="py-name" targets="Module buildbot.status.logfile=buildbot.status.logfile-module.html"><a title="buildbot.status.logfile" class="py-name" href="#" onclick="return doclink('link-8', 'logfile', 'link-8');">logfile</a></tt> <tt class="py-op">=</tt> <tt id="link-9" class="py-name"><a title="buildbot.status.logfile" class="py-name" href="#" onclick="return doclink('link-9', 'logfile', 'link-8');">logfile</a></tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">in_reconfig</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">transport</tt> <tt class="py-op">=</tt> <tt id="link-10" class="py-name" targets="Class buildbot.scripts.logwatcher.FakeTransport=buildbot.scripts.logwatcher.FakeTransport-class.html,Class buildslave.scripts.logwatcher.FakeTransport=buildslave.scripts.logwatcher.FakeTransport-class.html"><a title="buildbot.scripts.logwatcher.FakeTransport
+buildslave.scripts.logwatcher.FakeTransport" class="py-name" href="#" onclick="return doclink('link-10', 'FakeTransport', 'link-10');">FakeTransport</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">pp</tt> <tt class="py-op">=</tt> <tt id="link-11" class="py-name" targets="Class buildbot.scripts.logwatcher.TailProcess=buildbot.scripts.logwatcher.TailProcess-class.html,Class buildslave.scripts.logwatcher.TailProcess=buildslave.scripts.logwatcher.TailProcess-class.html"><a title="buildbot.scripts.logwatcher.TailProcess
+buildslave.scripts.logwatcher.TailProcess" class="py-name" href="#" onclick="return doclink('link-11', 'TailProcess', 'link-11');">TailProcess</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">pp</tt><tt class="py-op">.</tt><tt class="py-name">lw</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">processtype</tt> <tt class="py-op">=</tt> <tt class="py-string">"buildmaster"</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Variable buildbot.status.words.IrcBuildRequest.timer=buildbot.status.words.IrcBuildRequest-class.html#timer"><a title="buildbot.status.words.IrcBuildRequest.timer" class="py-name" href="#" onclick="return doclink('link-12', 'timer', 'link-12');">timer</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+</div><a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"> </tt>
+<a name="LogWatcher.start"></a><div id="LogWatcher.start-def"><a name="L55"></a><tt class="py-lineno"> 55</tt> <a class="py-toggle" href="#" id="LogWatcher.start-toggle" onclick="return toggle('LogWatcher.start');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.scripts.logwatcher.LogWatcher-class.html#start">start</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="LogWatcher.start-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="LogWatcher.start-expanded"><a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">        <tt class="py-comment"># If the log file doesn't exist, create it now.</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-13" class="py-name" targets="Variable twisted.python.filepath.FilePath.path=twisted.python.filepath.FilePath-class.html#path"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-13', 'path', 'link-13');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">exists</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-14" class="py-name"><a title="buildbot.status.logfile" class="py-name" href="#" onclick="return doclink('link-14', 'logfile', 'link-8');">logfile</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">            <tt class="py-name">open</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name"><a title="buildbot.status.logfile" class="py-name" href="#" onclick="return doclink('link-15', 'logfile', 'link-8');">logfile</a></tt><tt class="py-op">,</tt> <tt class="py-string">'a'</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">close</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line"> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">        <tt class="py-comment"># return a Deferred that fires when the reconfig process has</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">        <tt class="py-comment"># finished. It errbacks with TimeoutError if the finish line has not</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">        <tt class="py-comment"># been seen within 10 seconds, and with ReconfigError if the error</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">        <tt class="py-comment"># line was seen. If the logfile could not be opened, it errbacks with</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">        <tt class="py-comment"># an IOError.</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name" targets="Variable buildbot.p=buildbot-module.html#p,Variable buildbot.status.words.IrcStatusFactory.p=buildbot.status.words.IrcStatusFactory-class.html#p,Variable buildslave.p=buildslave-module.html#p"><a title="buildbot.p
+buildbot.status.words.IrcStatusFactory.p
+buildslave.p" class="py-name" href="#" onclick="return doclink('link-16', 'p', 'link-16');">p</a></tt> <tt class="py-op">=</tt> <tt id="link-17" class="py-name"><a title="buildbot.process.botmaster.BotMaster.reactor
+buildbot.steps.python_twisted.Trial.reactor" class="py-name" href="#" onclick="return doclink('link-17', 'reactor', 'link-2');">reactor</a></tt><tt class="py-op">.</tt><tt class="py-name">spawnProcess</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">pp</tt><tt class="py-op">,</tt> <tt class="py-string">"/usr/bin/tail"</tt><tt class="py-op">,</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">                                      <tt class="py-op">(</tt><tt class="py-string">"tail"</tt><tt class="py-op">,</tt> <tt class="py-string">"-f"</tt><tt class="py-op">,</tt> <tt class="py-string">"-n"</tt><tt class="py-op">,</tt> <tt class="py-string">"0"</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-18" class="py-name"><a title="buildbot.status.logfile" class="py-name" href="#" onclick="return doclink('link-18', 'logfile', 'link-8');">logfile</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">                                      <tt class="py-name">env</tt><tt class="py-op">=</tt><tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">environ</tt><tt class="py-op">,</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">                                      <tt class="py-op">)</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name" targets="Variable buildbot.db.pool.DBThreadPool.running=buildbot.db.pool.DBThreadPool-class.html#running,Variable buildbot.process.slavebuilder.Ping.running=buildbot.process.slavebuilder.Ping-class.html#running,Variable buildslave.commands.base.Command.running=buildslave.commands.base.Command-class.html#running"><a title="buildbot.db.pool.DBThreadPool.running
+buildbot.process.slavebuilder.Ping.running
+buildslave.commands.base.Command.running" class="py-name" href="#" onclick="return doclink('link-19', 'running', 'link-19');">running</a></tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">        <tt class="py-name">d</tt> <tt class="py-op">=</tt> <tt class="py-name">defer</tt><tt class="py-op">.</tt><tt class="py-name">maybeDeferred</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_start</tt><tt class="py-op">)</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">d</tt> </tt>
+</div><a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line"> </tt>
+<a name="LogWatcher._start"></a><div id="LogWatcher._start-def"><a name="L73"></a><tt class="py-lineno"> 73</tt> <a class="py-toggle" href="#" id="LogWatcher._start-toggle" onclick="return toggle('LogWatcher._start');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.scripts.logwatcher.LogWatcher-class.html#_start">_start</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="LogWatcher._start-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="LogWatcher._start-expanded"><a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">d</tt> <tt class="py-op">=</tt> <tt class="py-name">defer</tt><tt class="py-op">.</tt><tt class="py-name">Deferred</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-20" class="py-name"><a title="buildbot.status.words.IrcBuildRequest.timer" class="py-name" href="#" onclick="return doclink('link-20', 'timer', 'link-12');">timer</a></tt> <tt class="py-op">=</tt> <tt id="link-21" class="py-name"><a title="buildbot.process.botmaster.BotMaster.reactor
+buildbot.steps.python_twisted.Trial.reactor" class="py-name" href="#" onclick="return doclink('link-21', 'reactor', 'link-2');">reactor</a></tt><tt class="py-op">.</tt><tt class="py-name">callLater</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="buildbot.scripts.logwatcher.LogWatcher.TIMEOUT_DELAY
+buildslave.scripts.logwatcher.LogWatcher.TIMEOUT_DELAY" class="py-name" href="#" onclick="return doclink('link-22', 'TIMEOUT_DELAY', 'link-6');">TIMEOUT_DELAY</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-23" class="py-name" targets="Method buildbot.scripts.logwatcher.LogWatcher.timeout()=buildbot.scripts.logwatcher.LogWatcher-class.html#timeout,Variable buildbot.steps.blocker.Blocker.timeout=buildbot.steps.blocker.Blocker-class.html#timeout,Method buildslave.scripts.logwatcher.LogWatcher.timeout()=buildslave.scripts.logwatcher.LogWatcher-class.html#timeout"><a title="buildbot.scripts.logwatcher.LogWatcher.timeout
+buildbot.steps.blocker.Blocker.timeout
+buildslave.scripts.logwatcher.LogWatcher.timeout" class="py-name" href="#" onclick="return doclink('link-23', 'timeout', 'link-23');">timeout</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">d</tt> </tt>
+</div><a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line"> </tt>
+<a name="LogWatcher.timeout"></a><div id="LogWatcher.timeout-def"><a name="L78"></a><tt class="py-lineno"> 78</tt> <a class="py-toggle" href="#" id="LogWatcher.timeout-toggle" onclick="return toggle('LogWatcher.timeout');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.scripts.logwatcher.LogWatcher-class.html#timeout">timeout</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="LogWatcher.timeout-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="LogWatcher.timeout-expanded"><a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-24" class="py-name"><a title="buildbot.status.words.IrcBuildRequest.timer" class="py-name" href="#" onclick="return doclink('link-24', 'timer', 'link-12');">timer</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">processtype</tt> <tt class="py-op">==</tt> <tt class="py-string">"buildmaster"</tt><tt class="py-op">:</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">            <tt class="py-name">e</tt> <tt class="py-op">=</tt> <tt id="link-25" class="py-name" targets="Class buildbot.scripts.logwatcher.BuildmasterTimeoutError=buildbot.scripts.logwatcher.BuildmasterTimeoutError-class.html,Class buildslave.scripts.logwatcher.BuildmasterTimeoutError=buildslave.scripts.logwatcher.BuildmasterTimeoutError-class.html"><a title="buildbot.scripts.logwatcher.BuildmasterTimeoutError
+buildslave.scripts.logwatcher.BuildmasterTimeoutError" class="py-name" href="#" onclick="return doclink('link-25', 'BuildmasterTimeoutError', 'link-25');">BuildmasterTimeoutError</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">            <tt class="py-name">e</tt> <tt class="py-op">=</tt> <tt id="link-26" class="py-name" targets="Class buildbot.scripts.logwatcher.BuildslaveTimeoutError=buildbot.scripts.logwatcher.BuildslaveTimeoutError-class.html,Class buildslave.scripts.logwatcher.BuildslaveTimeoutError=buildslave.scripts.logwatcher.BuildslaveTimeoutError-class.html"><a title="buildbot.scripts.logwatcher.BuildslaveTimeoutError
+buildslave.scripts.logwatcher.BuildslaveTimeoutError" class="py-name" href="#" onclick="return doclink('link-26', 'BuildslaveTimeoutError', 'link-26');">BuildslaveTimeoutError</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-27" class="py-name" targets="Variable buildbot.process.build.Build.finished=buildbot.process.build.Build-class.html#finished,Method buildbot.process.buildstep.BuildStep.finished()=buildbot.process.buildstep.BuildStep-class.html#finished,Method buildbot.scripts.logwatcher.LogWatcher.finished()=buildbot.scripts.logwatcher.LogWatcher-class.html#finished,Variable buildbot.status.builder.BuildStatus.finished=buildbot.status.builder.BuildStatus-class.html#finished,Variable buildbot.status.builder.BuildStepStatus.finished=buildbot.status.builder.BuildStepStatus-class.html#finished,Variable buildbot.status.event.Event.finished=buildbot.status.event.Event-class.html#finished,Variable buildbot.status.logfile.LogFile.finished=buildbot.status.logfile.LogFile-class.html#finished,Method buildbot.status.web.logs.TextLog.finished()=buildbot.status.web.logs.TextLog-class.html#finished,Method buildbot.steps.maxq.MaxQ.finished()=buildbot.steps.maxq.MaxQ-class.html#finished,Variable buildbot.steps.python_twisted.TrialTestCaseCounter.finished=buildbot.steps.python_twisted.TrialTestCaseCounter-class.html#finished,Method buildbot.steps.transfer.DirectoryUpload.finished()=buildbot.steps.transfer.DirectoryUpload-class.html#finished,Method buildbot.steps.vstudio.VisualStudio.finished()=buildbot.steps.vstudio.VisualStudio-class.html#finished,Method buildslave.commands.transfer.SlaveDirectoryUploadCommand.finished()=buildslave.commands.transfer.SlaveDirectoryUploadCommand-class.html#finished,Method buildslave.commands.transfer.SlaveFileDownloadCommand.finished()=buildslave.commands.transfer.SlaveFileDownloadCommand-class.html#finished,Method buildslave.commands.transfer.TransferCommand.finished()=buildslave.commands.transfer.TransferCommand-class.html#finished,Method buildslave.runprocess.RunProcess.finished()=buildslave.runprocess.RunProcess-class.html#finished,Method buildslave.scripts.logwatcher.LogWatcher.finished()=buildslave.scripts.logwatcher.LogWatcher-class.html#finished"><a title="buildbot.process.build.Build.finished
+buildbot.process.buildstep.BuildStep.finished
+buildbot.scripts.logwatcher.LogWatcher.finished
+buildbot.status.builder.BuildStatus.finished
+buildbot.status.builder.BuildStepStatus.finished
+buildbot.status.event.Event.finished
+buildbot.status.logfile.LogFile.finished
+buildbot.status.web.logs.TextLog.finished
+buildbot.steps.maxq.MaxQ.finished
+buildbot.steps.python_twisted.TrialTestCaseCounter.finished
+buildbot.steps.transfer.DirectoryUpload.finished
+buildbot.steps.vstudio.VisualStudio.finished
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.finished
+buildslave.commands.transfer.SlaveFileDownloadCommand.finished
+buildslave.commands.transfer.TransferCommand.finished
+buildslave.runprocess.RunProcess.finished
+buildslave.scripts.logwatcher.LogWatcher.finished" class="py-name" href="#" onclick="return doclink('link-27', 'finished', 'link-27');">finished</a></tt><tt class="py-op">(</tt><tt class="py-name">Failure</tt><tt class="py-op">(</tt><tt class="py-name">e</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line"> </tt>
+<a name="LogWatcher.finished"></a><div id="LogWatcher.finished-def"><a name="L86"></a><tt class="py-lineno"> 86</tt> <a class="py-toggle" href="#" id="LogWatcher.finished-toggle" onclick="return toggle('LogWatcher.finished');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.scripts.logwatcher.LogWatcher-class.html#finished">finished</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">results</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="LogWatcher.finished-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="LogWatcher.finished-expanded"><a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-28" class="py-name"><a title="buildbot.p
+buildbot.status.words.IrcStatusFactory.p
+buildslave.p" class="py-name" href="#" onclick="return doclink('link-28', 'p', 'link-16');">p</a></tt><tt class="py-op">.</tt><tt class="py-name">signalProcess</tt><tt class="py-op">(</tt><tt class="py-string">"KILL"</tt><tt class="py-op">)</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt> <tt class="py-name">error</tt><tt class="py-op">.</tt><tt class="py-name">ProcessExitedAlready</tt><tt class="py-op">:</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">            <tt class="py-keyword">pass</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-29" class="py-name"><a title="buildbot.status.words.IrcBuildRequest.timer" class="py-name" href="#" onclick="return doclink('link-29', 'timer', 'link-12');">timer</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-30" class="py-name"><a title="buildbot.status.words.IrcBuildRequest.timer" class="py-name" href="#" onclick="return doclink('link-30', 'timer', 'link-12');">timer</a></tt><tt class="py-op">.</tt><tt id="link-31" class="py-name" targets="Method buildbot.interfaces.IBuildRequestControl.cancel()=buildbot.interfaces.IBuildRequestControl-class.html#cancel,Method buildbot.process.buildrequest.BuildRequestControl.cancel()=buildbot.process.buildrequest.BuildRequestControl-class.html#cancel"><a title="buildbot.interfaces.IBuildRequestControl.cancel
+buildbot.process.buildrequest.BuildRequestControl.cancel" class="py-name" href="#" onclick="return doclink('link-31', 'cancel', 'link-31');">cancel</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-32" class="py-name"><a title="buildbot.status.words.IrcBuildRequest.timer" class="py-name" href="#" onclick="return doclink('link-32', 'timer', 'link-12');">timer</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-33" class="py-name"><a title="buildbot.db.pool.DBThreadPool.running
+buildbot.process.slavebuilder.Ping.running
+buildslave.commands.base.Command.running" class="py-name" href="#" onclick="return doclink('link-33', 'running', 'link-19');">running</a></tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">in_reconfig</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">d</tt><tt class="py-op">.</tt><tt class="py-name">callback</tt><tt class="py-op">(</tt><tt id="link-34" class="py-name" targets="Variable buildbot.process.build.Build.results=buildbot.process.build.Build-class.html#results,Variable buildbot.status.builder.BuildStatus.results=buildbot.status.builder.BuildStatus-class.html#results,Variable buildbot.status.builder.BuildStepStatus.results=buildbot.status.builder.BuildStepStatus-class.html#results,Module buildbot.status.results=buildbot.status.results-module.html"><a title="buildbot.process.build.Build.results
+buildbot.status.builder.BuildStatus.results
+buildbot.status.builder.BuildStepStatus.results
+buildbot.status.results" class="py-name" href="#" onclick="return doclink('link-34', 'results', 'link-34');">results</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line"> </tt>
+<a name="LogWatcher.lineReceived"></a><div id="LogWatcher.lineReceived-def"><a name="L98"></a><tt class="py-lineno"> 98</tt> <a class="py-toggle" href="#" id="LogWatcher.lineReceived-toggle" onclick="return toggle('LogWatcher.lineReceived');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.scripts.logwatcher.LogWatcher-class.html#lineReceived">lineReceived</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">line</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="LogWatcher.lineReceived-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="LogWatcher.lineReceived-expanded"><a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-35" class="py-name"><a title="buildbot.db.pool.DBThreadPool.running
+buildbot.process.slavebuilder.Ping.running
+buildslave.commands.base.Command.running" class="py-name" href="#" onclick="return doclink('link-35', 'running', 'link-19');">running</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-string">"Log opened."</tt> <tt class="py-keyword">in</tt> <tt class="py-name">line</tt><tt class="py-op">:</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">in_reconfig</tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-string">"loading configuration from"</tt> <tt class="py-keyword">in</tt> <tt class="py-name">line</tt><tt class="py-op">:</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">in_reconfig</tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-string">"Creating BuildSlave"</tt> <tt class="py-keyword">in</tt> <tt class="py-name">line</tt><tt class="py-op">:</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">processtype</tt> <tt class="py-op">=</tt> <tt class="py-string">"buildslave"</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line"> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">in_reconfig</tt><tt class="py-op">:</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line">            <tt class="py-keyword">print</tt> <tt class="py-name">line</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line"> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-string">"message from master: attached"</tt> <tt class="py-keyword">in</tt> <tt class="py-name">line</tt><tt class="py-op">:</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-36" class="py-name"><a title="buildbot.process.build.Build.finished
+buildbot.process.buildstep.BuildStep.finished
+buildbot.scripts.logwatcher.LogWatcher.finished
+buildbot.status.builder.BuildStatus.finished
+buildbot.status.builder.BuildStepStatus.finished
+buildbot.status.event.Event.finished
+buildbot.status.logfile.LogFile.finished
+buildbot.status.web.logs.TextLog.finished
+buildbot.steps.maxq.MaxQ.finished
+buildbot.steps.python_twisted.TrialTestCaseCounter.finished
+buildbot.steps.transfer.DirectoryUpload.finished
+buildbot.steps.vstudio.VisualStudio.finished
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.finished
+buildslave.commands.transfer.SlaveFileDownloadCommand.finished
+buildslave.commands.transfer.TransferCommand.finished
+buildslave.runprocess.RunProcess.finished
+buildslave.scripts.logwatcher.LogWatcher.finished" class="py-name" href="#" onclick="return doclink('link-36', 'finished', 'link-27');">finished</a></tt><tt class="py-op">(</tt><tt class="py-string">"buildslave"</tt><tt class="py-op">)</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-string">"I will keep using the previous config file"</tt> <tt class="py-keyword">in</tt> <tt class="py-name">line</tt><tt class="py-op">:</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-37" class="py-name"><a title="buildbot.process.build.Build.finished
+buildbot.process.buildstep.BuildStep.finished
+buildbot.scripts.logwatcher.LogWatcher.finished
+buildbot.status.builder.BuildStatus.finished
+buildbot.status.builder.BuildStepStatus.finished
+buildbot.status.event.Event.finished
+buildbot.status.logfile.LogFile.finished
+buildbot.status.web.logs.TextLog.finished
+buildbot.steps.maxq.MaxQ.finished
+buildbot.steps.python_twisted.TrialTestCaseCounter.finished
+buildbot.steps.transfer.DirectoryUpload.finished
+buildbot.steps.vstudio.VisualStudio.finished
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.finished
+buildslave.commands.transfer.SlaveFileDownloadCommand.finished
+buildslave.commands.transfer.TransferCommand.finished
+buildslave.runprocess.RunProcess.finished
+buildslave.scripts.logwatcher.LogWatcher.finished" class="py-name" href="#" onclick="return doclink('link-37', 'finished', 'link-27');">finished</a></tt><tt class="py-op">(</tt><tt class="py-name">Failure</tt><tt class="py-op">(</tt><tt id="link-38" class="py-name" targets="Class buildbot.scripts.logwatcher.ReconfigError=buildbot.scripts.logwatcher.ReconfigError-class.html,Class buildslave.scripts.logwatcher.ReconfigError=buildslave.scripts.logwatcher.ReconfigError-class.html"><a title="buildbot.scripts.logwatcher.ReconfigError
+buildslave.scripts.logwatcher.ReconfigError" class="py-name" href="#" onclick="return doclink('link-38', 'ReconfigError', 'link-38');">ReconfigError</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-string">"configuration update complete"</tt> <tt class="py-keyword">in</tt> <tt class="py-name">line</tt><tt class="py-op">:</tt> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-39" class="py-name"><a title="buildbot.process.build.Build.finished
+buildbot.process.buildstep.BuildStep.finished
+buildbot.scripts.logwatcher.LogWatcher.finished
+buildbot.status.builder.BuildStatus.finished
+buildbot.status.builder.BuildStepStatus.finished
+buildbot.status.event.Event.finished
+buildbot.status.logfile.LogFile.finished
+buildbot.status.web.logs.TextLog.finished
+buildbot.steps.maxq.MaxQ.finished
+buildbot.steps.python_twisted.TrialTestCaseCounter.finished
+buildbot.steps.transfer.DirectoryUpload.finished
+buildbot.steps.vstudio.VisualStudio.finished
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.finished
+buildslave.commands.transfer.SlaveFileDownloadCommand.finished
+buildslave.commands.transfer.TransferCommand.finished
+buildslave.runprocess.RunProcess.finished
+buildslave.scripts.logwatcher.LogWatcher.finished" class="py-name" href="#" onclick="return doclink('link-39', 'finished', 'link-27');">finished</a></tt><tt class="py-op">(</tt><tt class="py-string">"buildmaster"</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.4</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Sun Jun 12 16:48:24 2011
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

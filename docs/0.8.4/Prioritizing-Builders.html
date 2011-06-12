@@ -1,0 +1,89 @@
+<html lang="en">
+<head>
+<title>Prioritizing Builders - BuildBot Manual - 0.8.4</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.4">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Global-Configuration.html#Global-Configuration" title="Global Configuration">
+<link rel="prev" href="Merging-Build-Requests-_0028global-option_0029.html#Merging-Build-Requests-_0028global-option_0029" title="Merging Build Requests (global option)">
+<link rel="next" href="Setting-the-PB-Port-for-Slaves.html#Setting-the-PB-Port-for-Slaves" title="Setting the PB Port for Slaves">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.4.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Prioritizing-Builders"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Setting-the-PB-Port-for-Slaves.html#Setting-the-PB-Port-for-Slaves">Setting the PB Port for Slaves</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Merging-Build-Requests-_0028global-option_0029.html#Merging-Build-Requests-_0028global-option_0029">Merging Build Requests (global option)</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Global-Configuration.html#Global-Configuration">Global Configuration</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.6.7 Prioritizing Builders</h4>
+
+<p><a name="index-c_005b_0027prioritizeBuilders_0027_005d-33"></a>
+By default, buildbot will attempt to start builds on builders in order from the
+builder with the highest priority or oldest pending request to the
+lowest-priority, newest request. This behaviour can be customized with the
+<code>c['prioritizeBuilders']</code> configuration key.  This key specifies a
+function which is called with two arguments: a <code>BuildMaster</code> and a list of
+<code>Builder</code> objects. It should return a list of <code>Builder</code> objects in
+the desired order.  It may also remove items from the list if builds should not
+be started on those builders.  If necessary, this function can return its
+results via a Deferred (it is called with <code>maybeDeferred</code>).
+
+   <p>This parameter controls the order in which builders are activated.  It does not
+affect the order in which a builder processes the build requests in its queue. 
+For that purpose, see see <a href="Prioritizing-Builds.html#Prioritizing-Builds">Prioritizing Builds</a>.
+
+<pre class="example">     def prioritizeBuilders(buildmaster, builders):
+         """Prioritize builders.  'finalRelease' builds have the highest
+         priority, so they should be built before running tests, or
+         creating builds."""
+         builderPriorities = {
+             "finalRelease": 0,
+             "test": 1,
+             "build": 2,
+         }
+         builders.sort(key=lambda b: builderPriorities.get(b.name, 0))
+         return builders
+     
+     c['prioritizeBuilders'] = prioritizeBuilders
+</pre>
+   </body></html>
+
