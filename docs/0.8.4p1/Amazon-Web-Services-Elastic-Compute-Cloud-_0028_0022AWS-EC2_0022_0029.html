@@ -1,0 +1,236 @@
+<html lang="en">
+<head>
+<title>Amazon Web Services Elastic Compute Cloud (&quot;AWS EC2&quot;) - BuildBot Manual - 0.8.4p1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.4p1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Latent-Buildslaves.html#Latent-Buildslaves" title="Latent Buildslaves">
+<link rel="next" href="Libvirt.html#Libvirt" title="Libvirt">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.4p1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Amazon-Web-Services-Elastic-Compute-Cloud-(%22AWS-EC2%22)"></a>
+<a name="Amazon-Web-Services-Elastic-Compute-Cloud-_0028_0022AWS-EC2_0022_0029"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Libvirt.html#Libvirt">Libvirt</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Latent-Buildslaves.html#Latent-Buildslaves">Latent Buildslaves</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.9.3.1 Amazon Web Services Elastic Compute Cloud ("AWS EC2")</h5>
+
+<p><a href="http://aws.amazon.com/ec2/">AWS EC2</a> is a web service that allows you to
+start virtual machines in an Amazon data center. Please see their website for
+details, incuding costs. Using the AWS EC2 latent buildslaves involves getting
+an EC2 account with AWS and setting up payment; customizing one or more EC2
+machine images ("AMIs") on your desired operating system(s) and publishing
+them (privately if needed); and configuring the buildbot master to know how to
+start your customized images for "substantiating" your latent slaves.
+
+<h3 class="heading">Get an AWS EC2 Account</h3>
+
+<p>To start off, to use the AWS EC2 latent buildslave, you need to get an AWS
+developer account and sign up for EC2. These instructions may help you get
+started:
+
+     <ul>
+<li>Go to http://aws.amazon.com/ and click to "Sign Up Now" for an AWS account.
+
+     <li>Once you are logged into your account, you need to sign up for EC2. 
+Instructions for how to do this have changed over time because Amazon changes
+their website, so the best advice is to hunt for it. After signing up for EC2,
+it may say it wants you to upload an x.509 cert. You will need this to create
+images (see below) but it is not technically necessary for the buildbot master
+configuration.
+
+     <li>You must enter a valid credit card before you will be able to use EC2. Do that
+under 'Payment Method'.
+
+     <li>Make sure you're signed up for EC2 by going to 'Your Account'-&gt;'Account
+Activity' and verifying EC2 is listed. 
+</ul>
+
+<h3 class="heading">Create an AMI</h3>
+
+<p>Now you need to create an AMI and configure the master.  You may need to
+run through this cycle a few times to get it working, but these instructions
+should get you started.
+
+   <p>Creating an AMI is out of the scope of this document.  The
+<a href="http://docs.amazonwebservices.com/AWSEC2/latest/GettingStartedGuide/">EC2 Getting Started Guide</a>
+is a good resource for this task.  Here are a few additional hints.
+
+     <ul>
+<li>When an instance of the image starts, it needs to automatically start a
+buildbot slave that connects to your master (to create a buildbot slave,
+see <a href="Creating-a-buildslave.html#Creating-a-buildslave">Creating a buildslave</a>; to make a daemon,
+see <a href="Launching-the-daemons.html#Launching-the-daemons">Launching the daemons</a>).
+
+     <li>You may want to make an instance of the buildbot slave, configure it as a
+standard buildslave in the master (i.e., not as a latent slave), and test and
+debug it that way before you turn it into an AMI and convert to a latent
+slave in the master. 
+</ul>
+
+<h3 class="heading">Configure the Master with an EC2LatentBuildSlave</h3>
+
+<p>Now let's assume you have an AMI that should work with the
+EC2LatentBuildSlave.  It's now time to set up your buildbot master
+configuration.
+
+   <p>You will need some information from your AWS account: the "Access Key Id" and
+the "Secret Access Key".  If you've built the AMI yourself, you probably
+already are familiar with these values.  If you have not, and someone has
+given you access to an AMI, these hints may help you find the necessary
+values:
+
+     <ul>
+<li>While logged into your AWS account, find the "Access Identifiers" link (either
+on the left, or via "Your Account" -&gt; "Access Identifiers".
+
+     <li>On the page, you'll see alphanumeric values for "Your Access Key Id:" and
+"Your Secret Access Key:". Make a note of these. Later on, we'll call the
+first one your "identifier" and the second one your "secret_identifier." 
+</ul>
+
+   <p>When creating an EC2LatentBuildSlave in the buildbot master configuration,
+the first three arguments are required.  The name and password are the first
+two arguments, and work the same as with normal buildslaves.  The next
+argument specifies the type of the EC2 virtual machine (available options as
+of this writing include "m1.small", "m1.large", 'm1.xlarge", "c1.medium",
+and "c1.xlarge"; see the EC2 documentation for descriptions of these
+machines).
+
+   <p>Here is the simplest example of configuring an EC2 latent buildslave. It
+specifies all necessary remaining values explicitly in the instantiation.
+
+<pre class="example">     from buildbot.ec2buildslave import EC2LatentBuildSlave
+     c['slaves'] = [EC2LatentBuildSlave('bot1', 'sekrit', 'm1.large',
+                                        ami='ami-12345',
+                                        identifier='publickey',
+                                        secret_identifier='privatekey'
+                                        )]
+</pre>
+   <p>The "ami" argument specifies the AMI that the master should start.  The
+"identifier" argument specifies the AWS "Access Key Id," and the
+"secret_identifier" specifies the AWS "Secret Access Key." Both the AMI and
+the account information can be specified in alternate ways.
+
+   <p>Note that whoever has your identifier and secret_identifier values can request
+AWS work charged to your account, so these values need to be carefully
+protected. Another way to specify these access keys is to put them in a
+separate file. You can then make the access privileges stricter for this
+separate file, and potentially let more people read your main configuration
+file.
+
+   <p>By default, you can make an .ec2 directory in the home folder of the user
+running the buildbot master. In that directory, create a file called aws_id. 
+The first line of that file should be your access key id; the second line
+should be your secret access key id. Then you can instantiate the build slave
+as follows.
+
+<pre class="example">     from buildbot.ec2buildslave import EC2LatentBuildSlave
+     c['slaves'] = [EC2LatentBuildSlave('bot1', 'sekrit', 'm1.large',
+                                        ami='ami-12345')]
+</pre>
+   <p>If you want to put the key information in another file, use the
+"aws_id_file_path" initialization argument.
+
+   <p>Previous examples used a particular AMI.  If the Buildbot master will be
+deployed in a process-controlled environment, it may be convenient to
+specify the AMI more flexibly.  Rather than specifying an individual AMI,
+specify one or two AMI filters.
+
+   <p>In all cases, the AMI that sorts last by its location (the S3 bucket and
+manifest name) will be preferred.
+
+   <p>One available filter is to specify the acceptable AMI owners, by AWS account
+number (the 12 digit number, usually rendered in AWS with hyphens like
+"1234-5678-9012", should be entered as in integer).
+
+<pre class="example">     from buildbot.ec2buildslave import EC2LatentBuildSlave
+     bot1 = EC2LatentBuildSlave('bot1', 'sekrit', 'm1.large',
+                                valid_ami_owners=[11111111111,
+                                                  22222222222],
+                                identifier='publickey',
+                                secret_identifier='privatekey'
+                                )
+</pre>
+   <p>The other available filter is to provide a regular expression string that
+will be matched against each AMI's location (the S3 bucket and manifest name).
+
+<pre class="example">     from buildbot.ec2buildslave import EC2LatentBuildSlave
+     bot1 = EC2LatentBuildSlave(
+         'bot1', 'sekrit', 'm1.large',
+         valid_ami_location_regex=r'buildbot\-.*/image.manifest.xml',
+         identifier='publickey', secret_identifier='privatekey')
+</pre>
+   <p>The regular expression can specify a group, which will be preferred for the
+sorting.  Only the first group is used; subsequent groups are ignored.
+
+<pre class="example">     from buildbot.ec2buildslave import EC2LatentBuildSlave
+     bot1 = EC2LatentBuildSlave(
+         'bot1', 'sekrit', 'm1.large',
+         valid_ami_location_regex=r'buildbot\-.*\-(.*)/image.manifest.xml',
+         identifier='publickey', secret_identifier='privatekey')
+</pre>
+   <p>If the group can be cast to an integer, it will be.  This allows 10 to sort
+after 1, for instance.
+
+<pre class="example">     from buildbot.ec2buildslave import EC2LatentBuildSlave
+     bot1 = EC2LatentBuildSlave(
+         'bot1', 'sekrit', 'm1.large',
+         valid_ami_location_regex=r'buildbot\-.*\-(\d+)/image.manifest.xml',
+         identifier='publickey', secret_identifier='privatekey')
+</pre>
+   <p>In addition to using the password as a handshake between the master and the
+slave, you may want to use a firewall to assert that only machines from a
+specific IP can connect as slaves.  This is possible with AWS EC2 by using
+the Elastic IP feature.  To configure, generate a Elastic IP in AWS, and then
+specify it in your configuration using the "elastic_ip" argument.
+
+<pre class="example">     from buildbot.ec2buildslave import EC2LatentBuildSlave
+     c['slaves'] = [EC2LatentBuildSlave('bot1', 'sekrit', 'm1.large',
+                                        'ami-12345',
+                                        identifier='publickey',
+                                        secret_identifier='privatekey',
+                                        elastic_ip='208.77.188.166'
+                                        )]
+</pre>
+   <p>The EC2LatentBuildSlave supports all other configuration from the standard
+BuildSlave.  The "missing_timeout" and "notify_on_missing" specify how long
+to wait for an EC2 instance to attach before considering the attempt to have
+failed, and email addresses to alert, respectively.  "missing_timeout"
+defaults to 20 minutes.
+
+   <p>The "build_wait_timeout" allows you to specify how long an EC2LatentBuildSlave
+should wait after a build for another build before it shuts down the EC2
+instance.  It defaults to 10 minutes.
+
+   <p>"keypair_name" and "security_name" allow you to specify different names for
+these AWS EC2 values.  They both default to "latent_buildbot_slave".
+
+   </body></html>
+

@@ -1,0 +1,331 @@
+<html lang="en">
+<head>
+<title>try - BuildBot Manual - 0.8.4p1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.4p1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Developer-Tools.html#Developer-Tools" title="Developer Tools">
+<link rel="prev" href="statusgui.html#statusgui" title="statusgui">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.4p1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="try"></a>
+<p>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="statusgui.html#statusgui">statusgui</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Developer-Tools.html#Developer-Tools">Developer Tools</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">6.1.2.3 try</h5>
+
+<p>This lets a developer to ask the question &ldquo;What would happen if I
+committed this patch right now?&rdquo;. It runs the unit test suite (across
+multiple build platforms) on the developer's current code, allowing
+them to make sure they will not break the tree when they finally
+commit their changes.
+
+   <p>The <samp><span class="command">buildbot try</span></samp> command is meant to be run from within a
+developer's local tree, and starts by figuring out the base revision
+of that tree (what revision was current the last time the tree was
+updated), and a patch that can be applied to that revision of the tree
+to make it match the developer's copy. This (revision, patch) pair is
+then sent to the buildmaster, which runs a build with that
+SourceStamp. If you want, the tool will emit status messages as the
+builds run, and will not terminate until the first failure has been
+detected (or the last success).
+
+   <p>There is an alternate form which accepts a pre-made patch file
+(typically the output of a command like 'svn diff'). This &ldquo;&ndash;diff&rdquo;
+form does not require a local tree to run from. See See <a href="try.html#try">try</a>, concerning
+the &ldquo;&ndash;diff&rdquo; command option.
+
+   <p>For this command to work, several pieces must be in place: the See <a href="Try-Schedulers.html#Try-Schedulers">Try Schedulers</a>, as well as some client-side configuration.
+
+<h3 class="heading">locating the master</h3>
+
+<p>The <samp><span class="command">try</span></samp> command needs to be told how to connect to the
+try scheduler, and must know which of the authentication
+approaches described above is in use by the buildmaster. You specify
+the approach by using <samp><span class="option">--connect=ssh</span></samp> or <samp><span class="option">--connect=pb</span></samp>
+(or <code>try_connect = 'ssh'</code> or <code>try_connect = 'pb'</code> in
+<samp><span class="file">.buildbot/options</span></samp>).
+
+   <p>For the PB approach, the command must be given a <samp><span class="option">--master</span></samp>
+argument (in the form HOST:PORT) that points to TCP port that you picked
+in the <code>Try_Userpass</code> scheduler. It also takes a
+<samp><span class="option">--username</span></samp> and <samp><span class="option">--passwd</span></samp> pair of arguments that match
+one of the entries in the buildmaster's <code>userpass</code> list. These
+arguments can also be provided as <code>try_master</code>,
+<code>try_username</code>, and <code>try_password</code> entries in the
+<samp><span class="file">.buildbot/options</span></samp> file.
+
+   <p>For the SSH approach, the command must be given <samp><span class="option">--host</span></samp> and
+<samp><span class="option">--username</span></samp> to get to the buildmaster host. It must also be
+given <samp><span class="option">--jobdir</span></samp>, which points to the inlet directory configured
+above. The jobdir can be relative to the user's home directory, but most
+of the time you will use an explicit path like
+<samp><span class="file">~buildbot/project/jobdir</span></samp>. These arguments can be provided in
+<samp><span class="file">.buildbot/options</span></samp> as <code>try_host</code>, <code>try_username</code>, and
+<code>try_jobdir</code>.
+
+   <p>In addition, the SSH approach needs to connect to a PBListener status
+port, so it can retrieve and report the results of the build (the PB
+approach uses the existing connection to retrieve status information,
+so this step is not necessary). This requires a <samp><span class="option">--masterstatus</span></samp>
+argument, or a <code>try_masterstatus</code> entry in <samp><span class="file">.buildbot/options</span></samp>,
+in the form of a HOSTNAME:PORT string.
+
+   <p>The following command line arguments are deprecated, but retained for
+backward compatibility:
+
+     <ul>
+<li><samp><span class="option">--tryhost</span></samp> is replaced by <samp><span class="option">--host</span></samp>
+<li><samp><span class="option">--trydir</span></samp> is replaced by <samp><span class="option">--jobdir</span></samp>
+<li><samp><span class="option">--master</span></samp> is replaced by <samp><span class="option">--masterstatus</span></samp>
+</ul>
+
+   <p>Likewise, the following <samp><span class="file">.buildbot/options</span></samp> file entries are
+deprecated, but retained for backward compatibility:
+
+     <ul>
+<li><code>try_dir</code> is replaced by <code>try_jobdir</code>
+<li><code>masterstatus</code> is replaced by <code>try_masterstatus</code>
+</ul>
+
+<h3 class="heading">choosing the Builders</h3>
+
+<p>A trial build is performed on multiple Builders at the same time, and
+the developer gets to choose which Builders are used (limited to a set
+selected by the buildmaster admin with the TryScheduler's
+<code>builderNames=</code> argument). The set you choose will depend upon
+what your goals are: if you are concerned about cross-platform
+compatibility, you should use multiple Builders, one from each
+platform of interest. You might use just one builder if that platform
+has libraries or other facilities that allow better test coverage than
+what you can accomplish on your own machine, or faster test runs.
+
+   <p>The set of Builders to use can be specified with multiple
+<samp><span class="option">--builder</span></samp> arguments on the command line. It can also be
+specified with a single <code>try_builders</code> option in
+<samp><span class="file">.buildbot/options</span></samp> that uses a list of strings to specify all
+the Builder names:
+
+<pre class="example">     try_builders = ["full-OSX", "full-win32", "full-linux"]
+</pre>
+   <p>If you are using the PB approach, you can get the names of the builders
+that are configured for the try scheduler using the <code>get-builder-names</code>
+argument:
+
+<pre class="example">     buildbot try --get-builder-names --connect=pb --master=... --username=... --passwd=...
+</pre>
+   <h3 class="heading">specifying the VC system</h3>
+
+<p>The <samp><span class="command">try</span></samp> command also needs to know how to take the
+developer's current tree and extract the (revision, patch)
+source-stamp pair. Each VC system uses a different process, so you
+start by telling the <samp><span class="command">try</span></samp> command which VC system you are
+using, with an argument like <samp><span class="option">--vc=cvs</span></samp> or <samp><span class="option">--vc=git</span></samp>. 
+This can also be provided as <code>try_vc</code> in
+<samp><span class="file">.buildbot/options</span></samp>.
+
+   <p>The following names are recognized: <code>bzr</code> <code>cvs</code>
+<code>darcs</code> <code>git</code> <code>hg</code> <code>mtn</code> <code>p4</code> <code>svn</code>
+
+<h3 class="heading">finding the top of the tree</h3>
+
+<p>Some VC systems (notably CVS and SVN) track each directory
+more-or-less independently, which means the <samp><span class="command">try</span></samp> command
+needs to move up to the top of the project tree before it will be able
+to construct a proper full-tree patch. To accomplish this, the
+<samp><span class="command">try</span></samp> command will crawl up through the parent directories
+until it finds a marker file. The default name for this marker file is
+<samp><span class="file">.buildbot-top</span></samp>, so when you are using CVS or SVN you should
+<code>touch .buildbot-top</code> from the top of your tree before running
+<samp><span class="command">buildbot try</span></samp>. Alternatively, you can use a filename like
+<samp><span class="file">ChangeLog</span></samp> or <samp><span class="file">README</span></samp>, since many projects put one of
+these files in their top-most directory (and nowhere else). To set
+this filename, use <samp><span class="option">--topfile=ChangeLog</span></samp>, or set it in the
+options file with <code>try_topfile = 'ChangeLog'</code>.
+
+   <p>You can also manually set the top of the tree with
+<samp><span class="option">--topdir=~/trees/mytree</span></samp>, or <code>try_topdir =
+'~/trees/mytree'</code>. If you use <code>try_topdir</code>, in a
+<samp><span class="file">.buildbot/options</span></samp> file, you will need a separate options file
+for each tree you use, so it may be more convenient to use the
+<code>try_topfile</code> approach instead.
+
+   <p>Other VC systems which work on full projects instead of individual
+directories (darcs, mercurial, git, monotone) do not require
+<samp><span class="command">try</span></samp> to know the top directory, so the <samp><span class="option">--topfile</span></samp>
+and <samp><span class="option">--topdir</span></samp> arguments will be ignored.
+
+   <p>If the <samp><span class="command">try</span></samp> command cannot find the top directory, it will
+abort with an error message.
+
+   <p>The following command line arguments are deprecated, but retained for
+backward compatibility:
+
+     <ul>
+<li><samp><span class="option">--try-topdir</span></samp> is replaced by <samp><span class="option">--topdir</span></samp>
+<li><samp><span class="option">--try-topfile</span></samp> is replaced by <samp><span class="option">--topfile</span></samp>
+</ul>
+
+<h3 class="heading">determining the branch name</h3>
+
+<p>Some VC systems record the branch information in a way that &ldquo;try&rdquo;
+can locate it.  For the others, if you are using something other than
+the default branch, you will have to tell the buildbot which branch
+your tree is using. You can do this with either the <samp><span class="option">--branch</span></samp>
+argument, or a <samp><span class="option">try_branch</span></samp> entry in the
+<samp><span class="file">.buildbot/options</span></samp> file.
+
+<h3 class="heading">determining the revision and patch</h3>
+
+<p>Each VC system has a separate approach for determining the tree's base
+revision and computing a patch.
+
+     <dl>
+    <dt><code>CVS</code><dd>
+<samp><span class="command">try</span></samp> pretends that the tree is up to date. It converts the
+current time into a <code>-D</code> time specification, uses it as the base
+revision, and computes the diff between the upstream tree as of that
+point in time versus the current contents. This works, more or less,
+but requires that the local clock be in reasonably good sync with the
+repository.
+
+     <br><dt><code>SVN</code><dd><samp><span class="command">try</span></samp> does a <code>svn status -u</code> to find the latest
+repository revision number (emitted on the last line in the &ldquo;Status
+against revision: NN&rdquo; message). It then performs an <code>svn diff
+-rNN</code> to find out how your tree differs from the repository version,
+and sends the resulting patch to the buildmaster. If your tree is not
+up to date, this will result in the &ldquo;try&rdquo; tree being created with
+the latest revision, then <em>backwards</em> patches applied to bring it
+&ldquo;back&rdquo; to the version you actually checked out (plus your actual
+code changes), but this will still result in the correct tree being
+used for the build.
+
+     <br><dt><code>bzr</code><dd><samp><span class="command">try</span></samp> does a <code>bzr revision-info</code> to find the base revision,
+then a <code>bzr diff -r$base..</code> to obtain the patch.
+
+     <br><dt><code>Mercurial</code><dd><code>hg identify --debug</code> emits the full revision id (as opposed to
+the common 12-char truncated) which is a SHA1 hash of the current
+revision's contents. This is used as the base revision. 
+<code>hg diff</code> then provides the patch relative to that
+revision. For <samp><span class="command">try</span></samp> to work, your working directory must only
+have patches that are available from the same remotely-available
+repository that the build process' <code>source.Mercurial</code> will use.
+
+     <br><dt><code>Perforce</code><dd><samp><span class="command">try</span></samp> does a <code>p4 changes -m1 ...</code> to determine the latest
+changelist and implicitly assumes that the local tree is synched to this
+revision. This is followed by a <code>p4 diff -du</code> to obtain the patch. 
+A p4 patch differs sligtly from a normal diff. It contains full depot
+paths and must be converted to paths relative to the branch top. To convert
+the following restriction is imposed. The p4base (see see <a href="P4Source.html#P4Source">P4Source</a>)
+ is assumed to be <code>//depot</code>
+
+     <br><dt><code>Darcs</code><dd><samp><span class="command">try</span></samp> does a <code>darcs changes --context</code> to find the list
+of all patches back to and including the last tag that was made. This text
+file (plus the location of a repository that contains all these
+patches) is sufficient to re-create the tree. Therefore the contents
+of this &ldquo;context&rdquo; file <em>are</em> the revision stamp for a
+Darcs-controlled source tree.  It then does a <code>darcs diff
+-u</code> to compute the patch relative to that revision.
+
+     <br><dt><code>Git</code><dd><code>git branch -v</code> lists all the branches available in the local
+repository along with the revision ID it points to and a short summary
+of the last commit. The line containing the currently checked out
+branch begins with '* ' (star and space) while all the others start
+with '  ' (two spaces). <samp><span class="command">try</span></samp> scans for this line and extracts
+the branch name and revision from it. Then it generates a diff against
+the base revision. 
+<!-- TODO: I'm not sure if this actually works the way it's intended -->
+<!-- since the extracted base revision might not actually exist in the -->
+<!-- upstream repository. Perhaps we need to add a -remote option to -->
+<!-- specify the remote tracking branch to generate a diff against. -->
+
+     <br><dt><code>Monotone</code><dd><code>mtn automate get_base_revision_id</code> emits the full revision id
+which is a SHA1 hash of the current revision's contents. This is used as
+the base revision. 
+<code>mtn diff</code> then provides the patch relative to that revision.  For
+<samp><span class="command">try</span></samp> to work, your working directory must only have patches
+that are available from the same remotely-available repository that the
+build process' <code>source.Monotone</code> will use.
+
+   </dl>
+
+<h3 class="heading">showing who built</h3>
+
+<p>You can provide the <samp><span class="option">--who=dev</span></samp> to designate who is running the
+try build. This will add the <code>dev</code> to the Reason field on the try
+build's status web page. You can also set <code>try_who = dev</code> in the
+<samp><span class="file">.buildbot/options</span></samp> file. Note that <samp><span class="option">--who=dev</span></samp> will not
+work on version 0.8.3 or earlier masters.
+
+<h3 class="heading">waiting for results</h3>
+
+<p>If you provide the <samp><span class="option">--wait</span></samp> option (or <code>try_wait = True</code>
+in <samp><span class="file">.buildbot/options</span></samp>), the <samp><span class="command">buildbot try</span></samp> command will
+wait until your changes have either been proven good or bad before
+exiting. Unless you use the <samp><span class="option">--quiet</span></samp> option (or
+<code>try_quiet=True</code>), it will emit a progress message every 60
+seconds until the builds have completed.
+
+   <p>Sometimes you might have a patch from someone else that you want to
+submit to the buildbot. For example, a user may have created a patch
+to fix some specific bug and sent it to you by email. You've inspected
+the patch and suspect that it might do the job (and have at least
+confirmed that it doesn't do anything evil). Now you want to test it
+out.
+
+   <p>One approach would be to check out a new local tree, apply the patch,
+run your local tests, then use &ldquo;buildbot try&rdquo; to run the tests on
+other platforms. An alternate approach is to use the <samp><span class="command">buildbot
+try --diff</span></samp> form to have the buildbot test the patch without using a
+local tree.
+
+   <p>This form takes a <samp><span class="option">--diff</span></samp> argument which points to a file that
+contains the patch you want to apply. By default this patch will be
+applied to the TRUNK revision, but if you give the optional
+<samp><span class="option">--baserev</span></samp> argument, a tree of the given revision will be used
+as a starting point instead of TRUNK.
+
+   <p>You can also use <samp><span class="command">buildbot try --diff=-</span></samp> to read the patch
+from stdin.
+
+   <p>Each patch has a &ldquo;patchlevel&rdquo; associated with it. This indicates the
+number of slashes (and preceding pathnames) that should be stripped
+before applying the diff. This exactly corresponds to the <samp><span class="option">-p</span></samp>
+or <samp><span class="option">--strip</span></samp> argument to the <samp><span class="command">patch</span></samp> utility. By
+default <samp><span class="command">buildbot try --diff</span></samp> uses a patchlevel of 0, but you
+can override this with the <samp><span class="option">-p</span></samp> argument.
+
+   <p>When you use <samp><span class="option">--diff</span></samp>, you do not need to use any of the other
+options that relate to a local tree, specifically <samp><span class="option">--vc</span></samp>,
+<samp><span class="option">--topfile</span></samp>, or <samp><span class="option">--topdir</span></samp>. These options will
+be ignored. Of course you must still specify how to get to the
+buildmaster (with <samp><span class="option">--connect</span></samp>, <samp><span class="option">--host</span></samp>, etc).
+
+   </body></html>
+

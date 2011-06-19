@@ -1,0 +1,85 @@
+<html lang="en">
+<head>
+<title>SetProperty - BuildBot Manual - 0.8.4p1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.4p1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="ShellCommand.html#ShellCommand" title="ShellCommand">
+<link rel="prev" href="Testing-with-mysql_002dtest_002drun.html#Testing-with-mysql_002dtest_002drun" title="Testing with mysql-test-run">
+<link rel="next" href="SubunitShellCommand.html#SubunitShellCommand" title="SubunitShellCommand">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.4p1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="SetProperty"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="SubunitShellCommand.html#SubunitShellCommand">SubunitShellCommand</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Testing-with-mysql_002dtest_002drun.html#Testing-with-mysql_002dtest_002drun">Testing with mysql-test-run</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="ShellCommand.html#ShellCommand">ShellCommand</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.12.4.9 SetProperty</h5>
+
+<p><a name="index-buildbot_002esteps_002eshell_002eSetProperty-114"></a>
+This buildstep is similar to ShellCommand, except that it captures the
+output of the command into a property.  It is usually used like this:
+
+<pre class="example">     from buildbot.steps import shell
+     f.addStep(shell.SetProperty(command="uname -a", property="uname"))
+</pre>
+   <p>This runs <code>uname -a</code> and captures its output (including stderr), stripped
+of leading and trailing whitespace, in the property "uname".  To avoid
+stripping, add <code>strip=False</code>.
+
+   <p>The <code>property</code> argument can be specified as a <code>WithProperties</code>
+object, allowing the property name to be built from other property values.
+
+   <p>The more advanced usage allows you to specify a function to extract properties
+from the command output.  Here you can use regular expressions, string
+interpolation, or whatever you would like.  In this form, <code>extract_fn</code>
+should be passed, and not <code>property</code>.  The <code>extract_fn</code> function is
+called with three arguments: the exit status of the command, its standard
+output as a string, and its standard error as a string.  It should return a
+dictionary containing all new properties.
+
+<pre class="example">     def glob2list(rc, stdout, stderr):
+         jpgs = [ l.strip() for l in stdout.split('\n') ]
+         return { 'jpgs' : jpgs }
+     f.addStep(SetProperty(command="ls -1 *.jpg", extract_fn=glob2list))
+</pre>
+   <p>Note that any ordering relationship of the contents of stdout and
+stderr is lost.  For example, given
+
+<pre class="example">     f.addStep(SetProperty(
+         command="echo output1; echo error &gt;&amp;2; echo output2",
+         extract_fn=my_extract))
+</pre>
+   <p>Then <code>my_extract</code> will see <code>stdout="output1\noutput2\n"</code>
+and <code>stderr="error\n"</code>.
+
+   <p>See also <a href="Setting-Properties.html#Setting-Properties">Setting Properties</a>.
+
+   </body></html>
+

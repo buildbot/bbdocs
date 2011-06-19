@@ -1,0 +1,106 @@
+<html lang="en">
+<head>
+<title>Reloading the Config File (reconfig) - BuildBot Manual - 0.8.4p1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.4p1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Configuration.html#Configuration" title="Configuration">
+<link rel="prev" href="Testing-the-Config-File.html#Testing-the-Config-File" title="Testing the Config File">
+<link rel="next" href="Global-Configuration.html#Global-Configuration" title="Global Configuration">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.4p1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Reloading-the-Config-File-(reconfig)"></a>
+<a name="Reloading-the-Config-File-_0028reconfig_0029"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Global-Configuration.html#Global-Configuration">Global Configuration</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Testing-the-Config-File.html#Testing-the-Config-File">Testing the Config File</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Configuration.html#Configuration">Configuration</a>
+<hr>
+</div>
+
+<h3 class="section">4.5 Reloading the Config File (reconfig)</h3>
+
+<p>If you are on the system hosting the buildmaster, you can send a <code>SIGHUP</code>
+signal to it: the <samp><span class="command">buildbot</span></samp> tool has a shortcut for this:
+
+<pre class="example">     buildbot reconfig <var>BASEDIR</var>
+</pre>
+   <p>This command will show you all of the lines from <samp><span class="file">twistd.log</span></samp>
+that relate to the reconfiguration. If there are any problems during
+the config-file reload, they will be displayed in these lines.
+
+   <p>When reloading the config file, the buildmaster will endeavor to
+change as little as possible about the running system. For example,
+although old status targets may be shut down and new ones started up,
+any status targets that were not changed since the last time the
+config file was read will be left running and untouched. Likewise any
+Builders which have not been changed will be left running. If a
+Builder is modified (say, the build process is changed) while a Build
+is currently running, that Build will keep running with the old
+process until it completes. Any previously queued Builds (or Builds
+which get queued after the reconfig) will use the new process.
+
+<h3 class="heading">Warning</h3>
+
+<p>Buildbot's reconfiguration system is fragile for a few difficult-to-fix
+reasons:
+
+     <ul>
+<li>Any modules imported by the configuration file are not automatically reloaded. 
+Python modules such as <a href="http://pypi.python.org/pypi/lazy-reload">http://pypi.python.org/pypi/lazy-reload</a> may help
+here, but reloading modules is fraught with subtlties and difficult-to-decipher
+failure cases.
+
+     <li>During the reconfiguration, active internal objects are divorced from the service
+hierarchy, leading to tracebacks in the web interface and other components. These
+are ordinarily transient, but with HTTP connection caching (either by the browser or
+an intervening proxy) they can last for a long time.
+
+     <li>If the new configuration file is invalid, it is possible for Buildbot's
+internal state to be corrupted, leading to undefined results.  When this
+occurs, it is best to restart the mater.
+
+     <li>For more advanced configurations, it is impossible for Buildbot to tell if the
+configuration for a builder or scheduler has chanaged, and thus the builder or
+scheduler will always be reloaded.  This occurs most commonly when a callable
+is passed as a configuration parameter.
+
+   </ul>
+
+   <p>The bbproto project (at <a href="https://github.com/dabrahams/bbproto">https://github.com/dabrahams/bbproto</a>) may help to
+construct large (multi-file) configurations which can be effectively reloaded
+and reconfigured.
+
+<h3 class="heading">Reconfig by Debug Client</h3>
+
+<p>The debug tool (<code>buildbot debugclient --master HOST:PORT</code>) has a
+&ldquo;Reload .cfg&rdquo; button which will also trigger a reload. In the
+future, there will be other ways to accomplish this step (probably a
+password-protected button on the web page, as well as a privileged IRC
+command).
+
+   </body></html>
+

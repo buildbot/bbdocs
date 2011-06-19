@@ -1,0 +1,104 @@
+<html lang="en">
+<head>
+<title>Multi-master mode - BuildBot Manual - 0.8.4p1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.4p1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Global-Configuration.html#Global-Configuration" title="Global Configuration">
+<link rel="prev" href="Database-Specification.html#Database-Specification" title="Database Specification">
+<link rel="next" href="Site-Definition.html#Site-Definition" title="Site Definition">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.4p1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Multi-master-mode"></a>
+<a name="Multi_002dmaster-mode"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Site-Definition.html#Site-Definition">Site Definition</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Database-Specification.html#Database-Specification">Database Specification</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Global-Configuration.html#Global-Configuration">Global Configuration</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.6.2 Multi-master mode</h4>
+
+<p>Normally buildbot operates using a single master process that uses the
+configured database to save state.
+
+   <p>It is possible to configure buildbot to have multiple master processes that
+share state in the same database.  This has been well tested using a MySQL
+database.  There are several benefits of Multi-master mode:
+     <ul>
+<li>You can have large numbers of build slaves handling the same queue of build
+requests.  A single master can only handle so many slaves (the number is based
+on a number of factors including type of builds, number of builds, and master
+and slave IO and CPU capacity - there is no fixed formula).  By adding another
+master which shares the queue of build requests, you can attach more slaves to
+this additional master, and increase your build throughput.
+
+     <li>You can shut one master down to do maintenance, and other masters will continue
+to do builds.
+
+   </ul>
+
+   <p>State that is shared in the database includes:
+     <ul>
+<li>List of changes
+<li>Scheduler names and internal state
+<li>Build requests, including the builder name
+</ul>
+
+   <p>Because of this shared state, you are strongly encouraged to:
+     <ul>
+<li>
+Ensure that each named scheduler runs on only one master.  If the same
+scheduler runs on multiple masters, it will trigger duplicate builds and may
+produce other undesirable behaviors.
+
+     <li>
+Ensure builder names are unique for a given build factory implementation.  You
+can have the same builder name configured on many masters, but if the build
+factories differ, you will get different results depending on which master
+claims the build.
+
+   </ul>
+
+   <p>One suggested configuration is to have one buildbot master configured with
+just the scheduler and change sources; and then other masters configured
+with just the builders.
+
+   <p>To enable multi-master mode in this configuration, you will need to set the
+<code>multiMaster</code> option so that buildbot doesn't warn about missing
+schedulers or builders.  You will also need to set <code>db_poll_interval</code>
+to the masters with only builders check the database for new build requests
+at the configured interval.
+
+<pre class="example">     # Enable multiMaster mode; disables warnings about unknown builders and
+     # schedulers
+     c['multiMaster'] = True
+     # Check for new build requests every 60 seconds
+     c['db_poll_interval'] = 60
+</pre>
+   </body></html>
+

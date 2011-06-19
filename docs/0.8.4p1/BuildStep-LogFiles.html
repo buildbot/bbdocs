@@ -1,0 +1,131 @@
+<html lang="en">
+<head>
+<title>BuildStep LogFiles - BuildBot Manual - 0.8.4p1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.4p1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Writing-New-BuildSteps.html#Writing-New-BuildSteps" title="Writing New BuildSteps">
+<link rel="prev" href="Writing-BuildStep-Constructors.html#Writing-BuildStep-Constructors" title="Writing BuildStep Constructors">
+<link rel="next" href="Reading-Logfiles.html#Reading-Logfiles" title="Reading Logfiles">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.4p1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="BuildStep-LogFiles"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Reading-Logfiles.html#Reading-Logfiles">Reading Logfiles</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Writing-BuildStep-Constructors.html#Writing-BuildStep-Constructors">Writing BuildStep Constructors</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Writing-New-BuildSteps.html#Writing-New-BuildSteps">Writing New BuildSteps</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.12.13.2 BuildStep LogFiles</h5>
+
+<p>Each BuildStep has a collection of &ldquo;logfiles&rdquo;. Each one has a short
+name, like &ldquo;stdio&rdquo; or &ldquo;warnings&rdquo;. Each LogFile contains an
+arbitrary amount of text, usually the contents of some output file
+generated during a build or test step, or a record of everything that
+was printed to stdout/stderr during the execution of some command.
+
+   <p>These LogFiles are stored to disk, so they can be retrieved later.
+
+   <p>Each can contain multiple &ldquo;channels&rdquo;, generally limited to three
+basic ones: stdout, stderr, and &ldquo;headers&rdquo;. For example, when a
+ShellCommand runs, it writes a few lines to the &ldquo;headers&rdquo; channel to
+indicate the exact argv strings being run, which directory the command
+is being executed in, and the contents of the current environment
+variables. Then, as the command runs, it adds a lot of &ldquo;stdout&rdquo; and
+&ldquo;stderr&rdquo; messages. When the command finishes, a final &ldquo;header&rdquo;
+line is added with the exit code of the process.
+
+   <p>Status display plugins can format these different channels in
+different ways. For example, the web page shows LogFiles as text/html,
+with header lines in blue text, stdout in black, and stderr in red. A
+different URL is available which provides a text/plain format, in
+which stdout and stderr are collapsed together, and header lines are
+stripped completely. This latter option makes it easy to save the
+results to a file and run <samp><span class="command">grep</span></samp> or whatever against the
+output.
+
+   <p>Each BuildStep contains a mapping (implemented in a python dictionary)
+from LogFile name to the actual LogFile objects. Status plugins can
+get a list of LogFiles to display, for example, a list of HREF links
+that, when clicked, provide the full contents of the LogFile.
+
+<h3 class="heading">Using LogFiles in custom BuildSteps</h3>
+
+<p>The most common way for a custom BuildStep to use a LogFile is to
+summarize the results of a ShellCommand (after the command has
+finished running). For example, a compile step with thousands of lines
+of output might want to create a summary of just the warning messages. 
+If you were doing this from a shell, you would use something like:
+
+<pre class="example">     grep "warning:" output.log &gt;warnings.log
+</pre>
+   <p>In a custom BuildStep, you could instead create a &ldquo;warnings&rdquo; LogFile
+that contained the same text. To do this, you would add code to your
+<code>createSummary</code> method that pulls lines from the main output log
+and creates a new LogFile with the results:
+
+<pre class="example">         import StringIO
+         def createSummary(self, log):
+             warnings = []
+             sio = StringIO.StringIO(log.getText())
+             for line in sio.readlines():
+                 if "warning:" in line:
+                     warnings.append()
+             self.addCompleteLog('warnings', "".join(warnings))
+</pre>
+   <p>This example uses the <code>addCompleteLog</code> method, which creates a
+new LogFile, puts some text in it, and then &ldquo;closes&rdquo; it, meaning
+that no further contents will be added. This LogFile will appear in
+the HTML display under an HREF with the name &ldquo;warnings&rdquo;, since that
+is the name of the LogFile.
+
+   <p>You can also use <code>addHTMLLog</code> to create a complete (closed)
+LogFile that contains HTML instead of plain text. The normal LogFile
+will be HTML-escaped if presented through a web page, but the HTML
+LogFile will not. At the moment this is only used to present a pretty
+HTML representation of an otherwise ugly exception traceback when
+something goes badly wrong during the BuildStep.
+
+   <p>In contrast, you might want to create a new LogFile at the beginning
+of the step, and add text to it as the command runs. You can create
+the LogFile and attach it to the build by calling <code>addLog</code>, which
+returns the LogFile object. You then add text to this LogFile by
+calling methods like <code>addStdout</code> and <code>addHeader</code>. When you
+are done, you must call the <code>finish</code> method so the LogFile can be
+closed. It may be useful to create and populate a LogFile like this
+from a LogObserver method See <a href="Adding-LogObservers.html#Adding-LogObservers">Adding LogObservers</a>.
+
+   <p>The <code>logfiles=</code> argument to <code>ShellCommand</code> (see
+see <a href="ShellCommand.html#ShellCommand">ShellCommand</a>) creates new LogFiles and fills them in realtime
+by asking the buildslave to watch a actual file on disk. The
+buildslave will look for additions in the target file and report them
+back to the BuildStep. These additions will be added to the LogFile by
+calling <code>addStdout</code>. These secondary LogFiles can be used as the
+source of a LogObserver just like the normal &ldquo;stdio&rdquo; LogFile.
+
+   </body></html>
+

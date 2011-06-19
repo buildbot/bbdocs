@@ -1,0 +1,123 @@
+<html lang="en">
+<head>
+<title>Creating a buildmaster - BuildBot Manual - 0.8.4p1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.4p1">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Installation.html#Installation" title="Installation">
+<link rel="prev" href="Running-Buildbot_0027s-Tests-_0028optional_0029.html#Running-Buildbot_0027s-Tests-_0028optional_0029" title="Running Buildbot's Tests (optional)">
+<link rel="next" href="Upgrading-an-Existing-Buildmaster.html#Upgrading-an-Existing-Buildmaster" title="Upgrading an Existing Buildmaster">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.4p1.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<a name="Creating-a-buildmaster"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Upgrading-an-Existing-Buildmaster.html#Upgrading-an-Existing-Buildmaster">Upgrading an Existing Buildmaster</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Running-Buildbot_0027s-Tests-_0028optional_0029.html#Running-Buildbot_0027s-Tests-_0028optional_0029">Running Buildbot's Tests (optional)</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Installation.html#Installation">Installation</a>
+<hr>
+</div>
+
+<h3 class="section">2.5 Creating a buildmaster</h3>
+
+<p>As you learned earlier (see <a href="System-Architecture.html#System-Architecture">System Architecture</a>), the buildmaster
+runs on a central host (usually one that is publically visible, so
+everybody can check on the status of the project), and controls all
+aspects of the buildbot system.
+
+   <p>You will probably wish to create a separate user account for the buildmaster,
+perhaps named <code>buildmaster</code>.  Do not run the buildmaster as root!
+
+   <p>You also need to choose a directory for the buildmaster, called the
+<code>basedir</code>. This directory will be owned by the buildmaster.  It will
+contain configuration, the adtabase, and status information - including
+logfiles.  On a large buildmaster this directory will see a lot of activity, so
+it should be on a disk with adequate space and speed.
+
+   <p>Once you've picked a basedir, use the <samp><span class="command">buildbot
+create-master</span></samp> command to create the directory and populate it with
+startup files:
+
+<pre class="example">     buildbot create-master -r <var>basedir</var>
+</pre>
+   <p>You will need to create a configuration file (see <a href="Configuration.html#Configuration">Configuration</a>)
+before starting the buildmaster. Most of the rest of this manual is
+dedicated to explaining how to do this. A sample configuration file is
+placed in the working directory, named <samp><span class="file">master.cfg.sample</span></samp>, which
+can be copied to <samp><span class="file">master.cfg</span></samp> and edited to suit your purposes.
+
+   <p>(Internal details: This command creates a file named
+<samp><span class="file">buildbot.tac</span></samp> that contains all the state necessary to create
+the buildmaster. Twisted has a tool called <code>twistd</code> which can use
+this .tac file to create and launch a buildmaster instance. twistd
+takes care of logging and daemonization (running the program in the
+background). <samp><span class="file">/usr/bin/buildbot</span></samp> is a front end which runs twistd
+for you.)
+
+   <p>In addition to <samp><span class="file">buildbot.tac</span></samp>, a small <samp><span class="file">Makefile.sample</span></samp> is
+installed. This can be used as the basis for customized daemon startup,
+See <a href="Launching-the-daemons.html#Launching-the-daemons">Launching the daemons</a>.
+
+<h3 class="heading">Using MySQL</h3>
+
+<p>If you want to use MySQL as the database backend for your Buildbot, add the
+<code>--db</code> option to the <code>create-master</code> invocation to specify the
+connection string for the MySQL database (see <a href="Database-Specification.html#Database-Specification">Database Specification</a>), and
+make sure that the same URL appears in the <code>C['db_url']</code> parameter in your
+configuration file.
+
+<h3 class="heading">Buildmaster Options</h3>
+
+<p>This section lists options to the <samp><span class="command">create-master</span></samp> command. 
+You can also type <samp><span class="command">buildslave create-slave --help</span></samp> for an up-to-the-moment summary.
+
+     <dl>
+<dt><code>--force</code><dd>With this option, <samp><span class="command">create-master</span></samp> will re-use an existing master
+directory.
+
+     <br><dt><code>--no-logrotate</code><dd>This disables internal buildslave log management mechanism. With this option
+buildslave does not override the default logfile name and its behaviour giving
+a possibility to control those with command-line options of twistd daemon.
+
+     <br><dt><code>--relocatable</code><dd>This creates a "relocatable" buildbot.tac, which uses relative paths instead
+of absolute paths, so that the buildmaster directory can be moved about.
+
+     <br><dt><code>--config</code><dd>The name of the configuration file to use.  This configuration file need not
+reside in the buildmaster directory.
+
+     <br><dt><code>--log-size</code><dd>This is the size in bytes when to rotate the Twisted log files.  The default is
+10MiB.
+
+     <br><dt><code>--log-count</code><dd>This is the number of log rotations to keep around. You can either
+specify a number or <code>None</code> to keep all <samp><span class="file">twistd.log</span></samp> files
+around.  The default is 10.
+
+     <br><dt><code>--db</code><dd>The database that the Buildmaster should use.  Note that the same value must be
+added to the configuration file.
+
+   </dl>
+
+   </body></html>
+
