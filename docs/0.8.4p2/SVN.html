@@ -1,0 +1,228 @@
+<html lang="en">
+<head>
+<title>SVN - BuildBot Manual - 0.8.4p2</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.4p2">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Source-Checkout.html#Source-Checkout" title="Source Checkout">
+<link rel="prev" href="CVS.html#CVS" title="CVS">
+<link rel="next" href="Darcs.html#Darcs" title="Darcs">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.4p2.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="SVN"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Darcs.html#Darcs">Darcs</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="CVS.html#CVS">CVS</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Source-Checkout.html#Source-Checkout">Source Checkout</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.12.3.2 SVN</h5>
+
+<p><a name="index-SVN-Checkout-84"></a><a name="index-buildbot_002esteps_002esource_002eSVN-85"></a>
+
+   <p>The <code>SVN</code> build step performs a
+<a href="http://subversion.tigris.org">Subversion</a> checkout or update. 
+There are two basic ways of setting up the checkout step, depending
+upon whether you are using multiple branches or not.
+
+   <p>The most versatile way to create the <code>SVN</code> step is with the
+<code>svnurl</code> argument:
+
+     <dl>
+<dt><code>svnurl</code><dd>(required): this specifies the <code>URL</code> argument that will be given
+to the <code>svn checkout</code> command. It dictates both where the
+repository is located and which sub-tree should be extracted. In this
+respect, it is like a combination of the CVS <code>cvsroot</code> and
+<code>cvsmodule</code> arguments. For example, if you are using a remote
+Subversion repository which is accessible through HTTP at a URL of
+<code>http://svn.example.com/repos</code>, and you wanted to check out the
+<code>trunk/calc</code> sub-tree, you would use
+<code>svnurl="http://svn.example.com/repos/trunk/calc"</code> as an argument
+to your <code>SVN</code> step. 
+</dl>
+
+   <p>The <code>svnurl</code> argument can be considered as a universal means to
+create the <code>SVN</code> step as it ignores the branch information in the
+SourceStamp.
+
+   <p>Alternatively, if you are building from multiple branches, then you
+should preferentially create the <code>SVN</code> step with the
+<code>baseURL</code> and <code>defaultBranch</code> arguments instead:
+
+     <dl>
+<dt><code>baseURL</code><dd>(required): this specifies the base repository URL, to which a branch name will
+be appended. Alternatively, <code>baseURL</code> can contain a <code>%%BRANCH%%</code>
+placeholder, which will be replaced with the branch name. <code>baseURL</code> should
+probably end in a slash.
+
+     <br><dt><code>defaultBranch</code><dd>(optional): this specifies the name of the branch to use when a Build does not
+provide one of its own. This is a string that will be appended to
+<code>baseURL</code> to create the URL that will be passed to the <code>svn checkout</code>
+command. If you use <code>baseURL</code> without specifying <code>defaultBranch</code>
+every <code>ChangeStamp</code> must come with a valid (not None) <code>branch</code>.
+
+     <p>It is possible to mix to have a mix of <code>SVN</code> steps that use
+either the <code>svnurl</code> or <code>baseURL</code> arguments but not both at
+the same time.
+
+     <br><dt><code>username</code><dd>(optional): if specified, this will be passed to the <code>svn</code>
+binary with a <code>--username</code> option.
+
+     <br><dt><code>password</code><dd>(optional): if specified, this will be passed to the <code>svn</code>
+binary with a <code>--password</code> option.  The password itself will be
+suitably obfuscated in the logs.
+
+     <br><dt><code>extra_args</code><dd>(optional): if specified, an array of strings that will be passed as
+extra arguments to the <code>svn</code> binary.
+
+     <br><dt><code>keep_on_purge</code><dd>(optional): specific files or directories to keep between purges,
+like some build outputs that can be reused between builds.
+
+     <br><dt><code>ignore_ignores</code><dd>(optional): when purging changes, don't use rules defined in
+svn:ignore properties and global-ignores in subversion/config.
+
+     <br><dt><code>always_purge</code><dd>(optional): if set to True, always purge local changes before updating. This deletes unversioned files and reverts everything that would appear in a <code>svn status</code>.
+
+     <br><dt><code>depth</code><dd>(optional): Specify depth argument to achieve sparse checkout.  Only available if slave has Subversion 1.5 or higher.
+
+     <p>If set to "empty" updates will not pull in any files or subdirectories not already present. If set to "files", updates will pull in any files not already present, but not directories.  If set to "immediates", updates willl pull in any files or subdirectories not already present, the new subdirectories will have depth: empty.  If set to "infinity", updates will pull in any files or subdirectories not already present; the new subdirectories will have depth-infinity. Infinity is equivalent to SVN default update behavior, without specifying any depth argument.
+
+   </dl>
+
+   <p>If you are using branches, you must also make sure your
+<code>ChangeSource</code> will report the correct branch names.
+
+<h3 class="heading">branch example</h3>
+
+<p>Let's suppose that the &ldquo;MyProject&rdquo; repository uses branches for the
+trunk, for various users' individual development efforts, and for
+several new features that will require some amount of work (involving
+multiple developers) before they are ready to merge onto the trunk. 
+Such a repository might be organized as follows:
+
+<pre class="example">     svn://svn.example.org/MyProject/trunk
+     svn://svn.example.org/MyProject/branches/User1/foo
+     svn://svn.example.org/MyProject/branches/User1/bar
+     svn://svn.example.org/MyProject/branches/User2/baz
+     svn://svn.example.org/MyProject/features/newthing
+     svn://svn.example.org/MyProject/features/otherthing
+</pre>
+   <p>Further assume that we want the Buildbot to run tests against the
+trunk and against all the feature branches (i.e., do a
+checkout/compile/build of branch X when a file has been changed on
+branch X, when X is in the set [trunk, features/newthing,
+features/otherthing]). We do not want the Buildbot to automatically
+build any of the user branches, but it should be willing to build a
+user branch when explicitly requested (most likely by the user who
+owns that branch).
+
+   <p>There are three things that need to be set up to accommodate this
+system. The first is a ChangeSource that is capable of identifying the
+branch which owns any given file. This depends upon a user-supplied
+function, in an external program that runs in the SVN commit hook and
+connects to the buildmaster's <code>PBChangeSource</code> over a TCP
+connection. (you can use the &ldquo;<code>buildbot sendchange</code>&rdquo; utility
+for this purpose, but you will still need an external program to
+decide what value should be passed to the <code>--branch=</code> argument). 
+For example, a change to a file with the SVN URL of
+&ldquo;svn://svn.example.org/MyProject/features/newthing/src/foo.c&rdquo; should
+be broken down into a Change instance with
+<code>branch='features/newthing'</code> and <code>file='src/foo.c'</code>.
+
+   <p>The second piece is an <code>AnyBranchScheduler</code> which will pay
+attention to the desired branches. It will not pay attention to the
+user branches, so it will not automatically start builds in response
+to changes there. The AnyBranchScheduler class requires you to
+explicitly list all the branches you want it to use, but it would not
+be difficult to write a subclass which used
+<code>branch.startswith('features/'</code> to remove the need for this
+explicit list. Or, if you want to build user branches too, you can use
+AnyBranchScheduler with <code>branches=None</code> to indicate that you want
+it to pay attention to all branches.
+
+   <p>The third piece is an <code>SVN</code> checkout step that is configured to
+handle the branches correctly, with a <code>baseURL</code> value that
+matches the way the ChangeSource splits each file's URL into base,
+branch, and file.
+
+<pre class="example">     from buildbot.changes.pb import PBChangeSource
+     from buildbot.scheduler import AnyBranchScheduler
+     from buildbot.process import source, factory
+     from buildbot.steps import source, shell
+     
+     c['change_source'] = PBChangeSource()
+     s1 = AnyBranchScheduler('main',
+                             ['trunk', 'features/newthing', 'features/otherthing'],
+                             10*60, ['test-i386', 'test-ppc'])
+     c['schedulers'] = [s1]
+     
+     f = factory.BuildFactory()
+     f.addStep(source.SVN(mode='update',
+                          baseURL='svn://svn.example.org/MyProject/',
+                          defaultBranch='trunk'))
+     f.addStep(shell.Compile(command="make all"))
+     f.addStep(shell.Test(command="make test"))
+     
+     c['builders'] = [
+       {'name':'test-i386', 'slavename':'bot-i386', 'builddir':'test-i386',
+                            'factory':f },
+       {'name':'test-ppc', 'slavename':'bot-ppc', 'builddir':'test-ppc',
+                           'factory':f },
+      ]
+</pre>
+   <p>In this example, when a change arrives with a <code>branch</code> attribute of
+&ldquo;trunk&rdquo;, the resulting build will have a SVN step that concatenates
+&ldquo;svn://svn.example.org/MyProject/&rdquo; (the baseURL) with &ldquo;trunk&rdquo; (the branch
+name) to get the correct svn command. If the &ldquo;newthing&rdquo; branch has a change
+to &ldquo;src/foo.c&rdquo;, then the SVN step will concatenate
+&ldquo;svn://svn.example.org/MyProject/&rdquo; with &ldquo;features/newthing&rdquo; to get the
+svnurl for checkout.
+
+   <p>For added flexibility, <code>baseURL</code> may contain a <code>%%BRANCH%%</code>
+placeholder, which will be replaced either by the branch in the SourceStamp or
+the default specified in <code>defaultBranch</code>.
+
+<pre class="example">     source.SVN( mode='update',
+                 baseURL='svn://svn.example.org/svn/%%BRANCH%%/myproject',
+                 defaultBranch='trunk' )
+</pre>
+   </body></html>
+

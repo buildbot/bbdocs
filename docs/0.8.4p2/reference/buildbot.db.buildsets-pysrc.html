@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>buildbot.db.buildsets</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.5-pre-176-g7918ef3</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="buildbot-module.html">Package&nbsp;buildbot</a> ::
+        <a href="buildbot.db-module.html">Package&nbsp;db</a> ::
+        Module&nbsp;buildsets
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="buildbot.db.buildsets-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="buildbot.db.buildsets-module.html">Module buildbot.db.buildsets</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># This file is part of Buildbot.  Buildbot is free software: you can</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment"># redistribute it and/or modify it under the terms of the GNU General Public</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"># License as published by the Free Software Foundation, version 2.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but WITHOUT</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"># ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"># FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"># details.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License along with</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment"># this program; if not, write to the Free Software Foundation, Inc., 51</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment"># Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment"># Copyright Buildbot Team Members</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-docstring">Support for buildsets in the database</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">sqlalchemy</tt> <tt class="py-keyword">as</tt> <tt class="py-name">sa</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt class="py-name">internet</tt> <tt class="py-keyword">import</tt> <tt id="link-0" class="py-name" targets="Variable buildbot.process.botmaster.BotMaster.reactor=buildbot.process.botmaster.BotMaster-class.html#reactor,Variable buildbot.steps.python_twisted.Trial.reactor=buildbot.steps.python_twisted.Trial-class.html#reactor"><a title="buildbot.process.botmaster.BotMaster.reactor
+buildbot.steps.python_twisted.Trial.reactor" class="py-name" href="#" onclick="return doclink('link-0', 'reactor', 'link-0');">reactor</a></tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-1" class="py-name" targets="Package buildbot=buildbot-module.html"><a title="buildbot" class="py-name" href="#" onclick="return doclink('link-1', 'buildbot', 'link-1');">buildbot</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Package buildbot.util=buildbot.util-module.html,Module buildslave.util=buildslave.util-module.html"><a title="buildbot.util
+buildslave.util" class="py-name" href="#" onclick="return doclink('link-2', 'util', 'link-2');">util</a></tt> <tt class="py-keyword">import</tt> <tt id="link-3" class="py-name" targets="Package json=json-module.html"><a title="json" class="py-name" href="#" onclick="return doclink('link-3', 'json', 'link-3');">json</a></tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-4" class="py-name"><a title="buildbot" class="py-name" href="#" onclick="return doclink('link-4', 'buildbot', 'link-1');">buildbot</a></tt><tt class="py-op">.</tt><tt id="link-5" class="py-name" targets="Package buildbot.db=buildbot.db-module.html"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-5', 'db', 'link-5');">db</a></tt> <tt class="py-keyword">import</tt> <tt id="link-6" class="py-name" targets="Module buildbot.changes.base=buildbot.changes.base-module.html,Module buildbot.clients.base=buildbot.clients.base-module.html,Module buildbot.db.base=buildbot.db.base-module.html,Module buildbot.process.base=buildbot.process.base-module.html,Module buildbot.schedulers.base=buildbot.schedulers.base-module.html,Module buildbot.status.base=buildbot.status.base-module.html,Module buildbot.status.web.base=buildbot.status.web.base-module.html,Module buildbot.status.web.hooks.base=buildbot.status.web.hooks.base-module.html,Module buildslave.commands.base=buildslave.commands.base-module.html"><a title="buildbot.changes.base
+buildbot.clients.base
+buildbot.db.base
+buildbot.process.base
+buildbot.schedulers.base
+buildbot.status.base
+buildbot.status.web.base
+buildbot.status.web.hooks.base
+buildslave.commands.base" class="py-name" href="#" onclick="return doclink('link-6', 'base', 'link-6');">base</a></tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-7" class="py-name"><a title="buildbot" class="py-name" href="#" onclick="return doclink('link-7', 'buildbot', 'link-1');">buildbot</a></tt><tt class="py-op">.</tt><tt id="link-8" class="py-name"><a title="buildbot.util
+buildslave.util" class="py-name" href="#" onclick="return doclink('link-8', 'util', 'link-2');">util</a></tt> <tt class="py-keyword">import</tt> <tt class="py-name">epoch2datetime</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"> </tt>
+<a name="BsDict"></a><div id="BsDict-def"><a name="L26"></a><tt class="py-lineno"> 26</tt> <a class="py-toggle" href="#" id="BsDict-toggle" onclick="return toggle('BsDict');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildbot.db.buildsets.BsDict-class.html">BsDict</a><tt class="py-op">(</tt><tt class="py-base-class">dict</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BsDict-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="BsDict-expanded"><a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line">    <tt class="py-keyword">pass</tt> </tt>
+</div><a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"> </tt>
+<a name="BuildsetsConnectorComponent"></a><div id="BuildsetsConnectorComponent-def"><a name="L29"></a><tt class="py-lineno"> 29</tt> <a class="py-toggle" href="#" id="BuildsetsConnectorComponent-toggle" onclick="return toggle('BuildsetsConnectorComponent');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildbot.db.buildsets.BuildsetsConnectorComponent-class.html">BuildsetsConnectorComponent</a><tt class="py-op">(</tt><tt class="py-base-class">base</tt><tt class="py-op">.</tt><tt class="py-base-class">DBConnectorComponent</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BuildsetsConnectorComponent-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="BuildsetsConnectorComponent-expanded"><a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"><tt class="py-docstring">    A DBConnectorComponent to handle getting buildsets into and out of the</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"><tt class="py-docstring">    database.  An instance is available at C{master.db.buildsets}.</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"> </tt>
+<a name="BuildsetsConnectorComponent.addBuildset"></a><div id="BuildsetsConnectorComponent.addBuildset-def"><a name="L35"></a><tt class="py-lineno"> 35</tt> <a class="py-toggle" href="#" id="BuildsetsConnectorComponent.addBuildset-toggle" onclick="return toggle('BuildsetsConnectorComponent.addBuildset');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.db.buildsets.BuildsetsConnectorComponent-class.html#addBuildset">addBuildset</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">ssid</tt><tt class="py-op">,</tt> <tt class="py-param">reason</tt><tt class="py-op">,</tt> <tt class="py-param">properties</tt><tt class="py-op">,</tt> <tt class="py-param">builderNames</tt><tt class="py-op">,</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line">                   <tt class="py-param">external_idstring</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">_reactor</tt><tt class="py-op">=</tt><tt id="link-9" class="py-name"><a title="buildbot.process.botmaster.BotMaster.reactor
+buildbot.steps.python_twisted.Trial.reactor" class="py-name" href="#" onclick="return doclink('link-9', 'reactor', 'link-0');">reactor</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BuildsetsConnectorComponent.addBuildset-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="BuildsetsConnectorComponent.addBuildset-expanded"><a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"><tt class="py-docstring">        Add a new Buildset to the database, along with the buildrequests for</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"><tt class="py-docstring">        each named builder, returning the resulting bsid via a Deferred.</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"><tt class="py-docstring">        Arguments should be specified by keyword.</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"><tt class="py-docstring">        The return value is a tuple C{(bsid, brids)} where C{bsid} is the</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"><tt class="py-docstring">        inserted buildset ID and C{brids} is a dictionary mapping buildernames</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"><tt class="py-docstring">        to build request IDs.</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"><tt class="py-docstring">        @param ssid: id of the SourceStamp for this buildset</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"><tt class="py-docstring">        @type ssid: integer</tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"><tt class="py-docstring">        @param reason: reason for this buildset</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"><tt class="py-docstring">        @type reason: short unicode string</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"><tt class="py-docstring">        @param properties: properties for this buildset</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line"><tt class="py-docstring">        @type properties: dictionary, where values are tuples of (value,</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"><tt class="py-docstring">        source)</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line"><tt class="py-docstring">        @param builderNames: builders specified by this buildset</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line"><tt class="py-docstring">        @type builderNames: list of strings</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line"><tt class="py-docstring">        @param external_idstring: external key to identify this buildset;</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line"><tt class="py-docstring">        defaults to None</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line"><tt class="py-docstring">        @type external_idstring: unicode string</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line"><tt class="py-docstring">        @param _reactor: for testing</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line"><tt class="py-docstring">        @returns: buildset ID and buildrequest IDs, via a Deferred</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">thd</tt><tt class="py-op">(</tt><tt class="py-param">conn</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">            <tt class="py-name">submitted_at</tt> <tt class="py-op">=</tt> <tt id="link-10" class="py-name" targets="Variable buildbot.process.metrics.MetricLogObserver._reactor=buildbot.process.metrics.MetricLogObserver-class.html#_reactor,Variable buildbot.process.metrics.Timer._reactor=buildbot.process.metrics.Timer-class.html#_reactor,Variable buildbot.schedulers.basic.BaseBasicScheduler._reactor=buildbot.schedulers.basic.BaseBasicScheduler-class.html#_reactor,Variable buildslave.bot.BotFactory._reactor=buildslave.bot.BotFactory-class.html#_reactor,Variable buildslave.commands.base.Command._reactor=buildslave.commands.base.Command-class.html#_reactor,Variable buildslave.runprocess.RunProcess._reactor=buildslave.runprocess.RunProcess-class.html#_reactor"><a title="buildbot.process.metrics.MetricLogObserver._reactor
+buildbot.process.metrics.Timer._reactor
+buildbot.schedulers.basic.BaseBasicScheduler._reactor
+buildslave.bot.BotFactory._reactor
+buildslave.commands.base.Command._reactor
+buildslave.runprocess.RunProcess._reactor" class="py-name" href="#" onclick="return doclink('link-10', '_reactor', 'link-10');">_reactor</a></tt><tt class="py-op">.</tt><tt class="py-name">seconds</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line"> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">            <tt class="py-name">transaction</tt> <tt class="py-op">=</tt> <tt class="py-name">conn</tt><tt class="py-op">.</tt><tt class="py-name">begin</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line"> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">            <tt class="py-comment"># insert the buildset itself</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">            <tt class="py-name">r</tt> <tt class="py-op">=</tt> <tt class="py-name">conn</tt><tt class="py-op">.</tt><tt id="link-11" class="py-name" targets="Method buildbot.libvirtbuildslave.WorkQueue.execute()=buildbot.libvirtbuildslave.WorkQueue-class.html#execute"><a title="buildbot.libvirtbuildslave.WorkQueue.execute" class="py-name" href="#" onclick="return doclink('link-11', 'execute', 'link-11');">execute</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-12" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-12', 'db', 'link-5');">db</a></tt><tt class="py-op">.</tt><tt id="link-13" class="py-name" targets="Module buildbot.db.model=buildbot.db.model-module.html"><a title="buildbot.db.model" class="py-name" href="#" onclick="return doclink('link-13', 'model', 'link-13');">model</a></tt><tt class="py-op">.</tt><tt id="link-14" class="py-name" targets="Module buildbot.db.buildsets=buildbot.db.buildsets-module.html,Variable buildbot.db.model.Model.buildsets=buildbot.db.model.Model-class.html#buildsets"><a title="buildbot.db.buildsets
+buildbot.db.model.Model.buildsets" class="py-name" href="#" onclick="return doclink('link-14', 'buildsets', 'link-14');">buildsets</a></tt><tt class="py-op">.</tt><tt class="py-name">insert</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">dict</tt><tt class="py-op">(</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">                <tt class="py-name">sourcestampid</tt><tt class="py-op">=</tt><tt id="link-15" class="py-name" targets="Variable buildbot.sourcestamp.SourceStamp.ssid=buildbot.sourcestamp.SourceStamp-class.html#ssid"><a title="buildbot.sourcestamp.SourceStamp.ssid" class="py-name" href="#" onclick="return doclink('link-15', 'ssid', 'link-15');">ssid</a></tt><tt class="py-op">,</tt> <tt class="py-name">submitted_at</tt><tt class="py-op">=</tt><tt class="py-name">submitted_at</tt><tt class="py-op">,</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">                <tt id="link-16" class="py-name" targets="Variable buildbot.process.build.Build.reason=buildbot.process.build.Build-class.html#reason,Variable buildbot.status.builder.BuildStatus.reason=buildbot.status.builder.BuildStatus-class.html#reason"><a title="buildbot.process.build.Build.reason
+buildbot.status.builder.BuildStatus.reason" class="py-name" href="#" onclick="return doclink('link-16', 'reason', 'link-16');">reason</a></tt><tt class="py-op">=</tt><tt id="link-17" class="py-name"><a title="buildbot.process.build.Build.reason
+buildbot.status.builder.BuildStatus.reason" class="py-name" href="#" onclick="return doclink('link-17', 'reason', 'link-16');">reason</a></tt><tt class="py-op">,</tt> <tt class="py-name">complete</tt><tt class="py-op">=</tt><tt class="py-number">0</tt><tt class="py-op">,</tt> <tt class="py-name">complete_at</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt id="link-18" class="py-name" targets="Variable buildbot.process.build.Build.results=buildbot.process.build.Build-class.html#results,Variable buildbot.status.builder.BuildStatus.results=buildbot.status.builder.BuildStatus-class.html#results,Variable buildbot.status.builder.BuildStepStatus.results=buildbot.status.builder.BuildStepStatus-class.html#results,Module buildbot.status.results=buildbot.status.results-module.html"><a title="buildbot.process.build.Build.results
+buildbot.status.builder.BuildStatus.results
+buildbot.status.builder.BuildStepStatus.results
+buildbot.status.results" class="py-name" href="#" onclick="return doclink('link-18', 'results', 'link-18');">results</a></tt><tt class="py-op">=</tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">                <tt class="py-name">external_idstring</tt><tt class="py-op">=</tt><tt class="py-name">external_idstring</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">            <tt class="py-name">bsid</tt> <tt class="py-op">=</tt> <tt class="py-name">r</tt><tt class="py-op">.</tt><tt class="py-name">inserted_primary_key</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line"> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">            <tt class="py-comment"># add any properties</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt id="link-19" class="py-name" targets="Variable buildbot.master.BuildMaster.properties=buildbot.master.BuildMaster-class.html#properties,Module buildbot.process.properties=buildbot.process.properties-module.html"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-19', 'properties', 'link-19');">properties</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">                <tt class="py-name">conn</tt><tt class="py-op">.</tt><tt id="link-20" class="py-name"><a title="buildbot.libvirtbuildslave.WorkQueue.execute" class="py-name" href="#" onclick="return doclink('link-20', 'execute', 'link-11');">execute</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-21" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-21', 'db', 'link-5');">db</a></tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="buildbot.db.model" class="py-name" href="#" onclick="return doclink('link-22', 'model', 'link-13');">model</a></tt><tt class="py-op">.</tt><tt id="link-23" class="py-name" targets="Variable buildbot.db.model.Model.buildset_properties=buildbot.db.model.Model-class.html#buildset_properties"><a title="buildbot.db.model.Model.buildset_properties" class="py-name" href="#" onclick="return doclink('link-23', 'buildset_properties', 'link-23');">buildset_properties</a></tt><tt class="py-op">.</tt><tt class="py-name">insert</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-op">[</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">                    <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-name">buildsetid</tt><tt class="py-op">=</tt><tt class="py-name">bsid</tt><tt class="py-op">,</tt> <tt class="py-name">property_name</tt><tt class="py-op">=</tt><tt class="py-name">k</tt><tt class="py-op">,</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">                         <tt class="py-name">property_value</tt><tt class="py-op">=</tt><tt id="link-24" class="py-name"><a title="json" class="py-name" href="#" onclick="return doclink('link-24', 'json', 'link-3');">json</a></tt><tt class="py-op">.</tt><tt class="py-name">dumps</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt id="link-25" class="py-name" targets="Variable buildbot.v=buildbot-module.html#v,Variable buildslave.v=buildslave-module.html#v"><a title="buildbot.v
+buildslave.v" class="py-name" href="#" onclick="return doclink('link-25', 'v', 'link-25');">v</a></tt><tt class="py-op">,</tt><tt id="link-26" class="py-name" targets="Function buildbot.process.factory.s()=buildbot.process.factory-module.html#s"><a title="buildbot.process.factory.s" class="py-name" href="#" onclick="return doclink('link-26', 's', 'link-26');">s</a></tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">                    <tt class="py-keyword">for</tt> <tt class="py-name">k</tt><tt class="py-op">,</tt><tt class="py-op">(</tt><tt id="link-27" class="py-name"><a title="buildbot.v
+buildslave.v" class="py-name" href="#" onclick="return doclink('link-27', 'v', 'link-25');">v</a></tt><tt class="py-op">,</tt><tt id="link-28" class="py-name"><a title="buildbot.process.factory.s" class="py-name" href="#" onclick="return doclink('link-28', 's', 'link-26');">s</a></tt><tt class="py-op">)</tt> <tt class="py-keyword">in</tt> <tt id="link-29" class="py-name"><a title="buildbot.master.BuildMaster.properties
+buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-29', 'properties', 'link-19');">properties</a></tt><tt class="py-op">.</tt><tt class="py-name">iteritems</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line"> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">            <tt class="py-comment"># and finish with a build request for each builder.  Note that</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">            <tt class="py-comment"># sqlalchemy and the Python DBAPI do not provide a way to recover</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">            <tt class="py-comment"># inserted IDs from a multi-row insert, so this is done one row at</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">            <tt class="py-comment"># a time.</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">            <tt class="py-name">brids</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">            <tt class="py-name">ins</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-30" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-30', 'db', 'link-5');">db</a></tt><tt class="py-op">.</tt><tt id="link-31" class="py-name"><a title="buildbot.db.model" class="py-name" href="#" onclick="return doclink('link-31', 'model', 'link-13');">model</a></tt><tt class="py-op">.</tt><tt id="link-32" class="py-name" targets="Module buildbot.db.buildrequests=buildbot.db.buildrequests-module.html,Variable buildbot.db.model.Model.buildrequests=buildbot.db.model.Model-class.html#buildrequests"><a title="buildbot.db.buildrequests
+buildbot.db.model.Model.buildrequests" class="py-name" href="#" onclick="return doclink('link-32', 'buildrequests', 'link-32');">buildrequests</a></tt><tt class="py-op">.</tt><tt class="py-name">insert</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">            <tt class="py-keyword">for</tt> <tt class="py-name">buildername</tt> <tt class="py-keyword">in</tt> <tt class="py-name">builderNames</tt><tt class="py-op">:</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">                <tt class="py-name">r</tt> <tt class="py-op">=</tt> <tt class="py-name">conn</tt><tt class="py-op">.</tt><tt id="link-33" class="py-name"><a title="buildbot.libvirtbuildslave.WorkQueue.execute" class="py-name" href="#" onclick="return doclink('link-33', 'execute', 'link-11');">execute</a></tt><tt class="py-op">(</tt><tt class="py-name">ins</tt><tt class="py-op">,</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">                    <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-name">buildsetid</tt><tt class="py-op">=</tt><tt class="py-name">bsid</tt><tt class="py-op">,</tt> <tt class="py-name">buildername</tt><tt class="py-op">=</tt><tt class="py-name">buildername</tt><tt class="py-op">,</tt> <tt class="py-name">priority</tt><tt class="py-op">=</tt><tt class="py-number">0</tt><tt class="py-op">,</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">                        <tt class="py-name">claimed_at</tt><tt class="py-op">=</tt><tt class="py-number">0</tt><tt class="py-op">,</tt> <tt class="py-name">claimed_by_name</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">                        <tt class="py-name">claimed_by_incarnation</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-name">complete</tt><tt class="py-op">=</tt><tt class="py-number">0</tt><tt class="py-op">,</tt> <tt id="link-34" class="py-name"><a title="buildbot.process.build.Build.results
+buildbot.status.builder.BuildStatus.results
+buildbot.status.builder.BuildStepStatus.results
+buildbot.status.results" class="py-name" href="#" onclick="return doclink('link-34', 'results', 'link-18');">results</a></tt><tt class="py-op">=</tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">                        <tt class="py-name">submitted_at</tt><tt class="py-op">=</tt><tt class="py-name">submitted_at</tt><tt class="py-op">,</tt> <tt class="py-name">complete_at</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line"> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">                <tt class="py-name">brids</tt><tt class="py-op">[</tt><tt class="py-name">buildername</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">r</tt><tt class="py-op">.</tt><tt class="py-name">inserted_primary_key</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line"> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">            <tt class="py-name">transaction</tt><tt class="py-op">.</tt><tt class="py-name">commit</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-op">(</tt><tt class="py-name">bsid</tt><tt class="py-op">,</tt> <tt class="py-name">brids</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-35" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-35', 'db', 'link-5');">db</a></tt><tt class="py-op">.</tt><tt id="link-36" class="py-name" targets="Module buildbot.db.pool=buildbot.db.pool-module.html"><a title="buildbot.db.pool" class="py-name" href="#" onclick="return doclink('link-36', 'pool', 'link-36');">pool</a></tt><tt class="py-op">.</tt><tt class="py-name">do</tt><tt class="py-op">(</tt><tt class="py-name">thd</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line"> </tt>
+<a name="BuildsetsConnectorComponent.completeBuildset"></a><div id="BuildsetsConnectorComponent.completeBuildset-def"><a name="L106"></a><tt class="py-lineno">106</tt> <a class="py-toggle" href="#" id="BuildsetsConnectorComponent.completeBuildset-toggle" onclick="return toggle('BuildsetsConnectorComponent.completeBuildset');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.db.buildsets.BuildsetsConnectorComponent-class.html#completeBuildset">completeBuildset</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">bsid</tt><tt class="py-op">,</tt> <tt class="py-param">results</tt><tt class="py-op">,</tt> <tt class="py-param">_reactor</tt><tt class="py-op">=</tt><tt id="link-37" class="py-name"><a title="buildbot.process.botmaster.BotMaster.reactor
+buildbot.steps.python_twisted.Trial.reactor" class="py-name" href="#" onclick="return doclink('link-37', 'reactor', 'link-0');">reactor</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BuildsetsConnectorComponent.completeBuildset-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="BuildsetsConnectorComponent.completeBuildset-expanded"><a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line"><tt class="py-docstring">        Complete a buildset, marking it with the given C{results} and setting</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line"><tt class="py-docstring">        its C{completed_at} to the current time.</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line"><tt class="py-docstring">        @param bsid: buildset ID to complete</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line"><tt class="py-docstring">        @type bsid: integer</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line"><tt class="py-docstring">        @param results: integer result code</tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line"><tt class="py-docstring">        @type results: integer</tt> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line"><tt class="py-docstring">        @param _reactor: reactor to use (for testing)</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line"><tt class="py-docstring">        @returns: Deferred</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line"><tt class="py-docstring">        @raises KeyError: if the row does not exist or is already complete</tt> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">thd</tt><tt class="py-op">(</tt><tt class="py-param">conn</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line">            <tt class="py-name">tbl</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-38" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-38', 'db', 'link-5');">db</a></tt><tt class="py-op">.</tt><tt id="link-39" class="py-name"><a title="buildbot.db.model" class="py-name" href="#" onclick="return doclink('link-39', 'model', 'link-13');">model</a></tt><tt class="py-op">.</tt><tt id="link-40" class="py-name"><a title="buildbot.db.buildsets
+buildbot.db.model.Model.buildsets" class="py-name" href="#" onclick="return doclink('link-40', 'buildsets', 'link-14');">buildsets</a></tt> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line"> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">            <tt class="py-name">q</tt> <tt class="py-op">=</tt> <tt class="py-name">tbl</tt><tt class="py-op">.</tt><tt id="link-41" class="py-name" targets="Method buildbot.buildslave.AbstractBuildSlave.update()=buildbot.buildslave.AbstractBuildSlave-class.html#update,Method buildbot.clients.gtkPanes.Box.update()=buildbot.clients.gtkPanes.Box-class.html#update,Method buildbot.process.properties.Properties.update()=buildbot.process.properties.Properties-class.html#update,Method buildbot.status.progress.Expectations.update()=buildbot.status.progress.Expectations-class.html#update"><a title="buildbot.buildslave.AbstractBuildSlave.update
+buildbot.clients.gtkPanes.Box.update
+buildbot.process.properties.Properties.update
+buildbot.status.progress.Expectations.update" class="py-name" href="#" onclick="return doclink('link-41', 'update', 'link-41');">update</a></tt><tt class="py-op">(</tt><tt class="py-name">whereclause</tt><tt class="py-op">=</tt><tt class="py-op">(</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">                <tt class="py-op">(</tt><tt class="py-name">tbl</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">id</tt> <tt class="py-op">==</tt> <tt class="py-name">bsid</tt><tt class="py-op">)</tt> <tt class="py-op">&amp;</tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">                <tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">tbl</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">complete</tt> <tt class="py-op">==</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt> <tt class="py-op">|</tt> <tt class="py-op">(</tt><tt class="py-name">tbl</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">complete</tt> <tt class="py-op">!=</tt> <tt class="py-number">1</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">            <tt class="py-name">res</tt> <tt class="py-op">=</tt> <tt class="py-name">conn</tt><tt class="py-op">.</tt><tt id="link-42" class="py-name"><a title="buildbot.libvirtbuildslave.WorkQueue.execute" class="py-name" href="#" onclick="return doclink('link-42', 'execute', 'link-11');">execute</a></tt><tt class="py-op">(</tt><tt class="py-name">q</tt><tt class="py-op">,</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">                <tt class="py-name">complete</tt><tt class="py-op">=</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">                <tt id="link-43" class="py-name"><a title="buildbot.process.build.Build.results
+buildbot.status.builder.BuildStatus.results
+buildbot.status.builder.BuildStepStatus.results
+buildbot.status.results" class="py-name" href="#" onclick="return doclink('link-43', 'results', 'link-18');">results</a></tt><tt class="py-op">=</tt><tt id="link-44" class="py-name"><a title="buildbot.process.build.Build.results
+buildbot.status.builder.BuildStatus.results
+buildbot.status.builder.BuildStepStatus.results
+buildbot.status.results" class="py-name" href="#" onclick="return doclink('link-44', 'results', 'link-18');">results</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">                <tt class="py-name">complete_at</tt><tt class="py-op">=</tt><tt id="link-45" class="py-name"><a title="buildbot.process.metrics.MetricLogObserver._reactor
+buildbot.process.metrics.Timer._reactor
+buildbot.schedulers.basic.BaseBasicScheduler._reactor
+buildslave.bot.BotFactory._reactor
+buildslave.commands.base.Command._reactor
+buildslave.runprocess.RunProcess._reactor" class="py-name" href="#" onclick="return doclink('link-45', '_reactor', 'link-10');">_reactor</a></tt><tt class="py-op">.</tt><tt class="py-name">seconds</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line"> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">res</tt><tt class="py-op">.</tt><tt class="py-name">rowcount</tt> <tt class="py-op">!=</tt> <tt class="py-number">1</tt><tt class="py-op">:</tt> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line">                <tt class="py-keyword">raise</tt> <tt class="py-name">KeyError</tt> </tt>
+</div><a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-46" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-46', 'db', 'link-5');">db</a></tt><tt class="py-op">.</tt><tt id="link-47" class="py-name"><a title="buildbot.db.pool" class="py-name" href="#" onclick="return doclink('link-47', 'pool', 'link-36');">pool</a></tt><tt class="py-op">.</tt><tt class="py-name">do</tt><tt class="py-op">(</tt><tt class="py-name">thd</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line"> </tt>
+<a name="BuildsetsConnectorComponent.getBuildset"></a><div id="BuildsetsConnectorComponent.getBuildset-def"><a name="L137"></a><tt class="py-lineno">137</tt> <a class="py-toggle" href="#" id="BuildsetsConnectorComponent.getBuildset-toggle" onclick="return toggle('BuildsetsConnectorComponent.getBuildset');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.db.buildsets.BuildsetsConnectorComponent-class.html#getBuildset">getBuildset</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">bsid</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BuildsetsConnectorComponent.getBuildset-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="BuildsetsConnectorComponent.getBuildset-expanded"><a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line"><tt class="py-docstring">        Get a dictionary representing the given buildset, or None</tt> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line"><tt class="py-docstring">        if no such buildset exists.</tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line"><tt class="py-docstring">        The dictionary has keys C{bsid}, C{external_idstring}, C{reason},</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line"><tt class="py-docstring">        C{sourcestampid}, C{submitted_at}, C{complete}, C{complete_at}, and</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line"><tt class="py-docstring">        C{results}.  The C{*_at} keys point to datetime objects.  Use</tt> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line"><tt class="py-docstring">        L{getBuildsetProperties} to fetch the properties for a buildset.</tt> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line"><tt class="py-docstring">        Note that buildsets are not cached, as the values in the database are</tt> </tt>
+<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line"><tt class="py-docstring">        not fixed.</tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line"><tt class="py-docstring">        @param bsid: buildset ID</tt> </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line"><tt class="py-docstring">        @returns: dictionary as above, or None, via Deferred</tt> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">thd</tt><tt class="py-op">(</tt><tt class="py-param">conn</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line">            <tt class="py-name">bs_tbl</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-48" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-48', 'db', 'link-5');">db</a></tt><tt class="py-op">.</tt><tt id="link-49" class="py-name"><a title="buildbot.db.model" class="py-name" href="#" onclick="return doclink('link-49', 'model', 'link-13');">model</a></tt><tt class="py-op">.</tt><tt id="link-50" class="py-name"><a title="buildbot.db.buildsets
+buildbot.db.model.Model.buildsets" class="py-name" href="#" onclick="return doclink('link-50', 'buildsets', 'link-14');">buildsets</a></tt> </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line">            <tt class="py-name">q</tt> <tt class="py-op">=</tt> <tt class="py-name">bs_tbl</tt><tt class="py-op">.</tt><tt class="py-name">select</tt><tt class="py-op">(</tt><tt class="py-name">whereclause</tt><tt class="py-op">=</tt><tt class="py-op">(</tt><tt class="py-name">bs_tbl</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">id</tt> <tt class="py-op">==</tt> <tt class="py-name">bsid</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line">            <tt class="py-name">res</tt> <tt class="py-op">=</tt> <tt class="py-name">conn</tt><tt class="py-op">.</tt><tt id="link-51" class="py-name"><a title="buildbot.libvirtbuildslave.WorkQueue.execute" class="py-name" href="#" onclick="return doclink('link-51', 'execute', 'link-11');">execute</a></tt><tt class="py-op">(</tt><tt class="py-name">q</tt><tt class="py-op">)</tt> </tt>
+<a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line">            <tt class="py-name">row</tt> <tt class="py-op">=</tt> <tt class="py-name">res</tt><tt class="py-op">.</tt><tt class="py-name">fetchone</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">row</tt><tt class="py-op">:</tt> </tt>
+<a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">                <tt class="py-keyword">return</tt> <tt class="py-name">None</tt> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_row2dict</tt><tt class="py-op">(</tt><tt class="py-name">row</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-52" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-52', 'db', 'link-5');">db</a></tt><tt class="py-op">.</tt><tt id="link-53" class="py-name"><a title="buildbot.db.pool" class="py-name" href="#" onclick="return doclink('link-53', 'pool', 'link-36');">pool</a></tt><tt class="py-op">.</tt><tt class="py-name">do</tt><tt class="py-op">(</tt><tt class="py-name">thd</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line"> </tt>
+<a name="BuildsetsConnectorComponent.getBuildsets"></a><div id="BuildsetsConnectorComponent.getBuildsets-def"><a name="L164"></a><tt class="py-lineno">164</tt> <a class="py-toggle" href="#" id="BuildsetsConnectorComponent.getBuildsets-toggle" onclick="return toggle('BuildsetsConnectorComponent.getBuildsets');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.db.buildsets.BuildsetsConnectorComponent-class.html#getBuildsets">getBuildsets</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">complete</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BuildsetsConnectorComponent.getBuildsets-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="BuildsetsConnectorComponent.getBuildsets-expanded"><a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line"><tt class="py-docstring">        Get a list of buildset dictionaries (see L{getBuildset}) matching</tt> </tt>
+<a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line"><tt class="py-docstring">        the given criteria.</tt> </tt>
+<a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line"><tt class="py-docstring">        Since this method is often used to detect changed build requests, it</tt> </tt>
+<a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line"><tt class="py-docstring">        always bypasses the cache.</tt> </tt>
+<a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line"><tt class="py-docstring">        @param complete: if True, return only complete buildsets; if False,</tt> </tt>
+<a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line"><tt class="py-docstring">        return only incomplete buildsets; if None or omitted, return all</tt> </tt>
+<a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line"><tt class="py-docstring">        buildsets</tt> </tt>
+<a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line"><tt class="py-docstring">        @returns: list of dictionaries, via Deferred</tt> </tt>
+<a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">thd</tt><tt class="py-op">(</tt><tt class="py-param">conn</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line">            <tt class="py-name">bs_tbl</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-54" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-54', 'db', 'link-5');">db</a></tt><tt class="py-op">.</tt><tt id="link-55" class="py-name"><a title="buildbot.db.model" class="py-name" href="#" onclick="return doclink('link-55', 'model', 'link-13');">model</a></tt><tt class="py-op">.</tt><tt id="link-56" class="py-name"><a title="buildbot.db.buildsets
+buildbot.db.model.Model.buildsets" class="py-name" href="#" onclick="return doclink('link-56', 'buildsets', 'link-14');">buildsets</a></tt> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line">            <tt class="py-name">q</tt> <tt class="py-op">=</tt> <tt class="py-name">bs_tbl</tt><tt class="py-op">.</tt><tt class="py-name">select</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">complete</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">complete</tt><tt class="py-op">:</tt> </tt>
+<a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line">                    <tt class="py-name">q</tt> <tt class="py-op">=</tt> <tt class="py-name">q</tt><tt class="py-op">.</tt><tt class="py-name">where</tt><tt class="py-op">(</tt><tt class="py-name">bs_tbl</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">complete</tt> <tt class="py-op">!=</tt> <tt class="py-number">0</tt><tt class="py-op">)</tt> </tt>
+<a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line">                <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line">                    <tt class="py-name">q</tt> <tt class="py-op">=</tt> <tt class="py-name">q</tt><tt class="py-op">.</tt><tt class="py-name">where</tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">bs_tbl</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">complete</tt> <tt class="py-op">==</tt> <tt class="py-number">0</tt><tt class="py-op">)</tt> <tt class="py-op">|</tt> </tt>
+<a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line">                                <tt class="py-op">(</tt><tt class="py-name">bs_tbl</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">complete</tt> <tt class="py-op">==</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line">            <tt class="py-name">res</tt> <tt class="py-op">=</tt> <tt class="py-name">conn</tt><tt class="py-op">.</tt><tt id="link-57" class="py-name"><a title="buildbot.libvirtbuildslave.WorkQueue.execute" class="py-name" href="#" onclick="return doclink('link-57', 'execute', 'link-11');">execute</a></tt><tt class="py-op">(</tt><tt class="py-name">q</tt><tt class="py-op">)</tt> </tt>
+<a name="L188"></a><tt class="py-lineno">188</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-op">[</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_row2dict</tt><tt class="py-op">(</tt><tt class="py-name">row</tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt class="py-name">row</tt> <tt class="py-keyword">in</tt> <tt class="py-name">res</tt><tt class="py-op">.</tt><tt class="py-name">fetchall</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">]</tt> </tt>
+</div><a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-58" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-58', 'db', 'link-5');">db</a></tt><tt class="py-op">.</tt><tt id="link-59" class="py-name"><a title="buildbot.db.pool" class="py-name" href="#" onclick="return doclink('link-59', 'pool', 'link-36');">pool</a></tt><tt class="py-op">.</tt><tt class="py-name">do</tt><tt class="py-op">(</tt><tt class="py-name">thd</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line"> </tt>
+<a name="BuildsetsConnectorComponent.getBuildsetProperties"></a><div id="BuildsetsConnectorComponent.getBuildsetProperties-def"><a name="L191"></a><tt class="py-lineno">191</tt> <a class="py-toggle" href="#" id="BuildsetsConnectorComponent.getBuildsetProperties-toggle" onclick="return toggle('BuildsetsConnectorComponent.getBuildsetProperties');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.db.buildsets.BuildsetsConnectorComponent-class.html#getBuildsetProperties">getBuildsetProperties</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">buildsetid</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BuildsetsConnectorComponent.getBuildsetProperties-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="BuildsetsConnectorComponent.getBuildsetProperties-expanded"><a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L193"></a><tt class="py-lineno">193</tt>  <tt class="py-line"><tt class="py-docstring">        Return the properties for a buildset, in the same format they were</tt> </tt>
+<a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line"><tt class="py-docstring">        given to L{addBuildset}.</tt> </tt>
+<a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line"><tt class="py-docstring">        Note that this method does not distinguish a nonexistent buildset from</tt> </tt>
+<a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line"><tt class="py-docstring">        a buildset with no properties, and returns C{{}} in either case.</tt> </tt>
+<a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line"><tt class="py-docstring">        @param buildsetid: buildset ID</tt> </tt>
+<a name="L200"></a><tt class="py-lineno">200</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line"><tt class="py-docstring">        @returns: dictionary mapping property name to (value, source), via</tt> </tt>
+<a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line"><tt class="py-docstring">        Deferred</tt> </tt>
+<a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">thd</tt><tt class="py-op">(</tt><tt class="py-param">conn</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line">            <tt class="py-name">bsp_tbl</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-60" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-60', 'db', 'link-5');">db</a></tt><tt class="py-op">.</tt><tt id="link-61" class="py-name"><a title="buildbot.db.model" class="py-name" href="#" onclick="return doclink('link-61', 'model', 'link-13');">model</a></tt><tt class="py-op">.</tt><tt id="link-62" class="py-name"><a title="buildbot.db.model.Model.buildset_properties" class="py-name" href="#" onclick="return doclink('link-62', 'buildset_properties', 'link-23');">buildset_properties</a></tt> </tt>
+<a name="L206"></a><tt class="py-lineno">206</tt>  <tt class="py-line">            <tt class="py-name">q</tt> <tt class="py-op">=</tt> <tt class="py-name">sa</tt><tt class="py-op">.</tt><tt class="py-name">select</tt><tt class="py-op">(</tt> </tt>
+<a name="L207"></a><tt class="py-lineno">207</tt>  <tt class="py-line">                <tt class="py-op">[</tt> <tt class="py-name">bsp_tbl</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">property_name</tt><tt class="py-op">,</tt> <tt class="py-name">bsp_tbl</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">property_value</tt> <tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L208"></a><tt class="py-lineno">208</tt>  <tt class="py-line">                <tt class="py-name">whereclause</tt><tt class="py-op">=</tt><tt class="py-op">(</tt><tt class="py-name">bsp_tbl</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">buildsetid</tt> <tt class="py-op">==</tt> <tt class="py-name">buildsetid</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L209"></a><tt class="py-lineno">209</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-op">[</tt> <tt class="py-op">(</tt><tt class="py-name">row</tt><tt class="py-op">.</tt><tt class="py-name">property_name</tt><tt class="py-op">,</tt> </tt>
+<a name="L210"></a><tt class="py-lineno">210</tt>  <tt class="py-line">                           <tt class="py-name">tuple</tt><tt class="py-op">(</tt><tt id="link-63" class="py-name"><a title="json" class="py-name" href="#" onclick="return doclink('link-63', 'json', 'link-3');">json</a></tt><tt class="py-op">.</tt><tt class="py-name">loads</tt><tt class="py-op">(</tt><tt class="py-name">row</tt><tt class="py-op">.</tt><tt class="py-name">property_value</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L211"></a><tt class="py-lineno">211</tt>  <tt class="py-line">                          <tt class="py-keyword">for</tt> <tt class="py-name">row</tt> <tt class="py-keyword">in</tt> <tt class="py-name">conn</tt><tt class="py-op">.</tt><tt id="link-64" class="py-name"><a title="buildbot.libvirtbuildslave.WorkQueue.execute" class="py-name" href="#" onclick="return doclink('link-64', 'execute', 'link-11');">execute</a></tt><tt class="py-op">(</tt><tt class="py-name">q</tt><tt class="py-op">)</tt> <tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L212"></a><tt class="py-lineno">212</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-65" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-65', 'db', 'link-5');">db</a></tt><tt class="py-op">.</tt><tt id="link-66" class="py-name"><a title="buildbot.db.pool" class="py-name" href="#" onclick="return doclink('link-66', 'pool', 'link-36');">pool</a></tt><tt class="py-op">.</tt><tt class="py-name">do</tt><tt class="py-op">(</tt><tt class="py-name">thd</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L213"></a><tt class="py-lineno">213</tt>  <tt class="py-line"> </tt>
+<a name="BuildsetsConnectorComponent.subscribeToBuildset"></a><div id="BuildsetsConnectorComponent.subscribeToBuildset-def"><a name="L214"></a><tt class="py-lineno">214</tt> <a class="py-toggle" href="#" id="BuildsetsConnectorComponent.subscribeToBuildset-toggle" onclick="return toggle('BuildsetsConnectorComponent.subscribeToBuildset');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.db.buildsets.BuildsetsConnectorComponent-class.html#subscribeToBuildset">subscribeToBuildset</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">schedulerid</tt><tt class="py-op">,</tt> <tt class="py-param">buildsetid</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BuildsetsConnectorComponent.subscribeToBuildset-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="BuildsetsConnectorComponent.subscribeToBuildset-expanded"><a name="L215"></a><tt class="py-lineno">215</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L216"></a><tt class="py-lineno">216</tt>  <tt class="py-line"><tt class="py-docstring">        Add a row to C{scheduler_upstream_buildsets} indicating that</tt> </tt>
+<a name="L217"></a><tt class="py-lineno">217</tt>  <tt class="py-line"><tt class="py-docstring">        C{schedulerid} is interested in buildset C{bsid}.</tt> </tt>
+<a name="L218"></a><tt class="py-lineno">218</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L219"></a><tt class="py-lineno">219</tt>  <tt class="py-line"><tt class="py-docstring">        @param schedulerid: downstream scheduler</tt> </tt>
+<a name="L220"></a><tt class="py-lineno">220</tt>  <tt class="py-line"><tt class="py-docstring">        @type schedulerid: integer</tt> </tt>
+<a name="L221"></a><tt class="py-lineno">221</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L222"></a><tt class="py-lineno">222</tt>  <tt class="py-line"><tt class="py-docstring">        @param buildsetid: buildset id the scheduler is subscribing to</tt> </tt>
+<a name="L223"></a><tt class="py-lineno">223</tt>  <tt class="py-line"><tt class="py-docstring">        @type buildsetid: integer</tt> </tt>
+<a name="L224"></a><tt class="py-lineno">224</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L225"></a><tt class="py-lineno">225</tt>  <tt class="py-line"><tt class="py-docstring">        @returns: Deferred</tt> </tt>
+<a name="L226"></a><tt class="py-lineno">226</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L227"></a><tt class="py-lineno">227</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">thd</tt><tt class="py-op">(</tt><tt class="py-param">conn</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L228"></a><tt class="py-lineno">228</tt>  <tt class="py-line">            <tt class="py-name">conn</tt><tt class="py-op">.</tt><tt id="link-67" class="py-name"><a title="buildbot.libvirtbuildslave.WorkQueue.execute" class="py-name" href="#" onclick="return doclink('link-67', 'execute', 'link-11');">execute</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-68" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-68', 'db', 'link-5');">db</a></tt><tt class="py-op">.</tt><tt id="link-69" class="py-name"><a title="buildbot.db.model" class="py-name" href="#" onclick="return doclink('link-69', 'model', 'link-13');">model</a></tt><tt class="py-op">.</tt><tt id="link-70" class="py-name" targets="Variable buildbot.db.model.Model.scheduler_upstream_buildsets=buildbot.db.model.Model-class.html#scheduler_upstream_buildsets"><a title="buildbot.db.model.Model.scheduler_upstream_buildsets" class="py-name" href="#" onclick="return doclink('link-70', 'scheduler_upstream_buildsets', 'link-70');">scheduler_upstream_buildsets</a></tt><tt class="py-op">.</tt><tt class="py-name">insert</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L229"></a><tt class="py-lineno">229</tt>  <tt class="py-line">                    <tt class="py-name">schedulerid</tt><tt class="py-op">=</tt><tt class="py-name">schedulerid</tt><tt class="py-op">,</tt> </tt>
+<a name="L230"></a><tt class="py-lineno">230</tt>  <tt class="py-line">                    <tt class="py-name">buildsetid</tt><tt class="py-op">=</tt><tt class="py-name">buildsetid</tt><tt class="py-op">,</tt> </tt>
+<a name="L231"></a><tt class="py-lineno">231</tt>  <tt class="py-line">                    <tt id="link-71" class="py-name" targets="Variable buildbot.process.buildstep.RemoteCommand.active=buildbot.process.buildstep.RemoteCommand-class.html#active"><a title="buildbot.process.buildstep.RemoteCommand.active" class="py-name" href="#" onclick="return doclink('link-71', 'active', 'link-71');">active</a></tt><tt class="py-op">=</tt><tt class="py-number">1</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L232"></a><tt class="py-lineno">232</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-72" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-72', 'db', 'link-5');">db</a></tt><tt class="py-op">.</tt><tt id="link-73" class="py-name"><a title="buildbot.db.pool" class="py-name" href="#" onclick="return doclink('link-73', 'pool', 'link-36');">pool</a></tt><tt class="py-op">.</tt><tt class="py-name">do</tt><tt class="py-op">(</tt><tt class="py-name">thd</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L233"></a><tt class="py-lineno">233</tt>  <tt class="py-line"> </tt>
+<a name="BuildsetsConnectorComponent.unsubscribeFromBuildset"></a><div id="BuildsetsConnectorComponent.unsubscribeFromBuildset-def"><a name="L234"></a><tt class="py-lineno">234</tt> <a class="py-toggle" href="#" id="BuildsetsConnectorComponent.unsubscribeFromBuildset-toggle" onclick="return toggle('BuildsetsConnectorComponent.unsubscribeFromBuildset');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.db.buildsets.BuildsetsConnectorComponent-class.html#unsubscribeFromBuildset">unsubscribeFromBuildset</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">schedulerid</tt><tt class="py-op">,</tt> <tt class="py-param">buildsetid</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BuildsetsConnectorComponent.unsubscribeFromBuildset-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="BuildsetsConnectorComponent.unsubscribeFromBuildset-expanded"><a name="L235"></a><tt class="py-lineno">235</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L236"></a><tt class="py-lineno">236</tt>  <tt class="py-line"><tt class="py-docstring">        The opposite of L{subscribeToBuildset}, this removes the subcription</tt> </tt>
+<a name="L237"></a><tt class="py-lineno">237</tt>  <tt class="py-line"><tt class="py-docstring">        row from the database, rather than simply marking it as inactive.</tt> </tt>
+<a name="L238"></a><tt class="py-lineno">238</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L239"></a><tt class="py-lineno">239</tt>  <tt class="py-line"><tt class="py-docstring">        @param schedulerid: downstream scheduler</tt> </tt>
+<a name="L240"></a><tt class="py-lineno">240</tt>  <tt class="py-line"><tt class="py-docstring">        @type schedulerid: integer</tt> </tt>
+<a name="L241"></a><tt class="py-lineno">241</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L242"></a><tt class="py-lineno">242</tt>  <tt class="py-line"><tt class="py-docstring">        @param buildsetid: buildset id the scheduler is subscribing to</tt> </tt>
+<a name="L243"></a><tt class="py-lineno">243</tt>  <tt class="py-line"><tt class="py-docstring">        @type buildsetid: integer</tt> </tt>
+<a name="L244"></a><tt class="py-lineno">244</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L245"></a><tt class="py-lineno">245</tt>  <tt class="py-line"><tt class="py-docstring">        @returns: Deferred</tt> </tt>
+<a name="L246"></a><tt class="py-lineno">246</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L247"></a><tt class="py-lineno">247</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">thd</tt><tt class="py-op">(</tt><tt class="py-param">conn</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L248"></a><tt class="py-lineno">248</tt>  <tt class="py-line">            <tt class="py-name">tbl</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-74" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-74', 'db', 'link-5');">db</a></tt><tt class="py-op">.</tt><tt id="link-75" class="py-name"><a title="buildbot.db.model" class="py-name" href="#" onclick="return doclink('link-75', 'model', 'link-13');">model</a></tt><tt class="py-op">.</tt><tt id="link-76" class="py-name"><a title="buildbot.db.model.Model.scheduler_upstream_buildsets" class="py-name" href="#" onclick="return doclink('link-76', 'scheduler_upstream_buildsets', 'link-70');">scheduler_upstream_buildsets</a></tt> </tt>
+<a name="L249"></a><tt class="py-lineno">249</tt>  <tt class="py-line">            <tt class="py-name">conn</tt><tt class="py-op">.</tt><tt id="link-77" class="py-name"><a title="buildbot.libvirtbuildslave.WorkQueue.execute" class="py-name" href="#" onclick="return doclink('link-77', 'execute', 'link-11');">execute</a></tt><tt class="py-op">(</tt><tt class="py-name">tbl</tt><tt class="py-op">.</tt><tt class="py-name">delete</tt><tt class="py-op">(</tt> </tt>
+<a name="L250"></a><tt class="py-lineno">250</tt>  <tt class="py-line">                    <tt class="py-op">(</tt><tt class="py-name">tbl</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">schedulerid</tt> <tt class="py-op">==</tt> <tt class="py-name">schedulerid</tt><tt class="py-op">)</tt> <tt class="py-op">&amp;</tt> </tt>
+<a name="L251"></a><tt class="py-lineno">251</tt>  <tt class="py-line">                    <tt class="py-op">(</tt><tt class="py-name">tbl</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">buildsetid</tt> <tt class="py-op">==</tt> <tt class="py-name">buildsetid</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L252"></a><tt class="py-lineno">252</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-78" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-78', 'db', 'link-5');">db</a></tt><tt class="py-op">.</tt><tt id="link-79" class="py-name"><a title="buildbot.db.pool" class="py-name" href="#" onclick="return doclink('link-79', 'pool', 'link-36');">pool</a></tt><tt class="py-op">.</tt><tt class="py-name">do</tt><tt class="py-op">(</tt><tt class="py-name">thd</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L253"></a><tt class="py-lineno">253</tt>  <tt class="py-line"> </tt>
+<a name="BuildsetsConnectorComponent.getSubscribedBuildsets"></a><div id="BuildsetsConnectorComponent.getSubscribedBuildsets-def"><a name="L254"></a><tt class="py-lineno">254</tt> <a class="py-toggle" href="#" id="BuildsetsConnectorComponent.getSubscribedBuildsets-toggle" onclick="return toggle('BuildsetsConnectorComponent.getSubscribedBuildsets');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.db.buildsets.BuildsetsConnectorComponent-class.html#getSubscribedBuildsets">getSubscribedBuildsets</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">schedulerid</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BuildsetsConnectorComponent.getSubscribedBuildsets-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="BuildsetsConnectorComponent.getSubscribedBuildsets-expanded"><a name="L255"></a><tt class="py-lineno">255</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L256"></a><tt class="py-lineno">256</tt>  <tt class="py-line"><tt class="py-docstring">        Get the set of buildsets to which this scheduler is subscribed, along</tt> </tt>
+<a name="L257"></a><tt class="py-lineno">257</tt>  <tt class="py-line"><tt class="py-docstring">        with the buildsets' current results.  This will exclude any rows marked</tt> </tt>
+<a name="L258"></a><tt class="py-lineno">258</tt>  <tt class="py-line"><tt class="py-docstring">        as not active.</tt> </tt>
+<a name="L259"></a><tt class="py-lineno">259</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L260"></a><tt class="py-lineno">260</tt>  <tt class="py-line"><tt class="py-docstring">        The return value is a list of tuples, each containing a buildset ID, a</tt> </tt>
+<a name="L261"></a><tt class="py-lineno">261</tt>  <tt class="py-line"><tt class="py-docstring">        sourcestamp ID, a boolean indicating that the buildset is complete, and</tt> </tt>
+<a name="L262"></a><tt class="py-lineno">262</tt>  <tt class="py-line"><tt class="py-docstring">        the buildset's result.</tt> </tt>
+<a name="L263"></a><tt class="py-lineno">263</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L264"></a><tt class="py-lineno">264</tt>  <tt class="py-line"><tt class="py-docstring">        @param schedulerid: downstream scheduler</tt> </tt>
+<a name="L265"></a><tt class="py-lineno">265</tt>  <tt class="py-line"><tt class="py-docstring">        @type schedulerid: integer</tt> </tt>
+<a name="L266"></a><tt class="py-lineno">266</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L267"></a><tt class="py-lineno">267</tt>  <tt class="py-line"><tt class="py-docstring">        @returns: list as described, via Deferred</tt> </tt>
+<a name="L268"></a><tt class="py-lineno">268</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L269"></a><tt class="py-lineno">269</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">thd</tt><tt class="py-op">(</tt><tt class="py-param">conn</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L270"></a><tt class="py-lineno">270</tt>  <tt class="py-line">            <tt class="py-name">bs_tbl</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-80" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-80', 'db', 'link-5');">db</a></tt><tt class="py-op">.</tt><tt id="link-81" class="py-name"><a title="buildbot.db.model" class="py-name" href="#" onclick="return doclink('link-81', 'model', 'link-13');">model</a></tt><tt class="py-op">.</tt><tt id="link-82" class="py-name"><a title="buildbot.db.buildsets
+buildbot.db.model.Model.buildsets" class="py-name" href="#" onclick="return doclink('link-82', 'buildsets', 'link-14');">buildsets</a></tt> </tt>
+<a name="L271"></a><tt class="py-lineno">271</tt>  <tt class="py-line">            <tt class="py-name">upstreams_tbl</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-83" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-83', 'db', 'link-5');">db</a></tt><tt class="py-op">.</tt><tt id="link-84" class="py-name"><a title="buildbot.db.model" class="py-name" href="#" onclick="return doclink('link-84', 'model', 'link-13');">model</a></tt><tt class="py-op">.</tt><tt id="link-85" class="py-name"><a title="buildbot.db.model.Model.scheduler_upstream_buildsets" class="py-name" href="#" onclick="return doclink('link-85', 'scheduler_upstream_buildsets', 'link-70');">scheduler_upstream_buildsets</a></tt> </tt>
+<a name="L272"></a><tt class="py-lineno">272</tt>  <tt class="py-line">            <tt class="py-name">q</tt> <tt class="py-op">=</tt> <tt class="py-name">sa</tt><tt class="py-op">.</tt><tt class="py-name">select</tt><tt class="py-op">(</tt> </tt>
+<a name="L273"></a><tt class="py-lineno">273</tt>  <tt class="py-line">                <tt class="py-op">[</tt><tt class="py-name">bs_tbl</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">id</tt><tt class="py-op">,</tt> <tt class="py-name">bs_tbl</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">sourcestampid</tt><tt class="py-op">,</tt> </tt>
+<a name="L274"></a><tt class="py-lineno">274</tt>  <tt class="py-line">                 <tt class="py-name">bs_tbl</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt id="link-86" class="py-name"><a title="buildbot.process.build.Build.results
+buildbot.status.builder.BuildStatus.results
+buildbot.status.builder.BuildStepStatus.results
+buildbot.status.results" class="py-name" href="#" onclick="return doclink('link-86', 'results', 'link-18');">results</a></tt><tt class="py-op">,</tt> <tt class="py-name">bs_tbl</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">complete</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L275"></a><tt class="py-lineno">275</tt>  <tt class="py-line">                <tt class="py-name">whereclause</tt><tt class="py-op">=</tt><tt class="py-op">(</tt> </tt>
+<a name="L276"></a><tt class="py-lineno">276</tt>  <tt class="py-line">                    <tt class="py-op">(</tt><tt class="py-name">upstreams_tbl</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">schedulerid</tt> <tt class="py-op">==</tt> <tt class="py-name">schedulerid</tt><tt class="py-op">)</tt> <tt class="py-op">&amp;</tt> </tt>
+<a name="L277"></a><tt class="py-lineno">277</tt>  <tt class="py-line">                    <tt class="py-op">(</tt><tt class="py-name">upstreams_tbl</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">buildsetid</tt> <tt class="py-op">==</tt> <tt class="py-name">bs_tbl</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">id</tt><tt class="py-op">)</tt> <tt class="py-op">&amp;</tt> </tt>
+<a name="L278"></a><tt class="py-lineno">278</tt>  <tt class="py-line">                    <tt class="py-op">(</tt><tt class="py-name">upstreams_tbl</tt><tt class="py-op">.</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt id="link-87" class="py-name"><a title="buildbot.process.buildstep.RemoteCommand.active" class="py-name" href="#" onclick="return doclink('link-87', 'active', 'link-71');">active</a></tt> <tt class="py-op">!=</tt> <tt class="py-number">0</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L279"></a><tt class="py-lineno">279</tt>  <tt class="py-line">                <tt class="py-name">distinct</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+<a name="L280"></a><tt class="py-lineno">280</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-op">[</tt> <tt class="py-op">(</tt><tt class="py-name">row</tt><tt class="py-op">.</tt><tt class="py-name">id</tt><tt class="py-op">,</tt> <tt class="py-name">row</tt><tt class="py-op">.</tt><tt class="py-name">sourcestampid</tt><tt class="py-op">,</tt> <tt class="py-name">row</tt><tt class="py-op">.</tt><tt class="py-name">complete</tt><tt class="py-op">,</tt> <tt class="py-name">row</tt><tt class="py-op">.</tt><tt id="link-88" class="py-name"><a title="buildbot.process.build.Build.results
+buildbot.status.builder.BuildStatus.results
+buildbot.status.builder.BuildStepStatus.results
+buildbot.status.results" class="py-name" href="#" onclick="return doclink('link-88', 'results', 'link-18');">results</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L281"></a><tt class="py-lineno">281</tt>  <tt class="py-line">                     <tt class="py-keyword">for</tt> <tt class="py-name">row</tt> <tt class="py-keyword">in</tt> <tt class="py-name">conn</tt><tt class="py-op">.</tt><tt id="link-89" class="py-name"><a title="buildbot.libvirtbuildslave.WorkQueue.execute" class="py-name" href="#" onclick="return doclink('link-89', 'execute', 'link-11');">execute</a></tt><tt class="py-op">(</tt><tt class="py-name">q</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">fetchall</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">]</tt> </tt>
+</div><a name="L282"></a><tt class="py-lineno">282</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-90" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-90', 'db', 'link-5');">db</a></tt><tt class="py-op">.</tt><tt id="link-91" class="py-name"><a title="buildbot.db.pool" class="py-name" href="#" onclick="return doclink('link-91', 'pool', 'link-36');">pool</a></tt><tt class="py-op">.</tt><tt class="py-name">do</tt><tt class="py-op">(</tt><tt class="py-name">thd</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L283"></a><tt class="py-lineno">283</tt>  <tt class="py-line"> </tt>
+<a name="BuildsetsConnectorComponent._row2dict"></a><div id="BuildsetsConnectorComponent._row2dict-def"><a name="L284"></a><tt class="py-lineno">284</tt> <a class="py-toggle" href="#" id="BuildsetsConnectorComponent._row2dict-toggle" onclick="return toggle('BuildsetsConnectorComponent._row2dict');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.db.buildsets.BuildsetsConnectorComponent-class.html#_row2dict">_row2dict</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">row</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BuildsetsConnectorComponent._row2dict-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="BuildsetsConnectorComponent._row2dict-expanded"><a name="L285"></a><tt class="py-lineno">285</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">mkdt</tt><tt class="py-op">(</tt><tt class="py-param">epoch</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L286"></a><tt class="py-lineno">286</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">epoch</tt><tt class="py-op">:</tt> </tt>
+<a name="L287"></a><tt class="py-lineno">287</tt>  <tt class="py-line">                <tt class="py-keyword">return</tt> <tt class="py-name">epoch2datetime</tt><tt class="py-op">(</tt><tt class="py-name">epoch</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L288"></a><tt class="py-lineno">288</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-92" class="py-name" targets="Class buildbot.db.buildsets.BsDict=buildbot.db.buildsets.BsDict-class.html"><a title="buildbot.db.buildsets.BsDict" class="py-name" href="#" onclick="return doclink('link-92', 'BsDict', 'link-92');">BsDict</a></tt><tt class="py-op">(</tt><tt class="py-name">external_idstring</tt><tt class="py-op">=</tt><tt class="py-name">row</tt><tt class="py-op">.</tt><tt class="py-name">external_idstring</tt><tt class="py-op">,</tt> </tt>
+<a name="L289"></a><tt class="py-lineno">289</tt>  <tt class="py-line">                <tt id="link-93" class="py-name"><a title="buildbot.process.build.Build.reason
+buildbot.status.builder.BuildStatus.reason" class="py-name" href="#" onclick="return doclink('link-93', 'reason', 'link-16');">reason</a></tt><tt class="py-op">=</tt><tt class="py-name">row</tt><tt class="py-op">.</tt><tt id="link-94" class="py-name"><a title="buildbot.process.build.Build.reason
+buildbot.status.builder.BuildStatus.reason" class="py-name" href="#" onclick="return doclink('link-94', 'reason', 'link-16');">reason</a></tt><tt class="py-op">,</tt> <tt class="py-name">sourcestampid</tt><tt class="py-op">=</tt><tt class="py-name">row</tt><tt class="py-op">.</tt><tt class="py-name">sourcestampid</tt><tt class="py-op">,</tt> </tt>
+<a name="L290"></a><tt class="py-lineno">290</tt>  <tt class="py-line">                <tt class="py-name">submitted_at</tt><tt class="py-op">=</tt><tt class="py-name">mkdt</tt><tt class="py-op">(</tt><tt class="py-name">row</tt><tt class="py-op">.</tt><tt class="py-name">submitted_at</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L291"></a><tt class="py-lineno">291</tt>  <tt class="py-line">                <tt class="py-name">complete</tt><tt class="py-op">=</tt><tt class="py-name">bool</tt><tt class="py-op">(</tt><tt class="py-name">row</tt><tt class="py-op">.</tt><tt class="py-name">complete</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L292"></a><tt class="py-lineno">292</tt>  <tt class="py-line">                <tt class="py-name">complete_at</tt><tt class="py-op">=</tt><tt class="py-name">mkdt</tt><tt class="py-op">(</tt><tt class="py-name">row</tt><tt class="py-op">.</tt><tt class="py-name">complete_at</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt id="link-95" class="py-name"><a title="buildbot.process.build.Build.results
+buildbot.status.builder.BuildStatus.results
+buildbot.status.builder.BuildStepStatus.results
+buildbot.status.results" class="py-name" href="#" onclick="return doclink('link-95', 'results', 'link-18');">results</a></tt><tt class="py-op">=</tt><tt class="py-name">row</tt><tt class="py-op">.</tt><tt id="link-96" class="py-name"><a title="buildbot.process.build.Build.results
+buildbot.status.builder.BuildStatus.results
+buildbot.status.builder.BuildStepStatus.results
+buildbot.status.results" class="py-name" href="#" onclick="return doclink('link-96', 'results', 'link-18');">results</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L293"></a><tt class="py-lineno">293</tt>  <tt class="py-line">                <tt class="py-name">bsid</tt><tt class="py-op">=</tt><tt class="py-name">row</tt><tt class="py-op">.</tt><tt class="py-name">id</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L294"></a><tt class="py-lineno">294</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.5-pre-176-g7918ef3</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Sun Jul 17 13:45:37 2011
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

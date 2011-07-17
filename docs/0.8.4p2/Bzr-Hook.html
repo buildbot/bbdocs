@@ -1,0 +1,115 @@
+<html lang="en">
+<head>
+<title>Bzr Hook - BuildBot Manual - 0.8.4p2</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.4p2">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="PBChangeSource.html#PBChangeSource" title="PBChangeSource">
+<link rel="prev" href="Mercurial-Hook.html#Mercurial-Hook" title="Mercurial Hook">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.4p2.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Bzr-Hook"></a>
+<p>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Mercurial-Hook.html#Mercurial-Hook">Mercurial Hook</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="PBChangeSource.html#PBChangeSource">PBChangeSource</a>
+<hr>
+</div>
+
+<h5 class="subsubsection">4.7.4.2 Bzr Hook</h5>
+
+<p>Bzr is also written in Python, and the Bzr hook depends on Twisted to send the
+changes.
+
+   <p>To install, put <code>contrib/bzr_buildbot.py</code> (see <a href="Contrib-Scripts.html#Contrib-Scripts">Contrib Scripts</a>) in one
+of your plugins locations a bzr plugins directory (e.g.,
+<code>~/.bazaar/plugins</code>). Then, in one of your bazaar conf files (e.g.,
+<code>~/.bazaar/locations.conf</code>), set the location you want to connect with
+buildbot with these keys:
+
+     <dl>
+<dt><code>buildbot_on</code><dd>one of 'commit', 'push, or 'change'. Turns the plugin on to report changes via
+commit, changes via push, or any changes to the trunk. 'change' is
+recommended.
+
+     <br><dt><code>buildbot_server</code><dd>(required to send to a buildbot master) the URL of the buildbot master to
+which you will connect (as of this writing, the same server and port to which
+slaves connect).
+
+     <br><dt><code>buildbot_port</code><dd>(optional, defaults to 9989) the port of the buildbot master to which you will
+connect (as of this writing, the same server and port to which slaves connect)
+
+     <br><dt><code>buildbot_pqm</code><dd>(optional, defaults to not pqm) Normally, the user that commits the revision
+is the user that is responsible for the change. When run in a pqm (Patch Queue
+Manager, see https://launchpad.net/pqm) environment, the user that commits is
+the Patch Queue Manager, and the user that committed the *parent* revision is
+responsible for the change. To turn on the pqm mode, set this value to any of
+(case-insensitive) "Yes", "Y", "True", or "T".
+
+     <br><dt><code>buildbot_dry_run</code><dd>(optional, defaults to not a dry run) Normally, the post-commit hook will
+attempt to communicate with the configured buildbot server and port. If this
+parameter is included and any of (case-insensitive) "Yes", "Y", "True", or
+"T", then the hook will simply print what it would have sent, but not attempt
+to contact the buildbot master.
+
+     <br><dt><code>buildbot_send_branch_name</code><dd>(optional, defaults to not sending the branch name) If your buildbot's bzr
+source build step uses a repourl, do *not* turn this on. If your buildbot's
+bzr build step uses a baseURL, then you may set this value to any of
+(case-insensitive) "Yes", "Y", "True", or "T" to have the buildbot master
+append the branch name to the baseURL.
+
+   </dl>
+
+   <p>Note: The bzr smart server (as of version 2.2.2) doesn't know how to resolve
+<code>bzr://</code> urls into absolute paths so any paths in <code>locations.conf</code>
+won't match, hence no change notifications will be sent to Buildbot. Setting
+configuration parameters globally or in-branch might still work.
+
+   <p>When buildbot no longer has a hardcoded password, it will be a configuration
+option here as well.
+
+   <p>Here's a simple example that you might have in your
+<code>~/.bazaar/locations.conf</code>.
+
+<pre class="example">     [chroot-*:///var/local/myrepo/mybranch]
+     buildbot_on = change
+     buildbot_server = localhost
+</pre>
+   </body></html>
+

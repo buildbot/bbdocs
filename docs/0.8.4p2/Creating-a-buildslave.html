@@ -1,0 +1,184 @@
+<html lang="en">
+<head>
+<title>Creating a buildslave - BuildBot Manual - 0.8.4p2</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.4p2">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Installation.html#Installation" title="Installation">
+<link rel="prev" href="Upgrading-an-Existing-Buildmaster.html#Upgrading-an-Existing-Buildmaster" title="Upgrading an Existing Buildmaster">
+<link rel="next" href="Upgrading-an-Existing-Buildslave.html#Upgrading-an-Existing-Buildslave" title="Upgrading an Existing Buildslave">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.4p2.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Creating-a-buildslave"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Upgrading-an-Existing-Buildslave.html#Upgrading-an-Existing-Buildslave">Upgrading an Existing Buildslave</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Upgrading-an-Existing-Buildmaster.html#Upgrading-an-Existing-Buildmaster">Upgrading an Existing Buildmaster</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Installation.html#Installation">Installation</a>
+<hr>
+</div>
+
+<h3 class="section">2.7 Creating a buildslave</h3>
+
+<p>Typically, you will be adding a buildslave to an existing buildmaster,
+to provide additional architecture coverage. The buildbot
+administrator will give you several pieces of information necessary to
+connect to the buildmaster. You should also be somewhat familiar with
+the project being tested, so you can troubleshoot build problems
+locally.
+
+   <p>The buildbot exists to make sure that the project's stated &ldquo;how to
+build it&rdquo; process actually works. To this end, the buildslave should
+run in an environment just like that of your regular developers. 
+Typically the project build process is documented somewhere
+(<samp><span class="file">README</span></samp>, <samp><span class="file">INSTALL</span></samp>, etc), in a document that should
+mention all library dependencies and contain a basic set of build
+instructions. This document will be useful as you configure the host
+and account in which the buildslave runs.
+
+   <p>Here's a good checklist for setting up a buildslave:
+
+     <ol type=1 start=1>
+<li>Set up the account
+
+     <p>It is recommended (although not mandatory) to set up a separate user
+account for the buildslave. This account is frequently named
+<code>buildbot</code> or <code>buildslave</code>. This serves to isolate your
+personal working environment from that of the slave's, and helps to
+minimize the security threat posed by letting possibly-unknown
+contributors run arbitrary code on your system. The account should
+have a minimum of fancy init scripts.
+
+     <li>Install the buildbot code
+
+     <p>Follow the instructions given earlier (see <a href="Installing-the-code.html#Installing-the-code">Installing the code</a>). 
+If you use a separate buildslave account, and you didn't install the
+buildbot code to a shared location, then you will need to install it
+with <code>--home=~</code> for each account that needs it.
+
+     <li>Set up the host
+
+     <p>Make sure the host can actually reach the buildmaster. Usually the
+buildmaster is running a status webserver on the same machine, so
+simply point your web browser at it and see if you can get there. 
+Install whatever additional packages or libraries the project's
+INSTALL document advises. (or not: if your buildslave is supposed to
+make sure that building without optional libraries still works, then
+don't install those libraries).
+
+     <p>Again, these libraries don't necessarily have to be installed to a
+site-wide shared location, but they must be available to your build
+process. Accomplishing this is usually very specific to the build
+process, so installing them to <samp><span class="file">/usr</span></samp> or <samp><span class="file">/usr/local</span></samp> is
+usually the best approach.
+
+     <li>Test the build process
+
+     <p>Follow the instructions in the INSTALL document, in the buildslave's
+account. Perform a full CVS (or whatever) checkout, configure, make,
+run tests, etc. Confirm that the build works without manual fussing. 
+If it doesn't work when you do it by hand, it will be unlikely to work
+when the buildbot attempts to do it in an automated fashion.
+
+     <li>Choose a base directory
+
+     <p>This should be somewhere in the buildslave's account, typically named
+after the project which is being tested. The buildslave will not touch
+any file outside of this directory. Something like <samp><span class="file">~/Buildbot</span></samp>
+or <samp><span class="file">~/Buildslaves/fooproject</span></samp> is appropriate.
+
+     <li>Get the buildmaster host/port, botname, and password
+
+     <p>When the buildbot admin configures the buildmaster to accept and use
+your buildslave, they will provide you with the following pieces of
+information:
+
+          <ul>
+<li>your buildslave's name
+<li>the password assigned to your buildslave
+<li>the hostname and port number of the buildmaster, i.e. buildbot.example.org:8007
+</ul>
+
+     <li>Create the buildslave
+
+     <p>Now run the 'buildslave' command as follows:
+
+     <pre class="example">          buildslave create-slave <var>BASEDIR</var> <var>MASTERHOST</var>:<var>PORT</var> <var>SLAVENAME</var> <var>PASSWORD</var>
+</pre>
+     <p>This will create the base directory and a collection of files inside,
+including the <samp><span class="file">buildbot.tac</span></samp> file that contains all the
+information you passed to the <code>buildbot</code> command.
+
+     <li>Fill in the hostinfo files
+
+     <p>When it first connects, the buildslave will send a few files up to the
+buildmaster which describe the host that it is running on. These files
+are presented on the web status display so that developers have more
+information to reproduce any test failures that are witnessed by the
+buildbot. There are sample files in the <samp><span class="file">info</span></samp> subdirectory of
+the buildbot's base directory. You should edit these to correctly
+describe you and your host.
+
+     <p><samp><span class="file">BASEDIR/info/admin</span></samp> should contain your name and email address. 
+This is the &ldquo;buildslave admin address&rdquo;, and will be visible from the
+build status page (so you may wish to munge it a bit if
+address-harvesting spambots are a concern).
+
+     <p><samp><span class="file">BASEDIR/info/host</span></samp> should be filled with a brief description of
+the host: OS, version, memory size, CPU speed, versions of relevant
+libraries installed, and finally the version of the buildbot code
+which is running the buildslave.
+
+     <p>The optional <samp><span class="file">BASEDIR/info/access_uri</span></samp> can specify a URI which will
+connect a user to the machine.  Many systems accept <code>ssh://hostname</code> URIs
+for this purpose.
+
+     <p>If you run many buildslaves, you may want to create a single
+<samp><span class="file">~buildslave/info</span></samp> file and share it among all the buildslaves
+with symlinks.
+
+        </ol>
+
+<ul class="menu">
+<li><a accesskey="1" href="Buildslave-Options.html#Buildslave-Options">Buildslave Options</a>
+<li><a accesskey="2" href="Other-Buildslave-Configuration.html#Other-Buildslave-Configuration">Other Buildslave Configuration</a>
+</ul>
+
+   </body></html>
+

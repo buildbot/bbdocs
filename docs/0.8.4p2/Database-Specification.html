@@ -1,0 +1,118 @@
+<html lang="en">
+<head>
+<title>Database Specification - BuildBot Manual - 0.8.4p2</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="BuildBot Manual - 0.8.4p2">
+<meta name="generator" content="makeinfo 4.13">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Global-Configuration.html#Global-Configuration" title="Global Configuration">
+<link rel="next" href="Multi_002dmaster-mode.html#Multi_002dmaster-mode" title="Multi-master mode">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+This is the BuildBot manual for Buildbot version 0.8.4p2.
+
+Copyright (C) 2005, 2006, 2009, 2010 Brian Warner
+
+Copying and distribution of this file, with or without
+modification, are permitted in any medium without royalty
+provided the copyright notice and this notice are preserved.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+<body>
+<div class="node">
+<a name="Database-Specification"></a>
+<p>
+Next:&nbsp;<a rel="next" accesskey="n" href="Multi_002dmaster-mode.html#Multi_002dmaster-mode">Multi-master mode</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Global-Configuration.html#Global-Configuration">Global Configuration</a>
+<hr>
+</div>
+
+<h4 class="subsection">4.6.1 Database Specification</h4>
+
+<p>Buildbot requires a connection to a database to maintain certain state
+information, such as tracking pending build requests.  By default this is
+stored in a sqlite file called 'state.sqlite' in the base directory of your
+master.  This can be overridden with the <code>db_url</code> parameter.
+
+   <p>The format of this parameter is completely documetned at
+<a href="http://www.sqlalchemy.org/docs/dialects/">http://www.sqlalchemy.org/docs/dialects/</a>, but is generally of the form:
+
+<pre class="example">     driver://[username:password@]host:port/database[?args]
+</pre>
+   <p>For sqlite databases, since there is no host and port, relative paths are
+specified with <code>sqlite:///</code> and absolute paths with <code>sqlite:////</code>. 
+Examples:
+
+   <p>Notes for particular database backends:
+
+<h3 class="heading">SQLite</h3>
+
+<pre class="example">     c['db_url'] = "sqlite:///state.sqlite"
+</pre>
+   <p>No special configuration is required to use SQLite.
+
+<h3 class="heading">MySQL</h3>
+
+<pre class="example">     c['db_url'] = "mysql://user:pass@somehost.com/database_name?max_idle=300"
+</pre>
+   <p>The <code>max_idle</code> argument for MySQL connections is unique to Buildbot, and
+should be set to something less than the wait_timeout configured for your
+server.  This controls the SQLAlchemy <code>pool_recycle</code> parameter, which
+defaults to no timeout.  Setting this parameter ensures that connections are
+closed and re-opened after the configured amount of idle time.  If you see
+errors such as <code>_mysql_exceptions.OperationalError: (2006, 'MySQL server
+has gone away')</code>, this means your <code>max_idle</code> setting is probably too high. 
+<code>show global variables like 'wait_timeout';</code> will show what the currently
+configured <code>wait_timeout</code> is on your MySQL server.
+
+   <p>Buildbot requires <code>use_unique=True</code> and <code>charset=utf8</code>, and will add
+them automatically, so they do not need to be specified in <code>db_url</code>.
+
+   <p>MySQL defaults to the MyISAM storage engine, but this can be overridden with
+the <code>storage_engine</code> URL argument.  Note that, because of InnoDB's
+extremely short key length limitations, it cannot be used to run Buildbot.  See
+<a href="http://bugs.mysql.com/bug.php?id=4541">http://bugs.mysql.com/bug.php?id=4541</a> for more information.
+
+   <p>Buildbot uses temporary tables internally to manage large transactions.  MySQL
+has trouble doing replication with temporary tables, so if you are using a
+replicated MySQL installation, you may need to handle this situation carefully. 
+The MySQL documentation
+(<a href="http://dev.mysql.com/doc/refman/5.5/en/replication-features-temptables.html">http://dev.mysql.com/doc/refman/5.5/en/replication-features-temptables.html</a>)
+recommends using <code>--replicate-wild-ignore-table</code> to ignore temporary
+tables that should not be replicated.  All Buildbot temporary tables begin with
+<code>bbtmp_</code>, so an option such as
+<code>--replicate-wild-ignore-table=bbtmp_.*</code> may help.
+
+<h3 class="heading">Postgres</h3>
+
+<pre class="example">     c['db_url'] = "postgresql://username@hostname/dbname"
+</pre>
+   <p>No special configuration is required to use Postgres.
+
+   </body></html>
+
