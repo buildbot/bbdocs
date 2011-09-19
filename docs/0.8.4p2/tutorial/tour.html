@@ -1,0 +1,363 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>A Quick Tour &mdash; Buildbot Tutorial</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     'latest',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Buildbot Tutorial" href="index.html" />
+    <link rel="prev" title="First Run" href="firstrun.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="firstrun.html" title="First Run"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Buildbot Tutorial</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="a-quick-tour">
+<span id="quick-tour-label"></span><h1>A Quick Tour<a class="headerlink" href="#a-quick-tour" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="goal">
+<h2>Goal<a class="headerlink" href="#goal" title="Permalink to this headline">¶</a></h2>
+<p>This tutorial will expand on the <a class="reference internal" href="firstrun.html#first-run-label"><em>First Run</em></a> tutorial by taking a
+quick tour around some of the features of buildbot that are hinted at in the
+comments in the sample configuration.  We will simply change parts of the
+default configuration and explain the activated features.</p>
+<p>As a part of this tutorial, we will make buildbot do a few actual builds.</p>
+<dl class="docutils">
+<dt>This section will teach you how to:</dt>
+<dd><ul class="first last simple">
+<li>make simple configuration changes and activate them</li>
+<li>deal with configuration errors</li>
+<li>force builds</li>
+<li>enable and control the IRC bot</li>
+<li>enable ssh debugging</li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="setting-project-name-and-url">
+<h2>Setting Project Name and URL<a class="headerlink" href="#setting-project-name-and-url" title="Permalink to this headline">¶</a></h2>
+<p>Let&#8217;s start simple by looking at where you would customize the buildbot&#8217;s project name and URL.</p>
+<p>We continue where we left off in the <a class="reference internal" href="firstrun.html#first-run-label"><em>First Run</em></a> tutorial.</p>
+<p>Open a new terminal, and first enter the same sandbox you created before (where $EDITOR is your editor of choice like vim, gedit, or emacs):</p>
+<div class="highlight-python"><pre>cd
+cd tmp/buildbot
+source sandbox/bin/activate
+$EDITOR master/master.cfg</pre>
+</div>
+<p>Now, look for the section marked <em>PROJECT IDENTITY</em> which reads:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c">####### PROJECT IDENTITY</span>
+
+<span class="c"># the &#39;title&#39; string will appear at the top of this buildbot</span>
+<span class="c"># installation&#39;s html.WebStatus home page (linked to the</span>
+<span class="c"># &#39;titleURL&#39;) and is embedded in the title of the waterfall HTML page.</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Pyflakes&quot;</span>
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;titleURL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;http://divmod.org/trac/wiki/DivmodPyflakes&quot;</span>
+</pre></div>
+</div>
+<p>If you want, you can change either of these links to anything you want to see what happens when you change them.
+After making a change go into the terminal and type:</p>
+<div class="highlight-python"><pre>buildbot reconfig master</pre>
+</div>
+<p>You will see a handful of lines of output from the master log, much like this:</p>
+<div class="highlight-python"><pre>2009-08-01 13:38:21+0200 [-] loading configuration from /home/thomas/dev/ext/buildbot/sandbox/master/master.cfg
+2009-08-01 13:38:21+0200 [-] builder buildbot-full is unchanged
+2009-08-01 13:38:21+0200 [-] removing IStatusReceiver &lt;WebStatus on port tcp:8010 at 0x11a5290&gt;
+2009-08-01 13:38:21+0200 [-] configuration update started
+2009-08-01 13:38:21+0200 [-] (Port 8010 Closed)
+2009-08-01 13:38:21+0200 [-] Stopping factory &lt;twisted.web.server.Site instance at 0x11a5518&gt;
+2009-08-01 13:38:21+0200 [-] adding IStatusReceiver &lt;WebStatus on port tcp:8010 at 0x14f9050&gt;
+2009-08-01 13:38:21+0200 [-] twisted.web.server.Site starting on 8010
+2009-08-01 13:38:21+0200 [-] Starting factory &lt;twisted.web.server.Site instance at 0x14f90e0&gt;
+2009-08-01 13:38:21+0200 [-] WebStatus using (/home/thomas/dev/ext/buildbot/sandbox/master/public_html)
+2009-08-01 13:38:21+0200 [-] adding 0 new schedulers, removed 0
+2009-08-01 13:38:21+0200 [-] adding 0 new changesources, removing 0
+2009-08-01 13:38:21+0200 [-] configuration update complete
+
+Reconfiguration appears to have completed successfully.</pre>
+</div>
+<p>The important lines are the ones telling you that it is loading the new
+configuration at the top, and the one at the bottom saying that the update
+is complete.</p>
+<p>Now, if you go back to
+<a class="reference external" href="http://localhost:8010/waterfall">the waterfall page</a>,
+you will see that the project&#8217;s name is whatever you may have changed it to and when you click on the
+the URL of the project name at the bottom of the page it should take you to the link you put in the configuration.</p>
+</div>
+<div class="section" id="configuration-errors">
+<h2>Configuration Errors<a class="headerlink" href="#configuration-errors" title="Permalink to this headline">¶</a></h2>
+<p>It is very common to make a mistake when configuring buildbot, so you might
+as well see now what happens in that case and what you can do to fix
+the error.</p>
+<p>Open up the config again and introduce a syntax error by removing the first
+single quote in the two lines you changed, so they read:</p>
+<div class="highlight-python"><pre>c[title'] = "Pyflakes"
+c['titleURL'] = "http://divmod.org/trac/wiki/DivmodPyflakes"</pre>
+</div>
+<p>This creates a Python SyntaxError.  Now go ahead and reconfig the buildmaster:</p>
+<div class="highlight-python"><pre>buildbot reconfig master</pre>
+</div>
+<p>This time, the output looks like:</p>
+<div class="highlight-python"><pre>2009-08-01 13:52:23+0200 [-] loading configuration from /home/thomas/dev/ext/buildbot/sandbox/master/master.cfg
+2009-08-01 13:52:23+0200 [-] error while parsing config file
+2009-08-01 13:52:23+0200 [-] error during loadConfig
+2009-08-01 13:52:23+0200 [-] Unhandled Error
+      Traceback (most recent call last):
+        File "/home/thomas/dev/ext/buildbot/sandbox/lib/python2.6/site-packages/Twisted-8.2.0-py2.6-linux-x86_64.egg/twisted/application/app.py", line 348, in runReactorWithLogging
+          reactor.run()
+        File "/home/thomas/dev/ext/buildbot/sandbox/lib/python2.6/site-packages/Twisted-8.2.0-py2.6-linux-x86_64.egg/twisted/internet/base.py", line 1128, in run
+          self.mainLoop()
+        File "/home/thomas/dev/ext/buildbot/sandbox/lib/python2.6/site-packages/Twisted-8.2.0-py2.6-linux-x86_64.egg/twisted/internet/base.py", line 1137, in mainLoop
+          self.runUntilCurrent()
+        File "/home/thomas/dev/ext/buildbot/sandbox/lib/python2.6/site-packages/Twisted-8.2.0-py2.6-linux-x86_64.egg/twisted/internet/base.py", line 757, in runUntilCurrent
+            call.func(*call.args, **call.kw)
+        --- &lt;exception caught here&gt; ---
+          File "/home/thomas/dev/ext/buildbot/src/buildbot/master.py", line 511, in loadTheConfigFile
+            self.loadConfig(f)
+          File "/home/thomas/dev/ext/buildbot/src/buildbot/master.py", line 529, in loadConfig
+            exec f in localDict
+        exceptions.SyntaxError: EOL while scanning string literal (master.cfg, line 191)
+
+2009-08-01 13:52:23+0200 [-] The new config file is unusable, so I'll ignore it.
+2009-08-01 13:52:23+0200 [-] I will keep using the previous config file instead.
+
+Reconfiguration failed. Please inspect the master.cfg file for errors,
+correct them, then try 'buildbot reconfig' again.</pre>
+</div>
+<p>This time, it&#8217;s clear that there was a mistake. in the configuration.
+Luckily, the buildbot master will ignore the wrong configuration and keep
+running with the previous configuration.</p>
+<p>The message is clear enough, so open the configuration again, fix the error,
+and reconfig the master.</p>
+<p><em>Note that if you are not using 0.8.4 you might experience an error during reconfig with clean configs,
+this is due to</em> <a class="reference external" href="http://trac.buildbot.net/ticket/1757">http://trac.buildbot.net/ticket/1757</a> <em>which if fixed and will be in the 0.8.4 package.
+If you come across this, just do start &amp; stop for now to get your buildbot instance updated</em>:</p>
+<div class="highlight-python"><pre>buildbot stop master &amp;&amp; buildbot start master</pre>
+</div>
+</div>
+<div class="section" id="your-first-build">
+<h2>Your First Build<a class="headerlink" href="#your-first-build" title="Permalink to this headline">¶</a></h2>
+<p>By now you&#8217;re probably thinking: &#8220;All this time spent and still not done a
+single build ? What was the name of this project again ?&#8221;</p>
+<p>On the <a class="reference external" href="http://localhost:8010/waterfall">waterfall</a>. page, click on the runtests link, and scroll down.  You will see
+some new options that allow you to force a build:</p>
+<img alt="force a build." src="_images/force-build.png" />
+<p>Type in your name and a reason, then click <em>Force Build</em>.  After that, click
+on
+<a class="reference external" href="http://localhost:8010/waterfall?show=runtests">view in waterfall</a>.</p>
+<p>You will now see:</p>
+<img alt="an successful test run happened." src="_images/runtests-success.png" />
+</div>
+<div class="section" id="enabling-the-irc-bot">
+<h2>Enabling the IRC Bot<a class="headerlink" href="#enabling-the-irc-bot" title="Permalink to this headline">¶</a></h2>
+<p>Buildbot includes an IRC bot that you can tell to join a channel and control
+to report on the status of buildbot.</p>
+<p>First, start an IRC client of your choice, connect to irc.freenode.org and
+join an empty channel.  In this example we will use #buildbot-test, so go
+join that channel. (<em>Note: please do not join the main buildbot channel!</em>)</p>
+<p>Edit the config and look for the <em>STATUS TARGETS</em> section that you changed
+before to be able to force the build.</p>
+<p>Enter these lines below the WebStatus line in master.cfg:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">c</span><span class="p">[</span><span class="s">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">html</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span><span class="n">http_port</span><span class="o">=</span><span class="mi">8010</span><span class="p">,</span> <span class="n">authz</span><span class="o">=</span><span class="n">authz_cfg</span><span class="p">))</span>
+
+<span class="kn">from</span> <span class="nn">buildbot.status</span> <span class="kn">import</span> <span class="n">words</span>
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">words</span><span class="o">.</span><span class="n">IRC</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s">&quot;irc.freenode.org&quot;</span><span class="p">,</span> <span class="n">nick</span><span class="o">=</span><span class="s">&quot;bbtest&quot;</span><span class="p">,</span>
+                             <span class="n">channels</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;#buildbot-test&quot;</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>Reconfigure the build master then do:</p>
+<div class="highlight-python"><pre>cat master/twistd.log | grep IRC</pre>
+</div>
+<p>The log output should contain a line like this:</p>
+<div class="highlight-python"><pre>2009-08-01 15:35:20+0200 [-] adding IStatusReceiver &lt;buildbot.status.words.IRC instance at 0x300d290&gt;</pre>
+</div>
+<p>You should see the bot now joining in your IRC client.
+Type:</p>
+<div class="highlight-python"><pre>bbtest: commands</pre>
+</div>
+<p>to get a list of the commands the bot supports.</p>
+<p>Let&#8217;s tell the bot to notify certain events, to learn which EVENTS we can notify on do:</p>
+<div class="highlight-python"><pre>bbtest: help notify</pre>
+</div>
+<p>Now let&#8217;s set some event notifications:</p>
+<div class="highlight-python"><pre>bbtest: notify on started
+bbtest: notify on finished
+bbtest: notify on failure</pre>
+</div>
+<p>The bot should have responded to each of the commands:</p>
+<div class="highlight-python"><pre>&lt;@lsblakk&gt; bbtest: notify on started
+&lt;bbtest&gt; The following events are being notified: ['started']
+&lt;@lsblakk&gt; bbtest: notify on finished
+&lt;bbtest&gt; The following events are being notified: ['started', 'finished']
+&lt;@lsblakk&gt; bbtest: notify on failure
+&lt;bbtest&gt; The following events are being notified: ['started', 'failure', 'finished']</pre>
+</div>
+<p>Now, go back to the web interface and force another build.</p>
+<p>Notice how the bot tells you about the start and finish of this build:</p>
+<div class="highlight-python"><pre>&lt; bbtest&gt; build #1 of runtests started, including []
+&lt; bbtest&gt; build #1 of runtests is complete: Success [build successful]  Build details are at http://localhost:8010/builders/runtests/builds/1</pre>
+</div>
+<p>You can also use the bot to force a build:</p>
+<div class="highlight-python"><pre>bbtest: force build runtests test build</pre>
+</div>
+<p>But to allow this, you&#8217;ll need to have <tt class="docutils literal"><span class="pre">allowForce</span></tt> in the IRC
+configuration:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">c</span><span class="p">[</span><span class="s">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">words</span><span class="o">.</span><span class="n">IRC</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s">&quot;irc.freenode.org&quot;</span><span class="p">,</span> <span class="n">nick</span><span class="o">=</span><span class="s">&quot;bbtest&quot;</span><span class="p">,</span>
+                             <span class="n">allowForce</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                             <span class="n">channels</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;#buildbot-test&quot;</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>This time, the bot is giving you more output, as it&#8217;s specifically responding
+to your direct request to force a build, and explicitly tells you when the
+build finishes:</p>
+<div class="highlight-python"><pre>&lt;@lsblakk&gt; bbtest: force build runtests test build
+&lt; bbtest&gt; build #2 of runtests started, including []
+&lt; bbtest&gt; build forced [ETA 0 seconds]
+&lt; bbtest&gt; I'll give a shout when the build finishes
+&lt; bbtest&gt; build #2 of runtests is complete: Success [build successful]  Build details are at http://localhost:8010/builders/runtests/builds/2</pre>
+</div>
+<p>You can also see the new builds in the web interface.</p>
+<img alt="a successful test run from IRC happened." src="_images/irc-testrun.png" />
+</div>
+<div class="section" id="debugging-with-manhole">
+<h2>Debugging with Manhole<a class="headerlink" href="#debugging-with-manhole" title="Permalink to this headline">¶</a></h2>
+<p>You can do some debugging by using manhole, an interactive Python shell.  It
+exposes full access to the buildmaster&#8217;s account (including the ability to
+modify and delete files), so it should not be enabled with a weak or easily
+guessable password.</p>
+<p>To use this you will need to install an additional package or two to your virtualenv:</p>
+<div class="highlight-python"><pre># make sure your sandbox is activated so this is installed in your virtualenv
+pip install pycrypto
+pip install pyasn1</pre>
+</div>
+<p>In your master.cfg find:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">c</span> <span class="o">=</span> <span class="n">BuildmasterConfig</span> <span class="o">=</span> <span class="p">{}</span>
+</pre></div>
+</div>
+<p>Insert the following to enable debugging mode with manhole:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c">####### DEBUGGING</span>
+<span class="kn">from</span> <span class="nn">buildbot</span> <span class="kn">import</span> <span class="n">manhole</span>
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;manhole&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manhole</span><span class="o">.</span><span class="n">PasswordManhole</span><span class="p">(</span><span class="s">&quot;tcp:1234:interface=127.0.0.1&quot;</span><span class="p">,</span><span class="s">&quot;admin&quot;</span><span class="p">,</span><span class="s">&quot;passwd&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now you can ssh into the master and get an interactive python shell:</p>
+<div class="highlight-python"><pre>ssh -p1234 admin@127.0.0.1
+# enter passwd at prompt</pre>
+</div>
+<p>If you wanted to check which slaves are connected and what builders those slaves are assigned to you could do:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">master</span><span class="o">.</span><span class="n">botmaster</span><span class="o">.</span><span class="n">slaves</span>
+<span class="go">{&#39;example-slave&#39;: &lt;BuildSlave &#39;example-slave&#39;, current builders: runtests&gt;}</span>
+</pre></div>
+</div>
+<p>Objects can be explored in more depth using <cite>dir(x)</cite> or the helper function
+<cite>show(x)</cite>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">A Quick Tour</a><ul>
+<li><a class="reference internal" href="#goal">Goal</a></li>
+<li><a class="reference internal" href="#setting-project-name-and-url">Setting Project Name and URL</a></li>
+<li><a class="reference internal" href="#configuration-errors">Configuration Errors</a></li>
+<li><a class="reference internal" href="#your-first-build">Your First Build</a></li>
+<li><a class="reference internal" href="#enabling-the-irc-bot">Enabling the IRC Bot</a></li>
+<li><a class="reference internal" href="#debugging-with-manhole">Debugging with Manhole</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="firstrun.html"
+                        title="previous chapter">First Run</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/tour.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="firstrun.html" title="First Run"
+             >previous</a> |</li>
+        <li><a href="index.html">Buildbot Tutorial</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      Last updated on Aug 16, 2011.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>
