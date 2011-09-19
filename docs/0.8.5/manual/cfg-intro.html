@@ -1,0 +1,331 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Configuring Buildbot &mdash; Buildbot v0.8.5 documentation</title>
+    <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.8.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/buildbot.ico"/>
+    <link rel="top" title="Buildbot v0.8.5 documentation" href="../index.html" />
+    <link rel="up" title="Configuration" href="configuration.html" />
+    <link rel="next" title="Global Configuration" href="cfg-global.html" />
+    <link rel="prev" title="Configuration" href="configuration.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+  <body>
+    <div class="header-wrapper">
+      <div class="header">
+          <p class="logo"><a href="../index.html">
+            <img class="logo" src="../_static/header-text-transparent.png" alt="Logo"/>
+          </a></p>
+        <h1><a href="../index.html">Buildbot v0.8.5 documentation</a></h1>
+        <div class="rel">
+          <a href="configuration.html" title="Configuration"
+             accesskey="P">previous</a> |
+          <a href="cfg-global.html" title="Global Configuration"
+             accesskey="N">next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="configuring-buildbot">
+<h1>Configuring Buildbot<a class="headerlink" href="#configuring-buildbot" title="Permalink to this headline">¶</a></h1>
+<p>The buildbot's behavior is defined by the <em>config file</em>, which
+normally lives in the <tt class="file docutils literal"><span class="pre">master.cfg</span></tt> file in the buildmaster's base
+directory (but this can be changed with an option to the
+<strong class="command">buildbot create-master</strong> command). This file completely specifies
+which <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt>s are to be run, which slaves they should use, how
+<tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt>s should be tracked, and where the status information is to be
+sent. The buildmaster's <tt class="file docutils literal"><span class="pre">buildbot.tac</span></tt> file names the base
+directory; everything else comes from the config file.</p>
+<p>A sample config file was installed for you when you created the
+buildmaster, but you will need to edit it before your buildbot will do
+anything useful.</p>
+<p>This chapter gives an overview of the format of this file and the
+various sections in it. You will need to read the later chapters to
+understand how to fill in each section properly.</p>
+<div class="section" id="config-file-format">
+<span id="id1"></span><h2>Config File Format<a class="headerlink" href="#config-file-format" title="Permalink to this headline">¶</a></h2>
+<p>The config file is, fundamentally, just a piece of Python code which
+defines a dictionary named <tt class="docutils literal"><span class="pre">BuildmasterConfig</span></tt>, with a number of
+keys that are treated specially. You don't need to know Python to do
+basic configuration, though, you can just copy the syntax of the
+sample file. If you <em>are</em> comfortable writing Python code,
+however, you can use all the power of a full programming language to
+achieve more complicated configurations.</p>
+<p>The <tt class="docutils literal"><span class="pre">BuildmasterConfig</span></tt> name is the only one which matters: all
+other names defined during the execution of the file are discarded.
+When parsing the config file, the Buildmaster generally compares the
+old configuration with the new one and performs the minimum set of
+actions necessary to bring the buildbot up to date: <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt>s which are
+not changed are left untouched, and <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt>s which are modified get to
+keep their old event history.</p>
+<p>The beginning of the <tt class="file docutils literal"><span class="pre">master.cfg</span></tt> file
+typically starts with something like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">BuildmasterConfig</span> <span class="o">=</span> <span class="n">c</span> <span class="o">=</span> <span class="p">{}</span>
+</pre></div>
+</div>
+<p>Therefore a config key like <a class="reference internal" href="cfg-changesources.html#cfg-change_source" title="change_source"><tt class="xref bb bb-cfg docutils literal"><span class="pre">change_source</span></tt></a> will usually appear in
+<tt class="file docutils literal"><span class="pre">master.cfg</span></tt> as <tt class="docutils literal"><span class="pre">c['change_source']</span></tt>.</p>
+<p>See <a class="reference internal" href="../bb-cfg.html" title="Buildmaster Configuration Index"><em>Buildmaster Configuration Index</em></a> for a full list of <tt class="docutils literal"><span class="pre">BuildMasterConfig</span></tt> keys.</p>
+<div class="section" id="basic-python-syntax">
+<h3>Basic Python Syntax<a class="headerlink" href="#basic-python-syntax" title="Permalink to this headline">¶</a></h3>
+<p>The master configuration file is interpreted as Python, allowing the full
+flexibility of the language.  For the configurations described in this section,
+a detailed knowledge of Python is not required, but the basic syntax is easily
+described.</p>
+<p>Python comments start with a hash character <tt class="docutils literal"><span class="pre">#</span></tt>, tuples are defined with
+<tt class="docutils literal"><span class="pre">(parenthesis,</span> <span class="pre">pairs)</span></tt>, and lists (arrays) are defined with <tt class="docutils literal"><span class="pre">[square,</span>
+<span class="pre">brackets]</span></tt>. Tuples and lists are mostly interchangeable. Dictionaries (data
+structures which map <em>keys</em> to <em>values</em>) are defined with curly braces:
+<tt class="docutils literal"><span class="pre">{'key1':</span> <span class="pre">value1,</span> <span class="pre">'key2':</span> <span class="pre">value2}</span></tt>. Function calls (and object
+instantiation) can use named parameters, like <tt class="docutils literal"><span class="pre">w</span> <span class="pre">=</span>
+<span class="pre">html.Waterfall(http_port=8010)</span></tt>.</p>
+<p>The config file starts with a series of <tt class="docutils literal"><span class="pre">import</span></tt> statements, which make
+various kinds of <tt class="xref py py-class docutils literal"><span class="pre">Step</span></tt>s and <tt class="xref py py-class docutils literal"><span class="pre">Status</span></tt> targets available for
+later use. The main <tt class="docutils literal"><span class="pre">BuildmasterConfig</span></tt> dictionary is created, then it is
+populated with a variety of keys, described section-by-section in subsequent
+chapters.</p>
+</div>
+</div>
+<div class="section" id="predefined-config-file-symbols">
+<span id="id2"></span><h2>Predefined Config File Symbols<a class="headerlink" href="#predefined-config-file-symbols" title="Permalink to this headline">¶</a></h2>
+<p>The following symbols are automatically available for use in the configuration
+file.</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">basedir</span></tt></dt>
+<dd><p class="first">the base directory for the buildmaster. This string has not been
+expanded, so it may start with a tilde. It needs to be expanded before
+use. The config file is located in</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="s">&#39;master.cfg&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">__file__</span></tt></dt>
+<dd>the absolute path of the config file. The config file's directory is located in
+<tt class="docutils literal"><span class="pre">os.path.dirname(__file__)</span></tt>.</dd>
+</dl>
+</div>
+<div class="section" id="testing-the-config-file">
+<span id="id3"></span><h2>Testing the Config File<a class="headerlink" href="#testing-the-config-file" title="Permalink to this headline">¶</a></h2>
+<p>To verify that the config file is well-formed and contains no deprecated or
+invalid elements, use the <tt class="docutils literal"><span class="pre">checkconfig</span></tt> command, passing it either a master
+directory or a config file.</p>
+<div class="highlight-bash"><div class="highlight"><pre>% buildbot checkconfig master.cfg
+Config file is good!
+<span class="c"># or</span>
+% buildbot checkconfig /tmp/masterdir
+Config file is good!
+</pre></div>
+</div>
+<p>If the config file has deprecated features (perhaps because you've
+upgraded the buildmaster and need to update the config file to match),
+they will be announced by checkconfig. In this case, the config file
+will work, but you should really remove the deprecated items and use
+the recommended replacements instead:</p>
+<div class="highlight-none"><div class="highlight"><pre>% buildbot checkconfig master.cfg
+/usr/lib/python2.4/site-packages/buildbot/master.py:559: DeprecationWarning: c[&#39;sources&#39;] is
+deprecated as of 0.7.6 and will be removed by 0.8.0 . Please use c[&#39;change_source&#39;] instead.
+  warnings.warn(m, DeprecationWarning)
+Config file is good!
+</pre></div>
+</div>
+<p>If the config file is simply broken, that will be caught too:</p>
+<div class="highlight-none"><div class="highlight"><pre>% buildbot checkconfig master.cfg
+Traceback (most recent call last):
+  File &quot;/usr/lib/python2.4/site-packages/buildbot/scripts/runner.py&quot;, line 834, in doCheckConfig
+    ConfigLoader(configFile)
+  File &quot;/usr/lib/python2.4/site-packages/buildbot/scripts/checkconfig.py&quot;, line 31, in __init__
+    self.loadConfig(configFile)
+  File &quot;/usr/lib/python2.4/site-packages/buildbot/master.py&quot;, line 480, in loadConfig
+    exec f in localDict
+  File &quot;/home/warner/BuildBot/master/foolscap/master.cfg&quot;, line 90, in ?
+    c[bogus] = &quot;stuff&quot;
+NameError: name &#39;bogus&#39; is not defined
+</pre></div>
+</div>
+</div>
+<div class="section" id="loading-the-config-file">
+<h2>Loading the Config File<a class="headerlink" href="#loading-the-config-file" title="Permalink to this headline">¶</a></h2>
+<p>The config file is only read at specific points in time. It is first
+read when the buildmaster is launched.</p>
+<div class="section" id="reloading-the-config-file-reconfig">
+<h3>Reloading the Config File (reconfig)<a class="headerlink" href="#reloading-the-config-file-reconfig" title="Permalink to this headline">¶</a></h3>
+<p>If you are on the system hosting the buildmaster, you can send a <tt class="docutils literal"><span class="pre">SIGHUP</span></tt>
+signal to it: the <strong class="command">buildbot</strong> tool has a shortcut for this:</p>
+<div class="highlight-none"><div class="highlight"><pre>buildbot reconfig BASEDIR
+</pre></div>
+</div>
+<p>This command will show you all of the lines from <tt class="file docutils literal"><span class="pre">twistd.log</span></tt>
+that relate to the reconfiguration. If there are any problems during
+the config-file reload, they will be displayed in these lines.</p>
+<p>When reloading the config file, the buildmaster will endeavor to
+change as little as possible about the running system. For example,
+although old status targets may be shut down and new ones started up,
+any status targets that were not changed since the last time the
+config file was read will be left running and untouched. Likewise any
+<tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt>s which have not been changed will be left running. If a
+<tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt> is modified (say, the build process is changed) while a <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt>
+is currently running, that <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt> will keep running with the old
+process until it completes. Any previously queued <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt>s (or <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt>s
+which get queued after the reconfig) will use the new process.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p>Buildbot's reconfiguration system is fragile for a few difficult-to-fix
+reasons:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Any modules imported by the configuration file are not automatically reloaded.
+Python modules such as <a class="reference external" href="http://pypi.python.org/pypi/lazy-reload">http://pypi.python.org/pypi/lazy-reload</a> may help
+here, but reloading modules is fraught with subtlties and difficult-to-decipher
+failure cases.</li>
+<li>During the reconfiguration, active internal objects are divorced from the service
+hierarchy, leading to tracebacks in the web interface and other components. These
+are ordinarily transient, but with HTTP connection caching (either by the browser or
+an intervening proxy) they can last for a long time.</li>
+<li>If the new configuration file is invalid, it is possible for Buildbot's
+internal state to be corrupted, leading to undefined results.  When this
+occurs, it is best to restart the master.</li>
+<li>For more advanced configurations, it is impossible for Buildbot to tell if the
+configuration for a <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt> or <tt class="xref py py-class docutils literal"><span class="pre">Scheduler</span></tt> has chanaged, and thus the <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt> or
+<tt class="xref py py-class docutils literal"><span class="pre">Scheduler</span></tt> will always be reloaded.  This occurs most commonly when a callable
+is passed as a configuration parameter.</li>
+</ul>
+</div></blockquote>
+<p class="last">The bbproto project (at <a class="reference external" href="https://github.com/dabrahams/bbproto">https://github.com/dabrahams/bbproto</a>) may help to
+construct large (multi-file) configurations which can be effectively reloaded
+and reconfigured.</p>
+</div>
+</div>
+<div class="section" id="reconfig-by-debug-client">
+<h3>Reconfig by Debug Client<a class="headerlink" href="#reconfig-by-debug-client" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="cmdline.html#cmdline-debugclient" title="debugclient"><tt class="xref bb bb-cmdline docutils literal"><span class="pre">debug</span> <span class="pre">tool</span></tt></a> (<tt class="samp docutils literal"><span class="pre">buildbot</span> <span class="pre">debugclient</span>
+<span class="pre">--master</span> <em><span class="pre">HOST</span></em><span class="pre">:</span><em><span class="pre">PORT</span></em></tt>) has a <em class="guilabel">Reload .cfg</em> button which will also
+trigger a reload.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+<h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concepts.html">Concepts</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="configuration.html">Configuration</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="">Configuring Buildbot</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-global.html">Global Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-changesources.html">Change Sources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-schedulers.html">Schedulers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-buildslaves.html">Buildslaves</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-builders.html">Builder Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-buildfactories.html">Build Factories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-properties.html">Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-buildsteps.html">Build Steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-interlocks.html">Interlocks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-statustargets.html">Status Targets</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="customization.html">Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmdline.html">Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resources.html">Resources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Buildbot Development</a></li>
+</ul>
+
+          <h3 style="margin-top: 1.5em;">Search</h3>
+          <form class="search" action="../search.html" method="get">
+            <input type="text" name="q" size="18" />
+            <input type="submit" value="Go" />
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+          </form>
+          <p class="searchtip" style="font-size: 90%">
+            Enter search terms or a module, class or function name.
+          </p>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <a href="configuration.html" title="Configuration"
+             >previous</a> |
+          <a href="cfg-global.html" title="Global Configuration"
+             >next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             >index</a>
+            <br/>
+            <a href="../_sources/manual/cfg-intro.txt"
+               rel="nofollow">Show Source</a>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer">
+        &copy; Copyright Buildbot Team Members.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>
