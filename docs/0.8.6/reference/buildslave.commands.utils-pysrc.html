@@ -1,0 +1,550 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>buildslave.commands.utils</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.6</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="buildslave-module.html">Package&nbsp;buildslave</a> ::
+        <a href="buildslave.commands-module.html">Package&nbsp;commands</a> ::
+        Module&nbsp;utils
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="buildslave.commands.utils-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="buildslave.commands.utils-module.html">Module buildslave.commands.utils</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># This file is part of Buildbot.  Buildbot is free software: you can</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment"># redistribute it and/or modify it under the terms of the GNU General Public</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"># License as published by the Free Software Foundation, version 2.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but WITHOUT</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"># ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"># FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"># details.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License along with</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment"># this program; if not, write to the Free Software Foundation, Inc., 51</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment"># Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment"># Copyright Buildbot Team Members</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">os</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt id="link-0" class="py-name" targets="Module buildbot.steps.python=buildbot.steps.python-module.html,Variable buildbot.steps.python_twisted.Trial.python=buildbot.steps.python_twisted.Trial-class.html#python"><a title="buildbot.steps.python
+buildbot.steps.python_twisted.Trial.python" class="py-name" href="#" onclick="return doclink('link-0', 'python', 'link-0');">python</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Class Method buildbot.process.metrics.MetricEvent.log()=buildbot.process.metrics.MetricEvent-class.html#log,Method buildbot.status.words.IrcStatusBot.log()=buildbot.status.words.IrcStatusBot-class.html#log"><a title="buildbot.process.metrics.MetricEvent.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-1', 'log', 'link-1');">log</a></tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt id="link-2" class="py-name"><a title="buildbot.steps.python
+buildbot.steps.python_twisted.Trial.python" class="py-name" href="#" onclick="return doclink('link-2', 'python', 'link-0');">python</a></tt><tt class="py-op">.</tt><tt class="py-name">procutils</tt> <tt class="py-keyword">import</tt> <tt class="py-name">which</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt id="link-3" class="py-name"><a title="buildbot.steps.python
+buildbot.steps.python_twisted.Trial.python" class="py-name" href="#" onclick="return doclink('link-3', 'python', 'link-0');">python</a></tt> <tt class="py-keyword">import</tt> <tt class="py-name">runtime</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"> </tt>
+<a name="getCommand"></a><div id="getCommand-def"><a name="L22"></a><tt class="py-lineno"> 22</tt> <a class="py-toggle" href="#" id="getCommand-toggle" onclick="return toggle('getCommand');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.utils-module.html#getCommand">getCommand</a><tt class="py-op">(</tt><tt class="py-param">name</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="getCommand-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="getCommand-expanded"><a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line">    <tt class="py-name">possibles</tt> <tt class="py-op">=</tt> <tt class="py-name">which</tt><tt class="py-op">(</tt><tt id="link-4" class="py-name" targets="Variable buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name=buildbot.changes.mail.BzrLaunchpadEmailMaildirSource-class.html#name,Variable buildbot.changes.mail.CVSMaildirSource.name=buildbot.changes.mail.CVSMaildirSource-class.html#name,Variable buildbot.changes.mail.SVNCommitEmailMaildirSource.name=buildbot.changes.mail.SVNCommitEmailMaildirSource-class.html#name,Variable buildbot.changes.manager.ChangeManager.name=buildbot.changes.manager.ChangeManager-class.html#name,Variable buildbot.db.enginestrategy.BuildbotEngineStrategy.name=buildbot.db.enginestrategy.BuildbotEngineStrategy-class.html#name,Variable buildbot.process.buildstep.BuildStep.name=buildbot.process.buildstep.BuildStep-class.html#name,Variable buildbot.schedulers.forcesched.BaseParameter.name=buildbot.schedulers.forcesched.BaseParameter-class.html#name,Variable buildbot.schedulers.forcesched.InheritBuildParameter.name=buildbot.schedulers.forcesched.InheritBuildParameter-class.html#name,Variable buildbot.steps.master.MasterShellCommand.name=buildbot.steps.master.MasterShellCommand-class.html#name,Variable buildbot.steps.maxq.MaxQ.name=buildbot.steps.maxq.MaxQ-class.html#name,Variable buildbot.steps.package.rpm.rpmbuild.RpmBuild.name=buildbot.steps.package.rpm.rpmbuild.RpmBuild-class.html#name,Variable buildbot.steps.python.BuildEPYDoc.name=buildbot.steps.python.BuildEPYDoc-class.html#name,Variable buildbot.steps.python.PyFlakes.name=buildbot.steps.python.PyFlakes-class.html#name,Variable buildbot.steps.python.PyLint.name=buildbot.steps.python.PyLint-class.html#name,Variable buildbot.steps.python.Sphinx.name=buildbot.steps.python.Sphinx-class.html#name,Variable buildbot.steps.python_twisted.HLint.name=buildbot.steps.python_twisted.HLint-class.html#name,Variable buildbot.steps.python_twisted.RemovePYCs.name=buildbot.steps.python_twisted.RemovePYCs-class.html#name,Variable buildbot.steps.python_twisted.Trial.name=buildbot.steps.python_twisted.Trial-class.html#name,Variable buildbot.steps.shell.Compile.name=buildbot.steps.shell.Compile-class.html#name,Variable buildbot.steps.shell.Configure.name=buildbot.steps.shell.Configure-class.html#name,Variable buildbot.steps.shell.SetProperty.name=buildbot.steps.shell.SetProperty-class.html#name,Variable buildbot.steps.shell.ShellCommand.name=buildbot.steps.shell.ShellCommand-class.html#name,Variable buildbot.steps.shell.Test.name=buildbot.steps.shell.Test-class.html#name,Variable buildbot.steps.shell.TreeSize.name=buildbot.steps.shell.TreeSize-class.html#name,Variable buildbot.steps.slave.FileExists.name=buildbot.steps.slave.FileExists-class.html#name,Variable buildbot.steps.slave.MakeDirectory.name=buildbot.steps.slave.MakeDirectory-class.html#name,Variable buildbot.steps.slave.RemoveDirectory.name=buildbot.steps.slave.RemoveDirectory-class.html#name,Variable buildbot.steps.slave.SetPropertiesFromEnv.name=buildbot.steps.slave.SetPropertiesFromEnv-class.html#name,Variable buildbot.steps.source.bzr.Bzr.name=buildbot.steps.source.bzr.Bzr-class.html#name,Variable buildbot.steps.source.cvs.CVS.name=buildbot.steps.source.cvs.CVS-class.html#name,Variable buildbot.steps.source.git.Git.name=buildbot.steps.source.git.Git-class.html#name,Variable buildbot.steps.source.mercurial.Mercurial.name=buildbot.steps.source.mercurial.Mercurial-class.html#name,Variable buildbot.steps.source.oldsource.BK.name=buildbot.steps.source.oldsource.BK-class.html#name,Variable buildbot.steps.source.oldsource.Bzr.name=buildbot.steps.source.oldsource.Bzr-class.html#name,Variable buildbot.steps.source.oldsource.CVS.name=buildbot.steps.source.oldsource.CVS-class.html#name,Variable buildbot.steps.source.oldsource.Darcs.name=buildbot.steps.source.oldsource.Darcs-class.html#name,Variable buildbot.steps.source.oldsource.Git.name=buildbot.steps.source.oldsource.Git-class.html#name,Variable buildbot.steps.source.oldsource.Mercurial.name=buildbot.steps.source.oldsource.Mercurial-class.html#name,Variable buildbot.steps.source.oldsource.Monotone.name=buildbot.steps.source.oldsource.Monotone-class.html#name,Variable buildbot.steps.source.oldsource.P4.name=buildbot.steps.source.oldsource.P4-class.html#name,Variable buildbot.steps.source.oldsource.P4Sync.name=buildbot.steps.source.oldsource.P4Sync-class.html#name,Variable buildbot.steps.source.oldsource.Repo.name=buildbot.steps.source.oldsource.Repo-class.html#name,Variable buildbot.steps.source.oldsource.SVN.name=buildbot.steps.source.oldsource.SVN-class.html#name,Variable buildbot.steps.source.svn.SVN.name=buildbot.steps.source.svn.SVN-class.html#name,Variable buildbot.steps.transfer.DirectoryUpload.name=buildbot.steps.transfer.DirectoryUpload-class.html#name,Variable buildbot.steps.transfer.FileDownload.name=buildbot.steps.transfer.FileDownload-class.html#name,Variable buildbot.steps.transfer.FileUpload.name=buildbot.steps.transfer.FileUpload-class.html#name,Variable buildbot.steps.transfer.JSONPropertiesDownload.name=buildbot.steps.transfer.JSONPropertiesDownload-class.html#name,Variable buildbot.steps.transfer.JSONStringDownload.name=buildbot.steps.transfer.JSONStringDownload-class.html#name,Variable buildbot.steps.transfer.StringDownload.name=buildbot.steps.transfer.StringDownload-class.html#name,Variable buildbot.steps.trigger.Trigger.name=buildbot.steps.trigger.Trigger-class.html#name,Variable buildbot.steps.vstudio.VisualStudio.name=buildbot.steps.vstudio.VisualStudio-class.html#name,Variable buildslave.bot.Bot.name=buildslave.bot.Bot-class.html#name"><a title="buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name
+buildbot.changes.mail.CVSMaildirSource.name
+buildbot.changes.mail.SVNCommitEmailMaildirSource.name
+buildbot.changes.manager.ChangeManager.name
+buildbot.db.enginestrategy.BuildbotEngineStrategy.name
+buildbot.process.buildstep.BuildStep.name
+buildbot.schedulers.forcesched.BaseParameter.name
+buildbot.schedulers.forcesched.InheritBuildParameter.name
+buildbot.steps.master.MasterShellCommand.name
+buildbot.steps.maxq.MaxQ.name
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.name
+buildbot.steps.python.BuildEPYDoc.name
+buildbot.steps.python.PyFlakes.name
+buildbot.steps.python.PyLint.name
+buildbot.steps.python.Sphinx.name
+buildbot.steps.python_twisted.HLint.name
+buildbot.steps.python_twisted.RemovePYCs.name
+buildbot.steps.python_twisted.Trial.name
+buildbot.steps.shell.Compile.name
+buildbot.steps.shell.Configure.name
+buildbot.steps.shell.SetProperty.name
+buildbot.steps.shell.ShellCommand.name
+buildbot.steps.shell.Test.name
+buildbot.steps.shell.TreeSize.name
+buildbot.steps.slave.FileExists.name
+buildbot.steps.slave.MakeDirectory.name
+buildbot.steps.slave.RemoveDirectory.name
+buildbot.steps.slave.SetPropertiesFromEnv.name
+buildbot.steps.source.bzr.Bzr.name
+buildbot.steps.source.cvs.CVS.name
+buildbot.steps.source.git.Git.name
+buildbot.steps.source.mercurial.Mercurial.name
+buildbot.steps.source.oldsource.BK.name
+buildbot.steps.source.oldsource.Bzr.name
+buildbot.steps.source.oldsource.CVS.name
+buildbot.steps.source.oldsource.Darcs.name
+buildbot.steps.source.oldsource.Git.name
+buildbot.steps.source.oldsource.Mercurial.name
+buildbot.steps.source.oldsource.Monotone.name
+buildbot.steps.source.oldsource.P4.name
+buildbot.steps.source.oldsource.P4Sync.name
+buildbot.steps.source.oldsource.Repo.name
+buildbot.steps.source.oldsource.SVN.name
+buildbot.steps.source.svn.SVN.name
+buildbot.steps.transfer.DirectoryUpload.name
+buildbot.steps.transfer.FileDownload.name
+buildbot.steps.transfer.FileUpload.name
+buildbot.steps.transfer.JSONPropertiesDownload.name
+buildbot.steps.transfer.JSONStringDownload.name
+buildbot.steps.transfer.StringDownload.name
+buildbot.steps.trigger.Trigger.name
+buildbot.steps.vstudio.VisualStudio.name
+buildslave.bot.Bot.name" class="py-name" href="#" onclick="return doclink('link-4', 'name', 'link-4');">name</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">possibles</tt><tt class="py-op">:</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line">        <tt class="py-keyword">raise</tt> <tt class="py-name">RuntimeError</tt><tt class="py-op">(</tt><tt class="py-string">"Couldn't find executable for '%s'"</tt> <tt class="py-op">%</tt> <tt id="link-5" class="py-name"><a title="buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name
+buildbot.changes.mail.CVSMaildirSource.name
+buildbot.changes.mail.SVNCommitEmailMaildirSource.name
+buildbot.changes.manager.ChangeManager.name
+buildbot.db.enginestrategy.BuildbotEngineStrategy.name
+buildbot.process.buildstep.BuildStep.name
+buildbot.schedulers.forcesched.BaseParameter.name
+buildbot.schedulers.forcesched.InheritBuildParameter.name
+buildbot.steps.master.MasterShellCommand.name
+buildbot.steps.maxq.MaxQ.name
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.name
+buildbot.steps.python.BuildEPYDoc.name
+buildbot.steps.python.PyFlakes.name
+buildbot.steps.python.PyLint.name
+buildbot.steps.python.Sphinx.name
+buildbot.steps.python_twisted.HLint.name
+buildbot.steps.python_twisted.RemovePYCs.name
+buildbot.steps.python_twisted.Trial.name
+buildbot.steps.shell.Compile.name
+buildbot.steps.shell.Configure.name
+buildbot.steps.shell.SetProperty.name
+buildbot.steps.shell.ShellCommand.name
+buildbot.steps.shell.Test.name
+buildbot.steps.shell.TreeSize.name
+buildbot.steps.slave.FileExists.name
+buildbot.steps.slave.MakeDirectory.name
+buildbot.steps.slave.RemoveDirectory.name
+buildbot.steps.slave.SetPropertiesFromEnv.name
+buildbot.steps.source.bzr.Bzr.name
+buildbot.steps.source.cvs.CVS.name
+buildbot.steps.source.git.Git.name
+buildbot.steps.source.mercurial.Mercurial.name
+buildbot.steps.source.oldsource.BK.name
+buildbot.steps.source.oldsource.Bzr.name
+buildbot.steps.source.oldsource.CVS.name
+buildbot.steps.source.oldsource.Darcs.name
+buildbot.steps.source.oldsource.Git.name
+buildbot.steps.source.oldsource.Mercurial.name
+buildbot.steps.source.oldsource.Monotone.name
+buildbot.steps.source.oldsource.P4.name
+buildbot.steps.source.oldsource.P4Sync.name
+buildbot.steps.source.oldsource.Repo.name
+buildbot.steps.source.oldsource.SVN.name
+buildbot.steps.source.svn.SVN.name
+buildbot.steps.transfer.DirectoryUpload.name
+buildbot.steps.transfer.FileDownload.name
+buildbot.steps.transfer.FileUpload.name
+buildbot.steps.transfer.JSONPropertiesDownload.name
+buildbot.steps.transfer.JSONStringDownload.name
+buildbot.steps.transfer.StringDownload.name
+buildbot.steps.trigger.Trigger.name
+buildbot.steps.vstudio.VisualStudio.name
+buildslave.bot.Bot.name" class="py-name" href="#" onclick="return doclink('link-5', 'name', 'link-4');">name</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line">    <tt class="py-comment">#</tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line">    <tt class="py-comment"># Under windows, if there is more than one executable "thing"</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line">    <tt class="py-comment"># that matches (e.g. *.bat, *.cmd and *.exe), we not just use</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line">    <tt class="py-comment"># the first in alphabet (*.bat/*.cmd) if there is a *.exe.</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line">    <tt class="py-comment"># e.g. under MSysGit/Windows, there is both a git.cmd and a</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line">    <tt class="py-comment"># git.exe on path, but we want the git.exe, since the git.cmd</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line">    <tt class="py-comment"># does not seem to work properly with regard to errors raised</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line">    <tt class="py-comment"># and catched in buildbot slave command (vcs.py)</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line">    <tt class="py-comment">#</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">runtime</tt><tt class="py-op">.</tt><tt class="py-name">platformType</tt>  <tt class="py-op">==</tt> <tt class="py-string">'win32'</tt> <tt class="py-keyword">and</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">possibles</tt><tt class="py-op">)</tt> <tt class="py-op">&gt;</tt> <tt class="py-number">1</tt><tt class="py-op">:</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line">        <tt class="py-name">possibles_exe</tt> <tt class="py-op">=</tt> <tt class="py-name">which</tt><tt class="py-op">(</tt><tt id="link-6" class="py-name"><a title="buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name
+buildbot.changes.mail.CVSMaildirSource.name
+buildbot.changes.mail.SVNCommitEmailMaildirSource.name
+buildbot.changes.manager.ChangeManager.name
+buildbot.db.enginestrategy.BuildbotEngineStrategy.name
+buildbot.process.buildstep.BuildStep.name
+buildbot.schedulers.forcesched.BaseParameter.name
+buildbot.schedulers.forcesched.InheritBuildParameter.name
+buildbot.steps.master.MasterShellCommand.name
+buildbot.steps.maxq.MaxQ.name
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.name
+buildbot.steps.python.BuildEPYDoc.name
+buildbot.steps.python.PyFlakes.name
+buildbot.steps.python.PyLint.name
+buildbot.steps.python.Sphinx.name
+buildbot.steps.python_twisted.HLint.name
+buildbot.steps.python_twisted.RemovePYCs.name
+buildbot.steps.python_twisted.Trial.name
+buildbot.steps.shell.Compile.name
+buildbot.steps.shell.Configure.name
+buildbot.steps.shell.SetProperty.name
+buildbot.steps.shell.ShellCommand.name
+buildbot.steps.shell.Test.name
+buildbot.steps.shell.TreeSize.name
+buildbot.steps.slave.FileExists.name
+buildbot.steps.slave.MakeDirectory.name
+buildbot.steps.slave.RemoveDirectory.name
+buildbot.steps.slave.SetPropertiesFromEnv.name
+buildbot.steps.source.bzr.Bzr.name
+buildbot.steps.source.cvs.CVS.name
+buildbot.steps.source.git.Git.name
+buildbot.steps.source.mercurial.Mercurial.name
+buildbot.steps.source.oldsource.BK.name
+buildbot.steps.source.oldsource.Bzr.name
+buildbot.steps.source.oldsource.CVS.name
+buildbot.steps.source.oldsource.Darcs.name
+buildbot.steps.source.oldsource.Git.name
+buildbot.steps.source.oldsource.Mercurial.name
+buildbot.steps.source.oldsource.Monotone.name
+buildbot.steps.source.oldsource.P4.name
+buildbot.steps.source.oldsource.P4Sync.name
+buildbot.steps.source.oldsource.Repo.name
+buildbot.steps.source.oldsource.SVN.name
+buildbot.steps.source.svn.SVN.name
+buildbot.steps.transfer.DirectoryUpload.name
+buildbot.steps.transfer.FileDownload.name
+buildbot.steps.transfer.FileUpload.name
+buildbot.steps.transfer.JSONPropertiesDownload.name
+buildbot.steps.transfer.JSONStringDownload.name
+buildbot.steps.transfer.StringDownload.name
+buildbot.steps.trigger.Trigger.name
+buildbot.steps.vstudio.VisualStudio.name
+buildslave.bot.Bot.name" class="py-name" href="#" onclick="return doclink('link-6', 'name', 'link-4');">name</a></tt> <tt class="py-op">+</tt> <tt class="py-string">".exe"</tt><tt class="py-op">)</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">possibles_exe</tt><tt class="py-op">:</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">possibles_exe</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">possibles</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> </tt>
+</div><a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line"><tt class="py-comment"># this just keeps pyflakes happy on non-Windows systems</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"><tt class="py-keyword">if</tt> <tt class="py-name">runtime</tt><tt class="py-op">.</tt><tt class="py-name">platformType</tt> <tt class="py-op">!=</tt> <tt class="py-string">'win32'</tt><tt class="py-op">:</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line">    <tt class="py-name">WindowsError</tt> <tt class="py-op">=</tt> <tt class="py-name">RuntimeError</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"><tt class="py-keyword">if</tt> <tt class="py-name">runtime</tt><tt class="py-op">.</tt><tt class="py-name">platformType</tt>  <tt class="py-op">==</tt> <tt class="py-string">'win32'</tt><tt class="py-op">:</tt> </tt>
+<a name="rmdirRecursive"></a><div id="rmdirRecursive-def"><a name="L46"></a><tt class="py-lineno"> 46</tt> <a class="py-toggle" href="#" id="rmdirRecursive-toggle" onclick="return toggle('rmdirRecursive');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.utils-module.html#rmdirRecursive">rmdirRecursive</a><tt class="py-op">(</tt><tt class="py-param">dir</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="rmdirRecursive-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="rmdirRecursive-expanded"><a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line">        <tt class="py-docstring">"""This is a replacement for shutil.rmtree that works better under</tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"><tt class="py-docstring">        windows. Thanks to Bear at the OSAF for the code."""</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-7" class="py-name" targets="Variable twisted.python.filepath.FilePath.path=twisted.python.filepath.FilePath-class.html#path"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-7', 'path', 'link-7');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">exists</tt><tt class="py-op">(</tt><tt class="py-name">dir</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-8" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-8', 'path', 'link-7');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">islink</tt><tt class="py-op">(</tt><tt class="py-name">dir</tt><tt class="py-op">)</tt> <tt class="py-keyword">or</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-9" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-9', 'path', 'link-7');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">isfile</tt><tt class="py-op">(</tt><tt class="py-name">dir</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">            <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-10" class="py-name" targets="Method buildbot.status.web.session.SessionManager.remove()=buildbot.status.web.session.SessionManager-class.html#remove,Method buildbot.util.loop.Loop.remove()=buildbot.util.loop.Loop-class.html#remove"><a title="buildbot.status.web.session.SessionManager.remove
+buildbot.util.loop.Loop.remove" class="py-name" href="#" onclick="return doclink('link-10', 'remove', 'link-10');">remove</a></tt><tt class="py-op">(</tt><tt class="py-name">dir</tt><tt class="py-op">)</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line"> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">        <tt class="py-comment"># Verify the directory is read/write/execute for the current user</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">        <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">chmod</tt><tt class="py-op">(</tt><tt class="py-name">dir</tt><tt class="py-op">,</tt> <tt class="py-number">0700</tt><tt class="py-op">)</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line"> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">        <tt class="py-comment"># os.listdir below only returns a list of unicode filenames if the parameter is unicode</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">        <tt class="py-comment"># Thus, if a non-unicode-named dir contains a unicode filename, that filename will get garbled.</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">        <tt class="py-comment"># So force dir to be unicode.</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">dir</tt><tt class="py-op">,</tt> <tt class="py-name">unicode</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">            <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">                <tt class="py-name">dir</tt> <tt class="py-op">=</tt> <tt class="py-name">unicode</tt><tt class="py-op">(</tt><tt class="py-name">dir</tt><tt class="py-op">,</tt> <tt class="py-string">"utf-8"</tt><tt class="py-op">)</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">            <tt class="py-keyword">except</tt><tt class="py-op">:</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">                <tt id="link-11" class="py-name"><a title="buildbot.process.metrics.MetricEvent.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-11', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Method buildbot.clients.debug.DebugWidget.err()=buildbot.clients.debug.DebugWidget-class.html#err,Variable buildbot.status.web.auth.AuthBase.err=buildbot.status.web.auth.AuthBase-class.html#err"><a title="buildbot.clients.debug.DebugWidget.err
+buildbot.status.web.auth.AuthBase.err" class="py-name" href="#" onclick="return doclink('link-12', 'err', 'link-12');">err</a></tt><tt class="py-op">(</tt><tt class="py-string">"rmdirRecursive: decoding from UTF-8 failed (ignoring)"</tt><tt class="py-op">)</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line"> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">            <tt class="py-name">list</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">listdir</tt><tt class="py-op">(</tt><tt class="py-name">dir</tt><tt class="py-op">)</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt> <tt class="py-name">WindowsError</tt><tt class="py-op">,</tt> <tt class="py-name">e</tt><tt class="py-op">:</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">            <tt class="py-name">msg</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-string">"rmdirRecursive: unable to listdir %s (%s). Trying to "</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">                   <tt class="py-string">"remove like a dir"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">dir</tt><tt class="py-op">,</tt> <tt class="py-name">e</tt><tt class="py-op">.</tt><tt class="py-name">strerror</tt><tt class="py-op">.</tt><tt class="py-name">decode</tt><tt class="py-op">(</tt><tt class="py-string">'mbcs'</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">            <tt id="link-13" class="py-name"><a title="buildbot.process.metrics.MetricEvent.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-13', 'log', 'link-1');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-name">msg</tt><tt class="py-op">.</tt><tt class="py-name">encode</tt><tt class="py-op">(</tt><tt class="py-string">'utf-8'</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">            <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">rmdir</tt><tt class="py-op">(</tt><tt class="py-name">dir</tt><tt class="py-op">)</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line"> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt id="link-14" class="py-name"><a title="buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name
+buildbot.changes.mail.CVSMaildirSource.name
+buildbot.changes.mail.SVNCommitEmailMaildirSource.name
+buildbot.changes.manager.ChangeManager.name
+buildbot.db.enginestrategy.BuildbotEngineStrategy.name
+buildbot.process.buildstep.BuildStep.name
+buildbot.schedulers.forcesched.BaseParameter.name
+buildbot.schedulers.forcesched.InheritBuildParameter.name
+buildbot.steps.master.MasterShellCommand.name
+buildbot.steps.maxq.MaxQ.name
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.name
+buildbot.steps.python.BuildEPYDoc.name
+buildbot.steps.python.PyFlakes.name
+buildbot.steps.python.PyLint.name
+buildbot.steps.python.Sphinx.name
+buildbot.steps.python_twisted.HLint.name
+buildbot.steps.python_twisted.RemovePYCs.name
+buildbot.steps.python_twisted.Trial.name
+buildbot.steps.shell.Compile.name
+buildbot.steps.shell.Configure.name
+buildbot.steps.shell.SetProperty.name
+buildbot.steps.shell.ShellCommand.name
+buildbot.steps.shell.Test.name
+buildbot.steps.shell.TreeSize.name
+buildbot.steps.slave.FileExists.name
+buildbot.steps.slave.MakeDirectory.name
+buildbot.steps.slave.RemoveDirectory.name
+buildbot.steps.slave.SetPropertiesFromEnv.name
+buildbot.steps.source.bzr.Bzr.name
+buildbot.steps.source.cvs.CVS.name
+buildbot.steps.source.git.Git.name
+buildbot.steps.source.mercurial.Mercurial.name
+buildbot.steps.source.oldsource.BK.name
+buildbot.steps.source.oldsource.Bzr.name
+buildbot.steps.source.oldsource.CVS.name
+buildbot.steps.source.oldsource.Darcs.name
+buildbot.steps.source.oldsource.Git.name
+buildbot.steps.source.oldsource.Mercurial.name
+buildbot.steps.source.oldsource.Monotone.name
+buildbot.steps.source.oldsource.P4.name
+buildbot.steps.source.oldsource.P4Sync.name
+buildbot.steps.source.oldsource.Repo.name
+buildbot.steps.source.oldsource.SVN.name
+buildbot.steps.source.svn.SVN.name
+buildbot.steps.transfer.DirectoryUpload.name
+buildbot.steps.transfer.FileDownload.name
+buildbot.steps.transfer.FileUpload.name
+buildbot.steps.transfer.JSONPropertiesDownload.name
+buildbot.steps.transfer.JSONStringDownload.name
+buildbot.steps.transfer.StringDownload.name
+buildbot.steps.trigger.Trigger.name
+buildbot.steps.vstudio.VisualStudio.name
+buildslave.bot.Bot.name" class="py-name" href="#" onclick="return doclink('link-14', 'name', 'link-4');">name</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">list</tt><tt class="py-op">:</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">            <tt class="py-name">full_name</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-15', 'path', 'link-7');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">dir</tt><tt class="py-op">,</tt> <tt id="link-16" class="py-name"><a title="buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name
+buildbot.changes.mail.CVSMaildirSource.name
+buildbot.changes.mail.SVNCommitEmailMaildirSource.name
+buildbot.changes.manager.ChangeManager.name
+buildbot.db.enginestrategy.BuildbotEngineStrategy.name
+buildbot.process.buildstep.BuildStep.name
+buildbot.schedulers.forcesched.BaseParameter.name
+buildbot.schedulers.forcesched.InheritBuildParameter.name
+buildbot.steps.master.MasterShellCommand.name
+buildbot.steps.maxq.MaxQ.name
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.name
+buildbot.steps.python.BuildEPYDoc.name
+buildbot.steps.python.PyFlakes.name
+buildbot.steps.python.PyLint.name
+buildbot.steps.python.Sphinx.name
+buildbot.steps.python_twisted.HLint.name
+buildbot.steps.python_twisted.RemovePYCs.name
+buildbot.steps.python_twisted.Trial.name
+buildbot.steps.shell.Compile.name
+buildbot.steps.shell.Configure.name
+buildbot.steps.shell.SetProperty.name
+buildbot.steps.shell.ShellCommand.name
+buildbot.steps.shell.Test.name
+buildbot.steps.shell.TreeSize.name
+buildbot.steps.slave.FileExists.name
+buildbot.steps.slave.MakeDirectory.name
+buildbot.steps.slave.RemoveDirectory.name
+buildbot.steps.slave.SetPropertiesFromEnv.name
+buildbot.steps.source.bzr.Bzr.name
+buildbot.steps.source.cvs.CVS.name
+buildbot.steps.source.git.Git.name
+buildbot.steps.source.mercurial.Mercurial.name
+buildbot.steps.source.oldsource.BK.name
+buildbot.steps.source.oldsource.Bzr.name
+buildbot.steps.source.oldsource.CVS.name
+buildbot.steps.source.oldsource.Darcs.name
+buildbot.steps.source.oldsource.Git.name
+buildbot.steps.source.oldsource.Mercurial.name
+buildbot.steps.source.oldsource.Monotone.name
+buildbot.steps.source.oldsource.P4.name
+buildbot.steps.source.oldsource.P4Sync.name
+buildbot.steps.source.oldsource.Repo.name
+buildbot.steps.source.oldsource.SVN.name
+buildbot.steps.source.svn.SVN.name
+buildbot.steps.transfer.DirectoryUpload.name
+buildbot.steps.transfer.FileDownload.name
+buildbot.steps.transfer.FileUpload.name
+buildbot.steps.transfer.JSONPropertiesDownload.name
+buildbot.steps.transfer.JSONStringDownload.name
+buildbot.steps.transfer.StringDownload.name
+buildbot.steps.trigger.Trigger.name
+buildbot.steps.vstudio.VisualStudio.name
+buildslave.bot.Bot.name" class="py-name" href="#" onclick="return doclink('link-16', 'name', 'link-4');">name</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">            <tt class="py-comment"># on Windows, if we don't have write permission we can't remove</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">            <tt class="py-comment"># the file/directory either, so turn that on</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-17" class="py-name"><a title="buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name
+buildbot.changes.mail.CVSMaildirSource.name
+buildbot.changes.mail.SVNCommitEmailMaildirSource.name
+buildbot.changes.manager.ChangeManager.name
+buildbot.db.enginestrategy.BuildbotEngineStrategy.name
+buildbot.process.buildstep.BuildStep.name
+buildbot.schedulers.forcesched.BaseParameter.name
+buildbot.schedulers.forcesched.InheritBuildParameter.name
+buildbot.steps.master.MasterShellCommand.name
+buildbot.steps.maxq.MaxQ.name
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.name
+buildbot.steps.python.BuildEPYDoc.name
+buildbot.steps.python.PyFlakes.name
+buildbot.steps.python.PyLint.name
+buildbot.steps.python.Sphinx.name
+buildbot.steps.python_twisted.HLint.name
+buildbot.steps.python_twisted.RemovePYCs.name
+buildbot.steps.python_twisted.Trial.name
+buildbot.steps.shell.Compile.name
+buildbot.steps.shell.Configure.name
+buildbot.steps.shell.SetProperty.name
+buildbot.steps.shell.ShellCommand.name
+buildbot.steps.shell.Test.name
+buildbot.steps.shell.TreeSize.name
+buildbot.steps.slave.FileExists.name
+buildbot.steps.slave.MakeDirectory.name
+buildbot.steps.slave.RemoveDirectory.name
+buildbot.steps.slave.SetPropertiesFromEnv.name
+buildbot.steps.source.bzr.Bzr.name
+buildbot.steps.source.cvs.CVS.name
+buildbot.steps.source.git.Git.name
+buildbot.steps.source.mercurial.Mercurial.name
+buildbot.steps.source.oldsource.BK.name
+buildbot.steps.source.oldsource.Bzr.name
+buildbot.steps.source.oldsource.CVS.name
+buildbot.steps.source.oldsource.Darcs.name
+buildbot.steps.source.oldsource.Git.name
+buildbot.steps.source.oldsource.Mercurial.name
+buildbot.steps.source.oldsource.Monotone.name
+buildbot.steps.source.oldsource.P4.name
+buildbot.steps.source.oldsource.P4Sync.name
+buildbot.steps.source.oldsource.Repo.name
+buildbot.steps.source.oldsource.SVN.name
+buildbot.steps.source.svn.SVN.name
+buildbot.steps.transfer.DirectoryUpload.name
+buildbot.steps.transfer.FileDownload.name
+buildbot.steps.transfer.FileUpload.name
+buildbot.steps.transfer.JSONPropertiesDownload.name
+buildbot.steps.transfer.JSONStringDownload.name
+buildbot.steps.transfer.StringDownload.name
+buildbot.steps.trigger.Trigger.name
+buildbot.steps.vstudio.VisualStudio.name
+buildslave.bot.Bot.name" class="py-name" href="#" onclick="return doclink('link-17', 'name', 'link-4');">name</a></tt> <tt class="py-op">==</tt> <tt class="py-string">'nt'</tt><tt class="py-op">:</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-18" class="py-name" targets="Method buildbot.locks.BaseLockId.access()=buildbot.locks.BaseLockId-class.html#access"><a title="buildbot.locks.BaseLockId.access" class="py-name" href="#" onclick="return doclink('link-18', 'access', 'link-18');">access</a></tt><tt class="py-op">(</tt><tt class="py-name">full_name</tt><tt class="py-op">,</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">W_OK</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">                    <tt class="py-comment"># I think this is now redundant, but I don't have an NT</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">                    <tt class="py-comment"># machine to test on, so I'm going to leave it in place</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">                    <tt class="py-comment"># -warner</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">                    <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">chmod</tt><tt class="py-op">(</tt><tt class="py-name">full_name</tt><tt class="py-op">,</tt> <tt class="py-number">0600</tt><tt class="py-op">)</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line"> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-19', 'path', 'link-7');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">islink</tt><tt class="py-op">(</tt><tt class="py-name">full_name</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">                <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-20" class="py-name"><a title="buildbot.status.web.session.SessionManager.remove
+buildbot.util.loop.Loop.remove" class="py-name" href="#" onclick="return doclink('link-20', 'remove', 'link-10');">remove</a></tt><tt class="py-op">(</tt><tt class="py-name">full_name</tt><tt class="py-op">)</tt> <tt class="py-comment"># as suggested in bug #792</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">            <tt class="py-keyword">elif</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-21" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-21', 'path', 'link-7');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">isdir</tt><tt class="py-op">(</tt><tt class="py-name">full_name</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">                <tt class="py-name">rmdirRecursive</tt><tt class="py-op">(</tt><tt class="py-name">full_name</tt><tt class="py-op">)</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-22', 'path', 'link-7');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">isfile</tt><tt class="py-op">(</tt><tt class="py-name">full_name</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">                    <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">chmod</tt><tt class="py-op">(</tt><tt class="py-name">full_name</tt><tt class="py-op">,</tt> <tt class="py-number">0700</tt><tt class="py-op">)</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">                <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-23" class="py-name"><a title="buildbot.status.web.session.SessionManager.remove
+buildbot.util.loop.Loop.remove" class="py-name" href="#" onclick="return doclink('link-23', 'remove', 'link-10');">remove</a></tt><tt class="py-op">(</tt><tt class="py-name">full_name</tt><tt class="py-op">)</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">        <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">rmdir</tt><tt class="py-op">(</tt><tt class="py-name">dir</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line"><tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">    <tt class="py-comment"># use rmtree on POSIX</tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt class="py-name">shutil</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">    <tt class="py-name">rmdirRecursive</tt> <tt class="py-op">=</tt> <tt class="py-name">shutil</tt><tt class="py-op">.</tt><tt class="py-name">rmtree</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.6</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Sun Mar 11 15:30:12 2012
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

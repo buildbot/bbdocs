@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>buildbot.changes.filter</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.6</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="buildbot-module.html">Package&nbsp;buildbot</a> ::
+        <a href="buildbot.changes-module.html">Package&nbsp;changes</a> ::
+        Module&nbsp;filter
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="buildbot.changes.filter-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="buildbot.changes.filter-module.html">Module buildbot.changes.filter</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># This file is part of Buildbot.  Buildbot is free software: you can</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment"># redistribute it and/or modify it under the terms of the GNU General Public</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"># License as published by the Free Software Foundation, version 2.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but WITHOUT</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"># ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"># FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"># details.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License along with</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment"># this program; if not, write to the Free Software Foundation, Inc., 51</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment"># Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment"># Copyright Buildbot Team Members</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">re</tt><tt class="py-op">,</tt> <tt class="py-name">types</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package buildbot=buildbot-module.html"><a title="buildbot" class="py-name" href="#" onclick="return doclink('link-0', 'buildbot', 'link-0');">buildbot</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Package buildbot.util=buildbot.util-module.html,Module buildslave.util=buildslave.util-module.html"><a title="buildbot.util
+buildslave.util" class="py-name" href="#" onclick="return doclink('link-1', 'util', 'link-1');">util</a></tt> <tt class="py-keyword">import</tt> <tt id="link-2" class="py-name" targets="Class buildbot.util.ComparableMixin=buildbot.util.ComparableMixin-class.html"><a title="buildbot.util.ComparableMixin" class="py-name" href="#" onclick="return doclink('link-2', 'ComparableMixin', 'link-2');">ComparableMixin</a></tt><tt class="py-op">,</tt> <tt id="link-3" class="py-name" targets="Variable buildbot.util.NotABranch=buildbot.util-module.html#NotABranch"><a title="buildbot.util.NotABranch" class="py-name" href="#" onclick="return doclink('link-3', 'NotABranch', 'link-3');">NotABranch</a></tt> </tt>
+<a name="ChangeFilter"></a><div id="ChangeFilter-def"><a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt> <a class="py-toggle" href="#" id="ChangeFilter-toggle" onclick="return toggle('ChangeFilter');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildbot.changes.filter.ChangeFilter-class.html">ChangeFilter</a><tt class="py-op">(</tt><tt class="py-base-class">ComparableMixin</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ChangeFilter-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="ChangeFilter-expanded"><a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line">    <tt class="py-comment"># NOTE: If users use a filter_fn, we have no way to determine whether it has</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line">    <tt class="py-comment"># changed at reconfig, so the scheduler will always be restarted.  That's as</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line">    <tt class="py-comment"># good as Python can do.</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line">    <tt id="link-4" class="py-name" targets="Variable buildbot.changes.bonsaipoller.BonsaiPoller.compare_attrs=buildbot.changes.bonsaipoller.BonsaiPoller-class.html#compare_attrs,Variable buildbot.changes.filter.ChangeFilter.compare_attrs=buildbot.changes.filter.ChangeFilter-class.html#compare_attrs,Variable buildbot.changes.gerritchangesource.GerritChangeSource.compare_attrs=buildbot.changes.gerritchangesource.GerritChangeSource-class.html#compare_attrs,Variable buildbot.changes.gitpoller.GitPoller.compare_attrs=buildbot.changes.gitpoller.GitPoller-class.html#compare_attrs,Variable buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.compare_attrs=buildbot.changes.mail.BzrLaunchpadEmailMaildirSource-class.html#compare_attrs,Variable buildbot.changes.mail.MaildirSource.compare_attrs=buildbot.changes.mail.MaildirSource-class.html#compare_attrs,Variable buildbot.changes.p4poller.P4Source.compare_attrs=buildbot.changes.p4poller.P4Source-class.html#compare_attrs,Variable buildbot.changes.pb.PBChangeSource.compare_attrs=buildbot.changes.pb.PBChangeSource-class.html#compare_attrs,Variable buildbot.changes.svnpoller.SVNPoller.compare_attrs=buildbot.changes.svnpoller.SVNPoller-class.html#compare_attrs,Variable buildbot.locks.LockAccess.compare_attrs=buildbot.locks.LockAccess-class.html#compare_attrs,Variable buildbot.locks.MasterLock.compare_attrs=buildbot.locks.MasterLock-class.html#compare_attrs,Variable buildbot.locks.SlaveLock.compare_attrs=buildbot.locks.SlaveLock-class.html#compare_attrs,Variable buildbot.manhole.ArbitraryCheckerManhole.compare_attrs=buildbot.manhole.ArbitraryCheckerManhole-class.html#compare_attrs,Variable buildbot.manhole.AuthorizedKeysManhole.compare_attrs=buildbot.manhole.AuthorizedKeysManhole-class.html#compare_attrs,Variable buildbot.manhole.PasswordManhole.compare_attrs=buildbot.manhole.PasswordManhole-class.html#compare_attrs,Variable buildbot.manhole.TelnetManhole.compare_attrs=buildbot.manhole.TelnetManhole-class.html#compare_attrs,Variable buildbot.process.factory.BuildFactory.compare_attrs=buildbot.process.factory.BuildFactory-class.html#compare_attrs,Variable buildbot.process.properties.Properties.compare_attrs=buildbot.process.properties.Properties-class.html#compare_attrs,Variable buildbot.process.properties.Property.compare_attrs=buildbot.process.properties.Property-class.html#compare_attrs,Variable buildbot.process.properties.WithProperties.compare_attrs=buildbot.process.properties.WithProperties-class.html#compare_attrs,Variable buildbot.schedulers.base.BaseScheduler.compare_attrs=buildbot.schedulers.base.BaseScheduler-class.html#compare_attrs,Variable buildbot.schedulers.basic.BaseBasicScheduler.compare_attrs=buildbot.schedulers.basic.BaseBasicScheduler-class.html#compare_attrs,Variable buildbot.schedulers.dependent.Dependent.compare_attrs=buildbot.schedulers.dependent.Dependent-class.html#compare_attrs,Variable buildbot.schedulers.forcesched.ForceScheduler.compare_attrs=buildbot.schedulers.forcesched.ForceScheduler-class.html#compare_attrs,Variable buildbot.schedulers.timed.Nightly.compare_attrs=buildbot.schedulers.timed.Nightly-class.html#compare_attrs,Variable buildbot.schedulers.timed.Periodic.compare_attrs=buildbot.schedulers.timed.Periodic-class.html#compare_attrs,Variable buildbot.schedulers.timed.Timed.compare_attrs=buildbot.schedulers.timed.Timed-class.html#compare_attrs,Variable buildbot.schedulers.triggerable.Triggerable.compare_attrs=buildbot.schedulers.triggerable.Triggerable-class.html#compare_attrs,Variable buildbot.schedulers.trysched.Try_Jobdir.compare_attrs=buildbot.schedulers.trysched.Try_Jobdir-class.html#compare_attrs,Variable buildbot.schedulers.trysched.Try_Userpass.compare_attrs=buildbot.schedulers.trysched.Try_Userpass-class.html#compare_attrs,Variable buildbot.sourcestamp.SourceStamp.compare_attrs=buildbot.sourcestamp.SourceStamp-class.html#compare_attrs,Variable buildbot.status.client.PBListener.compare_attrs=buildbot.status.client.PBListener-class.html#compare_attrs,Variable buildbot.status.mail.Domain.compare_attrs=buildbot.status.mail.Domain-class.html#compare_attrs,Variable buildbot.status.mail.MailNotifier.compare_attrs=buildbot.status.mail.MailNotifier-class.html#compare_attrs,Variable buildbot.status.tinderbox.TinderboxMailNotifier.compare_attrs=buildbot.status.tinderbox.TinderboxMailNotifier-class.html#compare_attrs,Variable buildbot.status.words.IRC.compare_attrs=buildbot.status.words.IRC-class.html#compare_attrs,Variable buildbot.util.ComparableMixin.compare_attrs=buildbot.util.ComparableMixin-class.html#compare_attrs"><a title="buildbot.changes.bonsaipoller.BonsaiPoller.compare_attrs
+buildbot.changes.filter.ChangeFilter.compare_attrs
+buildbot.changes.gerritchangesource.GerritChangeSource.compare_attrs
+buildbot.changes.gitpoller.GitPoller.compare_attrs
+buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.compare_attrs
+buildbot.changes.mail.MaildirSource.compare_attrs
+buildbot.changes.p4poller.P4Source.compare_attrs
+buildbot.changes.pb.PBChangeSource.compare_attrs
+buildbot.changes.svnpoller.SVNPoller.compare_attrs
+buildbot.locks.LockAccess.compare_attrs
+buildbot.locks.MasterLock.compare_attrs
+buildbot.locks.SlaveLock.compare_attrs
+buildbot.manhole.ArbitraryCheckerManhole.compare_attrs
+buildbot.manhole.AuthorizedKeysManhole.compare_attrs
+buildbot.manhole.PasswordManhole.compare_attrs
+buildbot.manhole.TelnetManhole.compare_attrs
+buildbot.process.factory.BuildFactory.compare_attrs
+buildbot.process.properties.Properties.compare_attrs
+buildbot.process.properties.Property.compare_attrs
+buildbot.process.properties.WithProperties.compare_attrs
+buildbot.schedulers.base.BaseScheduler.compare_attrs
+buildbot.schedulers.basic.BaseBasicScheduler.compare_attrs
+buildbot.schedulers.dependent.Dependent.compare_attrs
+buildbot.schedulers.forcesched.ForceScheduler.compare_attrs
+buildbot.schedulers.timed.Nightly.compare_attrs
+buildbot.schedulers.timed.Periodic.compare_attrs
+buildbot.schedulers.timed.Timed.compare_attrs
+buildbot.schedulers.triggerable.Triggerable.compare_attrs
+buildbot.schedulers.trysched.Try_Jobdir.compare_attrs
+buildbot.schedulers.trysched.Try_Userpass.compare_attrs
+buildbot.sourcestamp.SourceStamp.compare_attrs
+buildbot.status.client.PBListener.compare_attrs
+buildbot.status.mail.Domain.compare_attrs
+buildbot.status.mail.MailNotifier.compare_attrs
+buildbot.status.tinderbox.TinderboxMailNotifier.compare_attrs
+buildbot.status.words.IRC.compare_attrs
+buildbot.util.ComparableMixin.compare_attrs" class="py-name" href="#" onclick="return doclink('link-4', 'compare_attrs', 'link-4');">compare_attrs</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-string">'filter_fn'</tt><tt class="py-op">,</tt> <tt class="py-string">'checks'</tt><tt class="py-op">)</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"> </tt>
+<a name="ChangeFilter.__init__"></a><div id="ChangeFilter.__init__-def"><a name="L27"></a><tt class="py-lineno"> 27</tt> <a class="py-toggle" href="#" id="ChangeFilter.__init__-toggle" onclick="return toggle('ChangeFilter.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.filter.ChangeFilter-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line">            <tt class="py-comment"># gets a Change object, returns boolean</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line">            <tt class="py-param">filter_fn</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line">            <tt class="py-comment"># change attribute comparisons: exact match to PROJECT, member of</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line">            <tt class="py-comment"># list PROJECTS, regular expression match to PROJECT_RE, or</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line">            <tt class="py-comment"># PROJECT_FN returns True when called with the project; repository,</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line">            <tt class="py-comment"># branch, and so on are similar.  Note that the regular expressions</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line">            <tt class="py-comment"># are anchored to the first character of the string.  For convenience,</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line">            <tt class="py-comment"># a list can also be specified to the singular option (e.g,. PROJETS</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line">            <tt class="py-param">project</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">project_re</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">project_fn</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line">            <tt class="py-param">repository</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">repository_re</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">repository_fn</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line">            <tt class="py-param">branch</tt><tt class="py-op">=</tt><tt id="link-5" class="py-name"><a title="buildbot.util.NotABranch" class="py-name" href="#" onclick="return doclink('link-5', 'NotABranch', 'link-3');">NotABranch</a></tt><tt class="py-op">,</tt> <tt class="py-param">branch_re</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">branch_fn</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line">            <tt class="py-param">category</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">category_re</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">category_fn</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ChangeFilter.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ChangeFilter.__init__-expanded"><a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">mklist</tt><tt class="py-op">(</tt><tt class="py-param">x</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">x</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt> <tt class="py-keyword">and</tt> <tt id="link-6" class="py-name" targets="Variable buildbot.schedulers.forcesched.AnyPropertyParameter.type=buildbot.schedulers.forcesched.AnyPropertyParameter-class.html#type,Variable buildbot.schedulers.forcesched.BaseParameter.type=buildbot.schedulers.forcesched.BaseParameter-class.html#type,Variable buildbot.schedulers.forcesched.BooleanParameter.type=buildbot.schedulers.forcesched.BooleanParameter-class.html#type,Variable buildbot.schedulers.forcesched.ChoiceStringParameter.type=buildbot.schedulers.forcesched.ChoiceStringParameter-class.html#type,Variable buildbot.schedulers.forcesched.FixedParameter.type=buildbot.schedulers.forcesched.FixedParameter-class.html#type,Variable buildbot.schedulers.forcesched.IntParameter.type=buildbot.schedulers.forcesched.IntParameter-class.html#type,Variable buildbot.schedulers.forcesched.StringParameter.type=buildbot.schedulers.forcesched.StringParameter-class.html#type,Variable buildbot.schedulers.forcesched.TextParameter.type=buildbot.schedulers.forcesched.TextParameter-class.html#type,Variable buildbot.schedulers.forcesched.UserNameParameter.type=buildbot.schedulers.forcesched.UserNameParameter-class.html#type"><a title="buildbot.schedulers.forcesched.AnyPropertyParameter.type
+buildbot.schedulers.forcesched.BaseParameter.type
+buildbot.schedulers.forcesched.BooleanParameter.type
+buildbot.schedulers.forcesched.ChoiceStringParameter.type
+buildbot.schedulers.forcesched.FixedParameter.type
+buildbot.schedulers.forcesched.IntParameter.type
+buildbot.schedulers.forcesched.StringParameter.type
+buildbot.schedulers.forcesched.TextParameter.type
+buildbot.schedulers.forcesched.UserNameParameter.type" class="py-name" href="#" onclick="return doclink('link-6', 'type', 'link-6');">type</a></tt><tt class="py-op">(</tt><tt class="py-name">x</tt><tt class="py-op">)</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">types</tt><tt class="py-op">.</tt><tt class="py-name">ListType</tt><tt class="py-op">:</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">                <tt class="py-keyword">return</tt> <tt class="py-op">[</tt> <tt class="py-name">x</tt> <tt class="py-op">]</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">x</tt> </tt>
+</div><a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">mklist_br</tt><tt class="py-op">(</tt><tt class="py-param">x</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> <tt class="py-comment"># branch needs to be handled specially</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">x</tt> <tt class="py-keyword">is</tt> <tt id="link-7" class="py-name"><a title="buildbot.util.NotABranch" class="py-name" href="#" onclick="return doclink('link-7', 'NotABranch', 'link-3');">NotABranch</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line">                <tt class="py-keyword">return</tt> <tt class="py-name">None</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt id="link-8" class="py-name"><a title="buildbot.schedulers.forcesched.AnyPropertyParameter.type
+buildbot.schedulers.forcesched.BaseParameter.type
+buildbot.schedulers.forcesched.BooleanParameter.type
+buildbot.schedulers.forcesched.ChoiceStringParameter.type
+buildbot.schedulers.forcesched.FixedParameter.type
+buildbot.schedulers.forcesched.IntParameter.type
+buildbot.schedulers.forcesched.StringParameter.type
+buildbot.schedulers.forcesched.TextParameter.type
+buildbot.schedulers.forcesched.UserNameParameter.type" class="py-name" href="#" onclick="return doclink('link-8', 'type', 'link-6');">type</a></tt><tt class="py-op">(</tt><tt class="py-name">x</tt><tt class="py-op">)</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">types</tt><tt class="py-op">.</tt><tt class="py-name">ListType</tt><tt class="py-op">:</tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line">                <tt class="py-keyword">return</tt> <tt class="py-op">[</tt> <tt class="py-name">x</tt> <tt class="py-op">]</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">x</tt> </tt>
+</div><a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">mkre</tt><tt class="py-op">(</tt><tt class="py-param">r</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">r</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt> <tt class="py-keyword">and</tt> <tt class="py-keyword">not</tt> <tt class="py-name">hasattr</tt><tt class="py-op">(</tt><tt class="py-name">r</tt><tt class="py-op">,</tt> <tt class="py-string">'match'</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line">                <tt class="py-name">r</tt> <tt class="py-op">=</tt> <tt class="py-name">re</tt><tt class="py-op">.</tt><tt class="py-name">compile</tt><tt class="py-op">(</tt><tt class="py-name">r</tt><tt class="py-op">)</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">r</tt> </tt>
+</div><a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">filter_fn</tt> <tt class="py-op">=</tt> <tt class="py-name">filter_fn</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">checks</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">                <tt class="py-op">(</tt><tt class="py-name">mklist</tt><tt class="py-op">(</tt><tt id="link-9" class="py-name" targets="Variable buildbot.sourcestamp.SourceStamp.project=buildbot.sourcestamp.SourceStamp-class.html#project,Variable buildbot.steps.vstudio.VisualStudio.project=buildbot.steps.vstudio.VisualStudio-class.html#project"><a title="buildbot.sourcestamp.SourceStamp.project
+buildbot.steps.vstudio.VisualStudio.project" class="py-name" href="#" onclick="return doclink('link-9', 'project', 'link-9');">project</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">mkre</tt><tt class="py-op">(</tt><tt class="py-name">project_re</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">project_fn</tt><tt class="py-op">,</tt> <tt class="py-string">"project"</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">                <tt class="py-op">(</tt><tt class="py-name">mklist</tt><tt class="py-op">(</tt><tt id="link-10" class="py-name" targets="Variable buildbot.sourcestamp.SourceStamp.repository=buildbot.sourcestamp.SourceStamp-class.html#repository"><a title="buildbot.sourcestamp.SourceStamp.repository" class="py-name" href="#" onclick="return doclink('link-10', 'repository', 'link-10');">repository</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">mkre</tt><tt class="py-op">(</tt><tt class="py-name">repository_re</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">repository_fn</tt><tt class="py-op">,</tt> <tt class="py-string">"repository"</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">                <tt class="py-op">(</tt><tt class="py-name">mklist_br</tt><tt class="py-op">(</tt><tt id="link-11" class="py-name" targets="Variable buildbot.changes.changes.Change.branch=buildbot.changes.changes.Change-class.html#branch,Variable buildbot.sourcestamp.SourceStamp.branch=buildbot.sourcestamp.SourceStamp-class.html#branch,Variable buildbot.steps.source.oldsource.Source.branch=buildbot.steps.source.oldsource.Source-class.html#branch"><a title="buildbot.changes.changes.Change.branch
+buildbot.sourcestamp.SourceStamp.branch
+buildbot.steps.source.oldsource.Source.branch" class="py-name" href="#" onclick="return doclink('link-11', 'branch', 'link-11');">branch</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">mkre</tt><tt class="py-op">(</tt><tt class="py-name">branch_re</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">branch_fn</tt><tt class="py-op">,</tt> <tt class="py-string">"branch"</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">                <tt class="py-op">(</tt><tt class="py-name">mklist</tt><tt class="py-op">(</tt><tt id="link-12" class="py-name" targets="Variable buildbot.changes.changes.Change.category=buildbot.changes.changes.Change-class.html#category,Variable buildbot.status.builder.BuilderStatus.category=buildbot.status.builder.BuilderStatus-class.html#category"><a title="buildbot.changes.changes.Change.category
+buildbot.status.builder.BuilderStatus.category" class="py-name" href="#" onclick="return doclink('link-12', 'category', 'link-12');">category</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">mkre</tt><tt class="py-op">(</tt><tt class="py-name">category_re</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">category_fn</tt><tt class="py-op">,</tt> <tt class="py-string">"category"</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">            <tt class="py-op">]</tt> </tt>
+</div><a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line"> </tt>
+<a name="ChangeFilter.filter_change"></a><div id="ChangeFilter.filter_change-def"><a name="L63"></a><tt class="py-lineno"> 63</tt> <a class="py-toggle" href="#" id="ChangeFilter.filter_change-toggle" onclick="return toggle('ChangeFilter.filter_change');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.filter.ChangeFilter-class.html#filter_change">filter_change</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">change</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ChangeFilter.filter_change-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ChangeFilter.filter_change-expanded"><a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">filter_fn</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt> <tt class="py-keyword">and</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">filter_fn</tt><tt class="py-op">(</tt><tt class="py-name">change</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">False</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-op">(</tt><tt class="py-name">filt_list</tt><tt class="py-op">,</tt> <tt class="py-name">filt_re</tt><tt class="py-op">,</tt> <tt class="py-name">filt_fn</tt><tt class="py-op">,</tt> <tt class="py-name">chg_attr</tt><tt class="py-op">)</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">checks</tt><tt class="py-op">:</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">            <tt class="py-name">chg_val</tt> <tt class="py-op">=</tt> <tt class="py-name">getattr</tt><tt class="py-op">(</tt><tt class="py-name">change</tt><tt class="py-op">,</tt> <tt class="py-name">chg_attr</tt><tt class="py-op">,</tt> <tt class="py-string">''</tt><tt class="py-op">)</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">filt_list</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt> <tt class="py-keyword">and</tt> <tt class="py-name">chg_val</tt> <tt class="py-keyword">not</tt> <tt class="py-keyword">in</tt> <tt class="py-name">filt_list</tt><tt class="py-op">:</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">                <tt class="py-keyword">return</tt> <tt class="py-name">False</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">filt_re</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt> <tt class="py-keyword">and</tt> <tt class="py-op">(</tt><tt class="py-name">chg_val</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt> <tt class="py-keyword">or</tt> <tt class="py-keyword">not</tt> <tt class="py-name">filt_re</tt><tt class="py-op">.</tt><tt class="py-name">match</tt><tt class="py-op">(</tt><tt class="py-name">chg_val</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">                <tt class="py-keyword">return</tt> <tt class="py-name">False</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">filt_fn</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt> <tt class="py-keyword">and</tt> <tt class="py-keyword">not</tt> <tt class="py-name">filt_fn</tt><tt class="py-op">(</tt><tt class="py-name">chg_val</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">                <tt class="py-keyword">return</tt> <tt class="py-name">False</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">True</tt> </tt>
+</div><a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line"> </tt>
+<a name="ChangeFilter.__repr__"></a><div id="ChangeFilter.__repr__-def"><a name="L76"></a><tt class="py-lineno"> 76</tt> <a class="py-toggle" href="#" id="ChangeFilter.__repr__-toggle" onclick="return toggle('ChangeFilter.__repr__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.filter.ChangeFilter-class.html#__repr__">__repr__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ChangeFilter.__repr__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ChangeFilter.__repr__-expanded"><a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">        <tt class="py-name">checks</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-op">(</tt><tt class="py-name">filt_list</tt><tt class="py-op">,</tt> <tt class="py-name">filt_re</tt><tt class="py-op">,</tt> <tt class="py-name">filt_fn</tt><tt class="py-op">,</tt> <tt class="py-name">chg_attr</tt><tt class="py-op">)</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">checks</tt><tt class="py-op">:</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">filt_list</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt> <tt class="py-keyword">and</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">filt_list</tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-number">1</tt><tt class="py-op">:</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">                <tt class="py-name">checks</tt><tt class="py-op">.</tt><tt id="link-13" class="py-name" targets="Method buildbot.process.metrics.AveragingFiniteList.append()=buildbot.process.metrics.AveragingFiniteList-class.html#append,Method buildbot.process.metrics.FiniteList.append()=buildbot.process.metrics.FiniteList-class.html#append"><a title="buildbot.process.metrics.AveragingFiniteList.append
+buildbot.process.metrics.FiniteList.append" class="py-name" href="#" onclick="return doclink('link-13', 'append', 'link-13');">append</a></tt><tt class="py-op">(</tt><tt class="py-string">'%s == %s'</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">chg_attr</tt><tt class="py-op">,</tt> <tt class="py-name">filt_list</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">            <tt class="py-keyword">elif</tt> <tt class="py-name">filt_list</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">                <tt class="py-name">checks</tt><tt class="py-op">.</tt><tt id="link-14" class="py-name"><a title="buildbot.process.metrics.AveragingFiniteList.append
+buildbot.process.metrics.FiniteList.append" class="py-name" href="#" onclick="return doclink('link-14', 'append', 'link-13');">append</a></tt><tt class="py-op">(</tt><tt class="py-string">'%s in %r'</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">chg_attr</tt><tt class="py-op">,</tt> <tt class="py-name">filt_list</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">filt_re</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt> <tt class="py-op">:</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">                <tt class="py-name">checks</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name"><a title="buildbot.process.metrics.AveragingFiniteList.append
+buildbot.process.metrics.FiniteList.append" class="py-name" href="#" onclick="return doclink('link-15', 'append', 'link-13');">append</a></tt><tt class="py-op">(</tt><tt class="py-string">'%s ~/%s/'</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">chg_attr</tt><tt class="py-op">,</tt> <tt class="py-name">filt_re</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">filt_fn</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt> <tt class="py-op">:</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">                <tt class="py-name">checks</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name"><a title="buildbot.process.metrics.AveragingFiniteList.append
+buildbot.process.metrics.FiniteList.append" class="py-name" href="#" onclick="return doclink('link-16', 'append', 'link-13');">append</a></tt><tt class="py-op">(</tt><tt class="py-string">'%s(%s)'</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">filt_fn</tt><tt class="py-op">.</tt><tt id="link-17" class="py-name" targets="Variable buildbot.interfaces.IBuildControl.__name__=buildbot.interfaces.IBuildControl-class.html#__name__,Variable buildbot.interfaces.IBuildRequestControl.__name__=buildbot.interfaces.IBuildRequestControl-class.html#__name__,Variable buildbot.interfaces.IBuildRequestStatus.__name__=buildbot.interfaces.IBuildRequestStatus-class.html#__name__,Variable buildbot.interfaces.IBuildSetStatus.__name__=buildbot.interfaces.IBuildSetStatus-class.html#__name__,Variable buildbot.interfaces.IBuildSlave.__name__=buildbot.interfaces.IBuildSlave-class.html#__name__,Variable buildbot.interfaces.IBuildStatus.__name__=buildbot.interfaces.IBuildStatus-class.html#__name__,Variable buildbot.interfaces.IBuildStepStatus.__name__=buildbot.interfaces.IBuildStepStatus-class.html#__name__,Variable buildbot.interfaces.IBuilderControl.__name__=buildbot.interfaces.IBuilderControl-class.html#__name__,Variable buildbot.interfaces.IBuilderStatus.__name__=buildbot.interfaces.IBuilderStatus-class.html#__name__,Variable buildbot.interfaces.IChangeSource.__name__=buildbot.interfaces.IChangeSource-class.html#__name__,Variable buildbot.interfaces.IControl.__name__=buildbot.interfaces.IControl-class.html#__name__,Variable buildbot.interfaces.IEmailLookup.__name__=buildbot.interfaces.IEmailLookup-class.html#__name__,Variable buildbot.interfaces.IEmailSender.__name__=buildbot.interfaces.IEmailSender-class.html#__name__,Variable buildbot.interfaces.IEventSource.__name__=buildbot.interfaces.IEventSource-class.html#__name__,Variable buildbot.interfaces.ILatentBuildSlave.__name__=buildbot.interfaces.ILatentBuildSlave-class.html#__name__,Variable buildbot.interfaces.ILogFile.__name__=buildbot.interfaces.ILogFile-class.html#__name__,Variable buildbot.interfaces.ILogObserver.__name__=buildbot.interfaces.ILogObserver-class.html#__name__,Variable buildbot.interfaces.IProperties.__name__=buildbot.interfaces.IProperties-class.html#__name__,Variable buildbot.interfaces.IRenderable.__name__=buildbot.interfaces.IRenderable-class.html#__name__,Variable buildbot.interfaces.IScheduler.__name__=buildbot.interfaces.IScheduler-class.html#__name__,Variable buildbot.interfaces.ISchedulerStatus.__name__=buildbot.interfaces.ISchedulerStatus-class.html#__name__,Variable buildbot.interfaces.ISlaveStatus.__name__=buildbot.interfaces.ISlaveStatus-class.html#__name__,Variable buildbot.interfaces.ISourceStamp.__name__=buildbot.interfaces.ISourceStamp-class.html#__name__,Variable buildbot.interfaces.IStatus.__name__=buildbot.interfaces.IStatus-class.html#__name__,Variable buildbot.interfaces.IStatusEvent.__name__=buildbot.interfaces.IStatusEvent-class.html#__name__,Variable buildbot.interfaces.IStatusLog.__name__=buildbot.interfaces.IStatusLog-class.html#__name__,Variable buildbot.interfaces.IStatusLogConsumer.__name__=buildbot.interfaces.IStatusLogConsumer-class.html#__name__,Variable buildbot.interfaces.IStatusReceiver.__name__=buildbot.interfaces.IStatusReceiver-class.html#__name__,Variable buildbot.interfaces.ITestResult.__name__=buildbot.interfaces.ITestResult-class.html#__name__,Variable buildbot.status.client.IRemote.__name__=buildbot.status.client.IRemote-class.html#__name__,Variable buildbot.status.persistent_queue.IQueue.__name__=buildbot.status.persistent_queue.IQueue-class.html#__name__,Variable buildbot.status.web.auth.IAuth.__name__=buildbot.status.web.auth.IAuth-class.html#__name__,Variable buildbot.status.web.base.IBox.__name__=buildbot.status.web.base.IBox-class.html#__name__,Variable buildbot.status.web.base.ICurrentBox.__name__=buildbot.status.web.base.ICurrentBox-class.html#__name__,Variable buildbot.status.web.base.IHTMLLog.__name__=buildbot.status.web.base.IHTMLLog-class.html#__name__,Variable buildbot.status.web.base.ITopBox.__name__=buildbot.status.web.base.ITopBox-class.html#__name__,Variable buildslave.interfaces.ISlaveCommand.__name__=buildslave.interfaces.ISlaveCommand-class.html#__name__,Variable twisted.web.resource.IResource.__name__=twisted.web.resource.IResource-class.html#__name__"><a title="buildbot.interfaces.IBuildControl.__name__
+buildbot.interfaces.IBuildRequestControl.__name__
+buildbot.interfaces.IBuildRequestStatus.__name__
+buildbot.interfaces.IBuildSetStatus.__name__
+buildbot.interfaces.IBuildSlave.__name__
+buildbot.interfaces.IBuildStatus.__name__
+buildbot.interfaces.IBuildStepStatus.__name__
+buildbot.interfaces.IBuilderControl.__name__
+buildbot.interfaces.IBuilderStatus.__name__
+buildbot.interfaces.IChangeSource.__name__
+buildbot.interfaces.IControl.__name__
+buildbot.interfaces.IEmailLookup.__name__
+buildbot.interfaces.IEmailSender.__name__
+buildbot.interfaces.IEventSource.__name__
+buildbot.interfaces.ILatentBuildSlave.__name__
+buildbot.interfaces.ILogFile.__name__
+buildbot.interfaces.ILogObserver.__name__
+buildbot.interfaces.IProperties.__name__
+buildbot.interfaces.IRenderable.__name__
+buildbot.interfaces.IScheduler.__name__
+buildbot.interfaces.ISchedulerStatus.__name__
+buildbot.interfaces.ISlaveStatus.__name__
+buildbot.interfaces.ISourceStamp.__name__
+buildbot.interfaces.IStatus.__name__
+buildbot.interfaces.IStatusEvent.__name__
+buildbot.interfaces.IStatusLog.__name__
+buildbot.interfaces.IStatusLogConsumer.__name__
+buildbot.interfaces.IStatusReceiver.__name__
+buildbot.interfaces.ITestResult.__name__
+buildbot.status.client.IRemote.__name__
+buildbot.status.persistent_queue.IQueue.__name__
+buildbot.status.web.auth.IAuth.__name__
+buildbot.status.web.base.IBox.__name__
+buildbot.status.web.base.ICurrentBox.__name__
+buildbot.status.web.base.IHTMLLog.__name__
+buildbot.status.web.base.ITopBox.__name__
+buildslave.interfaces.ISlaveCommand.__name__
+twisted.web.resource.IResource.__name__" class="py-name" href="#" onclick="return doclink('link-17', '__name__', 'link-17');">__name__</a></tt><tt class="py-op">,</tt> <tt class="py-name">chg_attr</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line"> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-string">"&lt;%s on %s&gt;"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__class__</tt><tt class="py-op">.</tt><tt id="link-18" class="py-name"><a title="buildbot.interfaces.IBuildControl.__name__
+buildbot.interfaces.IBuildRequestControl.__name__
+buildbot.interfaces.IBuildRequestStatus.__name__
+buildbot.interfaces.IBuildSetStatus.__name__
+buildbot.interfaces.IBuildSlave.__name__
+buildbot.interfaces.IBuildStatus.__name__
+buildbot.interfaces.IBuildStepStatus.__name__
+buildbot.interfaces.IBuilderControl.__name__
+buildbot.interfaces.IBuilderStatus.__name__
+buildbot.interfaces.IChangeSource.__name__
+buildbot.interfaces.IControl.__name__
+buildbot.interfaces.IEmailLookup.__name__
+buildbot.interfaces.IEmailSender.__name__
+buildbot.interfaces.IEventSource.__name__
+buildbot.interfaces.ILatentBuildSlave.__name__
+buildbot.interfaces.ILogFile.__name__
+buildbot.interfaces.ILogObserver.__name__
+buildbot.interfaces.IProperties.__name__
+buildbot.interfaces.IRenderable.__name__
+buildbot.interfaces.IScheduler.__name__
+buildbot.interfaces.ISchedulerStatus.__name__
+buildbot.interfaces.ISlaveStatus.__name__
+buildbot.interfaces.ISourceStamp.__name__
+buildbot.interfaces.IStatus.__name__
+buildbot.interfaces.IStatusEvent.__name__
+buildbot.interfaces.IStatusLog.__name__
+buildbot.interfaces.IStatusLogConsumer.__name__
+buildbot.interfaces.IStatusReceiver.__name__
+buildbot.interfaces.ITestResult.__name__
+buildbot.status.client.IRemote.__name__
+buildbot.status.persistent_queue.IQueue.__name__
+buildbot.status.web.auth.IAuth.__name__
+buildbot.status.web.base.IBox.__name__
+buildbot.status.web.base.ICurrentBox.__name__
+buildbot.status.web.base.IHTMLLog.__name__
+buildbot.status.web.base.ITopBox.__name__
+buildslave.interfaces.ISlaveCommand.__name__
+twisted.web.resource.IResource.__name__" class="py-name" href="#" onclick="return doclink('link-18', '__name__', 'link-17');">__name__</a></tt><tt class="py-op">,</tt> <tt class="py-string">' and '</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">checks</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line"> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">staticmethod</tt> </tt>
+<a name="ChangeFilter.fromSchedulerConstructorArgs"></a><div id="ChangeFilter.fromSchedulerConstructorArgs-def"><a name="L91"></a><tt class="py-lineno"> 91</tt> <a class="py-toggle" href="#" id="ChangeFilter.fromSchedulerConstructorArgs-toggle" onclick="return toggle('ChangeFilter.fromSchedulerConstructorArgs');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.filter.ChangeFilter-class.html#fromSchedulerConstructorArgs">fromSchedulerConstructorArgs</a><tt class="py-op">(</tt><tt class="py-param">change_filter</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">            <tt class="py-param">branch</tt><tt class="py-op">=</tt><tt id="link-19" class="py-name"><a title="buildbot.util.NotABranch" class="py-name" href="#" onclick="return doclink('link-19', 'NotABranch', 'link-3');">NotABranch</a></tt><tt class="py-op">,</tt> <tt class="py-param">categories</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ChangeFilter.fromSchedulerConstructorArgs-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ChangeFilter.fromSchedulerConstructorArgs-expanded"><a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line"> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line"><tt class="py-docstring">        Static method to create a filter based on constructor args</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line"><tt class="py-docstring">        change_filter, branch, and categories; use default values @code{None},</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line"><tt class="py-docstring">        @code{NotABranch}, and @code{None}, respectively.  These arguments are</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line"><tt class="py-docstring">        interpreted as documented for the</tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line"><tt class="py-docstring">        L{buildbot.schedulers.basic.Scheduler} class.</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line"><tt class="py-docstring">        @returns: L{ChangeFilter} instance or None for not filtering</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line"> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">        <tt class="py-comment"># use a change_filter, if given one</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">change_filter</tt><tt class="py-op">:</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-op">(</tt><tt id="link-20" class="py-name"><a title="buildbot.changes.changes.Change.branch
+buildbot.sourcestamp.SourceStamp.branch
+buildbot.steps.source.oldsource.Source.branch" class="py-name" href="#" onclick="return doclink('link-20', 'branch', 'link-11');">branch</a></tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt id="link-21" class="py-name"><a title="buildbot.util.NotABranch" class="py-name" href="#" onclick="return doclink('link-21', 'NotABranch', 'link-3');">NotABranch</a></tt> <tt class="py-keyword">or</tt> <tt class="py-name">categories</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">                <tt class="py-keyword">raise</tt> <tt class="py-name">RuntimeError</tt><tt class="py-op">(</tt><tt class="py-string">"cannot specify both change_filter and "</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">                                   <tt class="py-string">"branch or categories"</tt><tt class="py-op">)</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">change_filter</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">        <tt class="py-keyword">elif</tt> <tt id="link-22" class="py-name"><a title="buildbot.changes.changes.Change.branch
+buildbot.sourcestamp.SourceStamp.branch
+buildbot.steps.source.oldsource.Source.branch" class="py-name" href="#" onclick="return doclink('link-22', 'branch', 'link-11');">branch</a></tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt id="link-23" class="py-name"><a title="buildbot.util.NotABranch" class="py-name" href="#" onclick="return doclink('link-23', 'NotABranch', 'link-3');">NotABranch</a></tt> <tt class="py-keyword">or</tt> <tt class="py-name">categories</tt><tt class="py-op">:</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">            <tt class="py-comment"># build a change filter from the deprecated category and branch args</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line">            <tt class="py-name">cfargs</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt id="link-24" class="py-name"><a title="buildbot.changes.changes.Change.branch
+buildbot.sourcestamp.SourceStamp.branch
+buildbot.steps.source.oldsource.Source.branch" class="py-name" href="#" onclick="return doclink('link-24', 'branch', 'link-11');">branch</a></tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt id="link-25" class="py-name"><a title="buildbot.util.NotABranch" class="py-name" href="#" onclick="return doclink('link-25', 'NotABranch', 'link-3');">NotABranch</a></tt><tt class="py-op">:</tt> <tt class="py-name">cfargs</tt><tt class="py-op">[</tt><tt class="py-string">'branch'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt id="link-26" class="py-name"><a title="buildbot.changes.changes.Change.branch
+buildbot.sourcestamp.SourceStamp.branch
+buildbot.steps.source.oldsource.Source.branch" class="py-name" href="#" onclick="return doclink('link-26', 'branch', 'link-11');">branch</a></tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">categories</tt><tt class="py-op">:</tt> <tt class="py-name">cfargs</tt><tt class="py-op">[</tt><tt class="py-string">'category'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">categories</tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt id="link-27" class="py-name" targets="Class buildbot.changes.filter.ChangeFilter=buildbot.changes.filter.ChangeFilter-class.html"><a title="buildbot.changes.filter.ChangeFilter" class="py-name" href="#" onclick="return doclink('link-27', 'ChangeFilter', 'link-27');">ChangeFilter</a></tt><tt class="py-op">(</tt><tt class="py-op">**</tt><tt class="py-name">cfargs</tt><tt class="py-op">)</tt> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">None</tt> </tt>
+</div></div><a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.6</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Sun Mar 11 15:30:13 2012
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

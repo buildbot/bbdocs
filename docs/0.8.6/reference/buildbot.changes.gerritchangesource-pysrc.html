@@ -1,0 +1,537 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>buildbot.changes.gerritchangesource</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.6</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="buildbot-module.html">Package&nbsp;buildbot</a> ::
+        <a href="buildbot.changes-module.html">Package&nbsp;changes</a> ::
+        Module&nbsp;gerritchangesource
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="buildbot.changes.gerritchangesource-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="buildbot.changes.gerritchangesource-module.html">Module buildbot.changes.gerritchangesource</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># This file is part of Buildbot.  Buildbot is free software: you can</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment"># redistribute it and/or modify it under the terms of the GNU General Public</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"># License as published by the Free Software Foundation, version 2.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but WITHOUT</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"># ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"># FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"># details.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License along with</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment"># this program; if not, write to the Free Software Foundation, Inc., 51</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment"># Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment"># Copyright Buildbot Team Members</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt class="py-name">internet</tt> <tt class="py-keyword">import</tt> <tt id="link-0" class="py-name" targets="Variable buildbot.steps.python_twisted.Trial.reactor=buildbot.steps.python_twisted.Trial-class.html#reactor"><a title="buildbot.steps.python_twisted.Trial.reactor" class="py-name" href="#" onclick="return doclink('link-0', 'reactor', 'link-0');">reactor</a></tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-1" class="py-name" targets="Package buildbot=buildbot-module.html"><a title="buildbot" class="py-name" href="#" onclick="return doclink('link-1', 'buildbot', 'link-1');">buildbot</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Package buildbot.changes=buildbot.changes-module.html,Module buildbot.changes.changes=buildbot.changes.changes-module.html,Module buildbot.db.changes=buildbot.db.changes-module.html,Variable buildbot.db.model.Model.changes=buildbot.db.model.Model-class.html#changes,Variable buildbot.sourcestamp.SourceStamp.changes=buildbot.sourcestamp.SourceStamp-class.html#changes,Variable buildbot.status.builder.BuildStatus.changes=buildbot.status.builder.BuildStatus-class.html#changes,Module buildbot.status.web.changes=buildbot.status.web.changes-module.html,Method buildbot.status.web.hooks.googlecode.Payload.changes()=buildbot.status.web.hooks.googlecode.Payload-class.html#changes"><a title="buildbot.changes
+buildbot.changes.changes
+buildbot.db.changes
+buildbot.db.model.Model.changes
+buildbot.sourcestamp.SourceStamp.changes
+buildbot.status.builder.BuildStatus.changes
+buildbot.status.web.changes
+buildbot.status.web.hooks.googlecode.Payload.changes" class="py-name" href="#" onclick="return doclink('link-2', 'changes', 'link-2');">changes</a></tt> <tt class="py-keyword">import</tt> <tt id="link-3" class="py-name" targets="Module buildbot.changes.base=buildbot.changes.base-module.html,Module buildbot.clients.base=buildbot.clients.base-module.html,Module buildbot.db.base=buildbot.db.base-module.html,Module buildbot.process.base=buildbot.process.base-module.html,Module buildbot.schedulers.base=buildbot.schedulers.base-module.html,Module buildbot.status.base=buildbot.status.base-module.html,Module buildbot.status.web.base=buildbot.status.web.base-module.html,Module buildbot.status.web.hooks.base=buildbot.status.web.hooks.base-module.html,Module buildslave.commands.base=buildslave.commands.base-module.html"><a title="buildbot.changes.base
+buildbot.clients.base
+buildbot.db.base
+buildbot.process.base
+buildbot.schedulers.base
+buildbot.status.base
+buildbot.status.web.base
+buildbot.status.web.hooks.base
+buildslave.commands.base" class="py-name" href="#" onclick="return doclink('link-3', 'base', 'link-3');">base</a></tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-4" class="py-name"><a title="buildbot" class="py-name" href="#" onclick="return doclink('link-4', 'buildbot', 'link-1');">buildbot</a></tt><tt class="py-op">.</tt><tt id="link-5" class="py-name" targets="Package buildbot.util=buildbot.util-module.html,Module buildslave.util=buildslave.util-module.html"><a title="buildbot.util
+buildslave.util" class="py-name" href="#" onclick="return doclink('link-5', 'util', 'link-5');">util</a></tt> <tt class="py-keyword">import</tt> <tt id="link-6" class="py-name" targets="Package json=json-module.html"><a title="json" class="py-name" href="#" onclick="return doclink('link-6', 'json', 'link-6');">json</a></tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-7" class="py-name"><a title="buildbot" class="py-name" href="#" onclick="return doclink('link-7', 'buildbot', 'link-1');">buildbot</a></tt> <tt class="py-keyword">import</tt> <tt id="link-8" class="py-name"><a title="buildbot.util
+buildslave.util" class="py-name" href="#" onclick="return doclink('link-8', 'util', 'link-5');">util</a></tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt id="link-9" class="py-name" targets="Module buildbot.steps.python=buildbot.steps.python-module.html,Variable buildbot.steps.python_twisted.Trial.python=buildbot.steps.python_twisted.Trial-class.html#python"><a title="buildbot.steps.python
+buildbot.steps.python_twisted.Trial.python" class="py-name" href="#" onclick="return doclink('link-9', 'python', 'link-9');">python</a></tt> <tt class="py-keyword">import</tt> <tt id="link-10" class="py-name" targets="Class Method buildbot.process.metrics.MetricEvent.log()=buildbot.process.metrics.MetricEvent-class.html#log,Method buildbot.status.words.IrcStatusBot.log()=buildbot.status.words.IrcStatusBot-class.html#log"><a title="buildbot.process.metrics.MetricEvent.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-10', 'log', 'link-10');">log</a></tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt class="py-name">internet</tt> <tt class="py-keyword">import</tt> <tt class="py-name">defer</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt class="py-name">internet</tt><tt class="py-op">.</tt><tt class="py-name">protocol</tt> <tt class="py-keyword">import</tt> <tt class="py-name">ProcessProtocol</tt> </tt>
+<a name="GerritChangeSource"></a><div id="GerritChangeSource-def"><a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt> <a class="py-toggle" href="#" id="GerritChangeSource-toggle" onclick="return toggle('GerritChangeSource');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildbot.changes.gerritchangesource.GerritChangeSource-class.html">GerritChangeSource</a><tt class="py-op">(</tt><tt class="py-base-class">base</tt><tt class="py-op">.</tt><tt class="py-base-class">ChangeSource</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GerritChangeSource-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="GerritChangeSource-expanded"><a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line">    <tt class="py-docstring">"""This source will maintain a connection to gerrit ssh server</tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-docstring">    that will provide us gerrit events in json format."""</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line">    <tt id="link-11" class="py-name" targets="Variable buildbot.changes.bonsaipoller.BonsaiPoller.compare_attrs=buildbot.changes.bonsaipoller.BonsaiPoller-class.html#compare_attrs,Variable buildbot.changes.filter.ChangeFilter.compare_attrs=buildbot.changes.filter.ChangeFilter-class.html#compare_attrs,Variable buildbot.changes.gerritchangesource.GerritChangeSource.compare_attrs=buildbot.changes.gerritchangesource.GerritChangeSource-class.html#compare_attrs,Variable buildbot.changes.gitpoller.GitPoller.compare_attrs=buildbot.changes.gitpoller.GitPoller-class.html#compare_attrs,Variable buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.compare_attrs=buildbot.changes.mail.BzrLaunchpadEmailMaildirSource-class.html#compare_attrs,Variable buildbot.changes.mail.MaildirSource.compare_attrs=buildbot.changes.mail.MaildirSource-class.html#compare_attrs,Variable buildbot.changes.p4poller.P4Source.compare_attrs=buildbot.changes.p4poller.P4Source-class.html#compare_attrs,Variable buildbot.changes.pb.PBChangeSource.compare_attrs=buildbot.changes.pb.PBChangeSource-class.html#compare_attrs,Variable buildbot.changes.svnpoller.SVNPoller.compare_attrs=buildbot.changes.svnpoller.SVNPoller-class.html#compare_attrs,Variable buildbot.locks.LockAccess.compare_attrs=buildbot.locks.LockAccess-class.html#compare_attrs,Variable buildbot.locks.MasterLock.compare_attrs=buildbot.locks.MasterLock-class.html#compare_attrs,Variable buildbot.locks.SlaveLock.compare_attrs=buildbot.locks.SlaveLock-class.html#compare_attrs,Variable buildbot.manhole.ArbitraryCheckerManhole.compare_attrs=buildbot.manhole.ArbitraryCheckerManhole-class.html#compare_attrs,Variable buildbot.manhole.AuthorizedKeysManhole.compare_attrs=buildbot.manhole.AuthorizedKeysManhole-class.html#compare_attrs,Variable buildbot.manhole.PasswordManhole.compare_attrs=buildbot.manhole.PasswordManhole-class.html#compare_attrs,Variable buildbot.manhole.TelnetManhole.compare_attrs=buildbot.manhole.TelnetManhole-class.html#compare_attrs,Variable buildbot.process.factory.BuildFactory.compare_attrs=buildbot.process.factory.BuildFactory-class.html#compare_attrs,Variable buildbot.process.properties.Properties.compare_attrs=buildbot.process.properties.Properties-class.html#compare_attrs,Variable buildbot.process.properties.Property.compare_attrs=buildbot.process.properties.Property-class.html#compare_attrs,Variable buildbot.process.properties.WithProperties.compare_attrs=buildbot.process.properties.WithProperties-class.html#compare_attrs,Variable buildbot.schedulers.base.BaseScheduler.compare_attrs=buildbot.schedulers.base.BaseScheduler-class.html#compare_attrs,Variable buildbot.schedulers.basic.BaseBasicScheduler.compare_attrs=buildbot.schedulers.basic.BaseBasicScheduler-class.html#compare_attrs,Variable buildbot.schedulers.dependent.Dependent.compare_attrs=buildbot.schedulers.dependent.Dependent-class.html#compare_attrs,Variable buildbot.schedulers.forcesched.ForceScheduler.compare_attrs=buildbot.schedulers.forcesched.ForceScheduler-class.html#compare_attrs,Variable buildbot.schedulers.timed.Nightly.compare_attrs=buildbot.schedulers.timed.Nightly-class.html#compare_attrs,Variable buildbot.schedulers.timed.Periodic.compare_attrs=buildbot.schedulers.timed.Periodic-class.html#compare_attrs,Variable buildbot.schedulers.timed.Timed.compare_attrs=buildbot.schedulers.timed.Timed-class.html#compare_attrs,Variable buildbot.schedulers.triggerable.Triggerable.compare_attrs=buildbot.schedulers.triggerable.Triggerable-class.html#compare_attrs,Variable buildbot.schedulers.trysched.Try_Jobdir.compare_attrs=buildbot.schedulers.trysched.Try_Jobdir-class.html#compare_attrs,Variable buildbot.schedulers.trysched.Try_Userpass.compare_attrs=buildbot.schedulers.trysched.Try_Userpass-class.html#compare_attrs,Variable buildbot.sourcestamp.SourceStamp.compare_attrs=buildbot.sourcestamp.SourceStamp-class.html#compare_attrs,Variable buildbot.status.client.PBListener.compare_attrs=buildbot.status.client.PBListener-class.html#compare_attrs,Variable buildbot.status.mail.Domain.compare_attrs=buildbot.status.mail.Domain-class.html#compare_attrs,Variable buildbot.status.mail.MailNotifier.compare_attrs=buildbot.status.mail.MailNotifier-class.html#compare_attrs,Variable buildbot.status.tinderbox.TinderboxMailNotifier.compare_attrs=buildbot.status.tinderbox.TinderboxMailNotifier-class.html#compare_attrs,Variable buildbot.status.words.IRC.compare_attrs=buildbot.status.words.IRC-class.html#compare_attrs,Variable buildbot.util.ComparableMixin.compare_attrs=buildbot.util.ComparableMixin-class.html#compare_attrs"><a title="buildbot.changes.bonsaipoller.BonsaiPoller.compare_attrs
+buildbot.changes.filter.ChangeFilter.compare_attrs
+buildbot.changes.gerritchangesource.GerritChangeSource.compare_attrs
+buildbot.changes.gitpoller.GitPoller.compare_attrs
+buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.compare_attrs
+buildbot.changes.mail.MaildirSource.compare_attrs
+buildbot.changes.p4poller.P4Source.compare_attrs
+buildbot.changes.pb.PBChangeSource.compare_attrs
+buildbot.changes.svnpoller.SVNPoller.compare_attrs
+buildbot.locks.LockAccess.compare_attrs
+buildbot.locks.MasterLock.compare_attrs
+buildbot.locks.SlaveLock.compare_attrs
+buildbot.manhole.ArbitraryCheckerManhole.compare_attrs
+buildbot.manhole.AuthorizedKeysManhole.compare_attrs
+buildbot.manhole.PasswordManhole.compare_attrs
+buildbot.manhole.TelnetManhole.compare_attrs
+buildbot.process.factory.BuildFactory.compare_attrs
+buildbot.process.properties.Properties.compare_attrs
+buildbot.process.properties.Property.compare_attrs
+buildbot.process.properties.WithProperties.compare_attrs
+buildbot.schedulers.base.BaseScheduler.compare_attrs
+buildbot.schedulers.basic.BaseBasicScheduler.compare_attrs
+buildbot.schedulers.dependent.Dependent.compare_attrs
+buildbot.schedulers.forcesched.ForceScheduler.compare_attrs
+buildbot.schedulers.timed.Nightly.compare_attrs
+buildbot.schedulers.timed.Periodic.compare_attrs
+buildbot.schedulers.timed.Timed.compare_attrs
+buildbot.schedulers.triggerable.Triggerable.compare_attrs
+buildbot.schedulers.trysched.Try_Jobdir.compare_attrs
+buildbot.schedulers.trysched.Try_Userpass.compare_attrs
+buildbot.sourcestamp.SourceStamp.compare_attrs
+buildbot.status.client.PBListener.compare_attrs
+buildbot.status.mail.Domain.compare_attrs
+buildbot.status.mail.MailNotifier.compare_attrs
+buildbot.status.tinderbox.TinderboxMailNotifier.compare_attrs
+buildbot.status.words.IRC.compare_attrs
+buildbot.util.ComparableMixin.compare_attrs" class="py-name" href="#" onclick="return doclink('link-11', 'compare_attrs', 'link-11');">compare_attrs</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">"gerritserver"</tt><tt class="py-op">,</tt> <tt class="py-string">"gerritport"</tt><tt class="py-op">]</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line">    <tt id="link-12" class="py-name" targets="Variable buildbot.changes.gerritchangesource.GerritChangeSource.STREAM_GOOD_CONNECTION_TIME=buildbot.changes.gerritchangesource.GerritChangeSource-class.html#STREAM_GOOD_CONNECTION_TIME"><a title="buildbot.changes.gerritchangesource.GerritChangeSource.STREAM_GOOD_CONNECTION_TIME" class="py-name" href="#" onclick="return doclink('link-12', 'STREAM_GOOD_CONNECTION_TIME', 'link-12');">STREAM_GOOD_CONNECTION_TIME</a></tt> <tt class="py-op">=</tt> <tt class="py-number">120</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line">    <tt class="py-string">"(seconds) connections longer than this are considered good, and reset the backoff timer"</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line">    <tt id="link-13" class="py-name" targets="Variable buildbot.changes.gerritchangesource.GerritChangeSource.STREAM_BACKOFF_MIN=buildbot.changes.gerritchangesource.GerritChangeSource-class.html#STREAM_BACKOFF_MIN"><a title="buildbot.changes.gerritchangesource.GerritChangeSource.STREAM_BACKOFF_MIN" class="py-name" href="#" onclick="return doclink('link-13', 'STREAM_BACKOFF_MIN', 'link-13');">STREAM_BACKOFF_MIN</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0.5</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line">    <tt class="py-string">"(seconds) minimum, but nonzero, time to wait before retrying a failed connection"</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line">    <tt id="link-14" class="py-name" targets="Variable buildbot.changes.gerritchangesource.GerritChangeSource.STREAM_BACKOFF_EXPONENT=buildbot.changes.gerritchangesource.GerritChangeSource-class.html#STREAM_BACKOFF_EXPONENT"><a title="buildbot.changes.gerritchangesource.GerritChangeSource.STREAM_BACKOFF_EXPONENT" class="py-name" href="#" onclick="return doclink('link-14', 'STREAM_BACKOFF_EXPONENT', 'link-14');">STREAM_BACKOFF_EXPONENT</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1.5</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line">    <tt class="py-string">"multiplier used to increase the backoff from MIN to MAX on repeated failures"</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line">    <tt id="link-15" class="py-name" targets="Variable buildbot.changes.gerritchangesource.GerritChangeSource.STREAM_BACKOFF_MAX=buildbot.changes.gerritchangesource.GerritChangeSource-class.html#STREAM_BACKOFF_MAX"><a title="buildbot.changes.gerritchangesource.GerritChangeSource.STREAM_BACKOFF_MAX" class="py-name" href="#" onclick="return doclink('link-15', 'STREAM_BACKOFF_MAX', 'link-15');">STREAM_BACKOFF_MAX</a></tt> <tt class="py-op">=</tt> <tt class="py-number">60</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">    <tt class="py-string">"(seconds) maximum time to wait before retrying a failed connection"</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"> </tt>
+<a name="GerritChangeSource.__init__"></a><div id="GerritChangeSource.__init__-def"><a name="L43"></a><tt class="py-lineno"> 43</tt> <a class="py-toggle" href="#" id="GerritChangeSource.__init__-toggle" onclick="return toggle('GerritChangeSource.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.gerritchangesource.GerritChangeSource-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">gerritserver</tt><tt class="py-op">,</tt> <tt class="py-param">username</tt><tt class="py-op">,</tt> <tt class="py-param">gerritport</tt><tt class="py-op">=</tt><tt class="py-number">29418</tt><tt class="py-op">,</tt> <tt class="py-param">identity_file</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GerritChangeSource.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="GerritChangeSource.__init__-expanded"><a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"><tt class="py-docstring">        @type  gerritserver: string</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"><tt class="py-docstring">        @param gerritserver: the dns or ip that host the gerrit ssh server,</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"><tt class="py-docstring">        @type  gerritport: int</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"><tt class="py-docstring">        @param gerritport: the port of the gerrit ssh server,</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"><tt class="py-docstring">        @type  username: string</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"><tt class="py-docstring">        @param username: the username to use to connect to gerrit,</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"><tt class="py-docstring">        @type  identity_file: string</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line"><tt class="py-docstring">        @param identity_file: identity file to for authentication (optional).</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">        <tt class="py-comment"># TODO: delete API comment when documented</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line"> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">gerritserver</tt> <tt class="py-op">=</tt> <tt class="py-name">gerritserver</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">gerritport</tt> <tt class="py-op">=</tt> <tt class="py-name">gerritport</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name" targets="Variable twisted.spread.pb.Broker.username=twisted.spread.pb.Broker-class.html#username"><a title="twisted.spread.pb.Broker.username" class="py-name" href="#" onclick="return doclink('link-16', 'username', 'link-16');">username</a></tt> <tt class="py-op">=</tt> <tt id="link-17" class="py-name"><a title="twisted.spread.pb.Broker.username" class="py-name" href="#" onclick="return doclink('link-17', 'username', 'link-16');">username</a></tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">identity_file</tt> <tt class="py-op">=</tt> <tt class="py-name">identity_file</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-18" class="py-name" targets="Package buildbot.process=buildbot.process-module.html"><a title="buildbot.process" class="py-name" href="#" onclick="return doclink('link-18', 'process', 'link-18');">process</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">wantProcess</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">streamProcessTimeout</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name"><a title="buildbot.changes.gerritchangesource.GerritChangeSource.STREAM_BACKOFF_MIN" class="py-name" href="#" onclick="return doclink('link-19', 'STREAM_BACKOFF_MIN', 'link-13');">STREAM_BACKOFF_MIN</a></tt> </tt>
+</div><a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line"> </tt>
+<a name="GerritChangeSource.LocalPP"></a><div id="GerritChangeSource.LocalPP-def"><a name="L68"></a><tt class="py-lineno"> 68</tt> <a class="py-toggle" href="#" id="GerritChangeSource.LocalPP-toggle" onclick="return toggle('GerritChangeSource.LocalPP');">-</a><tt class="py-line">    <tt class="py-keyword">class</tt> <a class="py-def-name" href="buildbot.changes.gerritchangesource.GerritChangeSource.LocalPP-class.html">LocalPP</a><tt class="py-op">(</tt><tt class="py-base-class">ProcessProtocol</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GerritChangeSource.LocalPP-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="GerritChangeSource.LocalPP-expanded"><a name="GerritChangeSource.LocalPP.__init__"></a><div id="GerritChangeSource.LocalPP.__init__-def"><a name="L69"></a><tt class="py-lineno"> 69</tt> <a class="py-toggle" href="#" id="GerritChangeSource.LocalPP.__init__-toggle" onclick="return toggle('GerritChangeSource.LocalPP.__init__');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.gerritchangesource.GerritChangeSource.LocalPP-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">change_source</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GerritChangeSource.LocalPP.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++++++++++"></div><div id="GerritChangeSource.LocalPP.__init__-expanded"><a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">change_source</tt> <tt class="py-op">=</tt> <tt class="py-name">change_source</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">data</tt> <tt class="py-op">=</tt> <tt class="py-string">""</tt> </tt>
+</div><a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line"> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">        <tt class="py-decorator">@</tt><tt class="py-decorator">defer</tt><tt class="py-op">.</tt><tt class="py-name">deferredGenerator</tt> </tt>
+<a name="GerritChangeSource.LocalPP.outReceived"></a><div id="GerritChangeSource.LocalPP.outReceived-def"><a name="L74"></a><tt class="py-lineno"> 74</tt> <a class="py-toggle" href="#" id="GerritChangeSource.LocalPP.outReceived-toggle" onclick="return toggle('GerritChangeSource.LocalPP.outReceived');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.gerritchangesource.GerritChangeSource.LocalPP-class.html#outReceived">outReceived</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">data</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GerritChangeSource.LocalPP.outReceived-collapsed" style="display:none;" pad="+++" indent="++++++++++++++++"></div><div id="GerritChangeSource.LocalPP.outReceived-expanded"><a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">            <tt class="py-docstring">"""Do line buffering."""</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">data</tt> <tt class="py-op">+=</tt> <tt class="py-name">data</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">            <tt class="py-name">lines</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">data</tt><tt class="py-op">.</tt><tt class="py-name">split</tt><tt class="py-op">(</tt><tt class="py-string">"\n"</tt><tt class="py-op">)</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">data</tt> <tt class="py-op">=</tt> <tt class="py-name">lines</tt><tt class="py-op">.</tt><tt id="link-20" class="py-name" targets="Method buildbot.util.bbcollections.KeyedSets.pop()=buildbot.util.bbcollections.KeyedSets-class.html#pop"><a title="buildbot.util.bbcollections.KeyedSets.pop" class="py-name" href="#" onclick="return doclink('link-20', 'pop', 'link-20');">pop</a></tt><tt class="py-op">(</tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">)</tt> <tt class="py-comment"># last line is either empty or incomplete</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">            <tt class="py-keyword">for</tt> <tt class="py-name">line</tt> <tt class="py-keyword">in</tt> <tt class="py-name">lines</tt><tt class="py-op">:</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">                <tt id="link-21" class="py-name"><a title="buildbot.process.metrics.MetricEvent.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-21', 'log', 'link-10');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">"gerrit: %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">line</tt><tt class="py-op">,</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">                <tt class="py-name">d</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">change_source</tt><tt class="py-op">.</tt><tt id="link-22" class="py-name" targets="Method buildbot.changes.gerritchangesource.GerritChangeSource.lineReceived()=buildbot.changes.gerritchangesource.GerritChangeSource-class.html#lineReceived,Method buildbot.scripts.logwatcher.LogWatcher.lineReceived()=buildbot.scripts.logwatcher.LogWatcher-class.html#lineReceived,Method buildslave.scripts.logwatcher.LogWatcher.lineReceived()=buildslave.scripts.logwatcher.LogWatcher-class.html#lineReceived"><a title="buildbot.changes.gerritchangesource.GerritChangeSource.lineReceived
+buildbot.scripts.logwatcher.LogWatcher.lineReceived
+buildslave.scripts.logwatcher.LogWatcher.lineReceived" class="py-name" href="#" onclick="return doclink('link-22', 'lineReceived', 'link-22');">lineReceived</a></tt><tt class="py-op">(</tt><tt class="py-name">line</tt><tt class="py-op">)</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">                <tt class="py-name">wfd</tt> <tt class="py-op">=</tt> <tt class="py-name">defer</tt><tt class="py-op">.</tt><tt class="py-name">waitForDeferred</tt><tt class="py-op">(</tt><tt class="py-name">d</tt><tt class="py-op">)</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">                <tt class="py-keyword">yield</tt> <tt class="py-name">wfd</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">                <tt class="py-name">wfd</tt><tt class="py-op">.</tt><tt class="py-name">getResult</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line"> </tt>
+<a name="GerritChangeSource.LocalPP.errReceived"></a><div id="GerritChangeSource.LocalPP.errReceived-def"><a name="L86"></a><tt class="py-lineno"> 86</tt> <a class="py-toggle" href="#" id="GerritChangeSource.LocalPP.errReceived-toggle" onclick="return toggle('GerritChangeSource.LocalPP.errReceived');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.gerritchangesource.GerritChangeSource.LocalPP-class.html#errReceived">errReceived</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">data</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GerritChangeSource.LocalPP.errReceived-collapsed" style="display:none;" pad="+++" indent="++++++++++++++++"></div><div id="GerritChangeSource.LocalPP.errReceived-expanded"><a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">            <tt id="link-23" class="py-name"><a title="buildbot.process.metrics.MetricEvent.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-23', 'log', 'link-10');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">"gerrit stderr: %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">data</tt><tt class="py-op">,</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line"> </tt>
+<a name="GerritChangeSource.LocalPP.processEnded"></a><div id="GerritChangeSource.LocalPP.processEnded-def"><a name="L89"></a><tt class="py-lineno"> 89</tt> <a class="py-toggle" href="#" id="GerritChangeSource.LocalPP.processEnded-toggle" onclick="return toggle('GerritChangeSource.LocalPP.processEnded');">-</a><tt class="py-line">        <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.gerritchangesource.GerritChangeSource.LocalPP-class.html#processEnded">processEnded</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">status_object</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GerritChangeSource.LocalPP.processEnded-collapsed" style="display:none;" pad="+++" indent="++++++++++++++++"></div><div id="GerritChangeSource.LocalPP.processEnded-expanded"><a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">change_source</tt><tt class="py-op">.</tt><tt id="link-24" class="py-name" targets="Method buildbot.changes.gerritchangesource.GerritChangeSource.streamProcessStopped()=buildbot.changes.gerritchangesource.GerritChangeSource-class.html#streamProcessStopped"><a title="buildbot.changes.gerritchangesource.GerritChangeSource.streamProcessStopped" class="py-name" href="#" onclick="return doclink('link-24', 'streamProcessStopped', 'link-24');">streamProcessStopped</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line"> </tt>
+<a name="GerritChangeSource.lineReceived"></a><div id="GerritChangeSource.lineReceived-def"><a name="L92"></a><tt class="py-lineno"> 92</tt> <a class="py-toggle" href="#" id="GerritChangeSource.lineReceived-toggle" onclick="return toggle('GerritChangeSource.lineReceived');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.gerritchangesource.GerritChangeSource-class.html#lineReceived">lineReceived</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">line</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GerritChangeSource.lineReceived-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="GerritChangeSource.lineReceived-expanded"><a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">            <tt id="link-25" class="py-name" targets="Module buildbot.status.event=buildbot.status.event-module.html"><a title="buildbot.status.event" class="py-name" href="#" onclick="return doclink('link-25', 'event', 'link-25');">event</a></tt> <tt class="py-op">=</tt> <tt id="link-26" class="py-name"><a title="json" class="py-name" href="#" onclick="return doclink('link-26', 'json', 'link-6');">json</a></tt><tt class="py-op">.</tt><tt class="py-name">loads</tt><tt class="py-op">(</tt><tt class="py-name">line</tt><tt class="py-op">.</tt><tt class="py-name">decode</tt><tt class="py-op">(</tt><tt class="py-string">'utf-8'</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt> <tt class="py-name">ValueError</tt><tt class="py-op">:</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">            <tt id="link-27" class="py-name"><a title="buildbot.process.metrics.MetricEvent.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-27', 'log', 'link-10');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">"bad json line: %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">line</tt><tt class="py-op">,</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">defer</tt><tt class="py-op">.</tt><tt class="py-name">succeed</tt><tt class="py-op">(</tt><tt class="py-name">None</tt><tt class="py-op">)</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line"> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt><tt class="py-op">(</tt><tt id="link-28" class="py-name" targets="Variable buildbot.schedulers.forcesched.AnyPropertyParameter.type=buildbot.schedulers.forcesched.AnyPropertyParameter-class.html#type,Variable buildbot.schedulers.forcesched.BaseParameter.type=buildbot.schedulers.forcesched.BaseParameter-class.html#type,Variable buildbot.schedulers.forcesched.BooleanParameter.type=buildbot.schedulers.forcesched.BooleanParameter-class.html#type,Variable buildbot.schedulers.forcesched.ChoiceStringParameter.type=buildbot.schedulers.forcesched.ChoiceStringParameter-class.html#type,Variable buildbot.schedulers.forcesched.FixedParameter.type=buildbot.schedulers.forcesched.FixedParameter-class.html#type,Variable buildbot.schedulers.forcesched.IntParameter.type=buildbot.schedulers.forcesched.IntParameter-class.html#type,Variable buildbot.schedulers.forcesched.StringParameter.type=buildbot.schedulers.forcesched.StringParameter-class.html#type,Variable buildbot.schedulers.forcesched.TextParameter.type=buildbot.schedulers.forcesched.TextParameter-class.html#type,Variable buildbot.schedulers.forcesched.UserNameParameter.type=buildbot.schedulers.forcesched.UserNameParameter-class.html#type"><a title="buildbot.schedulers.forcesched.AnyPropertyParameter.type
+buildbot.schedulers.forcesched.BaseParameter.type
+buildbot.schedulers.forcesched.BooleanParameter.type
+buildbot.schedulers.forcesched.ChoiceStringParameter.type
+buildbot.schedulers.forcesched.FixedParameter.type
+buildbot.schedulers.forcesched.IntParameter.type
+buildbot.schedulers.forcesched.StringParameter.type
+buildbot.schedulers.forcesched.TextParameter.type
+buildbot.schedulers.forcesched.UserNameParameter.type" class="py-name" href="#" onclick="return doclink('link-28', 'type', 'link-28');">type</a></tt><tt class="py-op">(</tt><tt id="link-29" class="py-name"><a title="buildbot.status.event" class="py-name" href="#" onclick="return doclink('link-29', 'event', 'link-25');">event</a></tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt id="link-30" class="py-name"><a title="buildbot.schedulers.forcesched.AnyPropertyParameter.type
+buildbot.schedulers.forcesched.BaseParameter.type
+buildbot.schedulers.forcesched.BooleanParameter.type
+buildbot.schedulers.forcesched.ChoiceStringParameter.type
+buildbot.schedulers.forcesched.FixedParameter.type
+buildbot.schedulers.forcesched.IntParameter.type
+buildbot.schedulers.forcesched.StringParameter.type
+buildbot.schedulers.forcesched.TextParameter.type
+buildbot.schedulers.forcesched.UserNameParameter.type" class="py-name" href="#" onclick="return doclink('link-30', 'type', 'link-28');">type</a></tt><tt class="py-op">(</tt><tt class="py-op">{</tt><tt class="py-op">}</tt><tt class="py-op">)</tt> <tt class="py-keyword">and</tt> <tt class="py-string">"type"</tt> <tt class="py-keyword">in</tt> <tt id="link-31" class="py-name"><a title="buildbot.status.event" class="py-name" href="#" onclick="return doclink('link-31', 'event', 'link-25');">event</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">            <tt id="link-32" class="py-name"><a title="buildbot.process.metrics.MetricEvent.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-32', 'log', 'link-10');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">"no type in event %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">line</tt><tt class="py-op">,</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">defer</tt><tt class="py-op">.</tt><tt class="py-name">succeed</tt><tt class="py-op">(</tt><tt class="py-name">None</tt><tt class="py-op">)</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">        <tt class="py-name">func</tt> <tt class="py-op">=</tt> <tt class="py-name">getattr</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt> <tt class="py-string">"eventReceived_"</tt><tt class="py-op">+</tt><tt id="link-33" class="py-name"><a title="buildbot.status.event" class="py-name" href="#" onclick="return doclink('link-33', 'event', 'link-25');">event</a></tt><tt class="py-op">[</tt><tt class="py-string">"type"</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt class="py-name">replace</tt><tt class="py-op">(</tt><tt class="py-string">"-"</tt><tt class="py-op">,</tt><tt class="py-string">"_"</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">func</tt> <tt class="py-op">==</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">            <tt id="link-34" class="py-name"><a title="buildbot.process.metrics.MetricEvent.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-34', 'log', 'link-10');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">"unsupported event %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt id="link-35" class="py-name"><a title="buildbot.status.event" class="py-name" href="#" onclick="return doclink('link-35', 'event', 'link-25');">event</a></tt><tt class="py-op">[</tt><tt class="py-string">"type"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">defer</tt><tt class="py-op">.</tt><tt class="py-name">succeed</tt><tt class="py-op">(</tt><tt class="py-name">None</tt><tt class="py-op">)</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line"> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">        <tt class="py-comment"># flatten the event dictionary, for easy access with WithProperties</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">        <tt class="py-keyword">def</tt> <tt class="py-def-name">flatten</tt><tt class="py-op">(</tt><tt class="py-param">event</tt><tt class="py-op">,</tt> <tt class="py-param">base</tt><tt class="py-op">,</tt> <tt class="py-param">d</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line">            <tt class="py-keyword">for</tt> <tt class="py-name">k</tt><tt class="py-op">,</tt> <tt id="link-36" class="py-name" targets="Variable buildbot.v=buildbot-module.html#v,Variable buildslave.v=buildslave-module.html#v"><a title="buildbot.v
+buildslave.v" class="py-name" href="#" onclick="return doclink('link-36', 'v', 'link-36');">v</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">d</tt><tt class="py-op">.</tt><tt id="link-37" class="py-name" targets="Method buildbot.status.persistent_queue.DiskQueue.items()=buildbot.status.persistent_queue.DiskQueue-class.html#items,Method buildbot.status.persistent_queue.IQueue.items()=buildbot.status.persistent_queue.IQueue-class.html#items,Method buildbot.status.persistent_queue.MemoryQueue.items()=buildbot.status.persistent_queue.MemoryQueue-class.html#items,Method buildbot.status.persistent_queue.PersistentQueue.items()=buildbot.status.persistent_queue.PersistentQueue-class.html#items"><a title="buildbot.status.persistent_queue.DiskQueue.items
+buildbot.status.persistent_queue.IQueue.items
+buildbot.status.persistent_queue.MemoryQueue.items
+buildbot.status.persistent_queue.PersistentQueue.items" class="py-name" href="#" onclick="return doclink('link-37', 'items', 'link-37');">items</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt id="link-38" class="py-name"><a title="buildbot.schedulers.forcesched.AnyPropertyParameter.type
+buildbot.schedulers.forcesched.BaseParameter.type
+buildbot.schedulers.forcesched.BooleanParameter.type
+buildbot.schedulers.forcesched.ChoiceStringParameter.type
+buildbot.schedulers.forcesched.FixedParameter.type
+buildbot.schedulers.forcesched.IntParameter.type
+buildbot.schedulers.forcesched.StringParameter.type
+buildbot.schedulers.forcesched.TextParameter.type
+buildbot.schedulers.forcesched.UserNameParameter.type" class="py-name" href="#" onclick="return doclink('link-38', 'type', 'link-28');">type</a></tt><tt class="py-op">(</tt><tt id="link-39" class="py-name"><a title="buildbot.v
+buildslave.v" class="py-name" href="#" onclick="return doclink('link-39', 'v', 'link-36');">v</a></tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-name">dict</tt><tt class="py-op">:</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">                    <tt class="py-name">flatten</tt><tt class="py-op">(</tt><tt id="link-40" class="py-name"><a title="buildbot.status.event" class="py-name" href="#" onclick="return doclink('link-40', 'event', 'link-25');">event</a></tt><tt class="py-op">,</tt> <tt id="link-41" class="py-name"><a title="buildbot.changes.base
+buildbot.clients.base
+buildbot.db.base
+buildbot.process.base
+buildbot.schedulers.base
+buildbot.status.base
+buildbot.status.web.base
+buildbot.status.web.hooks.base
+buildslave.commands.base" class="py-name" href="#" onclick="return doclink('link-41', 'base', 'link-3');">base</a></tt> <tt class="py-op">+</tt> <tt class="py-string">"."</tt> <tt class="py-op">+</tt> <tt class="py-name">k</tt><tt class="py-op">,</tt> <tt id="link-42" class="py-name"><a title="buildbot.v
+buildslave.v" class="py-name" href="#" onclick="return doclink('link-42', 'v', 'link-36');">v</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line">                <tt class="py-keyword">else</tt><tt class="py-op">:</tt> <tt class="py-comment"># already there</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">                    <tt id="link-43" class="py-name"><a title="buildbot.status.event" class="py-name" href="#" onclick="return doclink('link-43', 'event', 'link-25');">event</a></tt><tt class="py-op">[</tt><tt id="link-44" class="py-name"><a title="buildbot.changes.base
+buildbot.clients.base
+buildbot.db.base
+buildbot.process.base
+buildbot.schedulers.base
+buildbot.status.base
+buildbot.status.web.base
+buildbot.status.web.hooks.base
+buildslave.commands.base" class="py-name" href="#" onclick="return doclink('link-44', 'base', 'link-3');">base</a></tt> <tt class="py-op">+</tt> <tt class="py-string">"."</tt> <tt class="py-op">+</tt> <tt class="py-name">k</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt id="link-45" class="py-name"><a title="buildbot.v
+buildslave.v" class="py-name" href="#" onclick="return doclink('link-45', 'v', 'link-36');">v</a></tt> </tt>
+</div><a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line"> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line">        <tt id="link-46" class="py-name" targets="Module buildbot.process.properties=buildbot.process.properties-module.html"><a title="buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-46', 'properties', 'link-46');">properties</a></tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">        <tt class="py-name">flatten</tt><tt class="py-op">(</tt><tt id="link-47" class="py-name"><a title="buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-47', 'properties', 'link-46');">properties</a></tt><tt class="py-op">,</tt> <tt class="py-string">"event"</tt><tt class="py-op">,</tt> <tt id="link-48" class="py-name"><a title="buildbot.status.event" class="py-name" href="#" onclick="return doclink('link-48', 'event', 'link-25');">event</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">func</tt><tt class="py-op">(</tt><tt id="link-49" class="py-name"><a title="buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-49', 'properties', 'link-46');">properties</a></tt><tt class="py-op">,</tt><tt id="link-50" class="py-name"><a title="buildbot.status.event" class="py-name" href="#" onclick="return doclink('link-50', 'event', 'link-25');">event</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="GerritChangeSource.addChange"></a><div id="GerritChangeSource.addChange-def"><a name="L118"></a><tt class="py-lineno">118</tt> <a class="py-toggle" href="#" id="GerritChangeSource.addChange-toggle" onclick="return toggle('GerritChangeSource.addChange');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.gerritchangesource.GerritChangeSource-class.html#addChange">addChange</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">chdict</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GerritChangeSource.addChange-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="GerritChangeSource.addChange-expanded"><a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">        <tt class="py-name">d</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-51" class="py-name" targets="Variable buildbot.changes.base.ChangeSource.master=buildbot.changes.base.ChangeSource-class.html#master,Variable buildbot.interfaces.IChangeSource.master=buildbot.interfaces.IChangeSource-class.html#master,Module buildbot.master=buildbot.master-module.html,Module buildbot.status.master=buildbot.status.master-module.html,Variable buildbot.status.web.auth.AuthBase.master=buildbot.status.web.auth.AuthBase-class.html#master,Variable buildbot.status.web.auth.IAuth.master=buildbot.status.web.auth.IAuth-class.html#master,Module buildbot.steps.master=buildbot.steps.master-module.html"><a title="buildbot.changes.base.ChangeSource.master
+buildbot.interfaces.IChangeSource.master
+buildbot.master
+buildbot.status.master
+buildbot.status.web.auth.AuthBase.master
+buildbot.status.web.auth.IAuth.master
+buildbot.steps.master" class="py-name" href="#" onclick="return doclink('link-51', 'master', 'link-51');">master</a></tt><tt class="py-op">.</tt><tt id="link-52" class="py-name" targets="Method buildbot.changes.gerritchangesource.GerritChangeSource.addChange()=buildbot.changes.gerritchangesource.GerritChangeSource-class.html#addChange,Method buildbot.db.changes.ChangesConnectorComponent.addChange()=buildbot.db.changes.ChangesConnectorComponent-class.html#addChange,Method buildbot.interfaces.IControl.addChange()=buildbot.interfaces.IControl-class.html#addChange,Method buildbot.master.BuildMaster.addChange()=buildbot.master.BuildMaster-class.html#addChange,Method buildbot.master.Control.addChange()=buildbot.master.Control-class.html#addChange"><a title="buildbot.changes.gerritchangesource.GerritChangeSource.addChange
+buildbot.db.changes.ChangesConnectorComponent.addChange
+buildbot.interfaces.IControl.addChange
+buildbot.master.BuildMaster.addChange
+buildbot.master.Control.addChange" class="py-name" href="#" onclick="return doclink('link-52', 'addChange', 'link-52');">addChange</a></tt><tt class="py-op">(</tt><tt class="py-op">**</tt><tt class="py-name">chdict</tt><tt class="py-op">)</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line">        <tt class="py-comment"># eat failures..</tt> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">        <tt class="py-name">d</tt><tt class="py-op">.</tt><tt class="py-name">addErrback</tt><tt class="py-op">(</tt><tt id="link-53" class="py-name"><a title="buildbot.process.metrics.MetricEvent.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-53', 'log', 'link-10');">log</a></tt><tt class="py-op">.</tt><tt id="link-54" class="py-name" targets="Method buildbot.clients.debug.DebugWidget.err()=buildbot.clients.debug.DebugWidget-class.html#err,Variable buildbot.status.web.auth.AuthBase.err=buildbot.status.web.auth.AuthBase-class.html#err"><a title="buildbot.clients.debug.DebugWidget.err
+buildbot.status.web.auth.AuthBase.err" class="py-name" href="#" onclick="return doclink('link-54', 'err', 'link-54');">err</a></tt><tt class="py-op">,</tt> <tt class="py-string">'error adding change from GerritChangeSource'</tt><tt class="py-op">)</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">d</tt> </tt>
+</div><a name="GerritChangeSource.eventReceived_patchset_created"></a><div id="GerritChangeSource.eventReceived_patchset_created-def"><a name="L123"></a><tt class="py-lineno">123</tt> <a class="py-toggle" href="#" id="GerritChangeSource.eventReceived_patchset_created-toggle" onclick="return toggle('GerritChangeSource.eventReceived_patchset_created');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.gerritchangesource.GerritChangeSource-class.html#eventReceived_patchset_created">eventReceived_patchset_created</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">properties</tt><tt class="py-op">,</tt> <tt class="py-param">event</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GerritChangeSource.eventReceived_patchset_created-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="GerritChangeSource.eventReceived_patchset_created-expanded"><a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">        <tt class="py-name">change</tt> <tt class="py-op">=</tt> <tt id="link-55" class="py-name"><a title="buildbot.status.event" class="py-name" href="#" onclick="return doclink('link-55', 'event', 'link-25');">event</a></tt><tt class="py-op">[</tt><tt class="py-string">"change"</tt><tt class="py-op">]</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-56" class="py-name"><a title="buildbot.changes.gerritchangesource.GerritChangeSource.addChange
+buildbot.db.changes.ChangesConnectorComponent.addChange
+buildbot.interfaces.IControl.addChange
+buildbot.master.BuildMaster.addChange
+buildbot.master.Control.addChange" class="py-name" href="#" onclick="return doclink('link-56', 'addChange', 'link-52');">addChange</a></tt><tt class="py-op">(</tt><tt class="py-name">dict</tt><tt class="py-op">(</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">                <tt class="py-name">author</tt><tt class="py-op">=</tt><tt class="py-string">"%s &lt;%s&gt;"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">change</tt><tt class="py-op">[</tt><tt class="py-string">"owner"</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-string">"name"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">change</tt><tt class="py-op">[</tt><tt class="py-string">"owner"</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-string">"email"</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">                <tt id="link-57" class="py-name" targets="Variable buildbot.sourcestamp.SourceStamp.project=buildbot.sourcestamp.SourceStamp-class.html#project,Variable buildbot.steps.vstudio.VisualStudio.project=buildbot.steps.vstudio.VisualStudio-class.html#project"><a title="buildbot.sourcestamp.SourceStamp.project
+buildbot.steps.vstudio.VisualStudio.project" class="py-name" href="#" onclick="return doclink('link-57', 'project', 'link-57');">project</a></tt><tt class="py-op">=</tt><tt class="py-name">change</tt><tt class="py-op">[</tt><tt class="py-string">"project"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">                <tt id="link-58" class="py-name" targets="Variable buildbot.sourcestamp.SourceStamp.repository=buildbot.sourcestamp.SourceStamp-class.html#repository"><a title="buildbot.sourcestamp.SourceStamp.repository" class="py-name" href="#" onclick="return doclink('link-58', 'repository', 'link-58');">repository</a></tt><tt class="py-op">=</tt><tt class="py-string">"ssh://%s@%s:%s/%s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">                    <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-59" class="py-name"><a title="twisted.spread.pb.Broker.username" class="py-name" href="#" onclick="return doclink('link-59', 'username', 'link-16');">username</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">gerritserver</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">gerritport</tt><tt class="py-op">,</tt> <tt class="py-name">change</tt><tt class="py-op">[</tt><tt class="py-string">"project"</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">                <tt id="link-60" class="py-name" targets="Variable buildbot.changes.changes.Change.branch=buildbot.changes.changes.Change-class.html#branch,Variable buildbot.sourcestamp.SourceStamp.branch=buildbot.sourcestamp.SourceStamp-class.html#branch,Variable buildbot.steps.source.oldsource.Source.branch=buildbot.steps.source.oldsource.Source-class.html#branch"><a title="buildbot.changes.changes.Change.branch
+buildbot.sourcestamp.SourceStamp.branch
+buildbot.steps.source.oldsource.Source.branch" class="py-name" href="#" onclick="return doclink('link-60', 'branch', 'link-60');">branch</a></tt><tt class="py-op">=</tt><tt class="py-name">change</tt><tt class="py-op">[</tt><tt class="py-string">"branch"</tt><tt class="py-op">]</tt><tt class="py-op">+</tt><tt class="py-string">"/"</tt><tt class="py-op">+</tt><tt class="py-name">change</tt><tt class="py-op">[</tt><tt class="py-string">"number"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">                <tt id="link-61" class="py-name" targets="Variable buildbot.changes.changes.Change.revision=buildbot.changes.changes.Change-class.html#revision,Variable buildbot.sourcestamp.SourceStamp.revision=buildbot.sourcestamp.SourceStamp-class.html#revision"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-61', 'revision', 'link-61');">revision</a></tt><tt class="py-op">=</tt><tt id="link-62" class="py-name"><a title="buildbot.status.event" class="py-name" href="#" onclick="return doclink('link-62', 'event', 'link-25');">event</a></tt><tt class="py-op">[</tt><tt class="py-string">"patchSet"</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-string">"revision"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">                <tt class="py-name">revlink</tt><tt class="py-op">=</tt><tt class="py-name">change</tt><tt class="py-op">[</tt><tt class="py-string">"url"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line">                <tt class="py-name">comments</tt><tt class="py-op">=</tt><tt class="py-name">change</tt><tt class="py-op">[</tt><tt class="py-string">"subject"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line">                <tt class="py-name">files</tt><tt class="py-op">=</tt><tt class="py-op">[</tt><tt class="py-string">"unknown"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line">                <tt id="link-63" class="py-name" targets="Variable buildbot.changes.changes.Change.category=buildbot.changes.changes.Change-class.html#category,Variable buildbot.status.builder.BuilderStatus.category=buildbot.status.builder.BuilderStatus-class.html#category"><a title="buildbot.changes.changes.Change.category
+buildbot.status.builder.BuilderStatus.category" class="py-name" href="#" onclick="return doclink('link-63', 'category', 'link-63');">category</a></tt><tt class="py-op">=</tt><tt id="link-64" class="py-name"><a title="buildbot.status.event" class="py-name" href="#" onclick="return doclink('link-64', 'event', 'link-25');">event</a></tt><tt class="py-op">[</tt><tt class="py-string">"type"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line">                <tt id="link-65" class="py-name"><a title="buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-65', 'properties', 'link-46');">properties</a></tt><tt class="py-op">=</tt><tt id="link-66" class="py-name"><a title="buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-66', 'properties', 'link-46');">properties</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="GerritChangeSource.eventReceived_ref_updated"></a><div id="GerritChangeSource.eventReceived_ref_updated-def"><a name="L137"></a><tt class="py-lineno">137</tt> <a class="py-toggle" href="#" id="GerritChangeSource.eventReceived_ref_updated-toggle" onclick="return toggle('GerritChangeSource.eventReceived_ref_updated');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.gerritchangesource.GerritChangeSource-class.html#eventReceived_ref_updated">eventReceived_ref_updated</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">properties</tt><tt class="py-op">,</tt> <tt class="py-param">event</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GerritChangeSource.eventReceived_ref_updated-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="GerritChangeSource.eventReceived_ref_updated-expanded"><a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line">        <tt class="py-name">ref</tt> <tt class="py-op">=</tt> <tt id="link-67" class="py-name"><a title="buildbot.status.event" class="py-name" href="#" onclick="return doclink('link-67', 'event', 'link-25');">event</a></tt><tt class="py-op">[</tt><tt class="py-string">"refUpdate"</tt><tt class="py-op">]</tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line">        <tt class="py-name">author</tt> <tt class="py-op">=</tt> <tt class="py-string">"gerrit"</tt> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line"> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-string">"submitter"</tt> <tt class="py-keyword">in</tt> <tt id="link-68" class="py-name"><a title="buildbot.status.event" class="py-name" href="#" onclick="return doclink('link-68', 'event', 'link-25');">event</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line">            <tt class="py-name">author</tt><tt class="py-op">=</tt><tt class="py-string">"%s &lt;%s&gt;"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt id="link-69" class="py-name"><a title="buildbot.status.event" class="py-name" href="#" onclick="return doclink('link-69', 'event', 'link-25');">event</a></tt><tt class="py-op">[</tt><tt class="py-string">"submitter"</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-string">"name"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt id="link-70" class="py-name"><a title="buildbot.status.event" class="py-name" href="#" onclick="return doclink('link-70', 'event', 'link-25');">event</a></tt><tt class="py-op">[</tt><tt class="py-string">"submitter"</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-string">"email"</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line"> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-71" class="py-name"><a title="buildbot.changes.gerritchangesource.GerritChangeSource.addChange
+buildbot.db.changes.ChangesConnectorComponent.addChange
+buildbot.interfaces.IControl.addChange
+buildbot.master.BuildMaster.addChange
+buildbot.master.Control.addChange" class="py-name" href="#" onclick="return doclink('link-71', 'addChange', 'link-52');">addChange</a></tt><tt class="py-op">(</tt><tt class="py-name">dict</tt><tt class="py-op">(</tt> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line">                <tt class="py-name">author</tt><tt class="py-op">=</tt><tt class="py-name">author</tt><tt class="py-op">,</tt> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line">                <tt id="link-72" class="py-name"><a title="buildbot.sourcestamp.SourceStamp.project
+buildbot.steps.vstudio.VisualStudio.project" class="py-name" href="#" onclick="return doclink('link-72', 'project', 'link-57');">project</a></tt><tt class="py-op">=</tt><tt class="py-name">ref</tt><tt class="py-op">[</tt><tt class="py-string">"project"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line">                <tt id="link-73" class="py-name"><a title="buildbot.sourcestamp.SourceStamp.repository" class="py-name" href="#" onclick="return doclink('link-73', 'repository', 'link-58');">repository</a></tt><tt class="py-op">=</tt><tt class="py-string">"ssh://%s@%s:%s/%s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt> </tt>
+<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line">                    <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-74" class="py-name"><a title="twisted.spread.pb.Broker.username" class="py-name" href="#" onclick="return doclink('link-74', 'username', 'link-16');">username</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">gerritserver</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">gerritport</tt><tt class="py-op">,</tt> <tt class="py-name">ref</tt><tt class="py-op">[</tt><tt class="py-string">"project"</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line">                <tt id="link-75" class="py-name"><a title="buildbot.changes.changes.Change.branch
+buildbot.sourcestamp.SourceStamp.branch
+buildbot.steps.source.oldsource.Source.branch" class="py-name" href="#" onclick="return doclink('link-75', 'branch', 'link-60');">branch</a></tt><tt class="py-op">=</tt><tt class="py-name">ref</tt><tt class="py-op">[</tt><tt class="py-string">"refName"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">                <tt id="link-76" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-76', 'revision', 'link-61');">revision</a></tt><tt class="py-op">=</tt><tt class="py-name">ref</tt><tt class="py-op">[</tt><tt class="py-string">"newRev"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line">                <tt class="py-name">comments</tt><tt class="py-op">=</tt><tt class="py-string">"Gerrit: patchset(s) merged."</tt><tt class="py-op">,</tt> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line">                <tt class="py-name">files</tt><tt class="py-op">=</tt><tt class="py-op">[</tt><tt class="py-string">"unknown"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line">                <tt id="link-77" class="py-name"><a title="buildbot.changes.changes.Change.category
+buildbot.status.builder.BuilderStatus.category" class="py-name" href="#" onclick="return doclink('link-77', 'category', 'link-63');">category</a></tt><tt class="py-op">=</tt><tt id="link-78" class="py-name"><a title="buildbot.status.event" class="py-name" href="#" onclick="return doclink('link-78', 'event', 'link-25');">event</a></tt><tt class="py-op">[</tt><tt class="py-string">"type"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line">                <tt id="link-79" class="py-name"><a title="buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-79', 'properties', 'link-46');">properties</a></tt><tt class="py-op">=</tt><tt id="link-80" class="py-name"><a title="buildbot.process.properties" class="py-name" href="#" onclick="return doclink('link-80', 'properties', 'link-46');">properties</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line"> </tt>
+<a name="GerritChangeSource.streamProcessStopped"></a><div id="GerritChangeSource.streamProcessStopped-def"><a name="L156"></a><tt class="py-lineno">156</tt> <a class="py-toggle" href="#" id="GerritChangeSource.streamProcessStopped-toggle" onclick="return toggle('GerritChangeSource.streamProcessStopped');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.gerritchangesource.GerritChangeSource-class.html#streamProcessStopped">streamProcessStopped</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GerritChangeSource.streamProcessStopped-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="GerritChangeSource.streamProcessStopped-expanded"><a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-81" class="py-name"><a title="buildbot.process" class="py-name" href="#" onclick="return doclink('link-81', 'process', 'link-18');">process</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line"> </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line">        <tt class="py-comment"># if the service is stopped, don't try to restart the process</tt> </tt>
+<a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">wantProcess</tt><tt class="py-op">:</tt> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line">            <tt id="link-82" class="py-name"><a title="buildbot.process.metrics.MetricEvent.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-82', 'log', 'link-10');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">"service is not running; not reconnecting"</tt><tt class="py-op">)</tt> </tt>
+<a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> </tt>
+<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line"> </tt>
+<a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line">        <tt id="link-83" class="py-name" targets="Method buildbot.schedulers.timed.Timed.now()=buildbot.schedulers.timed.Timed-class.html#now,Function buildbot.util.now()=buildbot.util-module.html#now,Function buildslave.util.now()=buildslave.util-module.html#now"><a title="buildbot.schedulers.timed.Timed.now
+buildbot.util.now
+buildslave.util.now" class="py-name" href="#" onclick="return doclink('link-83', 'now', 'link-83');">now</a></tt> <tt class="py-op">=</tt> <tt id="link-84" class="py-name"><a title="buildbot.util
+buildslave.util" class="py-name" href="#" onclick="return doclink('link-84', 'util', 'link-5');">util</a></tt><tt class="py-op">.</tt><tt id="link-85" class="py-name"><a title="buildbot.schedulers.timed.Timed.now
+buildbot.util.now
+buildslave.util.now" class="py-name" href="#" onclick="return doclink('link-85', 'now', 'link-83');">now</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt id="link-86" class="py-name"><a title="buildbot.schedulers.timed.Timed.now
+buildbot.util.now
+buildslave.util.now" class="py-name" href="#" onclick="return doclink('link-86', 'now', 'link-83');">now</a></tt> <tt class="py-op">-</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">lastStreamProcessStart</tt> <tt class="py-op">&lt;</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-87" class="py-name"><a title="buildbot.changes.gerritchangesource.GerritChangeSource.STREAM_GOOD_CONNECTION_TIME" class="py-name" href="#" onclick="return doclink('link-87', 'STREAM_GOOD_CONNECTION_TIME', 'link-12');">STREAM_GOOD_CONNECTION_TIME</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line">            <tt class="py-comment"># bad startup; start the stream process again after a timeout, and then</tt> </tt>
+<a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line">            <tt class="py-comment"># increase the timeout</tt> </tt>
+<a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line">            <tt id="link-88" class="py-name"><a title="buildbot.process.metrics.MetricEvent.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-88', 'log', 'link-10');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">"'gerrit stream-events' failed; restarting after %ds"</tt> <tt class="py-op">%</tt> <tt class="py-name">round</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">streamProcessTimeout</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line">            <tt id="link-89" class="py-name"><a title="buildbot.steps.python_twisted.Trial.reactor" class="py-name" href="#" onclick="return doclink('link-89', 'reactor', 'link-0');">reactor</a></tt><tt class="py-op">.</tt><tt class="py-name">callLater</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">streamProcessTimeout</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-90" class="py-name" targets="Method buildbot.changes.gerritchangesource.GerritChangeSource.startStreamProcess()=buildbot.changes.gerritchangesource.GerritChangeSource-class.html#startStreamProcess"><a title="buildbot.changes.gerritchangesource.GerritChangeSource.startStreamProcess" class="py-name" href="#" onclick="return doclink('link-90', 'startStreamProcess', 'link-90');">startStreamProcess</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">streamProcessTimeout</tt> <tt class="py-op">*=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-91" class="py-name"><a title="buildbot.changes.gerritchangesource.GerritChangeSource.STREAM_BACKOFF_EXPONENT" class="py-name" href="#" onclick="return doclink('link-91', 'STREAM_BACKOFF_EXPONENT', 'link-14');">STREAM_BACKOFF_EXPONENT</a></tt> </tt>
+<a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">streamProcessTimeout</tt> <tt class="py-op">&gt;</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-92" class="py-name"><a title="buildbot.changes.gerritchangesource.GerritChangeSource.STREAM_BACKOFF_MAX" class="py-name" href="#" onclick="return doclink('link-92', 'STREAM_BACKOFF_MAX', 'link-15');">STREAM_BACKOFF_MAX</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">streamProcessTimeout</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-93" class="py-name"><a title="buildbot.changes.gerritchangesource.GerritChangeSource.STREAM_BACKOFF_MAX" class="py-name" href="#" onclick="return doclink('link-93', 'STREAM_BACKOFF_MAX', 'link-15');">STREAM_BACKOFF_MAX</a></tt> </tt>
+<a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line">            <tt class="py-comment"># good startup, but lost connection; restart immediately, and set the timeout</tt> </tt>
+<a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line">            <tt class="py-comment"># to its minimum</tt> </tt>
+<a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-94" class="py-name"><a title="buildbot.changes.gerritchangesource.GerritChangeSource.startStreamProcess" class="py-name" href="#" onclick="return doclink('link-94', 'startStreamProcess', 'link-90');">startStreamProcess</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">streamProcessTimeout</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-95" class="py-name"><a title="buildbot.changes.gerritchangesource.GerritChangeSource.STREAM_BACKOFF_MIN" class="py-name" href="#" onclick="return doclink('link-95', 'STREAM_BACKOFF_MIN', 'link-13');">STREAM_BACKOFF_MIN</a></tt> </tt>
+</div><a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line"> </tt>
+<a name="GerritChangeSource.startStreamProcess"></a><div id="GerritChangeSource.startStreamProcess-def"><a name="L179"></a><tt class="py-lineno">179</tt> <a class="py-toggle" href="#" id="GerritChangeSource.startStreamProcess-toggle" onclick="return toggle('GerritChangeSource.startStreamProcess');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.gerritchangesource.GerritChangeSource-class.html#startStreamProcess">startStreamProcess</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GerritChangeSource.startStreamProcess-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="GerritChangeSource.startStreamProcess-expanded"><a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line">        <tt id="link-96" class="py-name"><a title="buildbot.process.metrics.MetricEvent.log
+buildbot.status.words.IrcStatusBot.log" class="py-name" href="#" onclick="return doclink('link-96', 'log', 'link-10');">log</a></tt><tt class="py-op">.</tt><tt class="py-name">msg</tt><tt class="py-op">(</tt><tt class="py-string">"starting 'gerrit stream-events'"</tt><tt class="py-op">)</tt> </tt>
+<a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">lastStreamProcessStart</tt> <tt class="py-op">=</tt> <tt id="link-97" class="py-name"><a title="buildbot.util
+buildslave.util" class="py-name" href="#" onclick="return doclink('link-97', 'util', 'link-5');">util</a></tt><tt class="py-op">.</tt><tt id="link-98" class="py-name"><a title="buildbot.schedulers.timed.Timed.now
+buildbot.util.now
+buildslave.util.now" class="py-name" href="#" onclick="return doclink('link-98', 'now', 'link-83');">now</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line">        <tt class="py-name">args</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-99" class="py-name"><a title="twisted.spread.pb.Broker.username" class="py-name" href="#" onclick="return doclink('link-99', 'username', 'link-16');">username</a></tt><tt class="py-op">+</tt><tt class="py-string">"@"</tt><tt class="py-op">+</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">gerritserver</tt><tt class="py-op">,</tt><tt class="py-string">"-p"</tt><tt class="py-op">,</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">gerritport</tt><tt class="py-op">)</tt><tt class="py-op">]</tt> </tt>
+<a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">identity_file</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line">          <tt class="py-name">args</tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt> <tt class="py-op">+</tt> <tt class="py-op">[</tt> <tt class="py-string">'-i'</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">identity_file</tt> <tt class="py-op">]</tt> </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-100" class="py-name"><a title="buildbot.process" class="py-name" href="#" onclick="return doclink('link-100', 'process', 'link-18');">process</a></tt> <tt class="py-op">=</tt> <tt id="link-101" class="py-name"><a title="buildbot.steps.python_twisted.Trial.reactor" class="py-name" href="#" onclick="return doclink('link-101', 'reactor', 'link-0');">reactor</a></tt><tt class="py-op">.</tt><tt class="py-name">spawnProcess</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-102" class="py-name" targets="Class buildbot.changes.gerritchangesource.GerritChangeSource.LocalPP=buildbot.changes.gerritchangesource.GerritChangeSource.LocalPP-class.html,Class buildbot.status.status_gerrit.GerritStatusPush.LocalPP=buildbot.status.status_gerrit.GerritStatusPush.LocalPP-class.html,Class buildbot.steps.master.MasterShellCommand.LocalPP=buildbot.steps.master.MasterShellCommand.LocalPP-class.html"><a title="buildbot.changes.gerritchangesource.GerritChangeSource.LocalPP
+buildbot.status.status_gerrit.GerritStatusPush.LocalPP
+buildbot.steps.master.MasterShellCommand.LocalPP" class="py-name" href="#" onclick="return doclink('link-102', 'LocalPP', 'link-102');">LocalPP</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-string">"ssh"</tt><tt class="py-op">,</tt> </tt>
+<a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line">          <tt class="py-op">[</tt> <tt class="py-string">"ssh"</tt> <tt class="py-op">]</tt> <tt class="py-op">+</tt> <tt class="py-name">args</tt> <tt class="py-op">+</tt> <tt class="py-op">[</tt> <tt class="py-string">"gerrit"</tt><tt class="py-op">,</tt> <tt class="py-string">"stream-events"</tt> <tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line"> </tt>
+<a name="GerritChangeSource.startService"></a><div id="GerritChangeSource.startService-def"><a name="L188"></a><tt class="py-lineno">188</tt> <a class="py-toggle" href="#" id="GerritChangeSource.startService-toggle" onclick="return toggle('GerritChangeSource.startService');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.gerritchangesource.GerritChangeSource-class.html#startService">startService</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GerritChangeSource.startService-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="GerritChangeSource.startService-expanded"><a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">wantProcess</tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-103" class="py-name"><a title="buildbot.changes.gerritchangesource.GerritChangeSource.startStreamProcess" class="py-name" href="#" onclick="return doclink('link-103', 'startStreamProcess', 'link-90');">startStreamProcess</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line"> </tt>
+<a name="GerritChangeSource.stopService"></a><div id="GerritChangeSource.stopService-def"><a name="L192"></a><tt class="py-lineno">192</tt> <a class="py-toggle" href="#" id="GerritChangeSource.stopService-toggle" onclick="return toggle('GerritChangeSource.stopService');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.gerritchangesource.GerritChangeSource-class.html#stopService">stopService</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GerritChangeSource.stopService-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="GerritChangeSource.stopService-expanded"><a name="L193"></a><tt class="py-lineno">193</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">wantProcess</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-104" class="py-name"><a title="buildbot.process" class="py-name" href="#" onclick="return doclink('link-104', 'process', 'link-18');">process</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-105" class="py-name"><a title="buildbot.process" class="py-name" href="#" onclick="return doclink('link-105', 'process', 'link-18');">process</a></tt><tt class="py-op">.</tt><tt class="py-name">signalProcess</tt><tt class="py-op">(</tt><tt class="py-string">"KILL"</tt><tt class="py-op">)</tt> </tt>
+<a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line">        <tt class="py-comment"># TODO: if this occurs while the process is restarting, some exceptions may</tt> </tt>
+<a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line">        <tt class="py-comment"># be logged, although things will settle down normally</tt> </tt>
+<a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-106" class="py-name"><a title="buildbot.changes.base
+buildbot.clients.base
+buildbot.db.base
+buildbot.process.base
+buildbot.schedulers.base
+buildbot.status.base
+buildbot.status.web.base
+buildbot.status.web.hooks.base
+buildslave.commands.base" class="py-name" href="#" onclick="return doclink('link-106', 'base', 'link-3');">base</a></tt><tt class="py-op">.</tt><tt id="link-107" class="py-name" targets="Class buildbot.changes.base.ChangeSource=buildbot.changes.base.ChangeSource-class.html"><a title="buildbot.changes.base.ChangeSource" class="py-name" href="#" onclick="return doclink('link-107', 'ChangeSource', 'link-107');">ChangeSource</a></tt><tt class="py-op">.</tt><tt id="link-108" class="py-name" targets="Method buildbot.buildslave.AbstractBuildSlave.stopService()=buildbot.buildslave.AbstractBuildSlave-class.html#stopService,Method buildbot.buildslave.AbstractLatentBuildSlave.stopService()=buildbot.buildslave.AbstractLatentBuildSlave-class.html#stopService,Method buildbot.changes.base.PollingChangeSource.stopService()=buildbot.changes.base.PollingChangeSource-class.html#stopService,Method buildbot.changes.gerritchangesource.GerritChangeSource.stopService()=buildbot.changes.gerritchangesource.GerritChangeSource-class.html#stopService,Method buildbot.changes.pb.PBChangeSource.stopService()=buildbot.changes.pb.PBChangeSource-class.html#stopService,Method buildbot.master.BuildMaster.stopService()=buildbot.master.BuildMaster-class.html#stopService,Method buildbot.pbmanager.Dispatcher.stopService()=buildbot.pbmanager.Dispatcher-class.html#stopService,Method buildbot.process.botmaster.BotMaster.stopService()=buildbot.process.botmaster.BotMaster-class.html#stopService,Method buildbot.process.botmaster.BuildRequestDistributor.stopService()=buildbot.process.botmaster.BuildRequestDistributor-class.html#stopService,Method buildbot.process.builder.Builder.stopService()=buildbot.process.builder.Builder-class.html#stopService,Method buildbot.process.debug.DebugServices.stopService()=buildbot.process.debug.DebugServices-class.html#stopService,Method buildbot.process.metrics.MetricLogObserver.stopService()=buildbot.process.metrics.MetricLogObserver-class.html#stopService,Method buildbot.process.users.manual.CommandlineUserManager.stopService()=buildbot.process.users.manual.CommandlineUserManager-class.html#stopService,Method buildbot.process.users.manual.UsersBase.stopService()=buildbot.process.users.manual.UsersBase-class.html#stopService,Method buildbot.schedulers.base.BaseScheduler.stopService()=buildbot.schedulers.base.BaseScheduler-class.html#stopService,Method buildbot.schedulers.basic.BaseBasicScheduler.stopService()=buildbot.schedulers.basic.BaseBasicScheduler-class.html#stopService,Method buildbot.schedulers.dependent.Dependent.stopService()=buildbot.schedulers.dependent.Dependent-class.html#stopService,Method buildbot.schedulers.forcesched.ForceScheduler.stopService()=buildbot.schedulers.forcesched.ForceScheduler-class.html#stopService,Method buildbot.schedulers.timed.Timed.stopService()=buildbot.schedulers.timed.Timed-class.html#stopService,Method buildbot.schedulers.triggerable.Triggerable.stopService()=buildbot.schedulers.triggerable.Triggerable-class.html#stopService,Method buildbot.schedulers.trysched.Try_Userpass.stopService()=buildbot.schedulers.trysched.Try_Userpass-class.html#stopService,Method buildbot.status.mail.MailNotifier.stopService()=buildbot.status.mail.MailNotifier-class.html#stopService,Method buildbot.status.master.Status.stopService()=buildbot.status.master.Status-class.html#stopService,Method buildbot.status.status_push.StatusPush.stopService()=buildbot.status.status_push.StatusPush-class.html#stopService,Method buildbot.status.web.baseweb.WebStatus.stopService()=buildbot.status.web.baseweb.WebStatus-class.html#stopService,Method buildbot.status.words.IRC.stopService()=buildbot.status.words.IRC-class.html#stopService,Method buildbot.util.loop.LoopBase.stopService()=buildbot.util.loop.LoopBase-class.html#stopService,Method buildbot.util.maildir.MaildirService.stopService()=buildbot.util.maildir.MaildirService-class.html#stopService,Method buildslave.bot.BuildSlave.stopService()=buildslave.bot.BuildSlave-class.html#stopService,Method buildslave.bot.SlaveBuilder.stopService()=buildslave.bot.SlaveBuilder-class.html#stopService"><a title="buildbot.buildslave.AbstractBuildSlave.stopService
+buildbot.buildslave.AbstractLatentBuildSlave.stopService
+buildbot.changes.base.PollingChangeSource.stopService
+buildbot.changes.gerritchangesource.GerritChangeSource.stopService
+buildbot.changes.pb.PBChangeSource.stopService
+buildbot.master.BuildMaster.stopService
+buildbot.pbmanager.Dispatcher.stopService
+buildbot.process.botmaster.BotMaster.stopService
+buildbot.process.botmaster.BuildRequestDistributor.stopService
+buildbot.process.builder.Builder.stopService
+buildbot.process.debug.DebugServices.stopService
+buildbot.process.metrics.MetricLogObserver.stopService
+buildbot.process.users.manual.CommandlineUserManager.stopService
+buildbot.process.users.manual.UsersBase.stopService
+buildbot.schedulers.base.BaseScheduler.stopService
+buildbot.schedulers.basic.BaseBasicScheduler.stopService
+buildbot.schedulers.dependent.Dependent.stopService
+buildbot.schedulers.forcesched.ForceScheduler.stopService
+buildbot.schedulers.timed.Timed.stopService
+buildbot.schedulers.triggerable.Triggerable.stopService
+buildbot.schedulers.trysched.Try_Userpass.stopService
+buildbot.status.mail.MailNotifier.stopService
+buildbot.status.master.Status.stopService
+buildbot.status.status_push.StatusPush.stopService
+buildbot.status.web.baseweb.WebStatus.stopService
+buildbot.status.words.IRC.stopService
+buildbot.util.loop.LoopBase.stopService
+buildbot.util.maildir.MaildirService.stopService
+buildslave.bot.BuildSlave.stopService
+buildslave.bot.SlaveBuilder.stopService" class="py-name" href="#" onclick="return doclink('link-108', 'stopService', 'link-108');">stopService</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line"> </tt>
+<a name="GerritChangeSource.describe"></a><div id="GerritChangeSource.describe-def"><a name="L200"></a><tt class="py-lineno">200</tt> <a class="py-toggle" href="#" id="GerritChangeSource.describe-toggle" onclick="return toggle('GerritChangeSource.describe');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.changes.gerritchangesource.GerritChangeSource-class.html#describe">describe</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GerritChangeSource.describe-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="GerritChangeSource.describe-expanded"><a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line">        <tt id="link-109" class="py-name" targets="Package buildbot.status=buildbot.status-module.html,Variable buildbot.status.web.feeds.FeedResource.status=buildbot.status.web.feeds.FeedResource-class.html#status,Variable buildbot.status.web.grid.GridStatusResource.status=buildbot.status.web.grid.GridStatusResource-class.html#status,Variable buildbot.status.web.grid.TransposedGridStatusResource.status=buildbot.status.web.grid.TransposedGridStatusResource-class.html#status,Variable buildbot.status.words.IrcStatusFactory.status=buildbot.status.words.IrcStatusFactory-class.html#status"><a title="buildbot.status
+buildbot.status.web.feeds.FeedResource.status
+buildbot.status.web.grid.GridStatusResource.status
+buildbot.status.web.grid.TransposedGridStatusResource.status
+buildbot.status.words.IrcStatusFactory.status" class="py-name" href="#" onclick="return doclink('link-109', 'status', 'link-109');">status</a></tt> <tt class="py-op">=</tt> <tt class="py-string">""</tt> </tt>
+<a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-110" class="py-name"><a title="buildbot.process" class="py-name" href="#" onclick="return doclink('link-110', 'process', 'link-18');">process</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line">            <tt id="link-111" class="py-name"><a title="buildbot.status
+buildbot.status.web.feeds.FeedResource.status
+buildbot.status.web.grid.GridStatusResource.status
+buildbot.status.web.grid.TransposedGridStatusResource.status
+buildbot.status.words.IrcStatusFactory.status" class="py-name" href="#" onclick="return doclink('link-111', 'status', 'link-109');">status</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"[NOT CONNECTED - check log]"</tt> </tt>
+<a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line">        <tt class="py-name">str</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-string">'GerritChangeSource watching the remote Gerrit repository %s@%s %s'</tt> <tt class="py-op">%</tt> </tt>
+<a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line">                            <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-112" class="py-name"><a title="twisted.spread.pb.Broker.username" class="py-name" href="#" onclick="return doclink('link-112', 'username', 'link-16');">username</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">gerritserver</tt><tt class="py-op">,</tt> <tt id="link-113" class="py-name"><a title="buildbot.status
+buildbot.status.web.feeds.FeedResource.status
+buildbot.status.web.grid.GridStatusResource.status
+buildbot.status.web.grid.TransposedGridStatusResource.status
+buildbot.status.words.IrcStatusFactory.status" class="py-name" href="#" onclick="return doclink('link-113', 'status', 'link-109');">status</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L206"></a><tt class="py-lineno">206</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">str</tt> </tt>
+</div></div><a name="L207"></a><tt class="py-lineno">207</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.6</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Sun Mar 11 15:30:12 2012
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
