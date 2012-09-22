@@ -1,0 +1,265 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>First Run &mdash; Buildbot 0.8.7 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.8.7',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/buildbot.ico"/>
+    <link rel="top" title="Buildbot 0.8.7 documentation" href="../index.html" />
+    <link rel="up" title="Buildbot Tutorial" href="index.html" />
+    <link rel="next" title="A Quick Tour" href="tour.html" />
+    <link rel="prev" title="Buildbot Tutorial" href="index.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+  <body>
+    <div class="header-wrapper">
+      <div class="header">
+          <p class="logo"><a href="../index.html">
+            <img class="logo" src="../_static/header-text-transparent.png" alt="Logo"/>
+          </a></p>
+        <div class="headertitle"><a
+          href="../index.html">Buildbot 0.8.7 documentation</a></div>
+        <div class="rel">
+          <a href="index.html" title="Buildbot Tutorial"
+             accesskey="P">previous</a> |
+          <a href="tour.html" title="A Quick Tour"
+             accesskey="N">next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="first-run">
+<span id="first-run-label"></span><h1>First Run<a class="headerlink" href="#first-run" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="goal">
+<h2>Goal<a class="headerlink" href="#goal" title="Permalink to this headline">¶</a></h2>
+<p>This tutorial will take you from zero to running your first buildbot master
+and slave as quickly as possible, without changing the default configuration.</p>
+<p>This tutorial is all about instant gratification and the five minute
+experience: in five minutes we want to convince you that this project Works,
+and that you should seriously consider spending some more time learning
+the system.  In this tutorial no configuration or code changes are done.</p>
+<p>This tutorial assumes that you are running on Unix, but might be adaptable
+easily to Windows.</p>
+<p><em>For the quickest way through, you should be able to cut and paste each shell
+block from this tutorial directly into a terminal.</em></p>
+</div>
+<div class="section" id="getting-the-code">
+<h2>Getting the code<a class="headerlink" href="#getting-the-code" title="Permalink to this headline">¶</a></h2>
+<p>There are many ways to get the code on your machine.
+For this tutorial, we will use easy_install to install and run buildbot.
+While this isn't the preferred method to install buildbot, it is the simplest
+one to use for the purposes of this tutorial because it should work on all
+systems.  (The preferred method would be to install buildbot from packages
+of your distribution.)</p>
+<dl class="docutils">
+<dt>To make this work, you will need the following installed:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference external" href="http://www.python.org/">python</a> and the development packages for it</li>
+<li><a class="reference external" href="http://pypi.python.org/pypi/virtualenv/">virtualenv</a></li>
+<li><a class="reference external" href="http://git-scm.com/">git</a></li>
+</ul>
+</dd>
+</dl>
+<p>Preferably, use your package installer to install these.</p>
+<p>You will also need a working Internet connection, as virtualenv and
+easy_install will need to download other projects from the Internet.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Buildbot does not require root access.  Run the commands in this tutorial
+as a normal, unpriviledged user.</p>
+</div>
+<p>Let's dive in by typing at the terminal:</p>
+<div class="highlight-python"><pre>cd
+mkdir -p tmp/buildbot
+cd tmp/buildbot
+virtualenv --no-site-packages sandbox
+source sandbox/bin/activate
+easy_install buildbot</pre>
+</div>
+</div>
+<div class="section" id="creating-a-master">
+<h2>Creating a master<a class="headerlink" href="#creating-a-master" title="Permalink to this headline">¶</a></h2>
+<p>At the terminal, type:</p>
+<div class="highlight-python"><pre>buildbot create-master master
+mv master/master.cfg.sample master/master.cfg</pre>
+</div>
+<p>Now start it:</p>
+<div class="highlight-python"><pre>buildbot start master
+tail -f master/twistd.log</pre>
+</div>
+<p>You will now see all of the log information from the master in this terminal.
+You should see lines like this:</p>
+<div class="highlight-python"><pre>2011-12-04 10:04:40-0600 [-] Starting factory &lt;buildbot.status.web.baseweb.RotateLogSite instance at 0x2e36638&gt;
+2011-12-04 10:04:40-0600 [-] Setting up http.log rotating 10 files of 10000000 bytes each
+2011-12-04 10:04:40-0600 [-] WebStatus using (/home/dustin/tmp/buildbot/master/public_html)
+2011-12-04 10:04:40-0600 [-] removing 0 old schedulers, updating 0, and adding 1
+2011-12-04 10:04:40-0600 [-] adding 1 new changesources, removing 0
+2011-12-04 10:04:40-0600 [-] gitpoller: using workdir '/home/dustin/tmp/buildbot/master/gitpoller-workdir'
+2011-12-04 10:04:40-0600 [-] gitpoller: initializing working dir from git://github.com/buildbot/pyflakes.git
+2011-12-04 10:04:40-0600 [-] configuration update complete
+2011-12-04 10:04:41-0600 [-] gitpoller: checking out master
+2011-12-04 10:04:41-0600 [-] gitpoller: finished initializing working dir from git://github.com/buildbot/pyflakes.git at rev 1a4af6ec1dbb724b884ea14f439b272f30439e4d</pre>
+</div>
+</div>
+<div class="section" id="creating-a-slave">
+<h2>Creating a slave<a class="headerlink" href="#creating-a-slave" title="Permalink to this headline">¶</a></h2>
+<p>Open a new terminal, and first enter the same sandbox you created before:</p>
+<div class="highlight-python"><pre>cd
+cd tmp/buildbot
+source sandbox/bin/activate</pre>
+</div>
+<p>Install buildslave command:</p>
+<div class="highlight-python"><pre>easy_install buildbot-slave</pre>
+</div>
+<p>Now, create the slave:</p>
+<div class="highlight-python"><pre>buildslave create-slave slave localhost:9989 example-slave pass</pre>
+</div>
+<p>The user:host pair, username, and password should be the same as the ones in
+master.cfg; verify this is the case by looking at the section for <cite>c['slaves']</cite>
+and <cite>c['slavePortnum']</cite>:</p>
+<div class="highlight-python"><pre>cat master/master.cfg</pre>
+</div>
+<p>Now, start the slave:</p>
+<div class="highlight-python"><pre>buildslave start slave</pre>
+</div>
+<p>Check the slave's log:</p>
+<div class="highlight-python"><pre>tail -f slave/twistd.log</pre>
+</div>
+<p>You should see lines like the following at the end of the worker log:</p>
+<div class="highlight-python"><pre>2009-07-29 20:59:18+0200 [Broker,client] message from master: attached
+2009-07-29 20:59:18+0200 [Broker,client] SlaveBuilder.remote_print(buildbot-full): message from master: attached
+2009-07-29 20:59:18+0200 [Broker,client] sending application-level keepalives every 600 seconds</pre>
+</div>
+<p>Meanwhile, in the other terminal, in the master log, if you tail the log you should see lines like this:</p>
+<div class="highlight-python"><pre>2011-03-13 18:46:58-0700 [Broker,1,127.0.0.1] slave 'example-slave' attaching from IPv4Address(TCP, '127.0.0.1', 41306)
+2011-03-13 18:46:58-0700 [Broker,1,127.0.0.1] Got slaveinfo from 'example-slave'
+2011-03-13 18:46:58-0700 [Broker,1,127.0.0.1] bot attached
+2011-03-13 18:46:58-0700 [Broker,1,127.0.0.1] Buildslave example-slave attached to runtests</pre>
+</div>
+<p>You should now be able to go to <a class="reference external" href="http://localhost:8010">http://localhost:8010</a>, where you will see
+a web page similar to:</p>
+<img alt="index page" src="../_images/index.png" />
+<p>Click on the
+<a class="reference external" href="http://localhost:8010/waterfall">Waterfall Display link</a>
+and you get this:</p>
+<img alt="empty waterfall." src="../_images/waterfall-empty.png" />
+<p>That's the end of the first tutorial.  A bit underwhelming, you say? Well, that
+was the point! We just wanted to get you to dip your toes in the water.  It's
+easy to take your first steps, but this is about as far as we can go without
+touching the configuration.</p>
+<p>You've got a taste now, but you're probably curious for more.  Let's step it
+up a little in the second tutorial by changing the configuration and doing
+an actual build. Continue on to <a class="reference internal" href="tour.html#quick-tour-label"><em>A Quick Tour</em></a></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+<h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Buildbot Tutorial</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="">First Run</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tour.html">A Quick Tour</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/index.html">Buildbot Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">Release Notes for Buildbot 0.8.7</a></li>
+</ul>
+
+          <h3 style="margin-top: 1.5em;">Search</h3>
+          <form class="search" action="../search.html" method="get">
+            <input type="text" name="q" />
+            <input type="submit" value="Go" />
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+          </form>
+          <p class="searchtip" style="font-size: 90%">
+            Enter search terms or a module, class or function name.
+          </p>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <a href="index.html" title="Buildbot Tutorial"
+             >previous</a> |
+          <a href="tour.html" title="A Quick Tour"
+             >next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             >index</a>
+            <br/>
+            <a href="../_sources/tutorial/firstrun.txt"
+               rel="nofollow">Show Source</a>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer">
+        &copy; Copyright Buildbot Team Members.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

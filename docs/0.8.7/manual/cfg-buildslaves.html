@@ -1,0 +1,580 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Buildslaves &mdash; Buildbot 0.8.7 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.8.7',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/buildbot.ico"/>
+    <link rel="top" title="Buildbot 0.8.7 documentation" href="../index.html" />
+    <link rel="up" title="Configuration" href="configuration.html" />
+    <link rel="next" title="Builder Configuration" href="cfg-builders.html" />
+    <link rel="prev" title="Schedulers" href="cfg-schedulers.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+  <body>
+    <div class="header-wrapper">
+      <div class="header">
+          <p class="logo"><a href="../index.html">
+            <img class="logo" src="../_static/header-text-transparent.png" alt="Logo"/>
+          </a></p>
+        <div class="headertitle"><a
+          href="../index.html">Buildbot 0.8.7 documentation</a></div>
+        <div class="rel">
+          <a href="cfg-schedulers.html" title="Schedulers"
+             accesskey="P">previous</a> |
+          <a href="cfg-builders.html" title="Builder Configuration"
+             accesskey="N">next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="buildslaves"></span><div class="section" id="cfg-slaves">
+<span id="id1"></span><h1>Buildslaves<a class="headerlink" href="#cfg-slaves" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="#cfg-slaves" title="slaves"><tt class="xref bb bb-cfg docutils literal"><span class="pre">slaves</span></tt></a> configuration key specifies a list of known buildslaves.
+In the common case, each buildslave is defined by an instance of the
+<tt class="xref py py-class docutils literal"><span class="pre">BuildSlave</span></tt> class.  It represents a standard, manually started machine
+that will try to connect to the buildbot master as a slave.  Buildbot also
+supports &quot;on-demand&quot;, or latent, buildslaves, which allow buildbot to
+dynamically start and stop buildslave instances.</p>
+<p>A <tt class="xref py py-class docutils literal"><span class="pre">BuildSlave</span></tt> instance is created with a <tt class="docutils literal"><span class="pre">slavename</span></tt> and a
+<tt class="docutils literal"><span class="pre">slavepassword</span></tt>. These are the same two values that need to be provided to
+the buildslave administrator when they create the buildslave.</p>
+<p>The slavename must be unique, of course. The password exists to
+prevent evildoers from interfering with the buildbot by inserting
+their own (broken) buildslaves into the system and thus displacing the
+real ones.</p>
+<p>Buildslaves with an unrecognized slavename or a non-matching password will be
+rejected when they attempt to connect, and a message describing the problem
+will be written to the log file (see <a class="reference internal" href="installation.html#logfiles"><em>Logfiles</em></a>).</p>
+<p>A configuration for two slaves would look like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.buildslave</span> <span class="kn">import</span> <span class="n">BuildSlave</span>
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;slaves&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">BuildSlave</span><span class="p">(</span><span class="s">&#39;bot-solaris&#39;</span><span class="p">,</span> <span class="s">&#39;solarispasswd&#39;</span><span class="p">),</span>
+    <span class="n">BuildSlave</span><span class="p">(</span><span class="s">&#39;bot-bsd&#39;</span><span class="p">,</span> <span class="s">&#39;bsdpasswd&#39;</span><span class="p">),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="buildslave-options">
+<h2>BuildSlave Options<a class="headerlink" href="#buildslave-options" title="Permalink to this headline">¶</a></h2>
+<p id="index-0"><tt class="xref py py-class docutils literal"><span class="pre">BuildSlave</span></tt> objects can also be created with an optional
+<tt class="docutils literal"><span class="pre">properties</span></tt> argument, a dictionary specifying properties that
+will be available to any builds performed on this slave.  For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">c</span><span class="p">[</span><span class="s">&#39;slaves&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">BuildSlave</span><span class="p">(</span><span class="s">&#39;bot-solaris&#39;</span><span class="p">,</span> <span class="s">&#39;solarispasswd&#39;</span><span class="p">,</span>
+                <span class="n">properties</span><span class="o">=</span><span class="p">{</span> <span class="s">&#39;os&#39;</span><span class="p">:</span><span class="s">&#39;solaris&#39;</span> <span class="p">}),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p id="index-1">The <tt class="xref py py-class docutils literal"><span class="pre">BuildSlave</span></tt> constructor can also take an optional
+<tt class="docutils literal"><span class="pre">max_builds</span></tt> parameter to limit the number of builds that it
+will execute simultaneously:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">c</span><span class="p">[</span><span class="s">&#39;slaves&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">BuildSlave</span><span class="p">(</span><span class="s">&quot;bot-linux&quot;</span><span class="p">,</span> <span class="s">&quot;linuxpassword&quot;</span><span class="p">,</span> <span class="n">max_builds</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="master-slave-tcp-keepalive">
+<h3>Master-Slave TCP Keepalive<a class="headerlink" href="#master-slave-tcp-keepalive" title="Permalink to this headline">¶</a></h3>
+<p>By default, the buildmaster sends a simple, non-blocking message to each slave
+every hour.  These keepalives ensure that traffic is flowing over the
+underlying TCP connection, allowing the system's network stack to detect any
+problems before a build is started.</p>
+<p>The interval can be modified by specifying the interval in seconds using the
+<tt class="docutils literal"><span class="pre">keepalive_interval</span></tt> parameter of BuildSlave:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">c</span><span class="p">[</span><span class="s">&#39;slaves&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">BuildSlave</span><span class="p">(</span><span class="s">&#39;bot-linux&#39;</span><span class="p">,</span> <span class="s">&#39;linuxpasswd&#39;</span><span class="p">,</span>
+                <span class="n">keepalive_interval</span><span class="o">=</span><span class="mi">3600</span><span class="p">),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>The interval can be set to <tt class="docutils literal"><span class="pre">None</span></tt> to disable this functionality
+altogether.</p>
+</div>
+<div class="section" id="when-buildslaves-go-missing">
+<span id="id2"></span><h3>When Buildslaves Go Missing<a class="headerlink" href="#when-buildslaves-go-missing" title="Permalink to this headline">¶</a></h3>
+<p>Sometimes, the buildslaves go away. One very common reason for this is
+when the buildslave process is started once (manually) and left
+running, but then later the machine reboots and the process is not
+automatically restarted.</p>
+<p>If you'd like to have the administrator of the buildslave (or other
+people) be notified by email when the buildslave has been missing for
+too long, just add the <tt class="docutils literal"><span class="pre">notify_on_missing=</span></tt> argument to the
+<tt class="xref py py-class docutils literal"><span class="pre">BuildSlave</span></tt> definition.  This value can be a single email
+address, or a list of addresses:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">c</span><span class="p">[</span><span class="s">&#39;slaves&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">BuildSlave</span><span class="p">(</span><span class="s">&#39;bot-solaris&#39;</span><span class="p">,</span> <span class="s">&#39;solarispasswd&#39;</span><span class="p">,</span>
+                <span class="n">notify_on_missing</span><span class="o">=</span><span class="s">&quot;bob@example.com&quot;</span><span class="p">),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>By default, this will send email when the buildslave has been
+disconnected for more than one hour. Only one email per
+connection-loss event will be sent. To change the timeout, use
+<tt class="docutils literal"><span class="pre">missing_timeout=</span></tt> and give it a number of seconds (the default
+is 3600).</p>
+<p>You can have the buildmaster send email to multiple recipients: just
+provide a list of addresses instead of a single one:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">c</span><span class="p">[</span><span class="s">&#39;slaves&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">BuildSlave</span><span class="p">(</span><span class="s">&#39;bot-solaris&#39;</span><span class="p">,</span> <span class="s">&#39;solarispasswd&#39;</span><span class="p">,</span>
+                <span class="n">notify_on_missing</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;bob@example.com&quot;</span><span class="p">,</span>
+                                    <span class="s">&quot;alice@example.org&quot;</span><span class="p">],</span>
+                <span class="n">missing_timeout</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="c"># notify after 5 minutes</span>
+    <span class="p">),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>The email sent this way will use a <tt class="xref py py-class docutils literal"><span class="pre">MailNotifier</span></tt> (see
+<a class="reference internal" href="cfg-statustargets.html#status-MailNotifier" title="MailNotifier"><tt class="xref bb bb-status docutils literal"><span class="pre">MailNotifier</span></tt></a>) status target, if one is configured. This provides a
+way for you to control the <em>from</em> address of the email, as well as the
+relayhost (aka <em>smarthost</em>) to use as an SMTP server. If no
+<tt class="xref py py-class docutils literal"><span class="pre">MailNotifier</span></tt> is configured on this buildmaster, the buildslave-missing
+emails will be sent using a default configuration.</p>
+<p>Note that if you want to have a <tt class="xref py py-class docutils literal"><span class="pre">MailNotifier</span></tt> for buildslave-missing
+emails but not for regular build emails, just create one with
+<tt class="docutils literal"><span class="pre">builders=[]</span></tt>, as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.status</span> <span class="kn">import</span> <span class="n">mail</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">mail</span><span class="o">.</span><span class="n">MailNotifier</span><span class="p">(</span><span class="n">fromaddr</span><span class="o">=</span><span class="s">&quot;buildbot@localhost&quot;</span><span class="p">,</span> <span class="n">builders</span><span class="o">=</span><span class="p">[],</span>
+                      <span class="n">relayhost</span><span class="o">=</span><span class="s">&quot;smtp.example.org&quot;</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">buildbot.buildslave</span> <span class="kn">import</span> <span class="n">BuildSlave</span>
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;slaves&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">BuildSlave</span><span class="p">(</span><span class="s">&#39;bot-solaris&#39;</span><span class="p">,</span> <span class="s">&#39;solarispasswd&#39;</span><span class="p">,</span>
+                    <span class="n">notify_on_missing</span><span class="o">=</span><span class="s">&quot;bob@example.com&quot;</span><span class="p">),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="latent-buildslaves">
+<span id="index-2"></span><span id="id3"></span><h2>Latent Buildslaves<a class="headerlink" href="#latent-buildslaves" title="Permalink to this headline">¶</a></h2>
+<p>The standard buildbot model has slaves started manually.  The previous section
+described how to configure the master for this approach.</p>
+<p>Another approach is to let the buildbot master start slaves when builds are
+ready, on-demand.  Thanks to services such as Amazon Web Services' Elastic
+Compute Cloud (&quot;AWS EC2&quot;), this is relatively easy to set up, and can be
+very useful for some situations.</p>
+<p>The buildslaves that are started on-demand are called &quot;latent&quot; buildslaves.
+As of this writing, buildbot ships with an abstract base class for building
+latent buildslaves, and a concrete implementation for AWS EC2 and for libvirt.</p>
+<div class="section" id="common-options">
+<h3>Common Options<a class="headerlink" href="#common-options" title="Permalink to this headline">¶</a></h3>
+<p>The following options are available for all latent buildslaves.</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">build_wait_timeout</span></tt></dt>
+<dd>This option allows you to specify how long a latent slave should wait after
+a build for another build before it shuts down. It defaults to 10 minutes.
+If this is set to 0 then the slave will be shut down immediately. If it is
+less than 0 it will never automatically shutdown.</dd>
+</dl>
+</div>
+<div class="section" id="amazon-web-services-elastic-compute-cloud-aws-ec2">
+<span id="index-3"></span><h3>Amazon Web Services Elastic Compute Cloud (&quot;AWS EC2&quot;)<a class="headerlink" href="#amazon-web-services-elastic-compute-cloud-aws-ec2" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference external" href="http://aws.amazon.com/ec2/">EC2</a> is a web service that allows you to
+start virtual machines in an Amazon data center. Please see their website for
+details, incuding costs. Using the AWS EC2 latent buildslaves involves getting
+an EC2 account with AWS and setting up payment; customizing one or more EC2
+machine images (&quot;AMIs&quot;) on your desired operating system(s) and publishing
+them (privately if needed); and configuring the buildbot master to know how to
+start your customized images for &quot;substantiating&quot; your latent slaves.</p>
+<div class="section" id="get-an-aws-ec2-account">
+<h4>Get an AWS EC2 Account<a class="headerlink" href="#get-an-aws-ec2-account" title="Permalink to this headline">¶</a></h4>
+<p>To start off, to use the AWS EC2 latent buildslave, you need to get an AWS
+developer account and sign up for EC2. Although Amazon often changes this
+process, these instructions should help you get started:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Go to <a class="reference external" href="http://aws.amazon.com/">http://aws.amazon.com/</a> and click to &quot;Sign Up Now&quot; for an AWS account.</li>
+<li>Once you are logged into your account, you need to sign up for EC2.
+Instructions for how to do this have changed over time because Amazon changes
+their website, so the best advice is to hunt for it. After signing up for EC2,
+it may say it wants you to upload an x.509 cert. You will need this to create
+images (see below) but it is not technically necessary for the buildbot master
+configuration.</li>
+<li>You must enter a valid credit card before you will be able to use EC2. Do that
+under 'Payment Method'.</li>
+<li>Make sure you're signed up for EC2 by going to 'Your Account'-&gt;'Account
+Activity' and verifying EC2 is listed.</li>
+</ol>
+</div></blockquote>
+</div>
+<div class="section" id="create-an-ami">
+<h4>Create an AMI<a class="headerlink" href="#create-an-ami" title="Permalink to this headline">¶</a></h4>
+<p>Now you need to create an AMI and configure the master.  You may need to
+run through this cycle a few times to get it working, but these instructions
+should get you started.</p>
+<p>Creating an AMI is out of the scope of this document.  The
+<a class="reference external" href="http://docs.amazonwebservices.com/AWSEC2/latest/GettingStartedGuide/">EC2 Getting Started Guide</a>
+is a good resource for this task.  Here are a few additional hints.</p>
+<blockquote>
+<div><ul class="simple">
+<li>When an instance of the image starts, it needs to automatically start a
+buildbot slave that connects to your master (to create a buildbot slave,
+<a class="reference internal" href="installation.html#creating-a-buildslave"><em>Creating a buildslave</em></a>; to make a daemon,
+<a class="reference internal" href="installation.html#launching-the-daemons"><em>Launching the daemons</em></a>).</li>
+<li>You may want to make an instance of the buildbot slave, configure it as a
+standard buildslave in the master (i.e., not as a latent slave), and test and
+debug it that way before you turn it into an AMI and convert to a latent
+slave in the master.</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="configure-the-master-with-an-ec2latentbuildslave">
+<h4>Configure the Master with an EC2LatentBuildSlave<a class="headerlink" href="#configure-the-master-with-an-ec2latentbuildslave" title="Permalink to this headline">¶</a></h4>
+<p>Now let's assume you have an AMI that should work with the
+EC2LatentBuildSlave.  It's now time to set up your buildbot master
+configuration.</p>
+<p>You will need some information from your AWS account: the <cite>Access Key Id</cite> and
+the <cite>Secret Access Key</cite>.  If you've built the AMI yourself, you probably
+already are familiar with these values.  If you have not, and someone has
+given you access to an AMI, these hints may help you find the necessary
+values:</p>
+<blockquote>
+<div><ul class="simple">
+<li>While logged into your AWS account, find the &quot;Access Identifiers&quot; link (either
+on the left, or via &quot;Your Account&quot; -&gt; &quot;Access Identifiers&quot;.</li>
+<li>On the page, you'll see alphanumeric values for &quot;Your Access Key Id:&quot; and
+&quot;Your Secret Access Key:&quot;. Make a note of these. Later on, we'll call the
+first one your <tt class="docutils literal"><span class="pre">identifier</span></tt> and the second one your <tt class="docutils literal"><span class="pre">secret_identifier</span></tt>.</li>
+</ul>
+</div></blockquote>
+<p>When creating an EC2LatentBuildSlave in the buildbot master configuration,
+the first three arguments are required.  The name and password are the first
+two arguments, and work the same as with normal buildslaves.  The next
+argument specifies the type of the EC2 virtual machine (available options as
+of this writing include <tt class="docutils literal"><span class="pre">m1.small</span></tt>, <tt class="docutils literal"><span class="pre">m1.large</span></tt>, <tt class="docutils literal"><span class="pre">m1.xlarge</span></tt>, <tt class="docutils literal"><span class="pre">c1.medium</span></tt>,
+and <tt class="docutils literal"><span class="pre">c1.xlarge</span></tt>; see the EC2 documentation for descriptions of these
+machines).</p>
+<p>Here is the simplest example of configuring an EC2 latent buildslave. It
+specifies all necessary remaining values explicitly in the instantiation.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.ec2buildslave</span> <span class="kn">import</span> <span class="n">EC2LatentBuildSlave</span>
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;slaves&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">EC2LatentBuildSlave</span><span class="p">(</span><span class="s">&#39;bot1&#39;</span><span class="p">,</span> <span class="s">&#39;sekrit&#39;</span><span class="p">,</span> <span class="s">&#39;m1.large&#39;</span><span class="p">,</span>
+                                   <span class="n">ami</span><span class="o">=</span><span class="s">&#39;ami-12345&#39;</span><span class="p">,</span>
+                                   <span class="n">identifier</span><span class="o">=</span><span class="s">&#39;publickey&#39;</span><span class="p">,</span>
+                                   <span class="n">secret_identifier</span><span class="o">=</span><span class="s">&#39;privatekey&#39;</span>
+                                   <span class="p">)]</span>
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">ami</span></tt> argument specifies the AMI that the master should start.  The
+<tt class="docutils literal"><span class="pre">identifier</span></tt> argument specifies the AWS <cite>Access Key Id</cite>, and the
+<tt class="docutils literal"><span class="pre">secret_identifier</span></tt> specifies the AWS <cite>Secret Access Key.</cite> Both the AMI and
+the account information can be specified in alternate ways.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Whoever has your <tt class="docutils literal"><span class="pre">identifier</span></tt> and <tt class="docutils literal"><span class="pre">secret_identifier</span></tt> values can request
+AWS work charged to your account, so these values need to be carefully
+protected. Another way to specify these access keys is to put them in a
+separate file. You can then make the access privileges stricter for this
+separate file, and potentially let more people read your main configuration
+file.</p>
+</div>
+<p>By default, you can make an <tt class="file docutils literal"><span class="pre">.ec2</span></tt> directory in the home folder of the user
+running the buildbot master. In that directory, create a file called <tt class="file docutils literal"><span class="pre">aws_id</span></tt>.
+The first line of that file should be your access key id; the second line
+should be your secret access key id. Then you can instantiate the build slave
+as follows.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.ec2buildslave</span> <span class="kn">import</span> <span class="n">EC2LatentBuildSlave</span>
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;slaves&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">EC2LatentBuildSlave</span><span class="p">(</span><span class="s">&#39;bot1&#39;</span><span class="p">,</span> <span class="s">&#39;sekrit&#39;</span><span class="p">,</span> <span class="s">&#39;m1.large&#39;</span><span class="p">,</span>
+                                   <span class="n">ami</span><span class="o">=</span><span class="s">&#39;ami-12345&#39;</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p>If you want to put the key information in another file, use the
+<tt class="docutils literal"><span class="pre">aws_id_file_path</span></tt> initialization argument.</p>
+<p>Previous examples used a particular AMI.  If the Buildbot master will be
+deployed in a process-controlled environment, it may be convenient to
+specify the AMI more flexibly.  Rather than specifying an individual AMI,
+specify one or two AMI filters.</p>
+<p>In all cases, the AMI that sorts last by its location (the S3 bucket and
+manifest name) will be preferred.</p>
+<p>One available filter is to specify the acceptable AMI owners, by AWS account
+number (the 12 digit number, usually rendered in AWS with hyphens like
+&quot;1234-5678-9012&quot;, should be entered as in integer).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.ec2buildslave</span> <span class="kn">import</span> <span class="n">EC2LatentBuildSlave</span>
+<span class="n">bot1</span> <span class="o">=</span> <span class="n">EC2LatentBuildSlave</span><span class="p">(</span><span class="s">&#39;bot1&#39;</span><span class="p">,</span> <span class="s">&#39;sekrit&#39;</span><span class="p">,</span> <span class="s">&#39;m1.large&#39;</span><span class="p">,</span>
+                           <span class="n">valid_ami_owners</span><span class="o">=</span><span class="p">[</span><span class="mi">11111111111</span><span class="p">,</span>
+                                             <span class="mi">22222222222</span><span class="p">],</span>
+                           <span class="n">identifier</span><span class="o">=</span><span class="s">&#39;publickey&#39;</span><span class="p">,</span>
+                           <span class="n">secret_identifier</span><span class="o">=</span><span class="s">&#39;privatekey&#39;</span>
+                           <span class="p">)</span>
+</pre></div>
+</div>
+<p>The other available filter is to provide a regular expression string that
+will be matched against each AMI's location (the S3 bucket and manifest name).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.ec2buildslave</span> <span class="kn">import</span> <span class="n">EC2LatentBuildSlave</span>
+<span class="n">bot1</span> <span class="o">=</span> <span class="n">EC2LatentBuildSlave</span><span class="p">(</span>
+    <span class="s">&#39;bot1&#39;</span><span class="p">,</span> <span class="s">&#39;sekrit&#39;</span><span class="p">,</span> <span class="s">&#39;m1.large&#39;</span><span class="p">,</span>
+    <span class="n">valid_ami_location_regex</span><span class="o">=</span><span class="s">r&#39;buildbot\-.*/image.manifest.xml&#39;</span><span class="p">,</span>
+    <span class="n">identifier</span><span class="o">=</span><span class="s">&#39;publickey&#39;</span><span class="p">,</span> <span class="n">secret_identifier</span><span class="o">=</span><span class="s">&#39;privatekey&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The regular expression can specify a group, which will be preferred for the
+sorting.  Only the first group is used; subsequent groups are ignored.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.ec2buildslave</span> <span class="kn">import</span> <span class="n">EC2LatentBuildSlave</span>
+<span class="n">bot1</span> <span class="o">=</span> <span class="n">EC2LatentBuildSlave</span><span class="p">(</span>
+    <span class="s">&#39;bot1&#39;</span><span class="p">,</span> <span class="s">&#39;sekrit&#39;</span><span class="p">,</span> <span class="s">&#39;m1.large&#39;</span><span class="p">,</span>
+    <span class="n">valid_ami_location_regex</span><span class="o">=</span><span class="s">r&#39;buildbot\-.*\-(.*)/image.manifest.xml&#39;</span><span class="p">,</span>
+    <span class="n">identifier</span><span class="o">=</span><span class="s">&#39;publickey&#39;</span><span class="p">,</span> <span class="n">secret_identifier</span><span class="o">=</span><span class="s">&#39;privatekey&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If the group can be cast to an integer, it will be.  This allows 10 to sort
+after 1, for instance.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.ec2buildslave</span> <span class="kn">import</span> <span class="n">EC2LatentBuildSlave</span>
+<span class="n">bot1</span> <span class="o">=</span> <span class="n">EC2LatentBuildSlave</span><span class="p">(</span>
+    <span class="s">&#39;bot1&#39;</span><span class="p">,</span> <span class="s">&#39;sekrit&#39;</span><span class="p">,</span> <span class="s">&#39;m1.large&#39;</span><span class="p">,</span>
+    <span class="n">valid_ami_location_regex</span><span class="o">=</span><span class="s">r&#39;buildbot\-.*\-(\d+)/image.manifest.xml&#39;</span><span class="p">,</span>
+    <span class="n">identifier</span><span class="o">=</span><span class="s">&#39;publickey&#39;</span><span class="p">,</span> <span class="n">secret_identifier</span><span class="o">=</span><span class="s">&#39;privatekey&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In addition to using the password as a handshake between the master and the
+slave, you may want to use a firewall to assert that only machines from a
+specific IP can connect as slaves.  This is possible with AWS EC2 by using
+the Elastic IP feature.  To configure, generate a Elastic IP in AWS, and then
+specify it in your configuration using the <tt class="docutils literal"><span class="pre">elastic_ip</span></tt> argument.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.ec2buildslave</span> <span class="kn">import</span> <span class="n">EC2LatentBuildSlave</span>
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;slaves&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">EC2LatentBuildSlave</span><span class="p">(</span><span class="s">&#39;bot1&#39;</span><span class="p">,</span> <span class="s">&#39;sekrit&#39;</span><span class="p">,</span> <span class="s">&#39;m1.large&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;ami-12345&#39;</span><span class="p">,</span>
+                                   <span class="n">identifier</span><span class="o">=</span><span class="s">&#39;publickey&#39;</span><span class="p">,</span>
+                                   <span class="n">secret_identifier</span><span class="o">=</span><span class="s">&#39;privatekey&#39;</span><span class="p">,</span>
+                                   <span class="n">elastic_ip</span><span class="o">=</span><span class="s">&#39;208.77.188.166&#39;</span>
+                                   <span class="p">)]</span>
+</pre></div>
+</div>
+<p>The <tt class="xref py py-class docutils literal"><span class="pre">EC2LatentBuildSlave</span></tt> supports all other configuration from the standard
+<tt class="xref py py-class docutils literal"><span class="pre">BuildSlave</span></tt>.  The <tt class="docutils literal"><span class="pre">missing_timeout</span></tt> and <tt class="docutils literal"><span class="pre">notify_on_missing</span></tt> specify how long
+to wait for an EC2 instance to attach before considering the attempt to have
+failed, and email addresses to alert, respectively.  <tt class="docutils literal"><span class="pre">missing_timeout</span></tt>
+defaults to 20 minutes.</p>
+<p><tt class="docutils literal"><span class="pre">keypair_name</span></tt> and <tt class="docutils literal"><span class="pre">security_name</span></tt> allow you to specify different names for
+these AWS EC2 values.  They both default to <tt class="docutils literal"><span class="pre">latent_buildbot_slave</span></tt>.</p>
+</div>
+</div>
+<div class="section" id="libvirt">
+<span id="index-4"></span><h3>Libvirt<a class="headerlink" href="#libvirt" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference external" href="http://www.libvirt.org/">libvirt</a> is a virtualization API for interacting
+with the virtualization capabilities of recent versions of Linux and other OSes.
+It is LGPL and comes with a stable C API, and python bindings.</p>
+<p>This means we know have an API which when tied to buildbot allows us to have slaves
+that run under Xen, QEMU, KVM, LXC, OpenVZ, User Mode Linux, VirtualBox and VMWare.</p>
+<p>The libvirt code in Buildbot was developed against libvirt 0.7.5 on Ubuntu Lucid. It
+is used with KVM to test python code on Karmic VM's, but obviously isn't limited to that.
+Each build is run on a new VM, images are temporary and thrown away after each build.</p>
+<div class="section" id="setting-up-libvirt">
+<h4>Setting up libvirt<a class="headerlink" href="#setting-up-libvirt" title="Permalink to this headline">¶</a></h4>
+<p>We won't show you how to set up libvirt as it is quite different on each platform,
+but there are a few things you should keep in mind.</p>
+<blockquote>
+<div><ul class="simple">
+<li>If you are running on Ubuntu, your master should run Lucid. Libvirt and apparmor are
+buggy on Karmic.</li>
+<li>If you are using the system libvirt, your buildbot master user will need to be in the
+libvirtd group.</li>
+<li>If you are using KVM, your buildbot master user will need to be in the KVM group.</li>
+<li>You need to think carefully about your virtual network <em>first</em>. Will NAT be enough?
+What IP will my VM's need to connect to for connecting to the master?</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="configuring-your-base-image">
+<h4>Configuring your base image<a class="headerlink" href="#configuring-your-base-image" title="Permalink to this headline">¶</a></h4>
+<p>You need to create a base image for your builds that has everything needed to build
+your software. You need to configure the base image with a buildbot slave that is configured
+to connect to the master on boot.</p>
+<p>Because this image may need updating a lot, we strongly suggest scripting its creation.</p>
+<p>If you want to have multiple slaves using the same base image it can be annoying to duplicate
+the image just to change the buildbot credentials. One option is to use libvirt's DHCP
+server to allocate an identity to the slave: DHCP sets a hostname, and the slave takes its
+identity from that.</p>
+<p>Doing all this is really beyond the scope of the manual, but there is a <tt class="file docutils literal"><span class="pre">vmbuilder</span></tt> script
+and a <tt class="file docutils literal"><span class="pre">network.xml</span></tt> file to create such a DHCP server in
+<tt class="file docutils literal"><span class="pre">contrib/</span></tt> (<a class="reference internal" href="installation.html#contrib-scripts"><em>Contrib Scripts</em></a>)
+that should get you started:</p>
+<div class="highlight-bash"><div class="highlight"><pre>sudo apt-get install ubuntu-vm-builder
+sudo contrib/libvirt/vmbuilder
+</pre></div>
+</div>
+<p>Should create an <tt class="file docutils literal"><span class="pre">ubuntu/</span></tt> folder with a suitable image in it.</p>
+<div class="highlight-none"><div class="highlight"><pre>virsh net-define contrib/libvirt/network.xml
+virsh net-start buildbot-network
+</pre></div>
+</div>
+<p>Should set up a KVM compatible libvirt network for your buildbot VM's to run on.</p>
+</div>
+<div class="section" id="configuring-your-master">
+<h4>Configuring your Master<a class="headerlink" href="#configuring-your-master" title="Permalink to this headline">¶</a></h4>
+<p>If you want to add a simple on demand VM to your setup, you only need the following. We
+set the username to <tt class="docutils literal"><span class="pre">minion1</span></tt>, the password to <tt class="docutils literal"><span class="pre">sekrit</span></tt>. The base image is called <tt class="docutils literal"><span class="pre">base_image</span></tt>
+and a copy of it will be made for the duration of the VM's life. That copy will be thrown
+away every time a build is complete.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.libvirtbuildslave</span> <span class="kn">import</span> <span class="n">LibVirtBuildSlave</span>
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;slaves&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">LibVirtBuildSlave</span><span class="p">(</span><span class="s">&#39;minion1&#39;</span><span class="p">,</span> <span class="s">&#39;sekrit&#39;</span><span class="p">,</span>
+                                   <span class="s">&#39;/home/buildbot/images/minion1&#39;</span><span class="p">,</span> <span class="s">&#39;/home/buildbot/images/base_image&#39;</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p>You can use virt-manager to define <tt class="docutils literal"><span class="pre">minion1</span></tt> with the correct hardware. If you don't, buildbot
+won't be able to find a VM to start.</p>
+<p><tt class="xref py py-class docutils literal"><span class="pre">LibVirtBuildSlave</span></tt> accepts the following arguments:</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">name</span></tt></dt>
+<dd>Both a buildbot username and the name of the virtual machine</dd>
+<dt><tt class="docutils literal"><span class="pre">password</span></tt></dt>
+<dd>A password for the buildbot to login to the master with</dd>
+<dt><tt class="docutils literal"><span class="pre">hd_image</span></tt></dt>
+<dd>The path to a libvirt disk image, normally in qcow2 format when using KVM.</dd>
+<dt><tt class="docutils literal"><span class="pre">base_image</span></tt></dt>
+<dd>If given a base image, buildbot will clone it every time it starts a VM.
+This means you always have a clean environment to do your build in.</dd>
+<dt><tt class="docutils literal"><span class="pre">xml</span></tt></dt>
+<dd>If a VM isn't predefined in virt-manager, then you can instead provide XML
+like that used with <tt class="docutils literal"><span class="pre">virsh</span> <span class="pre">define</span></tt>. The VM will be created
+automatically when needed, and destroyed when not needed any longer.</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="dangers-with-latent-buildslaves">
+<h3>Dangers with Latent Buildslaves<a class="headerlink" href="#dangers-with-latent-buildslaves" title="Permalink to this headline">¶</a></h3>
+<p>Any latent build slave that interacts with a for-fee service, such as the
+EC2LatentBuildSlave, brings significant risks. As already identified, the
+configuration will need access to account information that, if obtained by a
+criminal, can be used to charge services to your account. Also, bugs in the
+buildbot software may lead to unnecessary charges. In particular, if the
+master neglects to shut down an instance for some reason, a virtual machine
+may be running unnecessarily, charging against your account. Manual and/or
+automatic (e.g. nagios with a plugin using a library like boto)
+double-checking may be appropriate.</p>
+<p>A comparatively trivial note is that currently if two instances try to attach
+to the same latent buildslave, it is likely that the system will become
+confused.  This should not occur, unless, for instance, you configure a normal
+build slave to connect with the authentication of a latent buildbot.  If this
+situation does occurs, stop all attached instances and restart the master.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+<h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concepts.html">Concepts</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="configuration.html">Configuration</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="cfg-intro.html">Configuring Buildbot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-global.html">Global Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-changesources.html">Change Sources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-schedulers.html">Schedulers</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="">Buildslaves</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-builders.html">Builder Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-buildfactories.html">Build Factories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-properties.html">Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-buildsteps.html">Build Steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-interlocks.html">Interlocks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-statustargets.html">Status Targets</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="customization.html">Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmdline.html">Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resources.html">Resources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">Release Notes for Buildbot 0.8.7</a></li>
+</ul>
+
+          <h3 style="margin-top: 1.5em;">Search</h3>
+          <form class="search" action="../search.html" method="get">
+            <input type="text" name="q" />
+            <input type="submit" value="Go" />
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+          </form>
+          <p class="searchtip" style="font-size: 90%">
+            Enter search terms or a module, class or function name.
+          </p>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <a href="cfg-schedulers.html" title="Schedulers"
+             >previous</a> |
+          <a href="cfg-builders.html" title="Builder Configuration"
+             >next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             >index</a>
+            <br/>
+            <a href="../_sources/manual/cfg-buildslaves.txt"
+               rel="nofollow">Show Source</a>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer">
+        &copy; Copyright Buildbot Team Members.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>
