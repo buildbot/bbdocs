@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>buildbot.status.web.hooks.poller</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.7</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="buildbot-module.html">Package&nbsp;buildbot</a> ::
+        <a href="buildbot.status-module.html">Package&nbsp;status</a> ::
+        <a href="buildbot.status.web-module.html">Package&nbsp;web</a> ::
+        <a href="buildbot.status.web.hooks-module.html">Package&nbsp;hooks</a> ::
+        Module&nbsp;poller
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="buildbot.status.web.hooks.poller-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="buildbot.status.web.hooks.poller-module.html">Module buildbot.status.web.hooks.poller</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment"># This file is part of Buildbot.  Buildbot is free software: you can</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-comment"># redistribute it and/or modify it under the terms of the GNU General Public</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-comment"># License as published by the Free Software Foundation, version 2.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but WITHOUT</tt> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-comment"># ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS</tt> </tt>
+<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-comment"># FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more</tt> </tt>
+<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt class="py-comment"># details.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License along with</tt> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"><tt class="py-comment"># this program; if not, write to the Free Software Foundation, Inc., 51</tt> </tt>
+<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"><tt class="py-comment"># Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.</tt> </tt>
+<a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line"><tt class="py-comment"># Copyright Buildbot Team Members</tt> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line"> </tt>
+<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line"><tt class="py-comment"># This change hook allows GitHub or a hand crafted curl inovcation to "knock on</tt> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"><tt class="py-comment"># the door" and trigger a change source to poll.</tt> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"> </tt>
+<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package buildbot=buildbot-module.html"><a title="buildbot" class="py-name" href="#" onclick="return doclink('link-0', 'buildbot', 'link-0');">buildbot</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Package buildbot.changes=buildbot.changes-module.html,Module buildbot.changes.changes=buildbot.changes.changes-module.html,Module buildbot.db.changes=buildbot.db.changes-module.html,Variable buildbot.db.model.Model.changes=buildbot.db.model.Model-class.html#changes,Variable buildbot.sourcestamp.SourceStamp.changes=buildbot.sourcestamp.SourceStamp-class.html#changes,Variable buildbot.status.builder.BuildStatus.changes=buildbot.status.builder.BuildStatus-class.html#changes,Module buildbot.status.web.changes=buildbot.status.web.changes-module.html,Method buildbot.status.web.hooks.googlecode.Payload.changes()=buildbot.status.web.hooks.googlecode.Payload-class.html#changes"><a title="buildbot.changes
+buildbot.changes.changes
+buildbot.db.changes
+buildbot.db.model.Model.changes
+buildbot.sourcestamp.SourceStamp.changes
+buildbot.status.builder.BuildStatus.changes
+buildbot.status.web.changes
+buildbot.status.web.hooks.googlecode.Payload.changes" class="py-name" href="#" onclick="return doclink('link-1', 'changes', 'link-1');">changes</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Module buildbot.changes.base=buildbot.changes.base-module.html,Module buildbot.clients.base=buildbot.clients.base-module.html,Module buildbot.db.base=buildbot.db.base-module.html,Module buildbot.process.base=buildbot.process.base-module.html,Module buildbot.schedulers.base=buildbot.schedulers.base-module.html,Module buildbot.scripts.base=buildbot.scripts.base-module.html,Module buildbot.status.base=buildbot.status.base-module.html,Module buildbot.status.web.base=buildbot.status.web.base-module.html,Module buildbot.status.web.hooks.base=buildbot.status.web.hooks.base-module.html,Module buildbot.steps.source.base=buildbot.steps.source.base-module.html,Module buildslave.commands.base=buildslave.commands.base-module.html"><a title="buildbot.changes.base
+buildbot.clients.base
+buildbot.db.base
+buildbot.process.base
+buildbot.schedulers.base
+buildbot.scripts.base
+buildbot.status.base
+buildbot.status.web.base
+buildbot.status.web.hooks.base
+buildbot.steps.source.base
+buildslave.commands.base" class="py-name" href="#" onclick="return doclink('link-2', 'base', 'link-2');">base</a></tt> <tt class="py-keyword">import</tt> <tt id="link-3" class="py-name" targets="Class buildbot.changes.base.PollingChangeSource=buildbot.changes.base.PollingChangeSource-class.html"><a title="buildbot.changes.base.PollingChangeSource" class="py-name" href="#" onclick="return doclink('link-3', 'PollingChangeSource', 'link-3');">PollingChangeSource</a></tt> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line"> </tt>
+<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line"> </tt>
+<a name="getChanges"></a><div id="getChanges-def"><a name="L22"></a><tt class="py-lineno">22</tt> <a class="py-toggle" href="#" id="getChanges-toggle" onclick="return toggle('getChanges');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.status.web.hooks.poller-module.html#getChanges">getChanges</a><tt class="py-op">(</tt><tt class="py-param">req</tt><tt class="py-op">,</tt> <tt class="py-param">options</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="getChanges-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="getChanges-expanded"><a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line">    <tt class="py-name">change_svc</tt> <tt class="py-op">=</tt> <tt class="py-name">req</tt><tt class="py-op">.</tt><tt class="py-name">site</tt><tt class="py-op">.</tt><tt class="py-name">buildbot_service</tt><tt class="py-op">.</tt><tt id="link-4" class="py-name" targets="Variable buildbot.changes.base.ChangeSource.master=buildbot.changes.base.ChangeSource-class.html#master,Variable buildbot.interfaces.IChangeSource.master=buildbot.interfaces.IChangeSource-class.html#master,Module buildbot.master=buildbot.master-module.html,Module buildbot.status.master=buildbot.status.master-module.html,Variable buildbot.status.web.auth.AuthBase.master=buildbot.status.web.auth.AuthBase-class.html#master,Variable buildbot.status.web.auth.IAuth.master=buildbot.status.web.auth.IAuth-class.html#master,Module buildbot.steps.master=buildbot.steps.master-module.html"><a title="buildbot.changes.base.ChangeSource.master
+buildbot.interfaces.IChangeSource.master
+buildbot.master
+buildbot.status.master
+buildbot.status.web.auth.AuthBase.master
+buildbot.status.web.auth.IAuth.master
+buildbot.steps.master" class="py-name" href="#" onclick="return doclink('link-4', 'master', 'link-4');">master</a></tt><tt class="py-op">.</tt><tt class="py-name">change_svc</tt> </tt>
+<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line">    <tt class="py-name">poll_all</tt> <tt class="py-op">=</tt> <tt class="py-keyword">not</tt> <tt class="py-string">"poller"</tt> <tt class="py-keyword">in</tt> <tt class="py-name">req</tt><tt class="py-op">.</tt><tt class="py-name">args</tt> </tt>
+<a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line"> </tt>
+<a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line">    <tt class="py-name">allow_all</tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L27"></a><tt class="py-lineno">27</tt>  <tt class="py-line">    <tt class="py-name">allowed</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">options</tt><tt class="py-op">,</tt> <tt class="py-name">dict</tt><tt class="py-op">)</tt> <tt class="py-keyword">and</tt> <tt class="py-string">"allowed"</tt> <tt class="py-keyword">in</tt> <tt class="py-name">options</tt><tt class="py-op">:</tt> </tt>
+<a name="L29"></a><tt class="py-lineno">29</tt>  <tt class="py-line">        <tt class="py-name">allow_all</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L30"></a><tt class="py-lineno">30</tt>  <tt class="py-line">        <tt class="py-name">allowed</tt> <tt class="py-op">=</tt> <tt class="py-name">options</tt><tt class="py-op">[</tt><tt class="py-string">"allowed"</tt><tt class="py-op">]</tt> </tt>
+<a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line"> </tt>
+<a name="L32"></a><tt class="py-lineno">32</tt>  <tt class="py-line">    <tt class="py-name">pollers</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line"> </tt>
+<a name="L34"></a><tt class="py-lineno">34</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt id="link-5" class="py-name" targets="Variable buildbot.process.buildrequest.BuildRequest.source=buildbot.process.buildrequest.BuildRequest-class.html#source,Package buildbot.steps.source=buildbot.steps.source-module.html"><a title="buildbot.process.buildrequest.BuildRequest.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-5', 'source', 'link-5');">source</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">change_svc</tt><tt class="py-op">:</tt> </tt>
+<a name="L35"></a><tt class="py-lineno">35</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt id="link-6" class="py-name"><a title="buildbot.process.buildrequest.BuildRequest.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-6', 'source', 'link-5');">source</a></tt><tt class="py-op">,</tt> <tt id="link-7" class="py-name"><a title="buildbot.changes.base.PollingChangeSource" class="py-name" href="#" onclick="return doclink('link-7', 'PollingChangeSource', 'link-3');">PollingChangeSource</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L36"></a><tt class="py-lineno">36</tt>  <tt class="py-line">            <tt class="py-keyword">continue</tt> </tt>
+<a name="L37"></a><tt class="py-lineno">37</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">hasattr</tt><tt class="py-op">(</tt><tt id="link-8" class="py-name"><a title="buildbot.process.buildrequest.BuildRequest.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-8', 'source', 'link-5');">source</a></tt><tt class="py-op">,</tt> <tt class="py-string">"name"</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L38"></a><tt class="py-lineno">38</tt>  <tt class="py-line">            <tt class="py-keyword">continue</tt> </tt>
+<a name="L39"></a><tt class="py-lineno">39</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">poll_all</tt> <tt class="py-keyword">and</tt> <tt class="py-keyword">not</tt> <tt id="link-9" class="py-name"><a title="buildbot.process.buildrequest.BuildRequest.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-9', 'source', 'link-5');">source</a></tt><tt class="py-op">.</tt><tt id="link-10" class="py-name" targets="Variable buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name=buildbot.changes.mail.BzrLaunchpadEmailMaildirSource-class.html#name,Variable buildbot.changes.mail.CVSMaildirSource.name=buildbot.changes.mail.CVSMaildirSource-class.html#name,Variable buildbot.changes.mail.SVNCommitEmailMaildirSource.name=buildbot.changes.mail.SVNCommitEmailMaildirSource-class.html#name,Variable buildbot.changes.manager.ChangeManager.name=buildbot.changes.manager.ChangeManager-class.html#name,Variable buildbot.db.enginestrategy.BuildbotEngineStrategy.name=buildbot.db.enginestrategy.BuildbotEngineStrategy-class.html#name,Method buildbot.libvirtbuildslave.Domain.name()=buildbot.libvirtbuildslave.Domain-class.html#name,Variable buildbot.process.buildstep.BuildStep.name=buildbot.process.buildstep.BuildStep-class.html#name,Variable buildbot.schedulers.forcesched.BaseParameter.name=buildbot.schedulers.forcesched.BaseParameter-class.html#name,Variable buildbot.schedulers.forcesched.InheritBuildParameter.name=buildbot.schedulers.forcesched.InheritBuildParameter-class.html#name,Variable buildbot.steps.master.MasterShellCommand.name=buildbot.steps.master.MasterShellCommand-class.html#name,Variable buildbot.steps.maxq.MaxQ.name=buildbot.steps.maxq.MaxQ-class.html#name,Variable buildbot.steps.package.deb.lintian.DebLintian.name=buildbot.steps.package.deb.lintian.DebLintian-class.html#name,Variable buildbot.steps.package.deb.pbuilder.DebCowbuilder.name=buildbot.steps.package.deb.pbuilder.DebCowbuilder-class.html#name,Variable buildbot.steps.package.deb.pbuilder.DebPbuilder.name=buildbot.steps.package.deb.pbuilder.DebPbuilder-class.html#name,Variable buildbot.steps.package.rpm.mock.Mock.name=buildbot.steps.package.rpm.mock.Mock-class.html#name,Variable buildbot.steps.package.rpm.mock.MockBuildSRPM.name=buildbot.steps.package.rpm.mock.MockBuildSRPM-class.html#name,Variable buildbot.steps.package.rpm.mock.MockRebuild.name=buildbot.steps.package.rpm.mock.MockRebuild-class.html#name,Variable buildbot.steps.package.rpm.rpmbuild.RpmBuild.name=buildbot.steps.package.rpm.rpmbuild.RpmBuild-class.html#name,Variable buildbot.steps.package.rpm.rpmlint.RpmLint.name=buildbot.steps.package.rpm.rpmlint.RpmLint-class.html#name,Variable buildbot.steps.python.BuildEPYDoc.name=buildbot.steps.python.BuildEPYDoc-class.html#name,Variable buildbot.steps.python.PyFlakes.name=buildbot.steps.python.PyFlakes-class.html#name,Variable buildbot.steps.python.PyLint.name=buildbot.steps.python.PyLint-class.html#name,Variable buildbot.steps.python.Sphinx.name=buildbot.steps.python.Sphinx-class.html#name,Variable buildbot.steps.python_twisted.HLint.name=buildbot.steps.python_twisted.HLint-class.html#name,Variable buildbot.steps.python_twisted.RemovePYCs.name=buildbot.steps.python_twisted.RemovePYCs-class.html#name,Variable buildbot.steps.python_twisted.Trial.name=buildbot.steps.python_twisted.Trial-class.html#name,Variable buildbot.steps.shell.Compile.name=buildbot.steps.shell.Compile-class.html#name,Variable buildbot.steps.shell.Configure.name=buildbot.steps.shell.Configure-class.html#name,Variable buildbot.steps.shell.SetProperty.name=buildbot.steps.shell.SetProperty-class.html#name,Variable buildbot.steps.shell.ShellCommand.name=buildbot.steps.shell.ShellCommand-class.html#name,Variable buildbot.steps.shell.Test.name=buildbot.steps.shell.Test-class.html#name,Variable buildbot.steps.shell.TreeSize.name=buildbot.steps.shell.TreeSize-class.html#name,Variable buildbot.steps.slave.FileExists.name=buildbot.steps.slave.FileExists-class.html#name,Variable buildbot.steps.slave.MakeDirectory.name=buildbot.steps.slave.MakeDirectory-class.html#name,Variable buildbot.steps.slave.RemoveDirectory.name=buildbot.steps.slave.RemoveDirectory-class.html#name,Variable buildbot.steps.slave.SetPropertiesFromEnv.name=buildbot.steps.slave.SetPropertiesFromEnv-class.html#name,Variable buildbot.steps.source.bzr.Bzr.name=buildbot.steps.source.bzr.Bzr-class.html#name,Variable buildbot.steps.source.cvs.CVS.name=buildbot.steps.source.cvs.CVS-class.html#name,Variable buildbot.steps.source.git.Git.name=buildbot.steps.source.git.Git-class.html#name,Variable buildbot.steps.source.mercurial.Mercurial.name=buildbot.steps.source.mercurial.Mercurial-class.html#name,Variable buildbot.steps.source.oldsource.BK.name=buildbot.steps.source.oldsource.BK-class.html#name,Variable buildbot.steps.source.oldsource.Bzr.name=buildbot.steps.source.oldsource.Bzr-class.html#name,Variable buildbot.steps.source.oldsource.CVS.name=buildbot.steps.source.oldsource.CVS-class.html#name,Variable buildbot.steps.source.oldsource.Darcs.name=buildbot.steps.source.oldsource.Darcs-class.html#name,Variable buildbot.steps.source.oldsource.Git.name=buildbot.steps.source.oldsource.Git-class.html#name,Variable buildbot.steps.source.oldsource.Mercurial.name=buildbot.steps.source.oldsource.Mercurial-class.html#name,Variable buildbot.steps.source.oldsource.Monotone.name=buildbot.steps.source.oldsource.Monotone-class.html#name,Variable buildbot.steps.source.oldsource.P4.name=buildbot.steps.source.oldsource.P4-class.html#name,Variable buildbot.steps.source.oldsource.Repo.name=buildbot.steps.source.oldsource.Repo-class.html#name,Variable buildbot.steps.source.oldsource.SVN.name=buildbot.steps.source.oldsource.SVN-class.html#name,Variable buildbot.steps.source.svn.SVN.name=buildbot.steps.source.svn.SVN-class.html#name,Variable buildbot.steps.transfer.DirectoryUpload.name=buildbot.steps.transfer.DirectoryUpload-class.html#name,Variable buildbot.steps.transfer.FileDownload.name=buildbot.steps.transfer.FileDownload-class.html#name,Variable buildbot.steps.transfer.FileUpload.name=buildbot.steps.transfer.FileUpload-class.html#name,Variable buildbot.steps.transfer.JSONPropertiesDownload.name=buildbot.steps.transfer.JSONPropertiesDownload-class.html#name,Variable buildbot.steps.transfer.JSONStringDownload.name=buildbot.steps.transfer.JSONStringDownload-class.html#name,Variable buildbot.steps.transfer.StringDownload.name=buildbot.steps.transfer.StringDownload-class.html#name,Variable buildbot.steps.trigger.Trigger.name=buildbot.steps.trigger.Trigger-class.html#name,Variable buildbot.steps.vstudio.VisualStudio.name=buildbot.steps.vstudio.VisualStudio-class.html#name,Variable buildslave.bot.Bot.name=buildslave.bot.Bot-class.html#name"><a title="buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name
+buildbot.changes.mail.CVSMaildirSource.name
+buildbot.changes.mail.SVNCommitEmailMaildirSource.name
+buildbot.changes.manager.ChangeManager.name
+buildbot.db.enginestrategy.BuildbotEngineStrategy.name
+buildbot.libvirtbuildslave.Domain.name
+buildbot.process.buildstep.BuildStep.name
+buildbot.schedulers.forcesched.BaseParameter.name
+buildbot.schedulers.forcesched.InheritBuildParameter.name
+buildbot.steps.master.MasterShellCommand.name
+buildbot.steps.maxq.MaxQ.name
+buildbot.steps.package.deb.lintian.DebLintian.name
+buildbot.steps.package.deb.pbuilder.DebCowbuilder.name
+buildbot.steps.package.deb.pbuilder.DebPbuilder.name
+buildbot.steps.package.rpm.mock.Mock.name
+buildbot.steps.package.rpm.mock.MockBuildSRPM.name
+buildbot.steps.package.rpm.mock.MockRebuild.name
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.name
+buildbot.steps.package.rpm.rpmlint.RpmLint.name
+buildbot.steps.python.BuildEPYDoc.name
+buildbot.steps.python.PyFlakes.name
+buildbot.steps.python.PyLint.name
+buildbot.steps.python.Sphinx.name
+buildbot.steps.python_twisted.HLint.name
+buildbot.steps.python_twisted.RemovePYCs.name
+buildbot.steps.python_twisted.Trial.name
+buildbot.steps.shell.Compile.name
+buildbot.steps.shell.Configure.name
+buildbot.steps.shell.SetProperty.name
+buildbot.steps.shell.ShellCommand.name
+buildbot.steps.shell.Test.name
+buildbot.steps.shell.TreeSize.name
+buildbot.steps.slave.FileExists.name
+buildbot.steps.slave.MakeDirectory.name
+buildbot.steps.slave.RemoveDirectory.name
+buildbot.steps.slave.SetPropertiesFromEnv.name
+buildbot.steps.source.bzr.Bzr.name
+buildbot.steps.source.cvs.CVS.name
+buildbot.steps.source.git.Git.name
+buildbot.steps.source.mercurial.Mercurial.name
+buildbot.steps.source.oldsource.BK.name
+buildbot.steps.source.oldsource.Bzr.name
+buildbot.steps.source.oldsource.CVS.name
+buildbot.steps.source.oldsource.Darcs.name
+buildbot.steps.source.oldsource.Git.name
+buildbot.steps.source.oldsource.Mercurial.name
+buildbot.steps.source.oldsource.Monotone.name
+buildbot.steps.source.oldsource.P4.name
+buildbot.steps.source.oldsource.Repo.name
+buildbot.steps.source.oldsource.SVN.name
+buildbot.steps.source.svn.SVN.name
+buildbot.steps.transfer.DirectoryUpload.name
+buildbot.steps.transfer.FileDownload.name
+buildbot.steps.transfer.FileUpload.name
+buildbot.steps.transfer.JSONPropertiesDownload.name
+buildbot.steps.transfer.JSONStringDownload.name
+buildbot.steps.transfer.StringDownload.name
+buildbot.steps.trigger.Trigger.name
+buildbot.steps.vstudio.VisualStudio.name
+buildslave.bot.Bot.name" class="py-name" href="#" onclick="return doclink('link-10', 'name', 'link-10');">name</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">req</tt><tt class="py-op">.</tt><tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'poller'</tt><tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
+<a name="L40"></a><tt class="py-lineno">40</tt>  <tt class="py-line">            <tt class="py-keyword">continue</tt> </tt>
+<a name="L41"></a><tt class="py-lineno">41</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">allow_all</tt> <tt class="py-keyword">and</tt> <tt class="py-keyword">not</tt> <tt id="link-11" class="py-name"><a title="buildbot.process.buildrequest.BuildRequest.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-11', 'source', 'link-5');">source</a></tt><tt class="py-op">.</tt><tt id="link-12" class="py-name"><a title="buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name
+buildbot.changes.mail.CVSMaildirSource.name
+buildbot.changes.mail.SVNCommitEmailMaildirSource.name
+buildbot.changes.manager.ChangeManager.name
+buildbot.db.enginestrategy.BuildbotEngineStrategy.name
+buildbot.libvirtbuildslave.Domain.name
+buildbot.process.buildstep.BuildStep.name
+buildbot.schedulers.forcesched.BaseParameter.name
+buildbot.schedulers.forcesched.InheritBuildParameter.name
+buildbot.steps.master.MasterShellCommand.name
+buildbot.steps.maxq.MaxQ.name
+buildbot.steps.package.deb.lintian.DebLintian.name
+buildbot.steps.package.deb.pbuilder.DebCowbuilder.name
+buildbot.steps.package.deb.pbuilder.DebPbuilder.name
+buildbot.steps.package.rpm.mock.Mock.name
+buildbot.steps.package.rpm.mock.MockBuildSRPM.name
+buildbot.steps.package.rpm.mock.MockRebuild.name
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.name
+buildbot.steps.package.rpm.rpmlint.RpmLint.name
+buildbot.steps.python.BuildEPYDoc.name
+buildbot.steps.python.PyFlakes.name
+buildbot.steps.python.PyLint.name
+buildbot.steps.python.Sphinx.name
+buildbot.steps.python_twisted.HLint.name
+buildbot.steps.python_twisted.RemovePYCs.name
+buildbot.steps.python_twisted.Trial.name
+buildbot.steps.shell.Compile.name
+buildbot.steps.shell.Configure.name
+buildbot.steps.shell.SetProperty.name
+buildbot.steps.shell.ShellCommand.name
+buildbot.steps.shell.Test.name
+buildbot.steps.shell.TreeSize.name
+buildbot.steps.slave.FileExists.name
+buildbot.steps.slave.MakeDirectory.name
+buildbot.steps.slave.RemoveDirectory.name
+buildbot.steps.slave.SetPropertiesFromEnv.name
+buildbot.steps.source.bzr.Bzr.name
+buildbot.steps.source.cvs.CVS.name
+buildbot.steps.source.git.Git.name
+buildbot.steps.source.mercurial.Mercurial.name
+buildbot.steps.source.oldsource.BK.name
+buildbot.steps.source.oldsource.Bzr.name
+buildbot.steps.source.oldsource.CVS.name
+buildbot.steps.source.oldsource.Darcs.name
+buildbot.steps.source.oldsource.Git.name
+buildbot.steps.source.oldsource.Mercurial.name
+buildbot.steps.source.oldsource.Monotone.name
+buildbot.steps.source.oldsource.P4.name
+buildbot.steps.source.oldsource.Repo.name
+buildbot.steps.source.oldsource.SVN.name
+buildbot.steps.source.svn.SVN.name
+buildbot.steps.transfer.DirectoryUpload.name
+buildbot.steps.transfer.FileDownload.name
+buildbot.steps.transfer.FileUpload.name
+buildbot.steps.transfer.JSONPropertiesDownload.name
+buildbot.steps.transfer.JSONStringDownload.name
+buildbot.steps.transfer.StringDownload.name
+buildbot.steps.trigger.Trigger.name
+buildbot.steps.vstudio.VisualStudio.name
+buildslave.bot.Bot.name" class="py-name" href="#" onclick="return doclink('link-12', 'name', 'link-10');">name</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">allowed</tt><tt class="py-op">:</tt> </tt>
+<a name="L42"></a><tt class="py-lineno">42</tt>  <tt class="py-line">            <tt class="py-keyword">continue</tt> </tt>
+<a name="L43"></a><tt class="py-lineno">43</tt>  <tt class="py-line">        <tt class="py-name">pollers</tt><tt class="py-op">.</tt><tt id="link-13" class="py-name" targets="Method buildbot.process.metrics.AveragingFiniteList.append()=buildbot.process.metrics.AveragingFiniteList-class.html#append,Method buildbot.process.metrics.FiniteList.append()=buildbot.process.metrics.FiniteList-class.html#append"><a title="buildbot.process.metrics.AveragingFiniteList.append
+buildbot.process.metrics.FiniteList.append" class="py-name" href="#" onclick="return doclink('link-13', 'append', 'link-13');">append</a></tt><tt class="py-op">(</tt><tt id="link-14" class="py-name"><a title="buildbot.process.buildrequest.BuildRequest.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-14', 'source', 'link-5');">source</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L44"></a><tt class="py-lineno">44</tt>  <tt class="py-line"> </tt>
+<a name="L45"></a><tt class="py-lineno">45</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">poll_all</tt><tt class="py-op">:</tt> </tt>
+<a name="L46"></a><tt class="py-lineno">46</tt>  <tt class="py-line">        <tt class="py-name">missing</tt> <tt class="py-op">=</tt> <tt class="py-name">set</tt><tt class="py-op">(</tt><tt class="py-name">req</tt><tt class="py-op">.</tt><tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'poller'</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> <tt class="py-op">-</tt> <tt class="py-name">set</tt><tt class="py-op">(</tt><tt class="py-name">s</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name"><a title="buildbot.changes.mail.BzrLaunchpadEmailMaildirSource.name
+buildbot.changes.mail.CVSMaildirSource.name
+buildbot.changes.mail.SVNCommitEmailMaildirSource.name
+buildbot.changes.manager.ChangeManager.name
+buildbot.db.enginestrategy.BuildbotEngineStrategy.name
+buildbot.libvirtbuildslave.Domain.name
+buildbot.process.buildstep.BuildStep.name
+buildbot.schedulers.forcesched.BaseParameter.name
+buildbot.schedulers.forcesched.InheritBuildParameter.name
+buildbot.steps.master.MasterShellCommand.name
+buildbot.steps.maxq.MaxQ.name
+buildbot.steps.package.deb.lintian.DebLintian.name
+buildbot.steps.package.deb.pbuilder.DebCowbuilder.name
+buildbot.steps.package.deb.pbuilder.DebPbuilder.name
+buildbot.steps.package.rpm.mock.Mock.name
+buildbot.steps.package.rpm.mock.MockBuildSRPM.name
+buildbot.steps.package.rpm.mock.MockRebuild.name
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.name
+buildbot.steps.package.rpm.rpmlint.RpmLint.name
+buildbot.steps.python.BuildEPYDoc.name
+buildbot.steps.python.PyFlakes.name
+buildbot.steps.python.PyLint.name
+buildbot.steps.python.Sphinx.name
+buildbot.steps.python_twisted.HLint.name
+buildbot.steps.python_twisted.RemovePYCs.name
+buildbot.steps.python_twisted.Trial.name
+buildbot.steps.shell.Compile.name
+buildbot.steps.shell.Configure.name
+buildbot.steps.shell.SetProperty.name
+buildbot.steps.shell.ShellCommand.name
+buildbot.steps.shell.Test.name
+buildbot.steps.shell.TreeSize.name
+buildbot.steps.slave.FileExists.name
+buildbot.steps.slave.MakeDirectory.name
+buildbot.steps.slave.RemoveDirectory.name
+buildbot.steps.slave.SetPropertiesFromEnv.name
+buildbot.steps.source.bzr.Bzr.name
+buildbot.steps.source.cvs.CVS.name
+buildbot.steps.source.git.Git.name
+buildbot.steps.source.mercurial.Mercurial.name
+buildbot.steps.source.oldsource.BK.name
+buildbot.steps.source.oldsource.Bzr.name
+buildbot.steps.source.oldsource.CVS.name
+buildbot.steps.source.oldsource.Darcs.name
+buildbot.steps.source.oldsource.Git.name
+buildbot.steps.source.oldsource.Mercurial.name
+buildbot.steps.source.oldsource.Monotone.name
+buildbot.steps.source.oldsource.P4.name
+buildbot.steps.source.oldsource.Repo.name
+buildbot.steps.source.oldsource.SVN.name
+buildbot.steps.source.svn.SVN.name
+buildbot.steps.transfer.DirectoryUpload.name
+buildbot.steps.transfer.FileDownload.name
+buildbot.steps.transfer.FileUpload.name
+buildbot.steps.transfer.JSONPropertiesDownload.name
+buildbot.steps.transfer.JSONStringDownload.name
+buildbot.steps.transfer.StringDownload.name
+buildbot.steps.trigger.Trigger.name
+buildbot.steps.vstudio.VisualStudio.name
+buildslave.bot.Bot.name" class="py-name" href="#" onclick="return doclink('link-15', 'name', 'link-10');">name</a></tt> <tt class="py-keyword">for</tt> <tt class="py-name">s</tt> <tt class="py-keyword">in</tt> <tt class="py-name">pollers</tt><tt class="py-op">)</tt> </tt>
+<a name="L47"></a><tt class="py-lineno">47</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">missing</tt><tt class="py-op">:</tt> </tt>
+<a name="L48"></a><tt class="py-lineno">48</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">ValueError</tt><tt class="py-op">(</tt><tt class="py-string">"Could not find pollers: %s"</tt> <tt class="py-op">%</tt> <tt class="py-string">","</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">missing</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L49"></a><tt class="py-lineno">49</tt>  <tt class="py-line"> </tt>
+<a name="L50"></a><tt class="py-lineno">50</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt id="link-16" class="py-name" targets="Variable buildbot.p=buildbot-module.html#p,Variable buildbot.status.words.IrcStatusFactory.p=buildbot.status.words.IrcStatusFactory-class.html#p,Variable buildslave.p=buildslave-module.html#p"><a title="buildbot.p
+buildbot.status.words.IrcStatusFactory.p
+buildslave.p" class="py-name" href="#" onclick="return doclink('link-16', 'p', 'link-16');">p</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">pollers</tt><tt class="py-op">:</tt> </tt>
+<a name="L51"></a><tt class="py-lineno">51</tt>  <tt class="py-line">        <tt id="link-17" class="py-name"><a title="buildbot.p
+buildbot.status.words.IrcStatusFactory.p
+buildslave.p" class="py-name" href="#" onclick="return doclink('link-17', 'p', 'link-16');">p</a></tt><tt class="py-op">.</tt><tt id="link-18" class="py-name" targets="Method buildbot.changes.base.PollingChangeSource.doPoll()=buildbot.changes.base.PollingChangeSource-class.html#doPoll"><a title="buildbot.changes.base.PollingChangeSource.doPoll" class="py-name" href="#" onclick="return doclink('link-18', 'doPoll', 'link-18');">doPoll</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L52"></a><tt class="py-lineno">52</tt>  <tt class="py-line"> </tt>
+<a name="L53"></a><tt class="py-lineno">53</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">None</tt> </tt>
+</div><a name="L54"></a><tt class="py-lineno">54</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.7</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Sun Sep 23 03:06:03 2012
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
