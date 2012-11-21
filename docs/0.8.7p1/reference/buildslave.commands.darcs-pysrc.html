@@ -1,0 +1,573 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>buildslave.commands.darcs</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.7p1</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="buildslave-module.html">Package&nbsp;buildslave</a> ::
+        <a href="buildslave.commands-module.html">Package&nbsp;commands</a> ::
+        Module&nbsp;darcs
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="buildslave.commands.darcs-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="buildslave.commands.darcs-module.html">Module buildslave.commands.darcs</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># This file is part of Buildbot.  Buildbot is free software: you can</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment"># redistribute it and/or modify it under the terms of the GNU General Public</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"># License as published by the Free Software Foundation, version 2.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but WITHOUT</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"># ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"># FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"># details.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License along with</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment"># this program; if not, write to the Free Software Foundation, Inc., 51</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment"># Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment"># Copyright Buildbot Team Members</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">os</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Module buildbot.buildslave=buildbot.buildslave-module.html,Package buildslave=buildslave-module.html"><a title="buildbot.buildslave
+buildslave" class="py-name" href="#" onclick="return doclink('link-0', 'buildslave', 'link-0');">buildslave</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Package buildslave.commands=buildslave.commands-module.html"><a title="buildslave.commands" class="py-name" href="#" onclick="return doclink('link-1', 'commands', 'link-1');">commands</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Module buildbot.changes.base=buildbot.changes.base-module.html,Module buildbot.clients.base=buildbot.clients.base-module.html,Module buildbot.db.base=buildbot.db.base-module.html,Module buildbot.process.base=buildbot.process.base-module.html,Module buildbot.schedulers.base=buildbot.schedulers.base-module.html,Module buildbot.scripts.base=buildbot.scripts.base-module.html,Module buildbot.status.base=buildbot.status.base-module.html,Module buildbot.status.web.base=buildbot.status.web.base-module.html,Module buildbot.status.web.hooks.base=buildbot.status.web.hooks.base-module.html,Module buildbot.steps.source.base=buildbot.steps.source.base-module.html,Module buildslave.commands.base=buildslave.commands.base-module.html"><a title="buildbot.changes.base
+buildbot.clients.base
+buildbot.db.base
+buildbot.process.base
+buildbot.schedulers.base
+buildbot.scripts.base
+buildbot.status.base
+buildbot.status.web.base
+buildbot.status.web.hooks.base
+buildbot.steps.source.base
+buildslave.commands.base" class="py-name" href="#" onclick="return doclink('link-2', 'base', 'link-2');">base</a></tt> <tt class="py-keyword">import</tt> <tt id="link-3" class="py-name" targets="Class buildslave.commands.base.SourceBaseCommand=buildslave.commands.base.SourceBaseCommand-class.html"><a title="buildslave.commands.base.SourceBaseCommand" class="py-name" href="#" onclick="return doclink('link-3', 'SourceBaseCommand', 'link-3');">SourceBaseCommand</a></tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-4" class="py-name"><a title="buildbot.buildslave
+buildslave" class="py-name" href="#" onclick="return doclink('link-4', 'buildslave', 'link-0');">buildslave</a></tt> <tt class="py-keyword">import</tt> <tt id="link-5" class="py-name" targets="Module buildslave.runprocess=buildslave.runprocess-module.html"><a title="buildslave.runprocess" class="py-name" href="#" onclick="return doclink('link-5', 'runprocess', 'link-5');">runprocess</a></tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"> </tt>
+<a name="Darcs"></a><div id="Darcs-def"><a name="L22"></a><tt class="py-lineno"> 22</tt> <a class="py-toggle" href="#" id="Darcs-toggle" onclick="return toggle('Darcs');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="buildslave.commands.darcs.Darcs-class.html">Darcs</a><tt class="py-op">(</tt><tt class="py-base-class">SourceBaseCommand</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Darcs-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="Darcs-expanded"><a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line">    <tt class="py-docstring">"""Darcs-specific VC operation. In addition to the arguments</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-docstring">    handled by SourceBaseCommand, this command reads the following keys:</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-docstring">    ['repourl'] (required): the Darcs repository string</tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line">    <tt id="link-6" class="py-name" targets="Variable buildslave.commands.bk.BK.header=buildslave.commands.bk.BK-class.html#header,Variable buildslave.commands.bzr.Bzr.header=buildslave.commands.bzr.Bzr-class.html#header,Variable buildslave.commands.cvs.CVS.header=buildslave.commands.cvs.CVS-class.html#header,Variable buildslave.commands.darcs.Darcs.header=buildslave.commands.darcs.Darcs-class.html#header,Variable buildslave.commands.fs.CopyDirectory.header=buildslave.commands.fs.CopyDirectory-class.html#header,Variable buildslave.commands.fs.MakeDirectory.header=buildslave.commands.fs.MakeDirectory-class.html#header,Variable buildslave.commands.fs.RemoveDirectory.header=buildslave.commands.fs.RemoveDirectory-class.html#header,Variable buildslave.commands.fs.StatFile.header=buildslave.commands.fs.StatFile-class.html#header,Variable buildslave.commands.git.Git.header=buildslave.commands.git.Git-class.html#header,Variable buildslave.commands.hg.Mercurial.header=buildslave.commands.hg.Mercurial-class.html#header,Variable buildslave.commands.mtn.Monotone.header=buildslave.commands.mtn.Monotone-class.html#header,Variable buildslave.commands.p4.P4.header=buildslave.commands.p4.P4-class.html#header,Variable buildslave.commands.repo.Repo.header=buildslave.commands.repo.Repo-class.html#header,Variable buildslave.commands.svn.SVN.header=buildslave.commands.svn.SVN-class.html#header"><a title="buildslave.commands.bk.BK.header
+buildslave.commands.bzr.Bzr.header
+buildslave.commands.cvs.CVS.header
+buildslave.commands.darcs.Darcs.header
+buildslave.commands.fs.CopyDirectory.header
+buildslave.commands.fs.MakeDirectory.header
+buildslave.commands.fs.RemoveDirectory.header
+buildslave.commands.fs.StatFile.header
+buildslave.commands.git.Git.header
+buildslave.commands.hg.Mercurial.header
+buildslave.commands.mtn.Monotone.header
+buildslave.commands.p4.P4.header
+buildslave.commands.repo.Repo.header
+buildslave.commands.svn.SVN.header" class="py-name" href="#" onclick="return doclink('link-6', 'header', 'link-6');">header</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"darcs operation"</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"> </tt>
+<a name="Darcs.setup"></a><div id="Darcs.setup-def"><a name="L31"></a><tt class="py-lineno"> 31</tt> <a class="py-toggle" href="#" id="Darcs.setup-toggle" onclick="return toggle('Darcs.setup');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.darcs.Darcs-class.html#setup">setup</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">args</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Darcs.setup-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Darcs.setup-expanded"><a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line">        <tt id="link-7" class="py-name"><a title="buildslave.commands.base.SourceBaseCommand" class="py-name" href="#" onclick="return doclink('link-7', 'SourceBaseCommand', 'link-3');">SourceBaseCommand</a></tt><tt class="py-op">.</tt><tt id="link-8" class="py-name" targets="Method buildbot.db.connector.DBConnector.setup()=buildbot.db.connector.DBConnector-class.html#setup,Method buildslave.commands.base.Command.setup()=buildslave.commands.base.Command-class.html#setup,Method buildslave.commands.base.SourceBaseCommand.setup()=buildslave.commands.base.SourceBaseCommand-class.html#setup,Method buildslave.commands.bk.BK.setup()=buildslave.commands.bk.BK-class.html#setup,Method buildslave.commands.bzr.Bzr.setup()=buildslave.commands.bzr.Bzr-class.html#setup,Method buildslave.commands.cvs.CVS.setup()=buildslave.commands.cvs.CVS-class.html#setup,Method buildslave.commands.darcs.Darcs.setup()=buildslave.commands.darcs.Darcs-class.html#setup,Method buildslave.commands.fs.CopyDirectory.setup()=buildslave.commands.fs.CopyDirectory-class.html#setup,Method buildslave.commands.fs.RemoveDirectory.setup()=buildslave.commands.fs.RemoveDirectory-class.html#setup,Method buildslave.commands.git.Git.setup()=buildslave.commands.git.Git-class.html#setup,Method buildslave.commands.hg.Mercurial.setup()=buildslave.commands.hg.Mercurial-class.html#setup,Method buildslave.commands.mtn.Monotone.setup()=buildslave.commands.mtn.Monotone-class.html#setup,Method buildslave.commands.p4.P4.setup()=buildslave.commands.p4.P4-class.html#setup,Method buildslave.commands.p4.P4Base.setup()=buildslave.commands.p4.P4Base-class.html#setup,Method buildslave.commands.repo.Repo.setup()=buildslave.commands.repo.Repo-class.html#setup,Method buildslave.commands.svn.SVN.setup()=buildslave.commands.svn.SVN-class.html#setup,Method buildslave.commands.transfer.SlaveDirectoryUploadCommand.setup()=buildslave.commands.transfer.SlaveDirectoryUploadCommand-class.html#setup,Method buildslave.commands.transfer.SlaveFileDownloadCommand.setup()=buildslave.commands.transfer.SlaveFileDownloadCommand-class.html#setup,Method buildslave.commands.transfer.SlaveFileUploadCommand.setup()=buildslave.commands.transfer.SlaveFileUploadCommand-class.html#setup,Method buildslave.interfaces.ISlaveCommand.setup()=buildslave.interfaces.ISlaveCommand-class.html#setup"><a title="buildbot.db.connector.DBConnector.setup
+buildslave.commands.base.Command.setup
+buildslave.commands.base.SourceBaseCommand.setup
+buildslave.commands.bk.BK.setup
+buildslave.commands.bzr.Bzr.setup
+buildslave.commands.cvs.CVS.setup
+buildslave.commands.darcs.Darcs.setup
+buildslave.commands.fs.CopyDirectory.setup
+buildslave.commands.fs.RemoveDirectory.setup
+buildslave.commands.git.Git.setup
+buildslave.commands.hg.Mercurial.setup
+buildslave.commands.mtn.Monotone.setup
+buildslave.commands.p4.P4.setup
+buildslave.commands.p4.P4Base.setup
+buildslave.commands.repo.Repo.setup
+buildslave.commands.svn.SVN.setup
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.setup
+buildslave.commands.transfer.SlaveFileDownloadCommand.setup
+buildslave.commands.transfer.SlaveFileUploadCommand.setup
+buildslave.interfaces.ISlaveCommand.setup" class="py-name" href="#" onclick="return doclink('link-8', 'setup', 'link-8');">setup</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt> <tt class="py-name">args</tt><tt class="py-op">)</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">repourl</tt> <tt class="py-op">=</tt> <tt class="py-name">args</tt><tt class="py-op">[</tt><tt class="py-string">'repourl'</tt><tt class="py-op">]</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-9" class="py-name" targets="Variable buildslave.commands.base.SourceBaseCommand.sourcedata=buildslave.commands.base.SourceBaseCommand-class.html#sourcedata"><a title="buildslave.commands.base.SourceBaseCommand.sourcedata" class="py-name" href="#" onclick="return doclink('link-9', 'sourcedata', 'link-9');">sourcedata</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"%s\n"</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">repourl</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-10" class="py-name" targets="Variable buildbot.changes.changes.Change.revision=buildbot.changes.changes.Change-class.html#revision,Variable buildbot.sourcestamp.SourceStamp.revision=buildbot.sourcestamp.SourceStamp-class.html#revision"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-10', 'revision', 'link-10');">revision</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">args</tt><tt class="py-op">.</tt><tt id="link-11" class="py-name" targets="Method buildbot.clients.tryclient.SourceStampExtractor.get()=buildbot.clients.tryclient.SourceStampExtractor-class.html#get,Method buildbot.process.metrics.MetricCountHandler.get()=buildbot.process.metrics.MetricCountHandler-class.html#get,Method buildbot.process.metrics.MetricHandler.get()=buildbot.process.metrics.MetricHandler-class.html#get,Method buildbot.process.metrics.MetricTimeHandler.get()=buildbot.process.metrics.MetricTimeHandler-class.html#get,Method buildbot.status.web.session.SessionManager.get()=buildbot.status.web.session.SessionManager-class.html#get,Method buildbot.util.lru.AsyncLRUCache.get()=buildbot.util.lru.AsyncLRUCache-class.html#get,Method buildbot.util.lru.LRUCache.get()=buildbot.util.lru.LRUCache-class.html#get"><a title="buildbot.clients.tryclient.SourceStampExtractor.get
+buildbot.process.metrics.MetricCountHandler.get
+buildbot.process.metrics.MetricHandler.get
+buildbot.process.metrics.MetricTimeHandler.get
+buildbot.status.web.session.SessionManager.get
+buildbot.util.lru.AsyncLRUCache.get
+buildbot.util.lru.LRUCache.get" class="py-name" href="#" onclick="return doclink('link-11', 'get', 'link-11');">get</a></tt><tt class="py-op">(</tt><tt class="py-string">'revision'</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"> </tt>
+<a name="Darcs.sourcedirIsUpdateable"></a><div id="Darcs.sourcedirIsUpdateable-def"><a name="L37"></a><tt class="py-lineno"> 37</tt> <a class="py-toggle" href="#" id="Darcs.sourcedirIsUpdateable-toggle" onclick="return toggle('Darcs.sourcedirIsUpdateable');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.darcs.Darcs-class.html#sourcedirIsUpdateable">sourcedirIsUpdateable</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Darcs.sourcedirIsUpdateable-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Darcs.sourcedirIsUpdateable-expanded"><a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line">        <tt class="py-comment"># checking out a specific revision requires a full 'darcs get'</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-op">(</tt><tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-12" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-12', 'revision', 'link-10');">revision</a></tt> <tt class="py-keyword">and</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line">                <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-13" class="py-name" targets="Method buildslave.commands.base.SourceBaseCommand.sourcedirIsPatched()=buildslave.commands.base.SourceBaseCommand-class.html#sourcedirIsPatched"><a title="buildslave.commands.base.SourceBaseCommand.sourcedirIsPatched" class="py-name" href="#" onclick="return doclink('link-13', 'sourcedirIsPatched', 'link-13');">sourcedirIsPatched</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-keyword">and</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">                <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-14" class="py-name" targets="Variable twisted.python.filepath.FilePath.path=twisted.python.filepath.FilePath-class.html#path"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-14', 'path', 'link-14');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">isdir</tt><tt class="py-op">(</tt><tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-15', 'path', 'link-14');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name" targets="Module buildbot.process.builder=buildbot.process.builder-module.html,Module buildbot.status.builder=buildbot.status.builder-module.html,Module buildbot.status.web.builder=buildbot.status.web.builder-module.html,Method buildbot.status.web.builder.StatusResourceBuilder.builder()=buildbot.status.web.builder.StatusResourceBuilder-class.html#builder"><a title="buildbot.process.builder
+buildbot.status.builder
+buildbot.status.web.builder
+buildbot.status.web.builder.StatusResourceBuilder.builder" class="py-name" href="#" onclick="return doclink('link-16', 'builder', 'link-16');">builder</a></tt><tt class="py-op">.</tt><tt id="link-17" class="py-name" targets="Variable buildbot.status.builder.BuilderStatus.basedir=buildbot.status.builder.BuilderStatus-class.html#basedir"><a title="buildbot.status.builder.BuilderStatus.basedir" class="py-name" href="#" onclick="return doclink('link-17', 'basedir', 'link-17');">basedir</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">                                           <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">srcdir</tt><tt class="py-op">,</tt> <tt class="py-string">"_darcs"</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"> </tt>
+<a name="Darcs.doVCUpdate"></a><div id="Darcs.doVCUpdate-def"><a name="L44"></a><tt class="py-lineno"> 44</tt> <a class="py-toggle" href="#" id="Darcs.doVCUpdate-toggle" onclick="return toggle('Darcs.doVCUpdate');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.darcs.Darcs-class.html#doVCUpdate">doVCUpdate</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Darcs.doVCUpdate-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Darcs.doVCUpdate-expanded"><a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line">        <tt id="link-18" class="py-name" targets="Module buildslave.commands.darcs=buildslave.commands.darcs-module.html"><a title="buildslave.commands.darcs" class="py-name" href="#" onclick="return doclink('link-18', 'darcs', 'link-18');">darcs</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name" targets="Method buildslave.commands.base.SourceBaseCommand.getCommand()=buildslave.commands.base.SourceBaseCommand-class.html#getCommand,Function buildslave.commands.utils.getCommand()=buildslave.commands.utils-module.html#getCommand"><a title="buildslave.commands.base.SourceBaseCommand.getCommand
+buildslave.commands.utils.getCommand" class="py-name" href="#" onclick="return doclink('link-19', 'getCommand', 'link-19');">getCommand</a></tt><tt class="py-op">(</tt><tt class="py-string">'darcs'</tt><tt class="py-op">)</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line">        <tt class="py-keyword">assert</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-20" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-20', 'revision', 'link-10');">revision</a></tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line">        <tt class="py-comment"># update: possible for mode in ('copy', 'update')</tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line">        <tt class="py-name">d</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-21" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-21', 'path', 'link-14');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="buildbot.process.builder
+buildbot.status.builder
+buildbot.status.web.builder
+buildbot.status.web.builder.StatusResourceBuilder.builder" class="py-name" href="#" onclick="return doclink('link-22', 'builder', 'link-16');">builder</a></tt><tt class="py-op">.</tt><tt id="link-23" class="py-name"><a title="buildbot.status.builder.BuilderStatus.basedir" class="py-name" href="#" onclick="return doclink('link-23', 'basedir', 'link-17');">basedir</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">srcdir</tt><tt class="py-op">)</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">        <tt id="link-24" class="py-name" targets="Variable buildbot.steps.python.BuildEPYDoc.command=buildbot.steps.python.BuildEPYDoc-class.html#command,Variable buildbot.steps.python.PyFlakes.command=buildbot.steps.python.PyFlakes-class.html#command,Variable buildbot.steps.python_twisted.RemovePYCs.command=buildbot.steps.python_twisted.RemovePYCs-class.html#command,Variable buildbot.steps.shell.Compile.command=buildbot.steps.shell.Compile-class.html#command,Variable buildbot.steps.shell.Configure.command=buildbot.steps.shell.Configure-class.html#command,Variable buildbot.steps.shell.PerlModuleTest.command=buildbot.steps.shell.PerlModuleTest-class.html#command,Variable buildbot.steps.shell.ShellCommand.command=buildbot.steps.shell.ShellCommand-class.html#command,Variable buildbot.steps.shell.Test.command=buildbot.steps.shell.Test-class.html#command,Variable buildbot.steps.shell.TreeSize.command=buildbot.steps.shell.TreeSize-class.html#command,Variable buildslave.bot.SlaveBuilder.command=buildslave.bot.SlaveBuilder-class.html#command"><a title="buildbot.steps.python.BuildEPYDoc.command
+buildbot.steps.python.PyFlakes.command
+buildbot.steps.python_twisted.RemovePYCs.command
+buildbot.steps.shell.Compile.command
+buildbot.steps.shell.Configure.command
+buildbot.steps.shell.PerlModuleTest.command
+buildbot.steps.shell.ShellCommand.command
+buildbot.steps.shell.Test.command
+buildbot.steps.shell.TreeSize.command
+buildslave.bot.SlaveBuilder.command" class="py-name" href="#" onclick="return doclink('link-24', 'command', 'link-24');">command</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt id="link-25" class="py-name"><a title="buildslave.commands.darcs" class="py-name" href="#" onclick="return doclink('link-25', 'darcs', 'link-18');">darcs</a></tt><tt class="py-op">,</tt> <tt class="py-string">'pull'</tt><tt class="py-op">,</tt> <tt class="py-string">'--all'</tt><tt class="py-op">,</tt> <tt class="py-string">'--verbose'</tt><tt class="py-op">]</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line">        <tt class="py-name">c</tt> <tt class="py-op">=</tt> <tt id="link-26" class="py-name"><a title="buildslave.runprocess" class="py-name" href="#" onclick="return doclink('link-26', 'runprocess', 'link-5');">runprocess</a></tt><tt class="py-op">.</tt><tt id="link-27" class="py-name" targets="Class buildslave.runprocess.RunProcess=buildslave.runprocess.RunProcess-class.html"><a title="buildslave.runprocess.RunProcess" class="py-name" href="#" onclick="return doclink('link-27', 'RunProcess', 'link-27');">RunProcess</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-28" class="py-name"><a title="buildbot.process.builder
+buildbot.status.builder
+buildbot.status.web.builder
+buildbot.status.web.builder.StatusResourceBuilder.builder" class="py-name" href="#" onclick="return doclink('link-28', 'builder', 'link-16');">builder</a></tt><tt class="py-op">,</tt> <tt id="link-29" class="py-name"><a title="buildbot.steps.python.BuildEPYDoc.command
+buildbot.steps.python.PyFlakes.command
+buildbot.steps.python_twisted.RemovePYCs.command
+buildbot.steps.shell.Compile.command
+buildbot.steps.shell.Configure.command
+buildbot.steps.shell.PerlModuleTest.command
+buildbot.steps.shell.ShellCommand.command
+buildbot.steps.shell.Test.command
+buildbot.steps.shell.TreeSize.command
+buildslave.bot.SlaveBuilder.command" class="py-name" href="#" onclick="return doclink('link-29', 'command', 'link-24');">command</a></tt><tt class="py-op">,</tt> <tt class="py-name">d</tt><tt class="py-op">,</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">                         <tt class="py-name">sendRC</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">,</tt> <tt id="link-30" class="py-name" targets="Method buildbot.scripts.logwatcher.LogWatcher.timeout()=buildbot.scripts.logwatcher.LogWatcher-class.html#timeout,Variable buildbot.steps.blocker.Blocker.timeout=buildbot.steps.blocker.Blocker-class.html#timeout,Method buildslave.scripts.logwatcher.LogWatcher.timeout()=buildslave.scripts.logwatcher.LogWatcher-class.html#timeout"><a title="buildbot.scripts.logwatcher.LogWatcher.timeout
+buildbot.steps.blocker.Blocker.timeout
+buildslave.scripts.logwatcher.LogWatcher.timeout" class="py-name" href="#" onclick="return doclink('link-30', 'timeout', 'link-30');">timeout</a></tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-31" class="py-name"><a title="buildbot.scripts.logwatcher.LogWatcher.timeout
+buildbot.steps.blocker.Blocker.timeout
+buildslave.scripts.logwatcher.LogWatcher.timeout" class="py-name" href="#" onclick="return doclink('link-31', 'timeout', 'link-30');">timeout</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line">                         <tt class="py-name">maxTime</tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">maxTime</tt><tt class="py-op">,</tt> <tt class="py-name">logEnviron</tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">logEnviron</tt><tt class="py-op">,</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">                         <tt id="link-32" class="py-name" targets="Variable buildslave.bot.Bot.usePTY=buildslave.bot.Bot-class.html#usePTY"><a title="buildslave.bot.Bot.usePTY" class="py-name" href="#" onclick="return doclink('link-32', 'usePTY', 'link-32');">usePTY</a></tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">)</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-33" class="py-name"><a title="buildbot.steps.python.BuildEPYDoc.command
+buildbot.steps.python.PyFlakes.command
+buildbot.steps.python_twisted.RemovePYCs.command
+buildbot.steps.shell.Compile.command
+buildbot.steps.shell.Configure.command
+buildbot.steps.shell.PerlModuleTest.command
+buildbot.steps.shell.ShellCommand.command
+buildbot.steps.shell.Test.command
+buildbot.steps.shell.TreeSize.command
+buildslave.bot.SlaveBuilder.command" class="py-name" href="#" onclick="return doclink('link-33', 'command', 'link-24');">command</a></tt> <tt class="py-op">=</tt> <tt class="py-name">c</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">c</tt><tt class="py-op">.</tt><tt id="link-34" class="py-name" targets="Method buildbot.process.buildstep.BuildStep.start()=buildbot.process.buildstep.BuildStep-class.html#start,Method buildbot.process.metrics.Timer.start()=buildbot.process.metrics.Timer-class.html#start,Method buildbot.process.mtrlogobserver.MTR.start()=buildbot.process.mtrlogobserver.MTR-class.html#start,Method buildbot.scripts.logwatcher.LogWatcher.start()=buildbot.scripts.logwatcher.LogWatcher-class.html#start,Module buildbot.scripts.start=buildbot.scripts.start-module.html,Function buildbot.scripts.start.start()=buildbot.scripts.start-module.html#start,Method buildbot.status.progress.StepProgress.start()=buildbot.status.progress.StepProgress-class.html#start,Method buildbot.steps.blocker.Blocker.start()=buildbot.steps.blocker.Blocker-class.html#start,Method buildbot.steps.master.MasterShellCommand.start()=buildbot.steps.master.MasterShellCommand-class.html#start,Method buildbot.steps.package.deb.pbuilder.DebPbuilder.start()=buildbot.steps.package.deb.pbuilder.DebPbuilder-class.html#start,Method buildbot.steps.package.rpm.mock.Mock.start()=buildbot.steps.package.rpm.mock.Mock-class.html#start,Method buildbot.steps.package.rpm.rpmbuild.RpmBuild.start()=buildbot.steps.package.rpm.rpmbuild.RpmBuild-class.html#start,Method buildbot.steps.python_twisted.HLint.start()=buildbot.steps.python_twisted.HLint-class.html#start,Method buildbot.steps.python_twisted.Trial.start()=buildbot.steps.python_twisted.Trial-class.html#start,Method buildbot.steps.shell.ShellCommand.start()=buildbot.steps.shell.ShellCommand-class.html#start,Method buildbot.steps.shell.WarningCountingShellCommand.start()=buildbot.steps.shell.WarningCountingShellCommand-class.html#start,Method buildbot.steps.slave.FileExists.start()=buildbot.steps.slave.FileExists-class.html#start,Method buildbot.steps.slave.MakeDirectory.start()=buildbot.steps.slave.MakeDirectory-class.html#start,Method buildbot.steps.slave.RemoveDirectory.start()=buildbot.steps.slave.RemoveDirectory-class.html#start,Method buildbot.steps.slave.SetPropertiesFromEnv.start()=buildbot.steps.slave.SetPropertiesFromEnv-class.html#start,Method buildbot.steps.source.base.Source.start()=buildbot.steps.source.base.Source-class.html#start,Method buildbot.steps.source.oldsource.SlaveSource.start()=buildbot.steps.source.oldsource.SlaveSource-class.html#start,Method buildbot.steps.transfer.DirectoryUpload.start()=buildbot.steps.transfer.DirectoryUpload-class.html#start,Method buildbot.steps.transfer.FileDownload.start()=buildbot.steps.transfer.FileDownload-class.html#start,Method buildbot.steps.transfer.FileUpload.start()=buildbot.steps.transfer.FileUpload-class.html#start,Method buildbot.steps.transfer.JSONPropertiesDownload.start()=buildbot.steps.transfer.JSONPropertiesDownload-class.html#start,Method buildbot.steps.transfer.StringDownload.start()=buildbot.steps.transfer.StringDownload-class.html#start,Method buildbot.steps.trigger.Trigger.start()=buildbot.steps.trigger.Trigger-class.html#start,Method buildbot.steps.vstudio.VC6.start()=buildbot.steps.vstudio.VC6-class.html#start,Method buildbot.steps.vstudio.VC7.start()=buildbot.steps.vstudio.VC7-class.html#start,Method buildbot.steps.vstudio.VCExpress9.start()=buildbot.steps.vstudio.VCExpress9-class.html#start,Method buildbot.util.misc.SerializedInvocation.start()=buildbot.util.misc.SerializedInvocation-class.html#start,Method buildslave.commands.base.Command.start()=buildslave.commands.base.Command-class.html#start,Method buildslave.commands.base.SourceBaseCommand.start()=buildslave.commands.base.SourceBaseCommand-class.html#start,Method buildslave.commands.bzr.Bzr.start()=buildslave.commands.bzr.Bzr-class.html#start,Method buildslave.commands.cvs.CVS.start()=buildslave.commands.cvs.CVS-class.html#start,Method buildslave.commands.fs.CopyDirectory.start()=buildslave.commands.fs.CopyDirectory-class.html#start,Method buildslave.commands.fs.MakeDirectory.start()=buildslave.commands.fs.MakeDirectory-class.html#start,Method buildslave.commands.fs.RemoveDirectory.start()=buildslave.commands.fs.RemoveDirectory-class.html#start,Method buildslave.commands.fs.StatFile.start()=buildslave.commands.fs.StatFile-class.html#start,Method buildslave.commands.mtn.Monotone.start()=buildslave.commands.mtn.Monotone-class.html#start,Method buildslave.commands.shell.SlaveShellCommand.start()=buildslave.commands.shell.SlaveShellCommand-class.html#start,Method buildslave.commands.transfer.SlaveDirectoryUploadCommand.start()=buildslave.commands.transfer.SlaveDirectoryUploadCommand-class.html#start,Method buildslave.commands.transfer.SlaveFileDownloadCommand.start()=buildslave.commands.transfer.SlaveFileDownloadCommand-class.html#start,Method buildslave.commands.transfer.SlaveFileUploadCommand.start()=buildslave.commands.transfer.SlaveFileUploadCommand-class.html#start,Method buildslave.interfaces.ISlaveCommand.start()=buildslave.interfaces.ISlaveCommand-class.html#start,Method buildslave.runprocess.LogFileWatcher.start()=buildslave.runprocess.LogFileWatcher-class.html#start,Method buildslave.runprocess.RunProcess.start()=buildslave.runprocess.RunProcess-class.html#start,Method buildslave.scripts.logwatcher.LogWatcher.start()=buildslave.scripts.logwatcher.LogWatcher-class.html#start,Function buildslave.scripts.startup.start()=buildslave.scripts.startup-module.html#start"><a title="buildbot.process.buildstep.BuildStep.start
+buildbot.process.metrics.Timer.start
+buildbot.process.mtrlogobserver.MTR.start
+buildbot.scripts.logwatcher.LogWatcher.start
+buildbot.scripts.start
+buildbot.scripts.start.start
+buildbot.status.progress.StepProgress.start
+buildbot.steps.blocker.Blocker.start
+buildbot.steps.master.MasterShellCommand.start
+buildbot.steps.package.deb.pbuilder.DebPbuilder.start
+buildbot.steps.package.rpm.mock.Mock.start
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.start
+buildbot.steps.python_twisted.HLint.start
+buildbot.steps.python_twisted.Trial.start
+buildbot.steps.shell.ShellCommand.start
+buildbot.steps.shell.WarningCountingShellCommand.start
+buildbot.steps.slave.FileExists.start
+buildbot.steps.slave.MakeDirectory.start
+buildbot.steps.slave.RemoveDirectory.start
+buildbot.steps.slave.SetPropertiesFromEnv.start
+buildbot.steps.source.base.Source.start
+buildbot.steps.source.oldsource.SlaveSource.start
+buildbot.steps.transfer.DirectoryUpload.start
+buildbot.steps.transfer.FileDownload.start
+buildbot.steps.transfer.FileUpload.start
+buildbot.steps.transfer.JSONPropertiesDownload.start
+buildbot.steps.transfer.StringDownload.start
+buildbot.steps.trigger.Trigger.start
+buildbot.steps.vstudio.VC6.start
+buildbot.steps.vstudio.VC7.start
+buildbot.steps.vstudio.VCExpress9.start
+buildbot.util.misc.SerializedInvocation.start
+buildslave.commands.base.Command.start
+buildslave.commands.base.SourceBaseCommand.start
+buildslave.commands.bzr.Bzr.start
+buildslave.commands.cvs.CVS.start
+buildslave.commands.fs.CopyDirectory.start
+buildslave.commands.fs.MakeDirectory.start
+buildslave.commands.fs.RemoveDirectory.start
+buildslave.commands.fs.StatFile.start
+buildslave.commands.mtn.Monotone.start
+buildslave.commands.shell.SlaveShellCommand.start
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.start
+buildslave.commands.transfer.SlaveFileDownloadCommand.start
+buildslave.commands.transfer.SlaveFileUploadCommand.start
+buildslave.interfaces.ISlaveCommand.start
+buildslave.runprocess.LogFileWatcher.start
+buildslave.runprocess.RunProcess.start
+buildslave.scripts.logwatcher.LogWatcher.start
+buildslave.scripts.startup.start" class="py-name" href="#" onclick="return doclink('link-34', 'start', 'link-34');">start</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line"> </tt>
+<a name="Darcs.doVCFull"></a><div id="Darcs.doVCFull-def"><a name="L57"></a><tt class="py-lineno"> 57</tt> <a class="py-toggle" href="#" id="Darcs.doVCFull-toggle" onclick="return toggle('Darcs.doVCFull');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.darcs.Darcs-class.html#doVCFull">doVCFull</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Darcs.doVCFull-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Darcs.doVCFull-expanded"><a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">        <tt id="link-35" class="py-name"><a title="buildslave.commands.darcs" class="py-name" href="#" onclick="return doclink('link-35', 'darcs', 'link-18');">darcs</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-36" class="py-name"><a title="buildslave.commands.base.SourceBaseCommand.getCommand
+buildslave.commands.utils.getCommand" class="py-name" href="#" onclick="return doclink('link-36', 'getCommand', 'link-19');">getCommand</a></tt><tt class="py-op">(</tt><tt class="py-string">'darcs'</tt><tt class="py-op">)</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">        <tt class="py-comment"># checkout or export</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">        <tt class="py-name">d</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-37" class="py-name"><a title="buildbot.process.builder
+buildbot.status.builder
+buildbot.status.web.builder
+buildbot.status.web.builder.StatusResourceBuilder.builder" class="py-name" href="#" onclick="return doclink('link-37', 'builder', 'link-16');">builder</a></tt><tt class="py-op">.</tt><tt id="link-38" class="py-name"><a title="buildbot.status.builder.BuilderStatus.basedir" class="py-name" href="#" onclick="return doclink('link-38', 'basedir', 'link-17');">basedir</a></tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">        <tt id="link-39" class="py-name"><a title="buildbot.steps.python.BuildEPYDoc.command
+buildbot.steps.python.PyFlakes.command
+buildbot.steps.python_twisted.RemovePYCs.command
+buildbot.steps.shell.Compile.command
+buildbot.steps.shell.Configure.command
+buildbot.steps.shell.PerlModuleTest.command
+buildbot.steps.shell.ShellCommand.command
+buildbot.steps.shell.Test.command
+buildbot.steps.shell.TreeSize.command
+buildslave.bot.SlaveBuilder.command" class="py-name" href="#" onclick="return doclink('link-39', 'command', 'link-24');">command</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt id="link-40" class="py-name"><a title="buildslave.commands.darcs" class="py-name" href="#" onclick="return doclink('link-40', 'darcs', 'link-18');">darcs</a></tt><tt class="py-op">,</tt> <tt class="py-string">'get'</tt><tt class="py-op">,</tt> <tt class="py-string">'--verbose'</tt><tt class="py-op">,</tt> <tt class="py-string">'--lazy'</tt><tt class="py-op">,</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">                   <tt class="py-string">'--repo-name'</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">srcdir</tt><tt class="py-op">]</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-41" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-41', 'revision', 'link-10');">revision</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">            <tt class="py-comment"># write the context to a file</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">            <tt class="py-name">n</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-42" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-42', 'path', 'link-14');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-43" class="py-name"><a title="buildbot.process.builder
+buildbot.status.builder
+buildbot.status.web.builder
+buildbot.status.web.builder.StatusResourceBuilder.builder" class="py-name" href="#" onclick="return doclink('link-43', 'builder', 'link-16');">builder</a></tt><tt class="py-op">.</tt><tt id="link-44" class="py-name"><a title="buildbot.status.builder.BuilderStatus.basedir" class="py-name" href="#" onclick="return doclink('link-44', 'basedir', 'link-17');">basedir</a></tt><tt class="py-op">,</tt> <tt class="py-string">".darcs-context"</tt><tt class="py-op">)</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">            <tt class="py-name">f</tt> <tt class="py-op">=</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt class="py-name">n</tt><tt class="py-op">,</tt> <tt class="py-string">"wb"</tt><tt class="py-op">)</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">            <tt class="py-name">f</tt><tt class="py-op">.</tt><tt id="link-45" class="py-name" targets="Method buildbot.util.netstrings.NullTransport.write()=buildbot.util.netstrings.NullTransport-class.html#write"><a title="buildbot.util.netstrings.NullTransport.write" class="py-name" href="#" onclick="return doclink('link-45', 'write', 'link-45');">write</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-46" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-46', 'revision', 'link-10');">revision</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">            <tt class="py-name">f</tt><tt class="py-op">.</tt><tt class="py-name">close</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">            <tt class="py-comment"># tell Darcs to use that context</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">            <tt id="link-47" class="py-name"><a title="buildbot.steps.python.BuildEPYDoc.command
+buildbot.steps.python.PyFlakes.command
+buildbot.steps.python_twisted.RemovePYCs.command
+buildbot.steps.shell.Compile.command
+buildbot.steps.shell.Configure.command
+buildbot.steps.shell.PerlModuleTest.command
+buildbot.steps.shell.ShellCommand.command
+buildbot.steps.shell.Test.command
+buildbot.steps.shell.TreeSize.command
+buildslave.bot.SlaveBuilder.command" class="py-name" href="#" onclick="return doclink('link-47', 'command', 'link-24');">command</a></tt><tt class="py-op">.</tt><tt id="link-48" class="py-name" targets="Method buildbot.process.metrics.AveragingFiniteList.append()=buildbot.process.metrics.AveragingFiniteList-class.html#append,Method buildbot.process.metrics.FiniteList.append()=buildbot.process.metrics.FiniteList-class.html#append"><a title="buildbot.process.metrics.AveragingFiniteList.append
+buildbot.process.metrics.FiniteList.append" class="py-name" href="#" onclick="return doclink('link-48', 'append', 'link-48');">append</a></tt><tt class="py-op">(</tt><tt class="py-string">'--context'</tt><tt class="py-op">)</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">            <tt id="link-49" class="py-name"><a title="buildbot.steps.python.BuildEPYDoc.command
+buildbot.steps.python.PyFlakes.command
+buildbot.steps.python_twisted.RemovePYCs.command
+buildbot.steps.shell.Compile.command
+buildbot.steps.shell.Configure.command
+buildbot.steps.shell.PerlModuleTest.command
+buildbot.steps.shell.ShellCommand.command
+buildbot.steps.shell.Test.command
+buildbot.steps.shell.TreeSize.command
+buildslave.bot.SlaveBuilder.command" class="py-name" href="#" onclick="return doclink('link-49', 'command', 'link-24');">command</a></tt><tt class="py-op">.</tt><tt id="link-50" class="py-name"><a title="buildbot.process.metrics.AveragingFiniteList.append
+buildbot.process.metrics.FiniteList.append" class="py-name" href="#" onclick="return doclink('link-50', 'append', 'link-48');">append</a></tt><tt class="py-op">(</tt><tt class="py-name">n</tt><tt class="py-op">)</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">        <tt id="link-51" class="py-name"><a title="buildbot.steps.python.BuildEPYDoc.command
+buildbot.steps.python.PyFlakes.command
+buildbot.steps.python_twisted.RemovePYCs.command
+buildbot.steps.shell.Compile.command
+buildbot.steps.shell.Configure.command
+buildbot.steps.shell.PerlModuleTest.command
+buildbot.steps.shell.ShellCommand.command
+buildbot.steps.shell.Test.command
+buildbot.steps.shell.TreeSize.command
+buildslave.bot.SlaveBuilder.command" class="py-name" href="#" onclick="return doclink('link-51', 'command', 'link-24');">command</a></tt><tt class="py-op">.</tt><tt id="link-52" class="py-name"><a title="buildbot.process.metrics.AveragingFiniteList.append
+buildbot.process.metrics.FiniteList.append" class="py-name" href="#" onclick="return doclink('link-52', 'append', 'link-48');">append</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">repourl</tt><tt class="py-op">)</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line"> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">        <tt class="py-name">c</tt> <tt class="py-op">=</tt> <tt id="link-53" class="py-name"><a title="buildslave.runprocess" class="py-name" href="#" onclick="return doclink('link-53', 'runprocess', 'link-5');">runprocess</a></tt><tt class="py-op">.</tt><tt id="link-54" class="py-name"><a title="buildslave.runprocess.RunProcess" class="py-name" href="#" onclick="return doclink('link-54', 'RunProcess', 'link-27');">RunProcess</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-55" class="py-name"><a title="buildbot.process.builder
+buildbot.status.builder
+buildbot.status.web.builder
+buildbot.status.web.builder.StatusResourceBuilder.builder" class="py-name" href="#" onclick="return doclink('link-55', 'builder', 'link-16');">builder</a></tt><tt class="py-op">,</tt> <tt id="link-56" class="py-name"><a title="buildbot.steps.python.BuildEPYDoc.command
+buildbot.steps.python.PyFlakes.command
+buildbot.steps.python_twisted.RemovePYCs.command
+buildbot.steps.shell.Compile.command
+buildbot.steps.shell.Configure.command
+buildbot.steps.shell.PerlModuleTest.command
+buildbot.steps.shell.ShellCommand.command
+buildbot.steps.shell.Test.command
+buildbot.steps.shell.TreeSize.command
+buildslave.bot.SlaveBuilder.command" class="py-name" href="#" onclick="return doclink('link-56', 'command', 'link-24');">command</a></tt><tt class="py-op">,</tt> <tt class="py-name">d</tt><tt class="py-op">,</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">                         <tt class="py-name">sendRC</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">,</tt> <tt id="link-57" class="py-name"><a title="buildbot.scripts.logwatcher.LogWatcher.timeout
+buildbot.steps.blocker.Blocker.timeout
+buildslave.scripts.logwatcher.LogWatcher.timeout" class="py-name" href="#" onclick="return doclink('link-57', 'timeout', 'link-30');">timeout</a></tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-58" class="py-name"><a title="buildbot.scripts.logwatcher.LogWatcher.timeout
+buildbot.steps.blocker.Blocker.timeout
+buildslave.scripts.logwatcher.LogWatcher.timeout" class="py-name" href="#" onclick="return doclink('link-58', 'timeout', 'link-30');">timeout</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">                         <tt class="py-name">maxTime</tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">maxTime</tt><tt class="py-op">,</tt> <tt class="py-name">logEnviron</tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">logEnviron</tt><tt class="py-op">,</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">                         <tt id="link-59" class="py-name"><a title="buildslave.bot.Bot.usePTY" class="py-name" href="#" onclick="return doclink('link-59', 'usePTY', 'link-32');">usePTY</a></tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">)</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-60" class="py-name"><a title="buildbot.steps.python.BuildEPYDoc.command
+buildbot.steps.python.PyFlakes.command
+buildbot.steps.python_twisted.RemovePYCs.command
+buildbot.steps.shell.Compile.command
+buildbot.steps.shell.Configure.command
+buildbot.steps.shell.PerlModuleTest.command
+buildbot.steps.shell.ShellCommand.command
+buildbot.steps.shell.Test.command
+buildbot.steps.shell.TreeSize.command
+buildslave.bot.SlaveBuilder.command" class="py-name" href="#" onclick="return doclink('link-60', 'command', 'link-24');">command</a></tt> <tt class="py-op">=</tt> <tt class="py-name">c</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">        <tt class="py-name">d</tt> <tt class="py-op">=</tt> <tt class="py-name">c</tt><tt class="py-op">.</tt><tt id="link-61" class="py-name"><a title="buildbot.process.buildstep.BuildStep.start
+buildbot.process.metrics.Timer.start
+buildbot.process.mtrlogobserver.MTR.start
+buildbot.scripts.logwatcher.LogWatcher.start
+buildbot.scripts.start
+buildbot.scripts.start.start
+buildbot.status.progress.StepProgress.start
+buildbot.steps.blocker.Blocker.start
+buildbot.steps.master.MasterShellCommand.start
+buildbot.steps.package.deb.pbuilder.DebPbuilder.start
+buildbot.steps.package.rpm.mock.Mock.start
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.start
+buildbot.steps.python_twisted.HLint.start
+buildbot.steps.python_twisted.Trial.start
+buildbot.steps.shell.ShellCommand.start
+buildbot.steps.shell.WarningCountingShellCommand.start
+buildbot.steps.slave.FileExists.start
+buildbot.steps.slave.MakeDirectory.start
+buildbot.steps.slave.RemoveDirectory.start
+buildbot.steps.slave.SetPropertiesFromEnv.start
+buildbot.steps.source.base.Source.start
+buildbot.steps.source.oldsource.SlaveSource.start
+buildbot.steps.transfer.DirectoryUpload.start
+buildbot.steps.transfer.FileDownload.start
+buildbot.steps.transfer.FileUpload.start
+buildbot.steps.transfer.JSONPropertiesDownload.start
+buildbot.steps.transfer.StringDownload.start
+buildbot.steps.trigger.Trigger.start
+buildbot.steps.vstudio.VC6.start
+buildbot.steps.vstudio.VC7.start
+buildbot.steps.vstudio.VCExpress9.start
+buildbot.util.misc.SerializedInvocation.start
+buildslave.commands.base.Command.start
+buildslave.commands.base.SourceBaseCommand.start
+buildslave.commands.bzr.Bzr.start
+buildslave.commands.cvs.CVS.start
+buildslave.commands.fs.CopyDirectory.start
+buildslave.commands.fs.MakeDirectory.start
+buildslave.commands.fs.RemoveDirectory.start
+buildslave.commands.fs.StatFile.start
+buildslave.commands.mtn.Monotone.start
+buildslave.commands.shell.SlaveShellCommand.start
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.start
+buildslave.commands.transfer.SlaveFileDownloadCommand.start
+buildslave.commands.transfer.SlaveFileUploadCommand.start
+buildslave.interfaces.ISlaveCommand.start
+buildslave.runprocess.LogFileWatcher.start
+buildslave.runprocess.RunProcess.start
+buildslave.scripts.logwatcher.LogWatcher.start
+buildslave.scripts.startup.start" class="py-name" href="#" onclick="return doclink('link-61', 'start', 'link-34');">start</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-62" class="py-name"><a title="buildbot.changes.changes.Change.revision
+buildbot.sourcestamp.SourceStamp.revision" class="py-name" href="#" onclick="return doclink('link-62', 'revision', 'link-10');">revision</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">            <tt class="py-name">d</tt><tt class="py-op">.</tt><tt class="py-name">addCallback</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-63" class="py-name" targets="Method buildslave.commands.darcs.Darcs.removeContextFile()=buildslave.commands.darcs.Darcs-class.html#removeContextFile"><a title="buildslave.commands.darcs.Darcs.removeContextFile" class="py-name" href="#" onclick="return doclink('link-63', 'removeContextFile', 'link-63');">removeContextFile</a></tt><tt class="py-op">,</tt> <tt class="py-name">n</tt><tt class="py-op">)</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">d</tt> </tt>
+</div><a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line"> </tt>
+<a name="Darcs.removeContextFile"></a><div id="Darcs.removeContextFile-def"><a name="L84"></a><tt class="py-lineno"> 84</tt> <a class="py-toggle" href="#" id="Darcs.removeContextFile-toggle" onclick="return toggle('Darcs.removeContextFile');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.darcs.Darcs-class.html#removeContextFile">removeContextFile</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">res</tt><tt class="py-op">,</tt> <tt class="py-param">n</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Darcs.removeContextFile-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Darcs.removeContextFile-expanded"><a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">        <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">unlink</tt><tt class="py-op">(</tt><tt class="py-name">n</tt><tt class="py-op">)</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">res</tt> </tt>
+</div><a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line"> </tt>
+<a name="Darcs.parseGotRevision"></a><div id="Darcs.parseGotRevision-def"><a name="L88"></a><tt class="py-lineno"> 88</tt> <a class="py-toggle" href="#" id="Darcs.parseGotRevision-toggle" onclick="return toggle('Darcs.parseGotRevision');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="buildslave.commands.darcs.Darcs-class.html#parseGotRevision">parseGotRevision</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Darcs.parseGotRevision-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Darcs.parseGotRevision-expanded"><a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">        <tt id="link-64" class="py-name"><a title="buildslave.commands.darcs" class="py-name" href="#" onclick="return doclink('link-64', 'darcs', 'link-18');">darcs</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-65" class="py-name"><a title="buildslave.commands.base.SourceBaseCommand.getCommand
+buildslave.commands.utils.getCommand" class="py-name" href="#" onclick="return doclink('link-65', 'getCommand', 'link-19');">getCommand</a></tt><tt class="py-op">(</tt><tt class="py-string">'darcs'</tt><tt class="py-op">)</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line"> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">        <tt class="py-comment"># we use 'darcs context' to find out what we wound up with</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">        <tt id="link-66" class="py-name"><a title="buildbot.steps.python.BuildEPYDoc.command
+buildbot.steps.python.PyFlakes.command
+buildbot.steps.python_twisted.RemovePYCs.command
+buildbot.steps.shell.Compile.command
+buildbot.steps.shell.Configure.command
+buildbot.steps.shell.PerlModuleTest.command
+buildbot.steps.shell.ShellCommand.command
+buildbot.steps.shell.Test.command
+buildbot.steps.shell.TreeSize.command
+buildslave.bot.SlaveBuilder.command" class="py-name" href="#" onclick="return doclink('link-66', 'command', 'link-24');">command</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt id="link-67" class="py-name"><a title="buildslave.commands.darcs" class="py-name" href="#" onclick="return doclink('link-67', 'darcs', 'link-18');">darcs</a></tt><tt class="py-op">,</tt> <tt class="py-string">"changes"</tt><tt class="py-op">,</tt> <tt class="py-string">"--context"</tt><tt class="py-op">]</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">        <tt class="py-name">c</tt> <tt class="py-op">=</tt> <tt id="link-68" class="py-name"><a title="buildslave.runprocess" class="py-name" href="#" onclick="return doclink('link-68', 'runprocess', 'link-5');">runprocess</a></tt><tt class="py-op">.</tt><tt id="link-69" class="py-name"><a title="buildslave.runprocess.RunProcess" class="py-name" href="#" onclick="return doclink('link-69', 'RunProcess', 'link-27');">RunProcess</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-70" class="py-name"><a title="buildbot.process.builder
+buildbot.status.builder
+buildbot.status.web.builder
+buildbot.status.web.builder.StatusResourceBuilder.builder" class="py-name" href="#" onclick="return doclink('link-70', 'builder', 'link-16');">builder</a></tt><tt class="py-op">,</tt> <tt id="link-71" class="py-name"><a title="buildbot.steps.python.BuildEPYDoc.command
+buildbot.steps.python.PyFlakes.command
+buildbot.steps.python_twisted.RemovePYCs.command
+buildbot.steps.shell.Compile.command
+buildbot.steps.shell.Configure.command
+buildbot.steps.shell.PerlModuleTest.command
+buildbot.steps.shell.ShellCommand.command
+buildbot.steps.shell.Test.command
+buildbot.steps.shell.TreeSize.command
+buildslave.bot.SlaveBuilder.command" class="py-name" href="#" onclick="return doclink('link-71', 'command', 'link-24');">command</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">                         <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-72" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-72', 'path', 'link-14');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-73" class="py-name"><a title="buildbot.process.builder
+buildbot.status.builder
+buildbot.status.web.builder
+buildbot.status.web.builder.StatusResourceBuilder.builder" class="py-name" href="#" onclick="return doclink('link-73', 'builder', 'link-16');">builder</a></tt><tt class="py-op">.</tt><tt id="link-74" class="py-name"><a title="buildbot.status.builder.BuilderStatus.basedir" class="py-name" href="#" onclick="return doclink('link-74', 'basedir', 'link-17');">basedir</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">srcdir</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">                         <tt class="py-name">environ</tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">env</tt><tt class="py-op">,</tt> <tt id="link-75" class="py-name"><a title="buildbot.scripts.logwatcher.LogWatcher.timeout
+buildbot.steps.blocker.Blocker.timeout
+buildslave.scripts.logwatcher.LogWatcher.timeout" class="py-name" href="#" onclick="return doclink('link-75', 'timeout', 'link-30');">timeout</a></tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-76" class="py-name"><a title="buildbot.scripts.logwatcher.LogWatcher.timeout
+buildbot.steps.blocker.Blocker.timeout
+buildslave.scripts.logwatcher.LogWatcher.timeout" class="py-name" href="#" onclick="return doclink('link-76', 'timeout', 'link-30');">timeout</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">                         <tt class="py-name">sendStdout</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">,</tt> <tt class="py-name">sendStderr</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">,</tt> <tt class="py-name">sendRC</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">,</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">                         <tt class="py-name">keepStdout</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">,</tt> <tt class="py-name">logEnviron</tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">logEnviron</tt><tt class="py-op">,</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">                         <tt id="link-77" class="py-name"><a title="buildslave.bot.Bot.usePTY" class="py-name" href="#" onclick="return doclink('link-77', 'usePTY', 'link-32');">usePTY</a></tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">)</tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">        <tt class="py-name">d</tt> <tt class="py-op">=</tt> <tt class="py-name">c</tt><tt class="py-op">.</tt><tt id="link-78" class="py-name"><a title="buildbot.process.buildstep.BuildStep.start
+buildbot.process.metrics.Timer.start
+buildbot.process.mtrlogobserver.MTR.start
+buildbot.scripts.logwatcher.LogWatcher.start
+buildbot.scripts.start
+buildbot.scripts.start.start
+buildbot.status.progress.StepProgress.start
+buildbot.steps.blocker.Blocker.start
+buildbot.steps.master.MasterShellCommand.start
+buildbot.steps.package.deb.pbuilder.DebPbuilder.start
+buildbot.steps.package.rpm.mock.Mock.start
+buildbot.steps.package.rpm.rpmbuild.RpmBuild.start
+buildbot.steps.python_twisted.HLint.start
+buildbot.steps.python_twisted.Trial.start
+buildbot.steps.shell.ShellCommand.start
+buildbot.steps.shell.WarningCountingShellCommand.start
+buildbot.steps.slave.FileExists.start
+buildbot.steps.slave.MakeDirectory.start
+buildbot.steps.slave.RemoveDirectory.start
+buildbot.steps.slave.SetPropertiesFromEnv.start
+buildbot.steps.source.base.Source.start
+buildbot.steps.source.oldsource.SlaveSource.start
+buildbot.steps.transfer.DirectoryUpload.start
+buildbot.steps.transfer.FileDownload.start
+buildbot.steps.transfer.FileUpload.start
+buildbot.steps.transfer.JSONPropertiesDownload.start
+buildbot.steps.transfer.StringDownload.start
+buildbot.steps.trigger.Trigger.start
+buildbot.steps.vstudio.VC6.start
+buildbot.steps.vstudio.VC7.start
+buildbot.steps.vstudio.VCExpress9.start
+buildbot.util.misc.SerializedInvocation.start
+buildslave.commands.base.Command.start
+buildslave.commands.base.SourceBaseCommand.start
+buildslave.commands.bzr.Bzr.start
+buildslave.commands.cvs.CVS.start
+buildslave.commands.fs.CopyDirectory.start
+buildslave.commands.fs.MakeDirectory.start
+buildslave.commands.fs.RemoveDirectory.start
+buildslave.commands.fs.StatFile.start
+buildslave.commands.mtn.Monotone.start
+buildslave.commands.shell.SlaveShellCommand.start
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.start
+buildslave.commands.transfer.SlaveFileDownloadCommand.start
+buildslave.commands.transfer.SlaveFileUploadCommand.start
+buildslave.interfaces.ISlaveCommand.start
+buildslave.runprocess.LogFileWatcher.start
+buildslave.runprocess.RunProcess.start
+buildslave.scripts.logwatcher.LogWatcher.start
+buildslave.scripts.startup.start" class="py-name" href="#" onclick="return doclink('link-78', 'start', 'link-34');">start</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">        <tt class="py-name">d</tt><tt class="py-op">.</tt><tt class="py-name">addCallback</tt><tt class="py-op">(</tt><tt class="py-keyword">lambda</tt> <tt class="py-name">res</tt><tt class="py-op">:</tt> <tt class="py-name">c</tt><tt class="py-op">.</tt><tt class="py-name">stdout</tt><tt class="py-op">)</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">d</tt> </tt>
+</div></div><a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.7p1</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Nov 21 16:23:00 2012
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

@@ -1,0 +1,791 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Concepts &mdash; Buildbot 0.8.7p1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.8.7p1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/buildbot.ico"/>
+    <link rel="top" title="Buildbot 0.8.7p1 documentation" href="../index.html" />
+    <link rel="up" title="Buildbot Manual" href="index.html" />
+    <link rel="next" title="Configuration" href="configuration.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+  <body>
+    <div class="header-wrapper">
+      <div class="header">
+          <p class="logo"><a href="../index.html">
+            <img class="logo" src="../_static/header-text-transparent.png" alt="Logo"/>
+          </a></p>
+        <div class="headertitle"><a
+          href="../index.html">Buildbot 0.8.7p1 documentation</a></div>
+        <div class="rel">
+          <a href="installation.html" title="Installation"
+             accesskey="P">previous</a> |
+          <a href="configuration.html" title="Configuration"
+             accesskey="N">next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="concepts">
+<h1>Concepts<a class="headerlink" href="#concepts" title="Permalink to this headline">¶</a></h1>
+<p>This chapter defines some of the basic concepts that the Buildbot
+uses. You'll need to understand how the Buildbot sees the world to
+configure it properly.</p>
+<div class="section" id="source-stamps">
+<span id="id1"></span><h2>Source Stamps<a class="headerlink" href="#source-stamps" title="Permalink to this headline">¶</a></h2>
+<p>Source code comes from <em>repositories</em>, provided by version control systems.
+Repositories are generally identified by URLs, e.g., <tt class="docutils literal"><span class="pre">git://github.com/buildbot/buildbot.git</span></tt>.</p>
+<p>In these days of distributed version control systems, the same <em>codebase</em> may appear in multiple repositories.
+For example, <tt class="docutils literal"><span class="pre">https://github.com/mozilla/mozilla-central</span></tt> and <tt class="docutils literal"><span class="pre">http://hg.mozilla.org/mozilla-release</span></tt> both contain the Firefox codebase, although not exactly the same code.</p>
+<p>Many <em>projects</em> are built from multiple codebases.
+For example, a company may build several applications based on the same core library.
+The &quot;app&quot; codebase and the &quot;core&quot; codebase are in separate repositories, but are compiled together and constitute a single project.
+Changes to either codebase should cause a rebuild of the application.</p>
+<p>Most version control systems define some sort of <em>revision</em> that can be used (sometimes in combination with a <em>branch</em>) to uniquely specify a particular version of the source code.</p>
+<p>To build a project, Buildbot needs to know exactly which version of each codebase it should build.
+It uses a <em>source stamp</em> to do so for each codebase; the collection of sourcestamps required for a project is called a <em>source stamp set</em>.</p>
+</div>
+<div class="section" id="version-control-systems">
+<span id="id2"></span><h2>Version Control Systems<a class="headerlink" href="#version-control-systems" title="Permalink to this headline">¶</a></h2>
+<p>Buildbot supports a significant number of version control systems, so it treats them abstractly.</p>
+<p>For purposes of deciding when to perform builds, Buildbot's change sources monitor repositories, and represent any updates to those repositories as <em>changes</em>.
+These change sources fall broadly into two categories: pollers which periodically check the repository for updates; and hooks, where the repository is configured to notify Buildbot whenever an update occurs.</p>
+<p>This concept does not map perfectly to every version control system.
+For example, for CVS Buildbot must guess that version updates made to multiple files within a short time represent a single change; for DVCS's like Git, Buildbot records a change when a commit is pushed to the monitored repository, not when it is initially committed.
+We assume that the <tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt>s arrive at the master in the same order in which they are committed to the repository.</p>
+<p>When it comes time to actually perform a build, a scheduler prepares a source stamp set, as described above, based on its configuration.
+When the build begins, one or more source steps use the information in the source stamp set to actually check out the source code, using the normal VCS commands.</p>
+<div class="section" id="tree-stability">
+<h3>Tree Stability<a class="headerlink" href="#tree-stability" title="Permalink to this headline">¶</a></h3>
+<p>Changes tend to arrive at a buildmaster in bursts.
+In many cases, these bursts of changes are meant to be taken together.
+For example, a developer may have pushed multiple commits to a DVCS that comprise the same new feature or bugfix.
+To avoid trying to build every change, Buildbot supports the notion of <em>tree stability</em>, by waiting for a burst of changes to finish before starting to schedule builds.
+This is implemented as a timer, with builds not scheduled until no changes have occurred for the duration of the timer.</p>
+</div>
+<div class="section" id="how-different-vc-systems-specify-sources">
+<span id="id3"></span><h3>How Different VC Systems Specify Sources<a class="headerlink" href="#how-different-vc-systems-specify-sources" title="Permalink to this headline">¶</a></h3>
+<p>For CVS, the static specifications are <em>repository</em> and
+<em>module</em>. In addition to those, each build uses a timestamp (or
+omits the timestamp to mean <em>the latest</em>) and <em>branch tag</em>
+(which defaults to <tt class="docutils literal"><span class="pre">HEAD</span></tt>). These parameters collectively specify a set
+of sources from which a build may be performed.</p>
+<p><a class="reference external" href="http://subversion.tigris.org">Subversion</a>,  combines the
+repository, module, and branch into a single <em>Subversion URL</em>
+parameter. Within that scope, source checkouts can be specified by a
+numeric <em>revision number</em> (a repository-wide
+monotonically-increasing marker, such that each transaction that
+changes the repository is indexed by a different revision number), or
+a revision timestamp. When branches are used, the repository and
+module form a static <tt class="docutils literal"><span class="pre">baseURL</span></tt>, while each build has a
+<em>revision number</em> and a <em>branch</em> (which defaults to a
+statically-specified <tt class="docutils literal"><span class="pre">defaultBranch</span></tt>). The <tt class="docutils literal"><span class="pre">baseURL</span></tt> and
+<tt class="docutils literal"><span class="pre">branch</span></tt> are simply concatenated together to derive the
+<tt class="docutils literal"><span class="pre">svnurl</span></tt> to use for the checkout.</p>
+<p><a class="reference external" href="http://www.perforce.com/">Perforce</a> is similar. The server
+is specified through a <tt class="docutils literal"><span class="pre">P4PORT</span></tt> parameter. Module and branch
+are specified in a single depot path, and revisions are
+depot-wide. When branches are used, the <tt class="docutils literal"><span class="pre">p4base</span></tt> and
+<tt class="docutils literal"><span class="pre">defaultBranch</span></tt> are concatenated together to produce the depot
+path.</p>
+<p><a class="reference external" href="http://bazaar-vcs.org">Bzr</a> (which is a descendant of
+Arch/Bazaar, and is frequently referred to as &quot;Bazaar&quot;) has the same
+sort of repository-vs-workspace model as Arch, but the repository data
+can either be stored inside the working directory or kept elsewhere
+(either on the same machine or on an entirely different machine). For
+the purposes of Buildbot (which never commits changes), the repository
+is specified with a URL and a revision number.</p>
+<p>The most common way to obtain read-only access to a bzr tree is via
+HTTP, simply by making the repository visible through a web server
+like Apache. Bzr can also use FTP and SFTP servers, if the buildslave
+process has sufficient privileges to access them. Higher performance
+can be obtained by running a special Bazaar-specific server. None of
+these matter to the buildbot: the repository URL just has to match the
+kind of server being used. The <tt class="docutils literal"><span class="pre">repoURL</span></tt> argument provides the
+location of the repository.</p>
+<p>Branches are expressed as subdirectories of the main central
+repository, which means that if branches are being used, the BZR step
+is given a <tt class="docutils literal"><span class="pre">baseURL</span></tt> and <tt class="docutils literal"><span class="pre">defaultBranch</span></tt> instead of getting
+the <tt class="docutils literal"><span class="pre">repoURL</span></tt> argument.</p>
+<p><a class="reference external" href="http://darcs.net/">Darcs</a> doesn't really have the
+notion of a single master repository. Nor does it really have
+branches. In Darcs, each working directory is also a repository, and
+there are operations to push and pull patches from one of these
+<tt class="docutils literal"><span class="pre">repositories</span></tt> to another. For the Buildbot's purposes, all you
+need to do is specify the URL of a repository that you want to build
+from. The build slave will then pull the latest patches from that
+repository and build them. Multiple branches are implemented by using
+multiple repositories (possibly living on the same server).</p>
+<p>Builders which use Darcs therefore have a static <tt class="docutils literal"><span class="pre">repourl</span></tt> which
+specifies the location of the repository. If branches are being used,
+the source Step is instead configured with a <tt class="docutils literal"><span class="pre">baseURL</span></tt> and a
+<tt class="docutils literal"><span class="pre">defaultBranch</span></tt>, and the two strings are simply concatenated
+together to obtain the repository's URL. Each build then has a
+specific branch which replaces <tt class="docutils literal"><span class="pre">defaultBranch</span></tt>, or just uses the
+default one. Instead of a revision number, each build can have a
+<tt class="docutils literal"><span class="pre">context</span></tt>, which is a string that records all the patches that are
+present in a given tree (this is the output of <tt class="docutils literal"><span class="pre">darcs</span> <span class="pre">changes</span>
+<span class="pre">--context</span></tt>, and is considerably less concise than, e.g. Subversion's
+revision number, but the patch-reordering flexibility of Darcs makes
+it impossible to provide a shorter useful specification).</p>
+<p><a class="reference external" href="http://selenic.com/mercurial">Mercurial</a> is like Darcs, in that
+each branch is stored in a separate repository. The <tt class="docutils literal"><span class="pre">repourl</span></tt>,
+<tt class="docutils literal"><span class="pre">baseURL</span></tt>, and <tt class="docutils literal"><span class="pre">defaultBranch</span></tt> arguments are all handled the
+same way as with Darcs. The <em>revision</em>, however, is the hash
+identifier returned by <tt class="docutils literal"><span class="pre">hg</span> <span class="pre">identify</span></tt>.</p>
+<p><a class="reference external" href="http://git.or.cz/">Git</a> also follows a decentralized model, and
+each repository can have several branches and tags. The source Step is
+configured with a static <tt class="docutils literal"><span class="pre">repourl</span></tt> which specifies the location
+of the repository. In addition, an optional <tt class="docutils literal"><span class="pre">branch</span></tt> parameter
+can be specified to check out code from a specific branch instead of
+the default <em>master</em> branch. The <em>revision</em> is specified as a SHA1
+hash as returned by e.g. <tt class="docutils literal"><span class="pre">git</span> <span class="pre">rev-parse</span></tt>. No attempt is made
+to ensure that the specified revision is actually a subset of the
+specified branch.</p>
+<p><a class="reference external" href="http://www.monotone.ca/">Monotone</a> is another that follows a
+decentralized model where each repository can have several branches and
+tags. The source Step is configured with static <tt class="docutils literal"><span class="pre">repourl</span></tt> and
+<tt class="docutils literal"><span class="pre">branch</span></tt> parameters, which specifies the location of the
+repository and the branch to use.  The <em>revision</em> is specified as a
+SHA1 hash as returned by e.g. <tt class="docutils literal"><span class="pre">mtn</span> <span class="pre">automate</span> <span class="pre">select</span> <span class="pre">w:</span></tt>. No
+attempt is made to ensure that the specified revision is actually a
+subset of the specified branch.</p>
+</div>
+</div>
+<div class="section" id="changes">
+<span id="attributes-of-changes"></span><h2>Changes<a class="headerlink" href="#changes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="who">
+<span id="attr-who"></span><h3>Who<a class="headerlink" href="#who" title="Permalink to this headline">¶</a></h3>
+<p>Each <tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt> has a <tt class="xref py py-attr docutils literal"><span class="pre">who</span></tt> attribute, which specifies which developer is
+responsible for the change. This is a string which comes from a namespace
+controlled by the VC repository. Frequently this means it is a username on the
+host which runs the repository, but not all VC systems require this.  Each
+<tt class="xref py py-class docutils literal"><span class="pre">StatusNotifier</span></tt> will map the <tt class="xref py py-attr docutils literal"><span class="pre">who</span></tt> attribute into something appropriate for
+their particular means of communication: an email address, an IRC handle, etc.</p>
+<p>This <tt class="docutils literal"><span class="pre">who</span></tt> attribute is also parsed and stored into Buildbot's database (see
+<a class="reference internal" href="#user-objects"><em>User Objects</em></a>). Currently, only <tt class="docutils literal"><span class="pre">who</span></tt> attributes in Changes from
+<tt class="docutils literal"><span class="pre">git</span></tt> repositories are translated into user objects, but in the future all
+incoming Changes will have their <tt class="docutils literal"><span class="pre">who</span></tt> parsed and stored.</p>
+</div>
+<div class="section" id="files">
+<span id="attr-files"></span><h3>Files<a class="headerlink" href="#files" title="Permalink to this headline">¶</a></h3>
+<p>It also has a list of <tt class="xref py py-attr docutils literal"><span class="pre">files</span></tt>, which are just the tree-relative
+filenames of any files that were added, deleted, or modified for this
+<tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt>. These filenames are used by the <tt class="xref py py-func docutils literal"><span class="pre">fileIsImportant</span></tt>
+function (in the <tt class="xref py py-class docutils literal"><span class="pre">Scheduler</span></tt>) to decide whether it is worth triggering a
+new build or not, e.g. the function could use the following function
+to only run a build if a C file were checked in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">has_C_files</span><span class="p">(</span><span class="n">change</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">change</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&quot;.c&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">return</span> <span class="bp">False</span>
+</pre></div>
+</div>
+<p>Certain <tt class="xref py py-class docutils literal"><span class="pre">BuildStep</span></tt>s can also use the list of changed files
+to run a more targeted series of tests, e.g. the
+<tt class="docutils literal"><span class="pre">python_twisted.Trial</span></tt> step can run just the unit tests that
+provide coverage for the modified .py files instead of running the
+full test suite.</p>
+</div>
+<div class="section" id="comments">
+<span id="attr-comments"></span><h3>Comments<a class="headerlink" href="#comments" title="Permalink to this headline">¶</a></h3>
+<p>The Change also has a <tt class="xref py py-attr docutils literal"><span class="pre">comments</span></tt> attribute, which is a string containing any checkin comments.</p>
+</div>
+<div class="section" id="project">
+<span id="attr-project"></span><h3>Project<a class="headerlink" href="#project" title="Permalink to this headline">¶</a></h3>
+<p>The <tt class="xref py py-attr docutils literal"><span class="pre">project</span></tt> attribute of a change or source stamp describes the project to which it corresponds, as a short human-readable string.
+This is useful in cases where multiple independent projects are built on the same buildmaster.
+In such cases, it can be used to control which builds are scheduled for a given commit, and to limit status displays to only one project.</p>
+</div>
+<div class="section" id="repository">
+<span id="attr-repository"></span><h3>Repository<a class="headerlink" href="#repository" title="Permalink to this headline">¶</a></h3>
+<p>This attribute specifies the repository in which this change occurred.
+In the case of DVCS's, this information may be required to check out the committed source code.
+However, using the repository from a change has security risks: if Buildbot is configured to blindly trust this information, then it may easily be tricked into building arbitrary source code, potentially compromising the buildslaves and the integrity of subsequent builds.</p>
+</div>
+<div class="section" id="codebase">
+<span id="attr-codebase"></span><h3>Codebase<a class="headerlink" href="#codebase" title="Permalink to this headline">¶</a></h3>
+<p>This attribute specifies the codebase to which this change was made.
+As described <a class="reference internal" href="#source-stamps"><em>above</em></a>, multiple repositories may contain the same codebase.
+A change's codebase is usually determined by the bb:cfg:<cite>codebaseGenerator</cite> configuration.
+By default the codebase is ''; this value is used automatically for single-codebase configurations.</p>
+</div>
+<div class="section" id="revision">
+<span id="attr-revision"></span><h3>Revision<a class="headerlink" href="#revision" title="Permalink to this headline">¶</a></h3>
+<p>Each Change can have a <tt class="xref py py-attr docutils literal"><span class="pre">revision</span></tt> attribute, which describes how
+to get a tree with a specific state: a tree which includes this Change
+(and all that came before it) but none that come after it. If this
+information is unavailable, the <tt class="xref py py-attr docutils literal"><span class="pre">revision</span></tt> attribute will be
+<tt class="docutils literal"><span class="pre">None</span></tt>. These revisions are provided by the <tt class="xref py py-class docutils literal"><span class="pre">ChangeSource</span></tt>.</p>
+<p>Revisions are always strings.</p>
+<dl class="docutils">
+<dt><cite>CVS</cite></dt>
+<dd><tt class="xref py py-attr docutils literal"><span class="pre">revision</span></tt> is the seconds since the epoch as an integer.</dd>
+<dt><cite>SVN</cite></dt>
+<dd><tt class="xref py py-attr docutils literal"><span class="pre">revision</span></tt> is the revision number</dd>
+<dt><cite>Darcs</cite></dt>
+<dd><tt class="xref py py-attr docutils literal"><span class="pre">revision</span></tt> is a large string, the output of <strong class="command">darcs changes --context</strong></dd>
+<dt><cite>Mercurial</cite></dt>
+<dd><tt class="xref py py-attr docutils literal"><span class="pre">revision</span></tt> is a short string (a hash ID), the output of <strong class="command">hg identify</strong></dd>
+<dt><cite>P4</cite></dt>
+<dd><tt class="xref py py-attr docutils literal"><span class="pre">revision</span></tt> is the transaction number</dd>
+<dt><cite>Git</cite></dt>
+<dd><tt class="xref py py-attr docutils literal"><span class="pre">revision</span></tt> is a short string (a SHA1 hash), the output of e.g.
+<strong class="command">git rev-parse</strong></dd>
+</dl>
+</div>
+<div class="section" id="branches">
+<h3>Branches<a class="headerlink" href="#branches" title="Permalink to this headline">¶</a></h3>
+<p>The Change might also have a <tt class="xref py py-attr docutils literal"><span class="pre">branch</span></tt> attribute. This indicates
+that all of the Change's files are in the same named branch. The
+Schedulers get to decide whether the branch should be built or not.</p>
+<p>For VC systems like CVS,  Git and Monotone the <tt class="xref py py-attr docutils literal"><span class="pre">branch</span></tt>
+name is unrelated to the filename. (that is, the branch name and the
+filename inhabit unrelated namespaces). For SVN, branches are
+expressed as subdirectories of the repository, so the file's
+<tt class="docutils literal"><span class="pre">svnurl</span></tt> is a combination of some base URL, the branch name, and the
+filename within the branch. (In a sense, the branch name and the
+filename inhabit the same namespace). Darcs branches are
+subdirectories of a base URL just like SVN. Mercurial branches are the
+same as Darcs.</p>
+<dl class="docutils">
+<dt><cite>CVS</cite></dt>
+<dd>branch='warner-newfeature', files=['src/foo.c']</dd>
+<dt><cite>SVN</cite></dt>
+<dd>branch='branches/warner-newfeature', files=['src/foo.c']</dd>
+<dt><cite>Darcs</cite></dt>
+<dd>branch='warner-newfeature', files=['src/foo.c']</dd>
+<dt><cite>Mercurial</cite></dt>
+<dd>branch='warner-newfeature', files=['src/foo.c']</dd>
+<dt><cite>Git</cite></dt>
+<dd>branch='warner-newfeature', files=['src/foo.c']</dd>
+<dt><cite>Monotone</cite></dt>
+<dd>branch='warner-newfeature', files=['src/foo.c']</dd>
+</dl>
+</div>
+<div class="section" id="change-properties">
+<h3>Change Properties<a class="headerlink" href="#change-properties" title="Permalink to this headline">¶</a></h3>
+<p>A Change may have one or more properties attached to it, usually specified
+through the Force Build form or <a class="reference internal" href="cmdline.html#cmdline-sendchange" title="sendchange"><tt class="xref bb bb-cmdline docutils literal"><span class="pre">sendchange</span></tt></a>. Properties are discussed
+in detail in the <a class="reference internal" href="#build-properties"><em>Build Properties</em></a> section.</p>
+</div>
+</div>
+<div class="section" id="scheduling-builds">
+<span id="id4"></span><h2>Scheduling Builds<a class="headerlink" href="#scheduling-builds" title="Permalink to this headline">¶</a></h2>
+<p>Each Buildmaster has a set of <tt class="xref py py-class docutils literal"><span class="pre">Scheduler</span></tt> objects, each of which
+gets a copy of every incoming <tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt>. The Schedulers are responsible
+for deciding when <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt>s should be run. Some Buildbot installations
+might have a single <tt class="xref py py-class docutils literal"><span class="pre">Scheduler</span></tt>, while others may have several, each for
+a different purpose.</p>
+<p>For example, a <em>quick</em> scheduler might exist to give immediate
+feedback to developers, hoping to catch obvious problems in the code
+that can be detected quickly. These typically do not run the full test
+suite, nor do they run on a wide variety of platforms. They also
+usually do a VC update rather than performing a brand-new checkout
+each time.</p>
+<p>A separate <em>full</em> scheduler might run more comprehensive tests, to
+catch more subtle problems. configured to run after the quick scheduler, to give
+developers time to commit fixes to bugs caught by the quick scheduler before
+running the comprehensive tests.  This scheduler would also feed multiple
+<tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt>s.</p>
+<p>Many schedulers can be configured to wait a while after seeing a source-code
+change - this is the <em>tree stable timer</em>.  The timer allows multiple commits to
+be &quot;batched&quot; together.  This is particularly useful in distributed version
+control systems, where a developer may push a long sequence of changes all at
+once.  To save resources, it's often desirable only to test the most recent
+change.</p>
+<p>Schedulers can also filter out the changes they are interested in, based on a
+number of criteria.  For example, a scheduler that only builds documentation
+might skip any changes that do not affect the documentation.  Schedulers can
+also filter on the branch to which a commit was made.</p>
+<p>There is some support for configuring dependencies between builds - for
+example, you may want to build packages only for revisions which pass all of
+the unit tests.  This support is under active development in Buildbot, and is
+referred to as &quot;build coordination&quot;.</p>
+<p>Periodic builds (those which are run every N seconds rather than after
+new Changes arrive) are triggered by a special <tt class="xref py py-class docutils literal"><span class="pre">Periodic</span></tt>
+Scheduler subclass.</p>
+<p>Each Scheduler creates and submits <tt class="xref py py-class docutils literal"><span class="pre">BuildSet</span></tt> objects to the
+<tt class="xref py py-class docutils literal"><span class="pre">BuildMaster</span></tt>, which is then responsible for making sure the
+individual <tt class="xref py py-class docutils literal"><span class="pre">BuildRequests</span></tt> are delivered to the target
+<tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt>s.</p>
+<p><tt class="xref py py-class docutils literal"><span class="pre">Scheduler</span></tt> instances are activated by placing them in the
+<tt class="docutils literal"><span class="pre">c['schedulers']</span></tt> list in the buildmaster config file. Each
+<tt class="xref py py-class docutils literal"><span class="pre">Scheduler</span></tt> has a unique name.</p>
+</div>
+<div class="section" id="buildsets">
+<span id="buildset"></span><h2>BuildSets<a class="headerlink" href="#buildsets" title="Permalink to this headline">¶</a></h2>
+<p>A <tt class="xref py py-class docutils literal"><span class="pre">BuildSet</span></tt> is the name given to a set of <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt>s that all
+compile/test the same version of the tree on multiple <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt>s. In
+general, all these component <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt>s will perform the same sequence of
+<tt class="xref py py-class docutils literal"><span class="pre">Step</span></tt>s, using the same source code, but on different platforms or
+against a different set of libraries.</p>
+<p>The <tt class="xref py py-class docutils literal"><span class="pre">BuildSet</span></tt> is tracked as a single unit, which fails if any of
+the component <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt>s have failed, and therefore can succeed only if
+<em>all</em> of the component <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt>s have succeeded. There are two kinds
+of status notification messages that can be emitted for a <tt class="xref py py-class docutils literal"><span class="pre">BuildSet</span></tt>:
+the <tt class="docutils literal"><span class="pre">firstFailure</span></tt> type (which fires as soon as we know the
+<tt class="xref py py-class docutils literal"><span class="pre">BuildSet</span></tt> will fail), and the <tt class="docutils literal"><span class="pre">Finished</span></tt> type (which fires once
+the <tt class="xref py py-class docutils literal"><span class="pre">BuildSet</span></tt> has completely finished, regardless of whether the
+overall set passed or failed).</p>
+<p>A <tt class="xref py py-class docutils literal"><span class="pre">BuildSet</span></tt> is created with set of one or more <em>source stamp</em> tuples of
+<tt class="docutils literal"><span class="pre">(branch,</span> <span class="pre">revision,</span> <span class="pre">changes,</span> <span class="pre">patch)</span></tt>, some of which may be <tt class="docutils literal"><span class="pre">None</span></tt>, and a
+list of <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt>s on which it is to be run. They are then given to the
+BuildMaster, which is responsible for creating a separate
+<tt class="xref py py-class docutils literal"><span class="pre">BuildRequest</span></tt> for each <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt>.</p>
+<p>There are a couple of different likely values for the
+<tt class="docutils literal"><span class="pre">SourceStamp</span></tt>:</p>
+<dl class="docutils">
+<dt><tt class="samp docutils literal"><span class="pre">(revision=None,</span> <span class="pre">changes=</span><em><span class="pre">CHANGES</span></em><span class="pre">,</span> <span class="pre">patch=None)</span></tt></dt>
+<dd>This is a <tt class="xref py py-class docutils literal"><span class="pre">SourceStamp</span></tt> used when a series of <tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt>s have
+triggered a build. The VC step will attempt to check out a tree that
+contains <em>CHANGES</em> (and any changes that occurred before <em>CHANGES</em>, but
+not any that occurred after them.)</dd>
+<dt><tt class="samp docutils literal"><span class="pre">(revision=None,</span> <span class="pre">changes=None,</span> <span class="pre">patch=None)</span></tt></dt>
+<dd>This builds the most recent code on the default branch. This is the
+sort of <tt class="xref py py-class docutils literal"><span class="pre">SourceStamp</span></tt> that would be used on a <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt> that was
+triggered by a user request, or a <tt class="xref py py-class docutils literal"><span class="pre">Periodic</span></tt> scheduler. It is also
+possible to configure the VC Source Step to always check out the
+latest sources rather than paying attention to the <tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt>s in the
+<tt class="xref py py-class docutils literal"><span class="pre">SourceStamp</span></tt>, which will result in same behavior as this.</dd>
+<dt><tt class="samp docutils literal"><span class="pre">(branch=</span><em><span class="pre">BRANCH</span></em><span class="pre">,</span> <span class="pre">revision=None,</span> <span class="pre">changes=None,</span> <span class="pre">patch=None)</span></tt></dt>
+<dd>This builds the most recent code on the given <em>BRANCH</em>. Again, this is
+generally triggered by a user request or <tt class="xref py py-class docutils literal"><span class="pre">Periodic</span></tt> build.</dd>
+<dt><tt class="samp docutils literal"><span class="pre">(revision=</span><em><span class="pre">REV</span></em><span class="pre">,</span> <span class="pre">changes=None,</span> <span class="pre">patch=(</span><em><span class="pre">LEVEL</span></em><span class="pre">,</span> <em><span class="pre">DIFF</span></em><span class="pre">,</span> <em><span class="pre">SUBDIR_ROOT</span></em><span class="pre">))</span></tt></dt>
+<dd>This checks out the tree at the given revision <em>REV</em>, then applies a
+patch (using <tt class="docutils literal"><span class="pre">patch</span> <span class="pre">-pLEVEL</span> <span class="pre">&lt;DIFF</span></tt>) from inside the relative
+directory <em>SUBDIR_ROOT</em>. Item <em>SUBDIR_ROOT</em> is optional and defaults to the
+builder working directory. The <a class="reference internal" href="cmdline.html#cmdline-try" title="try"><tt class="xref bb bb-cmdline docutils literal"><span class="pre">try</span></tt></a> command creates this kind of
+<tt class="xref py py-class docutils literal"><span class="pre">SourceStamp</span></tt>. If <tt class="docutils literal"><span class="pre">patch</span></tt> is <tt class="docutils literal"><span class="pre">None</span></tt>, the patching step is
+bypassed.</dd>
+</dl>
+<p>The buildmaster is responsible for turning the <tt class="xref py py-class docutils literal"><span class="pre">BuildSet</span></tt> into a
+set of <tt class="xref py py-class docutils literal"><span class="pre">BuildRequest</span></tt> objects and queueing them on the
+appropriate <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt>s.</p>
+</div>
+<div class="section" id="buildrequests">
+<span id="buildrequest"></span><h2>BuildRequests<a class="headerlink" href="#buildrequests" title="Permalink to this headline">¶</a></h2>
+<p>A <tt class="xref py py-class docutils literal"><span class="pre">BuildRequest</span></tt> is a request to build a specific set of source
+code (specified by one ore more source stamps) on a single <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt>.
+Each <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt> runs the <tt class="xref py py-class docutils literal"><span class="pre">BuildRequest</span></tt> as soon as it can (i.e.
+when an associated buildslave becomes free). <tt class="xref py py-class docutils literal"><span class="pre">BuildRequest</span></tt>s are
+prioritized from oldest to newest, so when a buildslave becomes free, the
+<tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt> with the oldest <tt class="xref py py-class docutils literal"><span class="pre">BuildRequest</span></tt> is run.</p>
+<p>The <tt class="xref py py-class docutils literal"><span class="pre">BuildRequest</span></tt> contains one <tt class="xref py py-class docutils literal"><span class="pre">SourceStamp</span></tt> specification per codebase.
+The actual process of running the build (the series of <tt class="xref py py-class docutils literal"><span class="pre">Step</span></tt>s that will
+be executed) is implemented by the <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt> object. In this future
+this might be changed, to have the <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt> define <em>what</em>
+gets built, and a separate <tt class="xref py py-class docutils literal"><span class="pre">BuildProcess</span></tt> (provided by the
+Builder) to define <em>how</em> it gets built.</p>
+<p>The <tt class="xref py py-class docutils literal"><span class="pre">BuildRequest</span></tt> may be mergeable with other compatible
+<tt class="xref py py-class docutils literal"><span class="pre">BuildRequest</span></tt>s. Builds that are triggered by incoming <tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt>s
+will generally be mergeable. Builds that are triggered by user requests are generally not,
+unless they are multiple requests to build the <em>latest sources</em> of the same branch.
+A merge of buildrequests is performed per codebase, thus on changes having the same codebase.</p>
+</div>
+<div class="section" id="builders">
+<span id="builder"></span><h2>Builders<a class="headerlink" href="#builders" title="Permalink to this headline">¶</a></h2>
+<p>The Buildmaster runs a collection of <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt>s, each of which handles a single
+type of build (e.g. full versus quick), on one or more build slaves.   <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt>s
+serve as a kind of queue for a particular type of build.  Each <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt> gets a
+separate column in the waterfall display. In general, each <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt> runs
+independently (although various kinds of interlocks can cause one <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt> to
+have an effect on another).</p>
+<p>Each builder is a long-lived object which controls a sequence of <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt>s.
+Each <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt> is created when the config file is first parsed, and lives forever
+(or rather until it is removed from the config file). It mediates the
+connections to the buildslaves that do all the work, and is responsible for
+creating the <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt> objects - <a class="reference internal" href="#concepts-build"><em>Builds</em></a>.</p>
+<p>Each builder gets a unique name, and the path name of a directory where it gets
+to do all its work (there is a buildmaster-side directory for keeping status
+information, as well as a buildslave-side directory where the actual
+checkout/compile/test commands are executed).</p>
+</div>
+<div class="section" id="build-factories">
+<span id="concepts-build-factories"></span><h2>Build Factories<a class="headerlink" href="#build-factories" title="Permalink to this headline">¶</a></h2>
+<p>A builder also has a <tt class="xref py py-class docutils literal"><span class="pre">BuildFactory</span></tt>, which is responsible for creating new <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt>
+instances: because the <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt> instance is what actually performs each build,
+choosing the <tt class="xref py py-class docutils literal"><span class="pre">BuildFactory</span></tt> is the way to specify what happens each time a build
+is done (<a class="reference internal" href="#concepts-build"><em>Builds</em></a>).</p>
+</div>
+<div class="section" id="build-slaves">
+<span id="concepts-build-slaves"></span><h2>Build Slaves<a class="headerlink" href="#build-slaves" title="Permalink to this headline">¶</a></h2>
+<p>Each builder is associated with one of more <tt class="xref py py-class docutils literal"><span class="pre">BuildSlave</span></tt>s.  A builder which is
+used to perform Mac OS X builds (as opposed to Linux or Solaris builds) should
+naturally be associated with a Mac buildslave.</p>
+<p>If multiple buildslaves are available for any given builder, you will
+have some measure of redundancy: in case one slave goes offline, the
+others can still keep the <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt> working. In addition, multiple
+buildslaves will allow multiple simultaneous builds for the same
+<tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt>, which might be useful if you have a lot of forced or <tt class="docutils literal"><span class="pre">try</span></tt>
+builds taking place.</p>
+<p>If you use this feature, it is important to make sure that the
+buildslaves are all, in fact, capable of running the given build. The
+slave hosts should be configured similarly, otherwise you will spend a
+lot of time trying (unsuccessfully) to reproduce a failure that only
+occurs on some of the buildslaves and not the others. Different
+platforms, operating systems, versions of major programs or libraries,
+all these things mean you should use separate Builders.</p>
+</div>
+<div class="section" id="builds">
+<span id="concepts-build"></span><h2>Builds<a class="headerlink" href="#builds" title="Permalink to this headline">¶</a></h2>
+<p>A build is a single compile or test run of a particular version of the source
+code, and is comprised of a series of steps.  It is ultimately up to you what
+constitutes a build, but for compiled software it is generally the checkout,
+configure, make, and make check sequence.  For interpreted projects like Python
+modules, a build is generally a checkout followed by an invocation of the
+bundled test suite.</p>
+<p>A <tt class="xref py py-class docutils literal"><span class="pre">BuildFactory</span></tt> describes the steps a build will perform.  The builder which
+starts a build uses its configured build factory to determine the build's
+steps.</p>
+</div>
+<div class="section" id="users">
+<span id="concepts-users"></span><h2>Users<a class="headerlink" href="#users" title="Permalink to this headline">¶</a></h2>
+<p>Buildbot has a somewhat limited awareness of <em>users</em>. It assumes
+the world consists of a set of developers, each of whom can be
+described by a couple of simple attributes. These developers make
+changes to the source code, causing builds which may succeed or fail.</p>
+<p>Users also may have different levels of authorization when issuing Buildbot
+commands, such as forcing a build from the web interface or from an IRC channel
+(see <a class="reference internal" href="cfg-statustargets.html#status-WebStatus" title="WebStatus"><tt class="xref bb bb-status docutils literal"><span class="pre">WebStatus</span></tt></a> and <a class="reference internal" href="cfg-statustargets.html#status-IRC" title="IRC"><tt class="xref bb bb-status docutils literal"><span class="pre">IRC</span></tt></a>).</p>
+<p>Each developer is primarily known through the source control system. Each
+<tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt> object that arrives is tagged with a <tt class="xref py py-attr docutils literal"><span class="pre">who</span></tt> field that
+typically gives the account name (on the repository machine) of the user
+responsible for that change. This string is displayed on the HTML status
+pages and in each <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt>'s <em>blamelist</em>.</p>
+<p>To do more with the User than just refer to them, this username needs to be
+mapped into an address of some sort. The responsibility for this mapping is
+left up to the status module which needs the address.  In the future, the
+responsibility for managing users will be transferred to User Objects.</p>
+<p>The <tt class="docutils literal"><span class="pre">who</span></tt> fields in <tt class="docutils literal"><span class="pre">git</span></tt> Changes are used to create <a class="reference internal" href="#user-objects"><em>User Objects</em></a>,
+which allows for more control and flexibility in how Buildbot manages users.</p>
+<div class="section" id="user-objects">
+<span id="id5"></span><h3>User Objects<a class="headerlink" href="#user-objects" title="Permalink to this headline">¶</a></h3>
+<p>User Objects allow Buildbot to better manage users throughout its various
+interactions with users (see <a class="reference internal" href="cfg-changesources.html#change-sources"><em>Change Sources</em></a> and <a class="reference internal" href="cfg-statustargets.html#status-targets"><em>Status Targets</em></a>).
+The User Objects are stored in the Buildbot database and correlate the various
+attributes that a user might have: irc, git, etc.</p>
+<div class="section" id="id6">
+<h4>Changes<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h4>
+<p>Incoming Changes all have a <tt class="docutils literal"><span class="pre">who</span></tt> attribute attached to them that specifies
+which developer is responsible for that Change. When a Change is first
+rendered, the <tt class="docutils literal"><span class="pre">who</span></tt> attribute is parsed and added to the database if it
+doesn't exist or checked against an existing user. The <tt class="docutils literal"><span class="pre">who</span></tt> attribute is
+formatted in different ways depending on the version control system that the
+Change came from.</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">git</span></tt></dt>
+<dd><tt class="docutils literal"><span class="pre">who</span></tt> attributes take the form <tt class="docutils literal"><span class="pre">Full</span> <span class="pre">Name</span> <span class="pre">&lt;Email&gt;</span></tt>.</dd>
+<dt><tt class="docutils literal"><span class="pre">svn</span></tt></dt>
+<dd><tt class="docutils literal"><span class="pre">who</span></tt> attributes are of the form <tt class="docutils literal"><span class="pre">Username</span></tt>.</dd>
+<dt><tt class="docutils literal"><span class="pre">hg</span></tt></dt>
+<dd><tt class="docutils literal"><span class="pre">who</span></tt> attributes are free-form strings, but usually adhere to similar
+conventions as <tt class="docutils literal"><span class="pre">git</span></tt> attributes (<tt class="docutils literal"><span class="pre">Full</span> <span class="pre">Name</span> <span class="pre">&lt;Email&gt;</span></tt>).</dd>
+<dt><tt class="docutils literal"><span class="pre">cvs</span></tt></dt>
+<dd><tt class="docutils literal"><span class="pre">who</span></tt> attributes are of the form <tt class="docutils literal"><span class="pre">Username</span></tt>.</dd>
+<dt><tt class="docutils literal"><span class="pre">darcs</span></tt></dt>
+<dd><tt class="docutils literal"><span class="pre">who</span></tt> attributes contain an <tt class="docutils literal"><span class="pre">Email</span></tt> and may also include a <tt class="docutils literal"><span class="pre">Full</span> <span class="pre">Name</span></tt>
+like <tt class="docutils literal"><span class="pre">git</span></tt> attributes.</dd>
+<dt><tt class="docutils literal"><span class="pre">bzr</span></tt></dt>
+<dd><tt class="docutils literal"><span class="pre">who</span></tt> attributes are free-form strings like <tt class="docutils literal"><span class="pre">hg</span></tt>, and can include a
+<tt class="docutils literal"><span class="pre">Username</span></tt>, <tt class="docutils literal"><span class="pre">Email</span></tt>, and/or <tt class="docutils literal"><span class="pre">Full</span> <span class="pre">Name</span></tt>.</dd>
+</dl>
+</div>
+<div class="section" id="tools">
+<h4>Tools<a class="headerlink" href="#tools" title="Permalink to this headline">¶</a></h4>
+<p>For managing users manually, use the <tt class="docutils literal"><span class="pre">buildbot</span> <span class="pre">user</span></tt> command, which allows
+you to add, remove, update, and show various attributes of users in the Buildbot
+database (see <a class="reference internal" href="cmdline.html#command-line-tool"><em>Command-line Tool</em></a>).</p>
+<p>To show all of the users in the database in a more pretty manner, use the users page in
+the <a class="reference internal" href="cfg-statustargets.html#status-WebStatus" title="WebStatus"><tt class="xref bb bb-status docutils literal"><span class="pre">WebStatus</span></tt></a>.</p>
+</div>
+<div class="section" id="uses">
+<h4>Uses<a class="headerlink" href="#uses" title="Permalink to this headline">¶</a></h4>
+<p>Correlating the various bits and pieces that Buildbot views as users also means
+that one attribute of a user can be translated into another. This provides a
+more complete view of users throughout Buildbot.</p>
+<p>One such use is being able to find email addresses based on a set of Builds
+to notify users through the <tt class="docutils literal"><span class="pre">MailNotifier</span></tt>. This process is explained
+more clearly in :ref:<tt class="docutils literal"><span class="pre">Email-Addresses</span></tt>.</p>
+<p>Another way to utilize <cite>User Objects</cite> is through <cite>UsersAuth</cite> for web authentication
+(see <a class="reference internal" href="cfg-statustargets.html#status-WebStatus" title="WebStatus"><tt class="xref bb bb-status docutils literal"><span class="pre">WebStatus</span></tt></a>). To use <cite>UsersAuth</cite>, you need to
+set a <cite>bb_username</cite> and <cite>bb_password</cite> via the <tt class="docutils literal"><span class="pre">buildbot</span> <span class="pre">user</span></tt> command line tool
+to check against. The password will be encrypted before storing in the database
+along with other user attributes.</p>
+</div>
+</div>
+<div class="section" id="doing-things-with-users">
+<span id="id7"></span><h3>Doing Things With Users<a class="headerlink" href="#doing-things-with-users" title="Permalink to this headline">¶</a></h3>
+<p>Each change has a single user who is responsible for it. Most builds have a set
+of changes: the build generally represents the first time these changes have
+been built and tested by the Buildbot. The build has a <em>blamelist</em> that is
+the union of the users responsible for all the build's changes. If the build
+was created by a <a class="reference internal" href="cfg-schedulers.html#try-schedulers"><em>Try Schedulers</em></a> this list will include the submitter of the try
+job, if known.</p>
+<p>The build provides a list of users who are interested in the build -- the
+<em>interested users</em>. Usually this is equal to the blamelist, but may also be
+expanded, e.g., to include the current build sherrif or a module's maintainer.</p>
+<p>If desired, the buildbot can notify the interested users until the problem is
+resolved.</p>
+</div>
+<div class="section" id="email-addresses">
+<span id="id8"></span><h3>Email Addresses<a class="headerlink" href="#email-addresses" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="cfg-statustargets.html#status-MailNotifier" title="MailNotifier"><tt class="xref bb bb-status docutils literal"><span class="pre">MailNotifier</span></tt></a> is a status target which can send email
+about the results of each build. It accepts a static list of email
+addresses to which each message should be delivered, but it can also
+be configured to send mail to the <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt>'s Interested Users. To do
+this, it needs a way to convert User names into email addresses.</p>
+<p>For many VC systems, the User Name is actually an account name on the
+system which hosts the repository. As such, turning the name into an
+email address is a simple matter of appending
+<tt class="docutils literal"><span class="pre">&#64;repositoryhost.com</span></tt>. Some projects use other kinds of mappings
+(for example the preferred email address may be at <tt class="docutils literal"><span class="pre">project.org</span></tt>
+despite the repository host being named <tt class="docutils literal"><span class="pre">cvs.project.org</span></tt>), and some
+VC systems have full separation between the concept of a user and that
+of an account on the repository host (like Perforce). Some systems
+(like Git) put a full contact email address in every change.</p>
+<p>To convert these names to addresses, the <tt class="xref py py-class docutils literal"><span class="pre">MailNotifier</span></tt> uses an <tt class="xref py py-class docutils literal"><span class="pre">EmailLookup</span></tt>
+object. This provides a <tt class="xref py py-meth docutils literal"><span class="pre">getAddress</span></tt> method which accepts a name and
+(eventually) returns an address. The default <tt class="xref py py-class docutils literal"><span class="pre">MailNotifier</span></tt>
+module provides an <tt class="xref py py-class docutils literal"><span class="pre">EmailLookup</span></tt> which simply appends a static string,
+configurable when the notifier is created. To create more complex behaviors
+(perhaps using an LDAP lookup, or using <tt class="docutils literal"><span class="pre">finger</span></tt> on a central host to
+determine a preferred address for the developer), provide a different object
+as the <tt class="docutils literal"><span class="pre">lookup</span></tt> argument.</p>
+<p>If an EmailLookup object isn't given to the MailNotifier, the MailNotifier
+will try to find emails through <a class="reference internal" href="#user-objects"><em>User Objects</em></a>. This will work the
+same as if an EmailLookup object was used if every user in the Build's
+Interested Users list has an email in the database for them. If a user
+whose change led to a Build doesn't have an email attribute, that user
+will not receive an email. If <tt class="docutils literal"><span class="pre">extraRecipients</span></tt> is given, those users
+are still sent mail when the EmailLookup object is not specified.</p>
+<p>In the future, when the Problem mechanism has been set up, the Buildbot
+will need to send mail to arbitrary Users. It will do this by locating a
+<tt class="xref py py-class docutils literal"><span class="pre">MailNotifier</span></tt>-like object among all the buildmaster's status targets, and
+asking it to send messages to various Users. This means the User-to-address
+mapping only has to be set up once, in your <tt class="xref py py-class docutils literal"><span class="pre">MailNotifier</span></tt>, and every email
+message the buildbot emits will take advantage of it.</p>
+</div>
+<div class="section" id="irc-nicknames">
+<span id="id9"></span><h3>IRC Nicknames<a class="headerlink" href="#irc-nicknames" title="Permalink to this headline">¶</a></h3>
+<p>Like <tt class="xref py py-class docutils literal"><span class="pre">MailNotifier</span></tt>, the <a class="reference internal" href="cfg-statustargets.html#buildbot.status.words.IRC" title="buildbot.status.words.IRC"><tt class="xref py py-class docutils literal"><span class="pre">buildbot.status.words.IRC</span></tt></a> class
+provides a status target which can announce the results of each build. It
+also provides an interactive interface by responding to online queries
+posted in the channel or sent as private messages.</p>
+<p>In the future, the buildbot can be configured map User names to IRC
+nicknames, to watch for the recent presence of these nicknames, and to
+deliver build status messages to the interested parties. Like
+<tt class="xref py py-class docutils literal"><span class="pre">MailNotifier</span></tt> does for email addresses, the <tt class="xref py py-class docutils literal"><span class="pre">IRC</span></tt> object
+will have an <tt class="xref py py-class docutils literal"><span class="pre">IRCLookup</span></tt> which is responsible for nicknames. The
+mapping can be set up statically, or it can be updated by online users
+themselves (by claiming a username with some kind of <tt class="docutils literal"><span class="pre">buildbot:</span> <span class="pre">i</span> <span class="pre">am</span>
+<span class="pre">user</span> <span class="pre">warner</span></tt> commands).</p>
+<p>Once the mapping is established, the rest of the buildbot can ask the
+<tt class="xref py py-class docutils literal"><span class="pre">IRC</span></tt> object to send messages to various users. It can report on
+the likelihood that the user saw the given message (based upon how long the
+user has been inactive on the channel), which might prompt the Problem
+Hassler logic to send them an email message instead.</p>
+<p>These operations and authentication of commands issued by particular
+nicknames will be implemented in <a class="reference internal" href="#user-objects"><em>User Objects</em></a>.</p>
+</div>
+<div class="section" id="live-status-clients">
+<span id="id10"></span><h3>Live Status Clients<a class="headerlink" href="#live-status-clients" title="Permalink to this headline">¶</a></h3>
+<p>The Buildbot also offers a desktop status client interface which can display
+real-time build status in a GUI panel on the developer's desktop.</p>
+</div>
+</div>
+<div class="section" id="build-properties">
+<span id="index-0"></span><span id="id11"></span><h2>Build Properties<a class="headerlink" href="#build-properties" title="Permalink to this headline">¶</a></h2>
+<p>Each build has a set of <em>Build Properties</em>, which can be used by its
+build steps to modify their actions.  These properties, in the form of
+key-value pairs, provide a general framework for dynamically altering
+the behavior of a build based on its circumstances.</p>
+<p>Properties form a simple kind of variable in a build.  Some properties are set
+when the build starts, and properties can be changed as a build progresses --
+properties set or changed in one step may be accessed in subsequent steps.
+Property values can be numbers, strings, lists, or dictionaries - basically,
+anything that can be represented in JSON.</p>
+<p>Properties are very flexible, and can be used to implement all manner
+of functionality.  Here are some examples:</p>
+<p>Most Source steps record the revision that they checked out in
+the <tt class="docutils literal"><span class="pre">got_revision</span></tt> property.  A later step could use this
+property to specify the name of a fully-built tarball, dropped in an
+easily-accessible directory for later testing.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In builds with more than one codebase, the <tt class="docutils literal"><span class="pre">got_revision</span></tt> property is a dictionary, keyed by codebase.</p>
+</div>
+<p>Some projects want to perform nightly builds as well as building in response to
+committed changes.  Such a project would run two schedulers, both pointing to
+the same set of builders, but could provide an <tt class="docutils literal"><span class="pre">is_nightly</span></tt> property so
+that steps can distinguish the nightly builds, perhaps to run more
+resource-intensive tests.</p>
+<p>Some projects have different build processes on different systems.
+Rather than create a build factory for each slave, the steps can use
+buildslave properties to identify the unique aspects of each slave
+and adapt the build process dynamically.</p>
+</div>
+<div class="section" id="multiple-codebase-builds">
+<span id="id12"></span><h2>Multiple-Codebase Builds<a class="headerlink" href="#multiple-codebase-builds" title="Permalink to this headline">¶</a></h2>
+<p>What if an end-product is composed of code from several codebases?
+Changes may arrive from different repositories within the tree-stable-timer period.
+Buildbot will not only use the source-trees that contain changes but also needs the remaining source-trees to build the complete product.</p>
+<p>For this reason a <a class="reference internal" href="#scheduling-builds"><em>Scheduler</em></a> can be configured to base a build on a set of several source-trees that can (partly) be overridden by the information from incoming <tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt>s.</p>
+<p>As described <a class="reference internal" href="#source-stamps"><em>above</em></a>, the source for each codebase is identified by a source stamp, containing its repository, branch and revision.
+A full build set will specify a source stamp set describing the source to use for each codebase.</p>
+<p>Configuring all of this takes a coordinated approach.  A complete multiple repository configuration consists of:</p>
+<blockquote>
+<div><ul>
+<li><p class="first">a <em>codebase generator</em></p>
+<blockquote>
+<div><p>Every relevant change arriving from a VC must contain a codebase.
+This is done by a <a class="reference internal" href="cfg-global.html#cfg-codebaseGenerator" title="codebaseGenerator"><tt class="xref bb bb-cfg docutils literal"><span class="pre">codebaseGenerator</span></tt></a> that is defined in the configuration.
+Most generators examine the repository of a change to determine its codebase, using project-specific rules.</p>
+</div></blockquote>
+</li>
+<li><p class="first">some <em>schedulers</em></p>
+<blockquote>
+<div><p>Each <a class="reference internal" href="cfg-schedulers.html#cfg-schedulers" title="schedulers"><tt class="xref bb bb-cfg docutils literal"><span class="pre">scheduler</span></tt></a> has to be configured with a set of all required <tt class="docutils literal"><span class="pre">codebases</span></tt> to build a product.
+These codebases indicate the set of required source-trees.
+In order for the scheduler to be able to produce a complete set for each build, the configuration can give a default repository, branch, and revision for each codebase.
+When a scheduler must generate a source stamp for a codebase that has received no changes, it applies these default values.</p>
+</div></blockquote>
+</li>
+<li><p class="first">multiple <em>source steps</em> - one for each codebase</p>
+<blockquote>
+<div><p>A <a class="reference internal" href="#builder"><em>Builders</em></a>'s build factory must include a <a class="reference internal" href="cfg-buildsteps.html#source-checkout"><em>source step</em></a> for each codebase.
+Each of the source steps has a <tt class="docutils literal"><span class="pre">codebase</span></tt> attribute which is used to select an appropriate source stamp from the source stamp set for a build.
+This information comes from the arrived changes or from the scheduler's configured default values.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Each <a class="reference internal" href="cfg-buildsteps.html#source-checkout"><em>source step</em></a> has to have its own <tt class="docutils literal"><span class="pre">workdir</span></tt> set in order for the checkout to be done for each codebase in its own directory.</p>
+</div>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Defining a <a class="reference internal" href="cfg-global.html#cfg-codebaseGenerator" title="codebaseGenerator"><tt class="xref bb bb-cfg docutils literal"><span class="pre">codebaseGenerator</span></tt></a> that returns non-empty (not <tt class="docutils literal"><span class="pre">''</span></tt>) codebases will change the behavior of all the schedulers.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+<h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Concepts</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="customization.html">Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmdline.html">Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resources.html">Resources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">Release Notes for Buildbot 0.8.7p1</a></li>
+</ul>
+
+          <h3 style="margin-top: 1.5em;">Search</h3>
+          <form class="search" action="../search.html" method="get">
+            <input type="text" name="q" />
+            <input type="submit" value="Go" />
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+          </form>
+          <p class="searchtip" style="font-size: 90%">
+            Enter search terms or a module, class or function name.
+          </p>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <a href="installation.html" title="Installation"
+             >previous</a> |
+          <a href="configuration.html" title="Configuration"
+             >next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             >index</a>
+            <br/>
+            <a href="../_sources/manual/concepts.txt"
+               rel="nofollow">Show Source</a>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer">
+        &copy; Copyright Buildbot Team Members.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>
