@@ -1,3 +1,4 @@
-This serves as a backup for generated docs for old versions of buildbot.
+This repository holds the buildbot docs.  It also serves as a backup for
+generated docs for old versions of buildbot.
 
-See http://buildbot.net/buildbot/docs/
+The 'docs/' directory corresponds to http://docs.buildbot.net/
