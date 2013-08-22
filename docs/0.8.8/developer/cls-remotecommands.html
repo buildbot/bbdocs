@@ -1,0 +1,530 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>RemoteCommands &mdash; Buildbot 0.8.8 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.8.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/buildbot.ico"/>
+    <link rel="top" title="Buildbot 0.8.8 documentation" href="../index.html" />
+    <link rel="up" title="Classes" href="classes.html" />
+    <link rel="next" title="BuildSteps" href="cls-buildsteps.html" />
+    <link rel="prev" title="BuildFactory" href="cls-buildfactory.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+  <body>
+    <div class="header-wrapper">
+      <div class="header">
+          <p class="logo"><a href="../index.html">
+            <img class="logo" src="../_static/header-text-transparent.png" alt="Logo"/>
+          </a></p>
+        <div class="headertitle"><a
+          href="../index.html">Buildbot 0.8.8 documentation</a></div>
+        <div class="rel">
+          <a href="cls-buildfactory.html" title="BuildFactory"
+             accesskey="P">previous</a> |
+          <a href="cls-buildsteps.html" title="BuildSteps"
+             accesskey="N">next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="remotecommands">
+<h1>RemoteCommands<a class="headerlink" href="#remotecommands" title="Permalink to this headline">¶</a></h1>
+<p>Most of the action in build steps consists of performing operations on the
+slave.  This is accomplished via <a class="reference internal" href="#buildbot.process.buildstep.RemoteCommand" title="buildbot.process.buildstep.RemoteCommand"><tt class="xref py py-class docutils literal"><span class="pre">RemoteCommand</span></tt></a> and its subclasses.
+Each represents a single operation on the slave.</p>
+<p>Most data is returned to a command via updates.  These updates are described in
+detail in <a class="reference internal" href="master-slave.html#master-slave-updates"><em>Updates</em></a>.</p>
+<div class="section" id="remotecommand">
+<h2>RemoteCommand<a class="headerlink" href="#remotecommand" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.process.buildstep.RemoteCommand">
+<em class="property">class </em><tt class="descclassname">buildbot.process.buildstep.</tt><tt class="descname">RemoteCommand</tt><big>(</big><em>remote_command</em>, <em>args</em>, <em>collectStdout=False</em>, <em>ignore_updates=False</em>, <em>decodeRC=dict(0)</em><big>)</big><a class="headerlink" href="#buildbot.process.buildstep.RemoteCommand" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>remote_command</strong> (<em>string</em>) -- command to run on the slave</li>
+<li><strong>args</strong> (<em>dictionary</em>) -- arguments to pass to the command</li>
+<li><strong>collectStdout</strong> -- if True, collect the command's stdout</li>
+<li><strong>ignore_updates</strong> -- true to ignore remote updates</li>
+<li><strong>decodeRC</strong> -- dictionary associating <tt class="docutils literal"><span class="pre">rc</span></tt> values to buildsteps results constants
+(e.g. <tt class="docutils literal"><span class="pre">SUCCESS</span></tt>, <tt class="docutils literal"><span class="pre">FAILURE</span></tt>, <tt class="docutils literal"><span class="pre">WARNINGS</span></tt>)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This class handles running commands, consisting of a command name and
+a dictionary of arguments.  If true, <tt class="docutils literal"><span class="pre">ignore_updates</span></tt> will suppress any
+updates sent from the slave.</p>
+<p>This class handles updates for <tt class="docutils literal"><span class="pre">stdout</span></tt>, <tt class="docutils literal"><span class="pre">stderr</span></tt>, and <tt class="docutils literal"><span class="pre">header</span></tt> by
+appending them to a <tt class="docutils literal"><span class="pre">stdio</span></tt> logfile, if one is in use.  It handles
+updates for <tt class="docutils literal"><span class="pre">rc</span></tt> by recording the value in its <tt class="docutils literal"><span class="pre">rc</span></tt> attribute.</p>
+<p>Most slave-side commands, even those which do not spawn a new process on
+the slave, generate logs and an <tt class="docutils literal"><span class="pre">rc</span></tt>, requiring this class or one of its
+subclasses.  See <a class="reference internal" href="master-slave.html#master-slave-updates"><em>Updates</em></a> for the updates that each
+command may send.</p>
+<dl class="attribute">
+<dt id="buildbot.process.buildstep.RemoteCommand.active">
+<tt class="descname">active</tt><a class="headerlink" href="#buildbot.process.buildstep.RemoteCommand.active" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if the command is currently running</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.process.buildstep.RemoteCommand.run">
+<tt class="descname">run</tt><big>(</big><em>step</em>, <em>remote</em><big>)</big><a class="headerlink" href="#buildbot.process.buildstep.RemoteCommand.run" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>step</strong> -- the buildstep invoking this command</li>
+<li><strong>remote</strong> -- a reference to the remote <tt class="xref py py-class docutils literal"><span class="pre">SlaveBuilder</span></tt>
+instance</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Run the command.  Call this method to initiate the command; the
+returned Deferred will fire when the command is complete.  The Deferred
+fires with the <a class="reference internal" href="#buildbot.process.buildstep.RemoteCommand" title="buildbot.process.buildstep.RemoteCommand"><tt class="xref py py-class docutils literal"><span class="pre">RemoteCommand</span></tt></a> instance as its value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.process.buildstep.RemoteCommand.interrupt">
+<tt class="descname">interrupt</tt><big>(</big><em>why</em><big>)</big><a class="headerlink" href="#buildbot.process.buildstep.RemoteCommand.interrupt" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>why</strong> (<em>Twisted Failure</em>) -- reason for interrupt</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>This method attempts to stop the running command early.  The Deferred
+it returns will fire when the interrupt request is received by the
+slave; this may be a long time before the command itself completes, at
+which time the Deferred returned from <a class="reference internal" href="#buildbot.process.buildstep.RemoteCommand.run" title="buildbot.process.buildstep.RemoteCommand.run"><tt class="xref py py-meth docutils literal"><span class="pre">run</span></tt></a> will fire.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.process.buildstep.RemoteCommand.results">
+<tt class="descname">results</tt><big>(</big><big>)</big><a class="headerlink" href="#buildbot.process.buildstep.RemoteCommand.results" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">results constant</td>
+</tr>
+</tbody>
+</table>
+<p>This method checks the <tt class="docutils literal"><span class="pre">rc</span></tt> against the decodeRC dictionary, and returns results constant</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.process.buildstep.RemoteCommand.didFail">
+<tt class="descname">didFail</tt><big>(</big><big>)</big><a class="headerlink" href="#buildbot.process.buildstep.RemoteCommand.didFail" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+<p>This method returns True if the results() function returns FAILURE</p>
+</dd></dl>
+
+<p>The following methods are invoked from the slave.  They should not be
+called directly.</p>
+<dl class="method">
+<dt id="buildbot.process.buildstep.RemoteCommand.remote_update">
+<tt class="descname">remote_update</tt><big>(</big><em>updates</em><big>)</big><a class="headerlink" href="#buildbot.process.buildstep.RemoteCommand.remote_update" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>updates</strong> -- new information from the slave</td>
+</tr>
+</tbody>
+</table>
+<p>Handles updates from the slave on the running command.  See
+<a class="reference internal" href="master-slave.html#master-slave-updates"><em>Updates</em></a> for the content of the updates.  This class
+splits the updates out, and handles the <tt class="docutils literal"><span class="pre">ignore_updates</span></tt> option, then
+calls <a class="reference internal" href="#buildbot.process.buildstep.RemoteCommand.remoteUpdate" title="buildbot.process.buildstep.RemoteCommand.remoteUpdate"><tt class="xref py py-meth docutils literal"><span class="pre">remoteUpdate</span></tt></a> to process the update.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.process.buildstep.RemoteCommand.remote_complete">
+<tt class="descname">remote_complete</tt><big>(</big><em>failure=None</em><big>)</big><a class="headerlink" href="#buildbot.process.buildstep.RemoteCommand.remote_complete" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>failure</strong> -- the failure that caused the step to complete, or None
+for success</td>
+</tr>
+</tbody>
+</table>
+<p>Called by the slave to indicate that the command is complete.  Normal
+completion (even with a nonzero <tt class="docutils literal"><span class="pre">rc</span></tt>) will finish with no failure; if
+<tt class="docutils literal"><span class="pre">failure</span></tt> is set, then the step should finish with status
+<a class="reference internal" href="results.html#buildbot.status.results.EXCEPTION" title="buildbot.status.results.EXCEPTION"><tt class="xref py py-attr docutils literal"><span class="pre">EXCEPTION</span></tt></a>.</p>
+</dd></dl>
+
+<p>These methods are hooks for subclasses to add functionality.</p>
+<dl class="method">
+<dt id="buildbot.process.buildstep.RemoteCommand.remoteUpdate">
+<tt class="descname">remoteUpdate</tt><big>(</big><em>update</em><big>)</big><a class="headerlink" href="#buildbot.process.buildstep.RemoteCommand.remoteUpdate" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>update</strong> -- the update to handle</td>
+</tr>
+</tbody>
+</table>
+<p>Handle a single update.  Subclasses must override this method.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.process.buildstep.RemoteCommand.remoteComplete">
+<tt class="descname">remoteComplete</tt><big>(</big><em>failure</em><big>)</big><a class="headerlink" href="#buildbot.process.buildstep.RemoteCommand.remoteComplete" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>failure</strong> -- the failure that caused the step to complete, or None
+for success</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Handle command completion, performing any necessary cleanup.
+Subclasses should override this method.  If <tt class="docutils literal"><span class="pre">failure</span></tt> is not None, it
+should be returned to ensure proper processing.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="buildbot.process.buildstep.RemoteCommand.logs">
+<tt class="descname">logs</tt><a class="headerlink" href="#buildbot.process.buildstep.RemoteCommand.logs" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary of <a class="reference internal" href="formats.html#buildbot.status.logfile.LogFile" title="buildbot.status.logfile.LogFile"><tt class="xref py py-class docutils literal"><span class="pre">LogFile</span></tt></a> instances
+representing active logs.  Do not modify this directly -- use
+<a class="reference internal" href="#buildbot.process.buildstep.RemoteCommand.useLog" title="buildbot.process.buildstep.RemoteCommand.useLog"><tt class="xref py py-meth docutils literal"><span class="pre">useLog</span></tt></a> instead.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="buildbot.process.buildstep.RemoteCommand.rc">
+<tt class="descname">rc</tt><a class="headerlink" href="#buildbot.process.buildstep.RemoteCommand.rc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set to the return code of the command, after the command has completed.
+For compatibility with shell commands, 0 is taken to indicate success,
+while nonzero return codes indicate failure.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="buildbot.process.buildstep.RemoteCommand.stdout">
+<tt class="descname">stdout</tt><a class="headerlink" href="#buildbot.process.buildstep.RemoteCommand.stdout" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the <tt class="docutils literal"><span class="pre">collectStdout</span></tt> constructor argument is true, then this
+attribute will contain all data from stdout, as a single string.  This
+is helpful when running informational commands (e.g., <tt class="docutils literal"><span class="pre">svnversion</span></tt>),
+but is not appropriate for commands that will produce a large amount of
+output, as that output is held in memory.</p>
+</dd></dl>
+
+<p>To set up logging, use <a class="reference internal" href="#buildbot.process.buildstep.RemoteCommand.useLog" title="buildbot.process.buildstep.RemoteCommand.useLog"><tt class="xref py py-meth docutils literal"><span class="pre">useLog</span></tt></a> or <a class="reference internal" href="#buildbot.process.buildstep.RemoteCommand.useLogDelayed" title="buildbot.process.buildstep.RemoteCommand.useLogDelayed"><tt class="xref py py-meth docutils literal"><span class="pre">useLogDelayed</span></tt></a> before
+starting the command:</p>
+<dl class="method">
+<dt id="buildbot.process.buildstep.RemoteCommand.useLog">
+<tt class="descname">useLog</tt><big>(</big><em>log</em>, <em>closeWhenFinished=False</em>, <em>logfileName=None</em><big>)</big><a class="headerlink" href="#buildbot.process.buildstep.RemoteCommand.useLog" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>log</strong> -- the <a class="reference internal" href="formats.html#buildbot.status.logfile.LogFile" title="buildbot.status.logfile.LogFile"><tt class="xref py py-class docutils literal"><span class="pre">LogFile</span></tt></a> instance to add to.</li>
+<li><strong>closeWhenFinished</strong> -- if true, call
+<tt class="xref py py-meth docutils literal"><span class="pre">finish</span></tt> when the command is
+finished.</li>
+<li><strong>logfileName</strong> -- the name of the logfile, as given to the slave.
+This is <tt class="docutils literal"><span class="pre">stdio</span></tt> for standard streams.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Route log-related updates to the given logfile.  Note that <tt class="docutils literal"><span class="pre">stdio</span></tt> is
+not included by default, and must be added explicitly.  The
+<tt class="docutils literal"><span class="pre">logfileName</span></tt> must match the name given by the slave in any <tt class="docutils literal"><span class="pre">log</span></tt>
+updates.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.process.buildstep.RemoteCommand.useLogDelayed">
+<tt class="descname">useLogDelayed</tt><big>(</big><em>log</em>, <em>logfileName</em>, <em>activateCallback</em>, <em>closeWhenFinished=False</em><big>)</big><a class="headerlink" href="#buildbot.process.buildstep.RemoteCommand.useLogDelayed" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>log</strong> -- the <a class="reference internal" href="formats.html#buildbot.status.logfile.LogFile" title="buildbot.status.logfile.LogFile"><tt class="xref py py-class docutils literal"><span class="pre">LogFile</span></tt></a> instance to add to.</li>
+<li><strong>logfileName</strong> -- the name of the logfile, as given to the slave.
+This is <tt class="docutils literal"><span class="pre">stdio</span></tt> for standard streams.</li>
+<li><strong>activateCallback</strong> -- callback for when the log is added; see below</li>
+<li><strong>closeWhenFinished</strong> -- if true, call
+<tt class="xref py py-meth docutils literal"><span class="pre">finish</span></tt> when the command is
+finished.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Similar to <a class="reference internal" href="#buildbot.process.buildstep.RemoteCommand.useLog" title="buildbot.process.buildstep.RemoteCommand.useLog"><tt class="xref py py-meth docutils literal"><span class="pre">useLog</span></tt></a>, but the logfile is only actually added when
+an update arrives for it.  The callback, <tt class="docutils literal"><span class="pre">activateCallback</span></tt>, will be
+called with the <a class="reference internal" href="#buildbot.process.buildstep.RemoteCommand" title="buildbot.process.buildstep.RemoteCommand"><tt class="xref py py-class docutils literal"><span class="pre">RemoteCommand</span></tt></a>
+instance when the first update for the log is delivered.</p>
+</dd></dl>
+
+<p>With that finished, run the command using the inherited
+<a class="reference internal" href="#buildbot.process.buildstep.RemoteCommand.run" title="buildbot.process.buildstep.RemoteCommand.run"><tt class="xref py py-meth docutils literal"><span class="pre">run</span></tt></a> method.  During the
+run, you can inject data into the logfiles with any of these methods:</p>
+<dl class="method">
+<dt id="buildbot.process.buildstep.RemoteCommand.addStdout">
+<tt class="descname">addStdout</tt><big>(</big><em>data</em><big>)</big><a class="headerlink" href="#buildbot.process.buildstep.RemoteCommand.addStdout" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> -- data to add to the logfile</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>Add stdout data to the <tt class="docutils literal"><span class="pre">stdio</span></tt> log.</p>
+<dl class="method">
+<dt id="buildbot.process.buildstep.RemoteCommand.addStderr">
+<tt class="descname">addStderr</tt><big>(</big><em>data</em><big>)</big><a class="headerlink" href="#buildbot.process.buildstep.RemoteCommand.addStderr" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> -- data to add to the logfile</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>Add stderr data to the <tt class="docutils literal"><span class="pre">stdio</span></tt> log.</p>
+<dl class="method">
+<dt id="buildbot.process.buildstep.RemoteCommand.addHeader">
+<tt class="descname">addHeader</tt><big>(</big><em>data</em><big>)</big><a class="headerlink" href="#buildbot.process.buildstep.RemoteCommand.addHeader" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> -- data to add to the logfile</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>Add header data to the <tt class="docutils literal"><span class="pre">stdio</span></tt> log.</p>
+<dl class="method">
+<dt id="buildbot.process.buildstep.RemoteCommand.addToLog">
+<tt class="descname">addToLog</tt><big>(</big><em>logname</em>, <em>data</em><big>)</big><a class="headerlink" href="#buildbot.process.buildstep.RemoteCommand.addToLog" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>logname</strong> -- the logfile to receive the data</li>
+<li><strong>data</strong> -- data to add to the logfile</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>Add data to a logfile other than <tt class="docutils literal"><span class="pre">stdio</span></tt>.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.process.buildstep.RemoteShellCommand">
+<em class="property">class </em><tt class="descclassname">buildbot.process.buildstep.</tt><tt class="descname">RemoteShellCommand</tt><big>(</big><em>workdir</em>, <em>command</em>, <em>env=None</em>, <em>want_stdout=True</em>, <em>want_stderr=True</em>, <em>timeout=20*60</em>, <em>maxTime=None</em>, <em>logfiles={}</em>, <em>usePTY=&quot;slave-config&quot;</em>, <em>logEnviron=True</em>, <em>collectStdio=False</em><big>)</big><a class="headerlink" href="#buildbot.process.buildstep.RemoteShellCommand" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>workdir</strong> -- directory in which command should be executed, relative to
+the builder's basedir.</li>
+<li><strong>command</strong> (<em>string or list</em>) -- shell command to run</li>
+<li><strong>want_stdout</strong> -- If false, then no updates will be sent for stdout.</li>
+<li><strong>want_stderr</strong> -- If false, then no updates will be sent for stderr.</li>
+<li><strong>timeout</strong> -- Maximum time without output before the command is killed.</li>
+<li><strong>maxTime</strong> -- Maximum overall time from the start before the command is
+killed.</li>
+<li><strong>env</strong> -- A dictionary of environment variables to augment or replace the
+existing environment on the slave.</li>
+<li><strong>logfiles</strong> -- Additional logfiles to request from the slave.</li>
+<li><strong>usePTY</strong> -- True to use a PTY, false to not use a PTY; the default value
+uses the default configured on the slave.</li>
+<li><strong>logEnviron</strong> -- If false, do not log the environment on the slave.</li>
+<li><strong>collectStdout</strong> -- If True, collect the command's stdout.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Most of the constructor arguments are sent directly to the slave; see
+<a class="reference internal" href="master-slave.html#shell-command-args"><em>shell</em></a> for the details of the formats.  The
+<tt class="docutils literal"><span class="pre">collectStdout</span></tt> parameter is as described for the parent class.</p>
+<p>This class is used by the <a class="reference internal" href="../manual/cfg-buildsteps.html#step-ShellCommand" title="ShellCommand"><tt class="xref bb bb-step docutils literal"><span class="pre">ShellCommand</span></tt></a> step, and by steps that
+run multiple customized shell commands.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+<h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Buildbot Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/index.html">Buildbot Manual</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Buildbot Development</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="master-overview.html">Master Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="definitions.html">Definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="style.html">Buildbot Coding Style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html">Buildbot's Test Suite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#error-handling">Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#reconfiguration">Reconfiguration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="database.html">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="results.html">Build Result Codes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="formats.html">File Formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webstatus.html">Web Status</a></li>
+<li class="toctree-l2"><a class="reference internal" href="master-slave.html">Master-Slave API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="encodings.html">String Encodings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metrics.html">Metrics</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="classes.html">Classes</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="cls-buildfactory.html">BuildFactory</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="">RemoteCommands</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cls-buildsteps.html">BuildSteps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cls-forcesched.html">ForceScheduler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cls-irenderable.html">IRenderable</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cls-iproperties.html">IProperties</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">Release Notes for Buildbot v0.8.8</a></li>
+</ul>
+
+          <h3 style="margin-top: 1.5em;">Search</h3>
+          <form class="search" action="../search.html" method="get">
+            <input type="text" name="q" />
+            <input type="submit" value="Go" />
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+          </form>
+          <p class="searchtip" style="font-size: 90%">
+            Enter search terms or a module, class or function name.
+          </p>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <a href="cls-buildfactory.html" title="BuildFactory"
+             >previous</a> |
+          <a href="cls-buildsteps.html" title="BuildSteps"
+             >next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             >index</a>
+            <br/>
+            <a href="../_sources/developer/cls-remotecommands.txt"
+               rel="nofollow">Show Source</a>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer">
+        &copy; Copyright Buildbot Team Members.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

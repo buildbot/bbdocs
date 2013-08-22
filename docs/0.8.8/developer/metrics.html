@@ -1,0 +1,290 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Metrics &mdash; Buildbot 0.8.8 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.8.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/buildbot.ico"/>
+    <link rel="top" title="Buildbot 0.8.8 documentation" href="../index.html" />
+    <link rel="up" title="Buildbot Development" href="index.html" />
+    <link rel="next" title="Classes" href="classes.html" />
+    <link rel="prev" title="String Encodings" href="encodings.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+  <body>
+    <div class="header-wrapper">
+      <div class="header">
+          <p class="logo"><a href="../index.html">
+            <img class="logo" src="../_static/header-text-transparent.png" alt="Logo"/>
+          </a></p>
+        <div class="headertitle"><a
+          href="../index.html">Buildbot 0.8.8 documentation</a></div>
+        <div class="rel">
+          <a href="encodings.html" title="String Encodings"
+             accesskey="P">previous</a> |
+          <a href="classes.html" title="Classes"
+             accesskey="N">next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="metrics">
+<span id="id1"></span><h1>Metrics<a class="headerlink" href="#metrics" title="Permalink to this headline">¶</a></h1>
+<p>New in buildbot 0.8.4 is support for tracking various performance
+metrics inside the buildbot master process. Currently these are logged
+periodically according to the <tt class="docutils literal"><span class="pre">log_interval</span></tt> configuration
+setting of the &#64;ref{Metrics Options} configuration.</p>
+<p>If <a class="reference internal" href="../manual/cfg-statustargets.html#status-WebStatus" title="WebStatus"><tt class="xref bb bb-status docutils literal"><span class="pre">WebStatus</span></tt></a> is enabled, the metrics data is also available
+via <tt class="docutils literal"><span class="pre">/json/metrics</span></tt>.</p>
+<p>The metrics subsystem is implemented in
+<tt class="xref py py-mod docutils literal"><span class="pre">buildbot.process.metrics</span></tt>. It makes use of twisted's logging
+system to pass metrics data from all over buildbot's code to a central
+<tt class="xref py py-class docutils literal"><span class="pre">MetricsLogObserver</span></tt> object, which is available at
+<tt class="docutils literal"><span class="pre">BuildMaster.metrics</span></tt> or via <tt class="docutils literal"><span class="pre">Status.getMetrics()</span></tt>.</p>
+<div class="section" id="metric-events">
+<h2>Metric Events<a class="headerlink" href="#metric-events" title="Permalink to this headline">¶</a></h2>
+<p><tt class="xref py py-class docutils literal"><span class="pre">MetricEvent</span></tt> objects represent individual items to
+monitor. There are three sub-classes implemented:</p>
+<dl class="docutils">
+<dt><tt class="xref py py-class docutils literal"><span class="pre">MetricCountEvent</span></tt></dt>
+<dd><p class="first">Records incremental increase or decrease of some value, or an
+absolute measure of some value.</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.process.metrics</span> <span class="kn">import</span> <span class="n">MetricCountEvent</span>
+
+<span class="c"># We got a new widget!</span>
+<span class="n">MetricCountEvent</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s">&#39;num_widgets&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="c"># We have exactly 10 widgets</span>
+<span class="n">MetricCountEvent</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s">&#39;num_widgets&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">absolute</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt><tt class="xref py py-class docutils literal"><span class="pre">MetricTimeEvent</span></tt></dt>
+<dd><p class="first">Measures how long things take. By default the average of the last
+10 times will be reported.</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.process.metrics</span> <span class="kn">import</span> <span class="n">MetricTimeEvent</span>
+
+<span class="c"># function took 0.001s</span>
+<span class="n">MetricTimeEvent</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s">&#39;time_function&#39;</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt><tt class="xref py py-class docutils literal"><span class="pre">MetricAlarmEvent</span></tt></dt>
+<dd><p class="first">Indicates the health of various metrics.</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.process.metrics</span> <span class="kn">import</span> <span class="n">MetricAlarmEvent</span><span class="p">,</span> <span class="n">ALARM_OK</span>
+
+<span class="c"># num_slaves looks ok</span>
+<span class="n">MetricAlarmEvent</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s">&#39;num_slaves&#39;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">ALARM_OK</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</div>
+<div class="section" id="metric-handlers">
+<h2>Metric Handlers<a class="headerlink" href="#metric-handlers" title="Permalink to this headline">¶</a></h2>
+<p><tt class="xref py py-class docutils literal"><span class="pre">MetricsHandler</span></tt> objects are responsible for collecting
+<tt class="xref py py-class docutils literal"><span class="pre">MetricEvent</span></tt>s of a specific type and keeping track of their
+values for future reporting. There are <tt class="xref py py-class docutils literal"><span class="pre">MetricsHandler</span></tt> classes
+corresponding to each of the <tt class="xref py py-class docutils literal"><span class="pre">MetricEvent</span></tt> types.</p>
+</div>
+<div class="section" id="metric-watchers">
+<h2>Metric Watchers<a class="headerlink" href="#metric-watchers" title="Permalink to this headline">¶</a></h2>
+<p>Watcher objects can be added to <tt class="xref py py-class docutils literal"><span class="pre">MetricsHandlers</span></tt> to be called
+when metric events of a certain type are received. Watchers are
+generally used to record alarm events in response to count or time
+events.</p>
+</div>
+<div class="section" id="metric-helpers">
+<h2>Metric Helpers<a class="headerlink" href="#metric-helpers" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt><tt class="xref py py-func docutils literal"><span class="pre">countMethod(name)</span></tt></dt>
+<dd><p class="first">A function decorator that counts how many times the function is
+called.</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.process.metrics</span> <span class="kn">import</span> <span class="n">countMethod</span>
+
+<span class="nd">@countMethod</span><span class="p">(</span><span class="s">&#39;foo_called&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s">&quot;foo!&quot;</span>
+</pre></div>
+</div>
+</dd>
+<dt><tt class="xref py py-func docutils literal"><span class="pre">Timer(name)</span></tt></dt>
+<dd><p class="first"><tt class="xref py py-class docutils literal"><span class="pre">Timer</span></tt> objects can be used to make timing events
+easier. When <tt class="docutils literal"><span class="pre">Timer.stop()</span></tt> is called, a
+<tt class="xref py py-class docutils literal"><span class="pre">MetricTimeEvent</span></tt> is logged with the elapsed time since
+<tt class="docutils literal"><span class="pre">timer.start()</span></tt> was called.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.process.metrics</span> <span class="kn">import</span> <span class="n">Timer</span>
+
+<span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">(</span><span class="s">&#39;time_foo&#39;</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+            <span class="n">calc</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&quot;foo!&quot;</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><tt class="xref py py-class docutils literal"><span class="pre">Timer</span></tt> objects also provide a pair of decorators,
+<tt class="xref py py-func docutils literal"><span class="pre">startTimer</span></tt>/<tt class="xref py py-func docutils literal"><span class="pre">stopTimer</span></tt> to decorate other functions.</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.process.metrics</span> <span class="kn">import</span> <span class="n">Timer</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">(</span><span class="s">&#39;time_thing&#39;</span><span class="p">)</span>
+
+<span class="nd">@t.startTimer</span>
+<span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s">&quot;foo!&quot;</span>
+
+<span class="nd">@t.stopTimer</span>
+<span class="k">def</span> <span class="nf">bar</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s">&quot;bar!&quot;</span>
+
+<span class="n">foo</span><span class="p">()</span>
+<span class="n">bar</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+<dt><tt class="xref py py-func docutils literal"><span class="pre">timeMethod(name)</span></tt></dt>
+<dd><p class="first">A function decorator that measures how long a function takes to
+execute. Note that many functions in buildbot return deferreds, so
+may return before all the work they set up has completed. Using an
+explicit <tt class="xref py py-class docutils literal"><span class="pre">Timer</span></tt> is better in this case.</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.process.metrics</span> <span class="kn">import</span> <span class="n">timeMethod</span>
+
+<span class="nd">@timeMethod</span><span class="p">(</span><span class="s">&#39;time_foo&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+        <span class="n">calc</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s">&quot;foo!&quot;</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+<h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Buildbot Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/index.html">Buildbot Manual</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Buildbot Development</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="master-overview.html">Master Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="definitions.html">Definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="style.html">Buildbot Coding Style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html">Buildbot's Test Suite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#error-handling">Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#reconfiguration">Reconfiguration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="database.html">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="results.html">Build Result Codes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="formats.html">File Formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webstatus.html">Web Status</a></li>
+<li class="toctree-l2"><a class="reference internal" href="master-slave.html">Master-Slave API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="encodings.html">String Encodings</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Metrics</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="classes.html">Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">Release Notes for Buildbot v0.8.8</a></li>
+</ul>
+
+          <h3 style="margin-top: 1.5em;">Search</h3>
+          <form class="search" action="../search.html" method="get">
+            <input type="text" name="q" />
+            <input type="submit" value="Go" />
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+          </form>
+          <p class="searchtip" style="font-size: 90%">
+            Enter search terms or a module, class or function name.
+          </p>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <a href="encodings.html" title="String Encodings"
+             >previous</a> |
+          <a href="classes.html" title="Classes"
+             >next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             >index</a>
+            <br/>
+            <a href="../_sources/developer/metrics.txt"
+               rel="nofollow">Show Source</a>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer">
+        &copy; Copyright Buildbot Team Members.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

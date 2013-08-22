@@ -1,0 +1,381 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Introduction &mdash; Buildbot 0.8.8 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.8.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/buildbot.ico"/>
+    <link rel="top" title="Buildbot 0.8.8 documentation" href="../index.html" />
+    <link rel="up" title="Buildbot Manual" href="index.html" />
+    <link rel="next" title="Installation" href="installation.html" />
+    <link rel="prev" title="Buildbot Manual" href="index.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+  <body>
+    <div class="header-wrapper">
+      <div class="header">
+          <p class="logo"><a href="../index.html">
+            <img class="logo" src="../_static/header-text-transparent.png" alt="Logo"/>
+          </a></p>
+        <div class="headertitle"><a
+          href="../index.html">Buildbot 0.8.8 documentation</a></div>
+        <div class="rel">
+          <a href="index.html" title="Buildbot Manual"
+             accesskey="P">previous</a> |
+          <a href="installation.html" title="Installation"
+             accesskey="N">next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="introduction">
+<span id="id1"></span><h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p>BuildBot is a system to automate the compile/test cycle required by most
+software projects to validate code changes. By automatically rebuilding and
+testing the tree each time something has changed, build problems are
+pinpointed quickly, before other developers are inconvenienced by the
+failure. The guilty developer can be identified and harassed without human
+intervention. By running the builds on a variety of platforms, developers
+who do not have the facilities to test their changes everywhere before
+checkin will at least know shortly afterwards whether they have broken the
+build or not. Warning counts, lint checks, image size, compile time, and
+other build parameters can be tracked over time, are more visible, and
+are therefore easier to improve.</p>
+<p>The overall goal is to reduce tree breakage and provide a platform to
+run tests or code-quality checks that are too annoying or pedantic for
+any human to waste their time with. Developers get immediate (and
+potentially public) feedback about their changes, encouraging them to
+be more careful about testing before checkin.</p>
+<p>Features:</p>
+<ul class="simple">
+<li>run builds on a variety of slave platforms</li>
+<li>arbitrary build process: handles projects using C, Python, whatever</li>
+<li>minimal host requirements: Python and Twisted</li>
+<li>slaves can be behind a firewall if they can still do checkout</li>
+<li>status delivery through web page, email, IRC, other protocols</li>
+<li>track builds in progress, provide estimated completion time</li>
+<li>flexible configuration by subclassing generic build process classes</li>
+<li>debug tools to force a new build, submit fake <tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt>s,
+query slave status</li>
+<li>released under the <a class="reference external" href="http://opensource.org/licenses/gpl-2.0.php">GPL</a></li>
+</ul>
+<div class="section" id="history-and-philosophy">
+<span id="id2"></span><h2>History and Philosophy<a class="headerlink" href="#history-and-philosophy" title="Permalink to this headline">¶</a></h2>
+<p>The Buildbot was inspired by a similar project built for a development
+team writing a cross-platform embedded system. The various components
+of the project were supposed to compile and run on several flavors of
+unix (linux, solaris, BSD), but individual developers had their own
+preferences and tended to stick to a single platform. From time to
+time, incompatibilities would sneak in (some unix platforms want to
+use <tt class="file docutils literal"><span class="pre">string.h</span></tt>, some prefer <tt class="file docutils literal"><span class="pre">strings.h</span></tt>), and then the tree
+would compile for some developers but not others. The buildbot was
+written to automate the human process of walking into the office,
+updating a tree, compiling (and discovering the breakage), finding the
+developer at fault, and complaining to them about the problem they had
+introduced. With multiple platforms it was difficult for developers to
+do the right thing (compile their potential change on all platforms);
+the buildbot offered a way to help.</p>
+<p>Another problem was when programmers would change the behavior of a
+library without warning its users, or change internal aspects that
+other code was (unfortunately) depending upon. Adding unit tests to
+the codebase helps here: if an application's unit tests pass despite
+changes in the libraries it uses, you can have more confidence that
+the library changes haven't broken anything. Many developers
+complained that the unit tests were inconvenient or took too long to
+run: having the buildbot run them reduces the developer's workload to
+a minimum.</p>
+<p>In general, having more visibility into the project is always good,
+and automation makes it easier for developers to do the right thing.
+When everyone can see the status of the project, developers are
+encouraged to keep the tree in good working order. Unit tests that
+aren't run on a regular basis tend to suffer from bitrot just like
+code does: exercising them on a regular basis helps to keep them
+functioning and useful.</p>
+<p>The current version of the Buildbot is additionally targeted at
+distributed free-software projects, where resources and platforms are
+only available when provided by interested volunteers. The buildslaves
+are designed to require an absolute minimum of configuration, reducing
+the effort a potential volunteer needs to expend to be able to
+contribute a new test environment to the project. The goal is for
+anyone who wishes that a given project would run on their favorite
+platform should be able to offer that project a buildslave, running on
+that platform, where they can verify that their portability code
+works, and keeps working.</p>
+</div>
+<div class="section" id="system-architecture">
+<span id="id3"></span><h2>System Architecture<a class="headerlink" href="#system-architecture" title="Permalink to this headline">¶</a></h2>
+<p>The Buildbot consists of a single <em>buildmaster</em> and one or more
+<em>buildslaves</em>, connected in a star topology. The buildmaster
+makes all decisions about what, when, and how to build. It sends
+commands to be run on the build slaves, which simply execute the
+commands and return the results. (certain steps involve more local
+decision making, where the overhead of sending a lot of commands back
+and forth would be inappropriate, but in general the buildmaster is
+responsible for everything).</p>
+<p>The buildmaster is usually fed <tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt>s by some sort of version control
+system (<a class="reference internal" href="cfg-changesources.html#change-sources"><em>Change Sources</em></a>), which may cause builds to be run. As the
+builds are performed, various status messages are produced, which are then sent
+to any registered <a class="reference internal" href="cfg-statustargets.html#status-targets"><em>Status Targets</em></a>.</p>
+<img alt="Overview Diagram" src="../_images/overview.svg" /><p>The buildmaster is configured and maintained by the <em>buildmaster
+admin</em>, who is generally the project team member responsible for
+build process issues. Each buildslave is maintained by a <em>buildslave
+admin</em>, who do not need to be quite as involved. Generally slaves are
+run by anyone who has an interest in seeing the project work well on
+their favorite platform.</p>
+<div class="section" id="buildslave-connections">
+<span id="id4"></span><h3>BuildSlave Connections<a class="headerlink" href="#buildslave-connections" title="Permalink to this headline">¶</a></h3>
+<p>The buildslaves are typically run on a variety of separate machines,
+at least one per platform of interest. These machines connect to the
+buildmaster over a TCP connection to a publically-visible port. As a
+result, the buildslaves can live behind a NAT box or similar
+firewalls, as long as they can get to buildmaster. The TCP connections
+are initiated by the buildslave and accepted by the buildmaster, but
+commands and results travel both ways within this connection. The
+buildmaster is always in charge, so all commands travel exclusively
+from the buildmaster to the buildslave.</p>
+<p>To perform builds, the buildslaves must typically obtain source code
+from a CVS/SVN/etc repository. Therefore they must also be able to
+reach the repository. The buildmaster provides instructions for
+performing builds, but does not provide the source code itself.</p>
+<img alt="BuildSlave Connections" src="../_images/slaves.svg" /></div>
+<div class="section" id="buildmaster-architecture">
+<span id="id5"></span><h3>Buildmaster Architecture<a class="headerlink" href="#buildmaster-architecture" title="Permalink to this headline">¶</a></h3>
+<p>The buildmaster consists of several pieces:</p>
+<img alt="Buildmaster Architecture" src="../_images/master.svg" /><dl class="docutils">
+<dt>Change Sources</dt>
+<dd>Which create a Change object each time something is
+modified in the VC repository. Most <tt class="xref py py-class docutils literal"><span class="pre">ChangeSource</span></tt>s listen for messages
+from a hook script of some sort. Some sources actively poll the
+repository on a regular basis. All <tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt>s are fed to the
+<tt class="xref py py-class docutils literal"><span class="pre">Scheduler</span></tt>s.</dd>
+<dt>Schedulers</dt>
+<dd>Which decide when builds should be performed. They collect
+<tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt>s into <tt class="xref py py-class docutils literal"><span class="pre">BuildRequest</span></tt>s, which are then queued for delivery to
+<tt class="xref py py-class docutils literal"><span class="pre">Builders</span></tt> until a buildslave is available.</dd>
+<dt>Builders</dt>
+<dd>Which control exactly <em>how</em> each build is performed
+(with a series of <tt class="xref py py-class docutils literal"><span class="pre">BuildStep</span></tt>s, configured in a <tt class="xref py py-class docutils literal"><span class="pre">BuildFactory</span></tt>). Each
+<tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt> is run on a single buildslave.</dd>
+<dt>Status plugins</dt>
+<dd>Which deliver information about the build results
+through protocols like HTTP, mail, and IRC.</dd>
+</dl>
+<p>Each <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt> is configured with a list of <tt class="xref py py-class docutils literal"><span class="pre">BuildSlave</span></tt>s that it will use
+for its builds. These buildslaves are expected to behave identically:
+the only reason to use multiple <tt class="xref py py-class docutils literal"><span class="pre">BuildSlave</span></tt>s for a single <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt> is to
+provide a measure of load-balancing.</p>
+<p>Within a single <tt class="xref py py-class docutils literal"><span class="pre">BuildSlave</span></tt>, each <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt> creates its own <tt class="xref py py-class docutils literal"><span class="pre">SlaveBuilder</span></tt>
+instance. These <tt class="xref py py-class docutils literal"><span class="pre">SlaveBuilder</span></tt>s operate independently from each other.
+Each gets its own base directory to work in. It is quite common to
+have many <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt>s sharing the same buildslave. For example, there
+might be two buildslaves: one for i386, and a second for PowerPC.
+There may then be a pair of <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt>s that do a full compile/test run,
+one for each architecture, and a lone <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt> that creates snapshot
+source tarballs if the full builders complete successfully. The full
+builders would each run on a single buildslave, whereas the tarball
+creation step might run on either buildslave (since the platform
+doesn't matter when creating source tarballs). In this case, the
+mapping would look like:</p>
+<div class="highlight-none"><div class="highlight"><pre>Builder(full-i386)  -&gt;  BuildSlaves(slave-i386)
+Builder(full-ppc)   -&gt;  BuildSlaves(slave-ppc)
+Builder(source-tarball) -&gt; BuildSlaves(slave-i386, slave-ppc)
+</pre></div>
+</div>
+<p>and each <tt class="xref py py-class docutils literal"><span class="pre">BuildSlave</span></tt> would have two <tt class="xref py py-class docutils literal"><span class="pre">SlaveBuilders</span></tt> inside it, one for a
+full builder, and a second for the source-tarball builder.</p>
+<p>Once a <tt class="xref py py-class docutils literal"><span class="pre">SlaveBuilder</span></tt> is available, the <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt> pulls one or more
+<tt class="xref py py-class docutils literal"><span class="pre">BuildRequest</span></tt>s off its incoming queue. (It may pull more than one if it
+determines that it can merge the requests together; for example, there
+may be multiple requests to build the current <em>HEAD</em> revision). These
+requests are merged into a single <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt> instance, which includes the
+<tt class="xref py py-class docutils literal"><span class="pre">SourceStamp</span></tt> that describes what exact version of the source code
+should be used for the build. The <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt> is then randomly assigned to a
+free <tt class="xref py py-class docutils literal"><span class="pre">SlaveBuilder</span></tt> and the build begins.</p>
+<p>The behaviour when <tt class="xref py py-class docutils literal"><span class="pre">BuildRequest</span></tt>s are merged can be customized,
+<a class="reference internal" href="cfg-builders.html#merging-build-requests"><em>Merging Build Requests</em></a>.</p>
+</div>
+<div class="section" id="status-delivery-architecture">
+<span id="id6"></span><h3>Status Delivery Architecture<a class="headerlink" href="#status-delivery-architecture" title="Permalink to this headline">¶</a></h3>
+<p>The buildmaster maintains a central <tt class="xref py py-class docutils literal"><span class="pre">Status</span></tt> object, to which various
+status plugins are connected. Through this <tt class="xref py py-class docutils literal"><span class="pre">Status</span></tt> object, a full
+hierarchy of build status objects can be obtained.</p>
+<img alt="Status Delivery" src="../_images/status.svg" /><p>The configuration file controls which status plugins are active. Each
+status plugin gets a reference to the top-level <tt class="xref py py-class docutils literal"><span class="pre">Status</span></tt> object. From
+there they can request information on each <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">Step</span></tt>, and
+<tt class="xref py py-class docutils literal"><span class="pre">LogFile</span></tt>. This query-on-demand interface is used by the <tt class="docutils literal"><span class="pre">html.Waterfall</span></tt>
+plugin to create the main status page each time a web browser hits the
+main URL.</p>
+<p>The status plugins can also subscribe to hear about new <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt>s as they
+occur: this is used by the <tt class="xref py py-class docutils literal"><span class="pre">MailNotifier</span></tt> to create new email messages
+for each recently-completed <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt>.</p>
+<p>The <tt class="xref py py-class docutils literal"><span class="pre">Status</span></tt> object records the status of old builds on disk in the
+buildmaster's base directory. This allows it to return information
+about historical builds.</p>
+<p>There are also status objects that correspond to <tt class="xref py py-class docutils literal"><span class="pre">Scheduler</span></tt>s and
+<tt class="xref py py-class docutils literal"><span class="pre">BuildSlave</span></tt>s. These allow status plugins to report information about
+upcoming builds, and the online/offline status of each buildslave.</p>
+</div>
+</div>
+<div class="section" id="control-flow">
+<span id="id7"></span><h2>Control Flow<a class="headerlink" href="#control-flow" title="Permalink to this headline">¶</a></h2>
+<p>A day in the life of the buildbot:</p>
+<ul class="simple">
+<li>A developer commits some source code changes to the repository. A hook
+script or commit trigger of some sort sends information about this
+change to the buildmaster through one of its configured Change
+Sources. This notification might arrive via email, or over a network
+connection (either initiated by the buildmaster as it <em>subscribes</em>
+to changes, or by the commit trigger as it pushes <tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt>s towards the
+buildmaster). The <tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt> contains information about who made the
+change, what files were modified, which revision contains the change,
+and any checkin comments.</li>
+<li>The buildmaster distributes this change to all of its configured
+<tt class="xref py py-class docutils literal"><span class="pre">Scheduler</span></tt>s. Any <tt class="docutils literal"><span class="pre">important</span></tt> changes cause the <tt class="docutils literal"><span class="pre">tree-stable-timer</span></tt>
+to be started, and the <tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt> is added to a list of those that will go
+into a new <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt>. When the timer expires, a <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt> is started on each
+of a set of configured Builders, all compiling/testing the same source
+code. Unless configured otherwise, all <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt>s run in parallel on the
+various buildslaves.</li>
+<li>The <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt> consists of a series of <tt class="xref py py-class docutils literal"><span class="pre">Step</span></tt>s. Each <tt class="xref py py-class docutils literal"><span class="pre">Step</span></tt> causes some number
+of commands to be invoked on the remote buildslave associated with
+that <tt class="xref py py-class docutils literal"><span class="pre">Builder</span></tt>. The first step is almost always to perform a checkout of
+the appropriate revision from the same VC system that produced the
+<tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt>. The rest generally perform a compile and run unit tests. As
+each <tt class="xref py py-class docutils literal"><span class="pre">Step</span></tt> runs, the buildslave reports back command output and return
+status to the buildmaster.</li>
+<li>As the <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt> runs, status messages like &quot;Build Started&quot;, &quot;Step
+Started&quot;, &quot;Build Finished&quot;, etc, are published to a collection of
+Status Targets. One of these targets is usually the HTML <tt class="docutils literal"><span class="pre">Waterfall</span></tt>
+display, which shows a chronological list of events, and summarizes
+the results of the most recent build at the top of each column.
+Developers can periodically check this page to see how their changes
+have fared. If they see red, they know that they've made a mistake and
+need to fix it. If they see green, they know that they've done their
+duty and don't need to worry about their change breaking anything.</li>
+<li>If a <tt class="xref py py-class docutils literal"><span class="pre">MailNotifier</span></tt> status target is active, the completion of a build
+will cause email to be sent to any developers whose <tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt>s were
+incorporated into this <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt>. The <tt class="xref py py-class docutils literal"><span class="pre">MailNotifier</span></tt> can be configured to
+only send mail upon failing builds, or for builds which have just
+transitioned from passing to failing. Other status targets can provide
+similar real-time notification via different communication channels,
+like IRC.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+<h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Buildbot Manual</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="">Introduction</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concepts.html">Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="customization.html">Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmdline.html">Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resources.html">Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html">Optimization</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">Release Notes for Buildbot v0.8.8</a></li>
+</ul>
+
+          <h3 style="margin-top: 1.5em;">Search</h3>
+          <form class="search" action="../search.html" method="get">
+            <input type="text" name="q" />
+            <input type="submit" value="Go" />
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+          </form>
+          <p class="searchtip" style="font-size: 90%">
+            Enter search terms or a module, class or function name.
+          </p>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <a href="index.html" title="Buildbot Manual"
+             >previous</a> |
+          <a href="installation.html" title="Installation"
+             >next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             >index</a>
+            <br/>
+            <a href="../_sources/manual/introduction.txt"
+               rel="nofollow">Show Source</a>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer">
+        &copy; Copyright Buildbot Team Members.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>
