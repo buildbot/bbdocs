@@ -1,0 +1,454 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>buildbot.scripts.create_master</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.8-356-g529c3f8</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="buildbot-module.html">Package&nbsp;buildbot</a> ::
+        <a href="buildbot.scripts-module.html">Package&nbsp;scripts</a> ::
+        Module&nbsp;create_master
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="buildbot.scripts.create_master-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="buildbot.scripts.create_master-module.html">Module buildbot.scripts.create_master</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># This file is part of Buildbot.  Buildbot is free software: you can</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment"># redistribute it and/or modify it under the terms of the GNU General Public</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"># License as published by the Free Software Foundation, version 2.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but WITHOUT</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"># ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"># FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"># details.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License along with</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment"># this program; if not, write to the Free Software Foundation, Inc., 51</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment"># Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment"># Copyright Buildbot Team Members</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">__future__</tt> <tt class="py-keyword">import</tt> <tt class="py-name">with_statement</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">os</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">jinja2</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt id="link-0" class="py-name" targets="Module buildbot.steps.python=buildbot.steps.python-module.html,Variable buildbot.steps.python_twisted.Trial.python=buildbot.steps.python_twisted.Trial-class.html#python"><a title="buildbot.steps.python
+buildbot.steps.python_twisted.Trial.python" class="py-name" href="#" onclick="return doclink('link-0', 'python', 'link-0');">python</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Package buildbot.util=buildbot.util-module.html,Module buildslave.util=buildslave.util-module.html"><a title="buildbot.util
+buildslave.util" class="py-name" href="#" onclick="return doclink('link-1', 'util', 'link-1');">util</a></tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">twisted</tt><tt class="py-op">.</tt><tt class="py-name">internet</tt> <tt class="py-keyword">import</tt> <tt class="py-name">defer</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-2" class="py-name" targets="Package buildbot=buildbot-module.html"><a title="buildbot" class="py-name" href="#" onclick="return doclink('link-2', 'buildbot', 'link-2');">buildbot</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name"><a title="buildbot.util
+buildslave.util" class="py-name" href="#" onclick="return doclink('link-3', 'util', 'link-1');">util</a></tt> <tt class="py-keyword">import</tt> <tt id="link-4" class="py-name" targets="Function buildbot.util.in_reactor()=buildbot.util-module.html#in_reactor"><a title="buildbot.util.in_reactor" class="py-name" href="#" onclick="return doclink('link-4', 'in_reactor', 'link-4');">in_reactor</a></tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-5" class="py-name"><a title="buildbot" class="py-name" href="#" onclick="return doclink('link-5', 'buildbot', 'link-2');">buildbot</a></tt><tt class="py-op">.</tt><tt id="link-6" class="py-name" targets="Package buildbot.db=buildbot.db-module.html"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-6', 'db', 'link-6');">db</a></tt> <tt class="py-keyword">import</tt> <tt id="link-7" class="py-name" targets="Variable buildbot.db.base.DBConnectorComponent.connector=buildbot.db.base.DBConnectorComponent-class.html#connector,Module buildbot.db.connector=buildbot.db.connector-module.html"><a title="buildbot.db.base.DBConnectorComponent.connector
+buildbot.db.connector" class="py-name" href="#" onclick="return doclink('link-7', 'connector', 'link-7');">connector</a></tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-8" class="py-name"><a title="buildbot" class="py-name" href="#" onclick="return doclink('link-8', 'buildbot', 'link-2');">buildbot</a></tt><tt class="py-op">.</tt><tt id="link-9" class="py-name" targets="Variable buildbot.changes.base.ChangeSource.master=buildbot.changes.base.ChangeSource-class.html#master,Variable buildbot.interfaces.IChangeSource.master=buildbot.interfaces.IChangeSource-class.html#master,Module buildbot.master=buildbot.master-module.html,Module buildbot.status.master=buildbot.status.master-module.html,Variable buildbot.status.web.auth.AuthBase.master=buildbot.status.web.auth.AuthBase-class.html#master,Variable buildbot.status.web.auth.IAuth.master=buildbot.status.web.auth.IAuth-class.html#master,Module buildbot.steps.master=buildbot.steps.master-module.html"><a title="buildbot.changes.base.ChangeSource.master
+buildbot.interfaces.IChangeSource.master
+buildbot.master
+buildbot.status.master
+buildbot.status.web.auth.AuthBase.master
+buildbot.status.web.auth.IAuth.master
+buildbot.steps.master" class="py-name" href="#" onclick="return doclink('link-9', 'master', 'link-9');">master</a></tt> <tt class="py-keyword">import</tt> <tt id="link-10" class="py-name" targets="Class buildbot.master.BuildMaster=buildbot.master.BuildMaster-class.html"><a title="buildbot.master.BuildMaster" class="py-name" href="#" onclick="return doclink('link-10', 'BuildMaster', 'link-10');">BuildMaster</a></tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-11" class="py-name"><a title="buildbot" class="py-name" href="#" onclick="return doclink('link-11', 'buildbot', 'link-2');">buildbot</a></tt> <tt class="py-keyword">import</tt> <tt id="link-12" class="py-name" targets="Variable buildbot.clients.tryclient.GitExtractor.config=buildbot.clients.tryclient.GitExtractor-class.html#config,Module buildbot.config=buildbot.config-module.html,Variable buildbot.steps.package.rpm.rpmlint.RpmLint.config=buildbot.steps.package.rpm.rpmlint.RpmLint-class.html#config,Variable buildbot.steps.vstudio.VisualStudio.config=buildbot.steps.vstudio.VisualStudio-class.html#config"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-12', 'config', 'link-12');">config</a></tt> <tt class="py-keyword">as</tt> <tt class="py-name">config_module</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-13" class="py-name"><a title="buildbot" class="py-name" href="#" onclick="return doclink('link-13', 'buildbot', 'link-2');">buildbot</a></tt> <tt class="py-keyword">import</tt> <tt id="link-14" class="py-name" targets="Package buildbot.monkeypatches=buildbot.monkeypatches-module.html,Package buildslave.monkeypatches=buildslave.monkeypatches-module.html"><a title="buildbot.monkeypatches
+buildslave.monkeypatches" class="py-name" href="#" onclick="return doclink('link-14', 'monkeypatches', 'link-14');">monkeypatches</a></tt> </tt>
+<a name="makeBasedir"></a><div id="makeBasedir-def"><a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt> <a class="py-toggle" href="#" id="makeBasedir-toggle" onclick="return toggle('makeBasedir');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.scripts.create_master-module.html#makeBasedir">makeBasedir</a><tt class="py-op">(</tt><tt class="py-param">config</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="makeBasedir-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="makeBasedir-expanded"><a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name" targets="Variable twisted.python.filepath.FilePath.path=twisted.python.filepath.FilePath-class.html#path"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-15', 'path', 'link-15');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">exists</tt><tt class="py-op">(</tt><tt id="link-16" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-16', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'basedir'</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt id="link-17" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-17', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'quiet'</tt><tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line">            <tt class="py-keyword">print</tt> <tt class="py-string">"updating existing installation"</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt id="link-18" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-18', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'quiet'</tt><tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"mkdir"</tt><tt class="py-op">,</tt> <tt id="link-19" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-19', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'basedir'</tt><tt class="py-op">]</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line">    <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">mkdir</tt><tt class="py-op">(</tt><tt id="link-20" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-20', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'basedir'</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"> </tt>
+<a name="makeTAC"></a><div id="makeTAC-def"><a name="L37"></a><tt class="py-lineno"> 37</tt> <a class="py-toggle" href="#" id="makeTAC-toggle" onclick="return toggle('makeTAC');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.scripts.create_master-module.html#makeTAC">makeTAC</a><tt class="py-op">(</tt><tt class="py-param">config</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="makeTAC-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="makeTAC-expanded"><a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line">    <tt class="py-comment"># render buildbot_tac.tmpl using the config</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line">    <tt class="py-name">loader</tt> <tt class="py-op">=</tt> <tt class="py-name">jinja2</tt><tt class="py-op">.</tt><tt class="py-name">FileSystemLoader</tt><tt class="py-op">(</tt><tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-21" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-21', 'path', 'link-15');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">dirname</tt><tt class="py-op">(</tt><tt class="py-name">__file__</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line">    <tt class="py-name">env</tt> <tt class="py-op">=</tt> <tt class="py-name">jinja2</tt><tt class="py-op">.</tt><tt class="py-name">Environment</tt><tt class="py-op">(</tt><tt class="py-name">loader</tt><tt class="py-op">=</tt><tt class="py-name">loader</tt><tt class="py-op">,</tt> <tt class="py-name">undefined</tt><tt class="py-op">=</tt><tt class="py-name">jinja2</tt><tt class="py-op">.</tt><tt class="py-name">StrictUndefined</tt><tt class="py-op">)</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">    <tt class="py-name">env</tt><tt class="py-op">.</tt><tt class="py-name">filters</tt><tt class="py-op">[</tt><tt class="py-string">'repr'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">repr</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">    <tt class="py-name">tpl</tt> <tt class="py-op">=</tt> <tt class="py-name">env</tt><tt class="py-op">.</tt><tt class="py-name">get_template</tt><tt class="py-op">(</tt><tt class="py-string">'buildbot_tac.tmpl'</tt><tt class="py-op">)</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line">    <tt class="py-name">cxt</tt> <tt class="py-op">=</tt> <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">k</tt><tt class="py-op">.</tt><tt class="py-name">replace</tt><tt class="py-op">(</tt><tt class="py-string">'-'</tt><tt class="py-op">,</tt> <tt class="py-string">'_'</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt id="link-22" class="py-name" targets="Variable buildbot.v=buildbot-module.html#v,Variable buildslave.v=buildslave-module.html#v"><a title="buildbot.v
+buildslave.v" class="py-name" href="#" onclick="return doclink('link-22', 'v', 'link-22');">v</a></tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt class="py-name">k</tt><tt class="py-op">,</tt><tt id="link-23" class="py-name"><a title="buildbot.v
+buildslave.v" class="py-name" href="#" onclick="return doclink('link-23', 'v', 'link-22');">v</a></tt> <tt class="py-keyword">in</tt> <tt id="link-24" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-24', 'config', 'link-12');">config</a></tt><tt class="py-op">.</tt><tt class="py-name">iteritems</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line">    <tt class="py-name">contents</tt> <tt class="py-op">=</tt> <tt class="py-name">tpl</tt><tt class="py-op">.</tt><tt id="link-25" class="py-name" targets="Method buildbot.interfaces.IProperties.render()=buildbot.interfaces.IProperties-class.html#render,Method buildbot.process.properties.Properties.render()=buildbot.process.properties.Properties-class.html#render,Method buildbot.process.properties.PropertiesMixin.render()=buildbot.process.properties.PropertiesMixin-class.html#render,Method buildbot.status.web.base.ActionResource.render()=buildbot.status.web.base.ActionResource-class.html#render,Method buildbot.status.web.base.DirectoryLister.render()=buildbot.status.web.base.DirectoryLister-class.html#render,Method buildbot.status.web.base.HtmlResource.render()=buildbot.status.web.base.HtmlResource-class.html#render,Method buildbot.status.web.feeds.XmlResource.render()=buildbot.status.web.feeds.XmlResource-class.html#render,Method buildbot.status.web.logs.HTMLLog.render()=buildbot.status.web.logs.HTMLLog-class.html#render,Method buildbot.status.web.pngstatus.PngStatusResource.render()=buildbot.status.web.pngstatus.PngStatusResource-class.html#render"><a title="buildbot.interfaces.IProperties.render
+buildbot.process.properties.Properties.render
+buildbot.process.properties.PropertiesMixin.render
+buildbot.status.web.base.ActionResource.render
+buildbot.status.web.base.DirectoryLister.render
+buildbot.status.web.base.HtmlResource.render
+buildbot.status.web.feeds.XmlResource.render
+buildbot.status.web.logs.HTMLLog.render
+buildbot.status.web.pngstatus.PngStatusResource.render" class="py-name" href="#" onclick="return doclink('link-25', 'render', 'link-25');">render</a></tt><tt class="py-op">(</tt><tt class="py-name">cxt</tt><tt class="py-op">)</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line">    <tt class="py-name">tacfile</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-26" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-26', 'path', 'link-15');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt id="link-27" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-27', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'basedir'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-string">"buildbot.tac"</tt><tt class="py-op">)</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-28" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-28', 'path', 'link-15');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">exists</tt><tt class="py-op">(</tt><tt class="py-name">tacfile</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line">        <tt class="py-keyword">with</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt class="py-name">tacfile</tt><tt class="py-op">,</tt> <tt class="py-string">"rt"</tt><tt class="py-op">)</tt> <tt class="py-keyword">as</tt> <tt class="py-name">f</tt><tt class="py-op">:</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">            <tt class="py-name">oldcontents</tt> <tt class="py-op">=</tt> <tt class="py-name">f</tt><tt class="py-op">.</tt><tt class="py-name">read</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">oldcontents</tt> <tt class="py-op">==</tt> <tt class="py-name">contents</tt><tt class="py-op">:</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt id="link-29" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-29', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'quiet'</tt><tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line">                <tt class="py-keyword">print</tt> <tt class="py-string">"buildbot.tac already exists and is correct"</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt id="link-30" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-30', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'quiet'</tt><tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">            <tt class="py-keyword">print</tt> <tt class="py-string">"not touching existing buildbot.tac"</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">            <tt class="py-keyword">print</tt> <tt class="py-string">"creating buildbot.tac.new instead"</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">        <tt class="py-name">tacfile</tt> <tt class="py-op">+=</tt> <tt class="py-string">".new"</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">    <tt class="py-keyword">with</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt class="py-name">tacfile</tt><tt class="py-op">,</tt> <tt class="py-string">"wt"</tt><tt class="py-op">)</tt> <tt class="py-keyword">as</tt> <tt class="py-name">f</tt><tt class="py-op">:</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">        <tt class="py-name">f</tt><tt class="py-op">.</tt><tt id="link-31" class="py-name" targets="Method buildbot.util.netstrings.NullTransport.write()=buildbot.util.netstrings.NullTransport-class.html#write"><a title="buildbot.util.netstrings.NullTransport.write" class="py-name" href="#" onclick="return doclink('link-31', 'write', 'link-31');">write</a></tt><tt class="py-op">(</tt><tt class="py-name">contents</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line"> </tt>
+<a name="makeSampleConfig"></a><div id="makeSampleConfig-def"><a name="L61"></a><tt class="py-lineno"> 61</tt> <a class="py-toggle" href="#" id="makeSampleConfig-toggle" onclick="return toggle('makeSampleConfig');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.scripts.create_master-module.html#makeSampleConfig">makeSampleConfig</a><tt class="py-op">(</tt><tt class="py-param">config</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="makeSampleConfig-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="makeSampleConfig-expanded"><a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">    <tt id="link-32" class="py-name" targets="Variable buildbot.process.buildrequest.BuildRequest.source=buildbot.process.buildrequest.BuildRequest-class.html#source,Package buildbot.steps.source=buildbot.steps.source-module.html"><a title="buildbot.process.buildrequest.BuildRequest.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-32', 'source', 'link-32');">source</a></tt> <tt class="py-op">=</tt> <tt id="link-33" class="py-name"><a title="buildbot.util
+buildslave.util" class="py-name" href="#" onclick="return doclink('link-33', 'util', 'link-1');">util</a></tt><tt class="py-op">.</tt><tt class="py-name">sibpath</tt><tt class="py-op">(</tt><tt class="py-name">__file__</tt><tt class="py-op">,</tt> <tt class="py-string">"sample.cfg"</tt><tt class="py-op">)</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">    <tt class="py-name">target</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-34" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-34', 'path', 'link-15');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt id="link-35" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-35', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'basedir'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-string">"master.cfg.sample"</tt><tt class="py-op">)</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt id="link-36" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-36', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'quiet'</tt><tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"creating %s"</tt> <tt class="py-op">%</tt> <tt class="py-name">target</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">    <tt class="py-keyword">with</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt id="link-37" class="py-name"><a title="buildbot.process.buildrequest.BuildRequest.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-37', 'source', 'link-32');">source</a></tt><tt class="py-op">,</tt> <tt class="py-string">"rt"</tt><tt class="py-op">)</tt> <tt class="py-keyword">as</tt> <tt class="py-name">f</tt><tt class="py-op">:</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">        <tt class="py-name">config_sample</tt> <tt class="py-op">=</tt> <tt class="py-name">f</tt><tt class="py-op">.</tt><tt class="py-name">read</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt id="link-38" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-38', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'db'</tt><tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">        <tt class="py-name">config_sample</tt> <tt class="py-op">=</tt> <tt class="py-name">config_sample</tt><tt class="py-op">.</tt><tt class="py-name">replace</tt><tt class="py-op">(</tt><tt class="py-string">'sqlite:///state.sqlite'</tt><tt class="py-op">,</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">                                                <tt id="link-39" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-39', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'db'</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">    <tt class="py-keyword">with</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt class="py-name">target</tt><tt class="py-op">,</tt> <tt class="py-string">"wt"</tt><tt class="py-op">)</tt> <tt class="py-keyword">as</tt> <tt class="py-name">f</tt><tt class="py-op">:</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">        <tt class="py-name">f</tt><tt class="py-op">.</tt><tt id="link-40" class="py-name"><a title="buildbot.util.netstrings.NullTransport.write" class="py-name" href="#" onclick="return doclink('link-40', 'write', 'link-31');">write</a></tt><tt class="py-op">(</tt><tt class="py-name">config_sample</tt><tt class="py-op">)</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">    <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">chmod</tt><tt class="py-op">(</tt><tt class="py-name">target</tt><tt class="py-op">,</tt> <tt class="py-number">0600</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line"> </tt>
+<a name="makePublicHtml"></a><div id="makePublicHtml-def"><a name="L75"></a><tt class="py-lineno"> 75</tt> <a class="py-toggle" href="#" id="makePublicHtml-toggle" onclick="return toggle('makePublicHtml');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.scripts.create_master-module.html#makePublicHtml">makePublicHtml</a><tt class="py-op">(</tt><tt class="py-param">config</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="makePublicHtml-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="makePublicHtml-expanded"><a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">    <tt class="py-name">files</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">        <tt class="py-string">'bg_gradient.jpg'</tt> <tt class="py-op">:</tt> <tt class="py-string">"../status/web/files/bg_gradient.jpg"</tt><tt class="py-op">,</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">        <tt class="py-string">'default.css'</tt> <tt class="py-op">:</tt> <tt class="py-string">"../status/web/files/default.css"</tt><tt class="py-op">,</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">        <tt class="py-string">'robots.txt'</tt> <tt class="py-op">:</tt> <tt class="py-string">"../status/web/files/robots.txt"</tt><tt class="py-op">,</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">        <tt class="py-string">'favicon.ico'</tt> <tt class="py-op">:</tt> <tt class="py-string">"../status/web/files/favicon.ico"</tt><tt class="py-op">,</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">    <tt class="py-op">}</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">    <tt class="py-name">webdir</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-41" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-41', 'path', 'link-15');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt id="link-42" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-42', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'basedir'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-string">"public_html"</tt><tt class="py-op">)</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-43" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-43', 'path', 'link-15');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">exists</tt><tt class="py-op">(</tt><tt class="py-name">webdir</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt id="link-44" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-44', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'quiet'</tt><tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">            <tt class="py-keyword">print</tt> <tt class="py-string">"public_html/ already exists: not replacing"</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">    <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">        <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">mkdir</tt><tt class="py-op">(</tt><tt class="py-name">webdir</tt><tt class="py-op">)</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt id="link-45" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-45', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'quiet'</tt><tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"populating public_html/"</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt class="py-name">target</tt><tt class="py-op">,</tt> <tt id="link-46" class="py-name"><a title="buildbot.process.buildrequest.BuildRequest.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-46', 'source', 'link-32');">source</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">files</tt><tt class="py-op">.</tt><tt class="py-name">iteritems</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">        <tt id="link-47" class="py-name"><a title="buildbot.process.buildrequest.BuildRequest.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-47', 'source', 'link-32');">source</a></tt> <tt class="py-op">=</tt> <tt id="link-48" class="py-name"><a title="buildbot.util
+buildslave.util" class="py-name" href="#" onclick="return doclink('link-48', 'util', 'link-1');">util</a></tt><tt class="py-op">.</tt><tt class="py-name">sibpath</tt><tt class="py-op">(</tt><tt class="py-name">__file__</tt><tt class="py-op">,</tt> <tt id="link-49" class="py-name"><a title="buildbot.process.buildrequest.BuildRequest.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-49', 'source', 'link-32');">source</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">        <tt class="py-name">target</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-50" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-50', 'path', 'link-15');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">webdir</tt><tt class="py-op">,</tt> <tt class="py-name">target</tt><tt class="py-op">)</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">        <tt class="py-keyword">with</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt class="py-name">target</tt><tt class="py-op">,</tt> <tt class="py-string">"wt"</tt><tt class="py-op">)</tt> <tt class="py-keyword">as</tt> <tt class="py-name">f</tt><tt class="py-op">:</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">            <tt class="py-keyword">with</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt id="link-51" class="py-name"><a title="buildbot.process.buildrequest.BuildRequest.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-51', 'source', 'link-32');">source</a></tt><tt class="py-op">,</tt> <tt class="py-string">"rt"</tt><tt class="py-op">)</tt> <tt class="py-keyword">as</tt> <tt class="py-name">i</tt><tt class="py-op">:</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">                <tt class="py-name">f</tt><tt class="py-op">.</tt><tt id="link-52" class="py-name"><a title="buildbot.util.netstrings.NullTransport.write" class="py-name" href="#" onclick="return doclink('link-52', 'write', 'link-31');">write</a></tt><tt class="py-op">(</tt><tt class="py-name">i</tt><tt class="py-op">.</tt><tt class="py-name">read</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line"> </tt>
+<a name="makeTemplatesDir"></a><div id="makeTemplatesDir-def"><a name="L98"></a><tt class="py-lineno"> 98</tt> <a class="py-toggle" href="#" id="makeTemplatesDir-toggle" onclick="return toggle('makeTemplatesDir');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.scripts.create_master-module.html#makeTemplatesDir">makeTemplatesDir</a><tt class="py-op">(</tt><tt class="py-param">config</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="makeTemplatesDir-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="makeTemplatesDir-expanded"><a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">    <tt class="py-name">files</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">        <tt class="py-string">'README.txt'</tt> <tt class="py-op">:</tt> <tt class="py-string">"../status/web/files/templates_readme.txt"</tt><tt class="py-op">,</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">    <tt class="py-op">}</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">    <tt class="py-name">template_dir</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-53" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-53', 'path', 'link-15');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt id="link-54" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-54', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'basedir'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-string">"templates"</tt><tt class="py-op">)</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-55" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-55', 'path', 'link-15');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">exists</tt><tt class="py-op">(</tt><tt class="py-name">template_dir</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt id="link-56" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-56', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'quiet'</tt><tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">            <tt class="py-keyword">print</tt> <tt class="py-string">"templates/ already exists: not replacing"</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">    <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">        <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">mkdir</tt><tt class="py-op">(</tt><tt class="py-name">template_dir</tt><tt class="py-op">)</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt id="link-57" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-57', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'quiet'</tt><tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"populating templates/"</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt class="py-name">target</tt><tt class="py-op">,</tt> <tt id="link-58" class="py-name"><a title="buildbot.process.buildrequest.BuildRequest.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-58', 'source', 'link-32');">source</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">files</tt><tt class="py-op">.</tt><tt class="py-name">iteritems</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line">        <tt id="link-59" class="py-name"><a title="buildbot.process.buildrequest.BuildRequest.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-59', 'source', 'link-32');">source</a></tt> <tt class="py-op">=</tt> <tt id="link-60" class="py-name"><a title="buildbot.util
+buildslave.util" class="py-name" href="#" onclick="return doclink('link-60', 'util', 'link-1');">util</a></tt><tt class="py-op">.</tt><tt class="py-name">sibpath</tt><tt class="py-op">(</tt><tt class="py-name">__file__</tt><tt class="py-op">,</tt> <tt id="link-61" class="py-name"><a title="buildbot.process.buildrequest.BuildRequest.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-61', 'source', 'link-32');">source</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">        <tt class="py-name">target</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt id="link-62" class="py-name"><a title="twisted.python.filepath.FilePath.path" class="py-name" href="#" onclick="return doclink('link-62', 'path', 'link-15');">path</a></tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">template_dir</tt><tt class="py-op">,</tt> <tt class="py-name">target</tt><tt class="py-op">)</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line">        <tt class="py-keyword">with</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt class="py-name">target</tt><tt class="py-op">,</tt> <tt class="py-string">"wt"</tt><tt class="py-op">)</tt> <tt class="py-keyword">as</tt> <tt class="py-name">f</tt><tt class="py-op">:</tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line">            <tt class="py-keyword">with</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt id="link-63" class="py-name"><a title="buildbot.process.buildrequest.BuildRequest.source
+buildbot.steps.source" class="py-name" href="#" onclick="return doclink('link-63', 'source', 'link-32');">source</a></tt><tt class="py-op">,</tt> <tt class="py-string">"rt"</tt><tt class="py-op">)</tt> <tt class="py-keyword">as</tt> <tt class="py-name">i</tt><tt class="py-op">:</tt> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">                <tt class="py-name">f</tt><tt class="py-op">.</tt><tt id="link-64" class="py-name"><a title="buildbot.util.netstrings.NullTransport.write" class="py-name" href="#" onclick="return doclink('link-64', 'write', 'link-31');">write</a></tt><tt class="py-op">(</tt><tt class="py-name">i</tt><tt class="py-op">.</tt><tt class="py-name">read</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line"> </tt>
+<a name="createDB"></a><div id="createDB-def"><a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line"><tt class="py-decorator">@</tt><tt class="py-decorator">defer</tt><tt class="py-op">.</tt><tt class="py-name">inlineCallbacks</tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt> <a class="py-toggle" href="#" id="createDB-toggle" onclick="return toggle('createDB');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.scripts.create_master-module.html#createDB">createDB</a><tt class="py-op">(</tt><tt class="py-param">config</tt><tt class="py-op">,</tt> <tt class="py-param">_noMonkey</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="createDB-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="createDB-expanded"><a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line">    <tt class="py-comment"># apply the db monkeypatches (and others - no harm)</tt> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">_noMonkey</tt><tt class="py-op">:</tt> <tt class="py-comment"># pragma: no cover</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">        <tt id="link-65" class="py-name"><a title="buildbot.monkeypatches
+buildslave.monkeypatches" class="py-name" href="#" onclick="return doclink('link-65', 'monkeypatches', 'link-14');">monkeypatches</a></tt><tt class="py-op">.</tt><tt id="link-66" class="py-name" targets="Function buildbot.monkeypatches.patch_all()=buildbot.monkeypatches-module.html#patch_all,Function buildslave.monkeypatches.patch_all()=buildslave.monkeypatches-module.html#patch_all"><a title="buildbot.monkeypatches.patch_all
+buildslave.monkeypatches.patch_all" class="py-name" href="#" onclick="return doclink('link-66', 'patch_all', 'link-66');">patch_all</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line"> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">    <tt class="py-comment"># create a master with the default configuration, but with db_url</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">    <tt class="py-comment"># overridden</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">    <tt class="py-name">master_cfg</tt> <tt class="py-op">=</tt> <tt class="py-name">config_module</tt><tt class="py-op">.</tt><tt id="link-67" class="py-name" targets="Class buildbot.config.MasterConfig=buildbot.config.MasterConfig-class.html"><a title="buildbot.config.MasterConfig" class="py-name" href="#" onclick="return doclink('link-67', 'MasterConfig', 'link-67');">MasterConfig</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">    <tt class="py-name">master_cfg</tt><tt class="py-op">.</tt><tt id="link-68" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-68', 'db', 'link-6');">db</a></tt><tt class="py-op">[</tt><tt class="py-string">'db_url'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt id="link-69" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-69', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'db'</tt><tt class="py-op">]</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">    <tt id="link-70" class="py-name"><a title="buildbot.changes.base.ChangeSource.master
+buildbot.interfaces.IChangeSource.master
+buildbot.master
+buildbot.status.master
+buildbot.status.web.auth.AuthBase.master
+buildbot.status.web.auth.IAuth.master
+buildbot.steps.master" class="py-name" href="#" onclick="return doclink('link-70', 'master', 'link-9');">master</a></tt> <tt class="py-op">=</tt> <tt id="link-71" class="py-name"><a title="buildbot.master.BuildMaster" class="py-name" href="#" onclick="return doclink('link-71', 'BuildMaster', 'link-10');">BuildMaster</a></tt><tt class="py-op">(</tt><tt id="link-72" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-72', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'basedir'</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">    <tt id="link-73" class="py-name"><a title="buildbot.changes.base.ChangeSource.master
+buildbot.interfaces.IChangeSource.master
+buildbot.master
+buildbot.status.master
+buildbot.status.web.auth.AuthBase.master
+buildbot.status.web.auth.IAuth.master
+buildbot.steps.master" class="py-name" href="#" onclick="return doclink('link-73', 'master', 'link-9');">master</a></tt><tt class="py-op">.</tt><tt id="link-74" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-74', 'config', 'link-12');">config</a></tt> <tt class="py-op">=</tt> <tt class="py-name">master_cfg</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">    <tt id="link-75" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-75', 'db', 'link-6');">db</a></tt> <tt class="py-op">=</tt> <tt id="link-76" class="py-name"><a title="buildbot.db.base.DBConnectorComponent.connector
+buildbot.db.connector" class="py-name" href="#" onclick="return doclink('link-76', 'connector', 'link-7');">connector</a></tt><tt class="py-op">.</tt><tt id="link-77" class="py-name" targets="Class buildbot.db.connector.DBConnector=buildbot.db.connector.DBConnector-class.html"><a title="buildbot.db.connector.DBConnector" class="py-name" href="#" onclick="return doclink('link-77', 'DBConnector', 'link-77');">DBConnector</a></tt><tt class="py-op">(</tt><tt id="link-78" class="py-name"><a title="buildbot.changes.base.ChangeSource.master
+buildbot.interfaces.IChangeSource.master
+buildbot.master
+buildbot.status.master
+buildbot.status.web.auth.AuthBase.master
+buildbot.status.web.auth.IAuth.master
+buildbot.steps.master" class="py-name" href="#" onclick="return doclink('link-78', 'master', 'link-9');">master</a></tt><tt class="py-op">,</tt> <tt id="link-79" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-79', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'basedir'</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">    <tt class="py-keyword">yield</tt> <tt id="link-80" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-80', 'db', 'link-6');">db</a></tt><tt class="py-op">.</tt><tt id="link-81" class="py-name" targets="Method buildbot.db.connector.DBConnector.setup()=buildbot.db.connector.DBConnector-class.html#setup,Method buildslave.commands.base.Command.setup()=buildslave.commands.base.Command-class.html#setup,Method buildslave.commands.base.SourceBaseCommand.setup()=buildslave.commands.base.SourceBaseCommand-class.html#setup,Method buildslave.commands.bk.BK.setup()=buildslave.commands.bk.BK-class.html#setup,Method buildslave.commands.bzr.Bzr.setup()=buildslave.commands.bzr.Bzr-class.html#setup,Method buildslave.commands.cvs.CVS.setup()=buildslave.commands.cvs.CVS-class.html#setup,Method buildslave.commands.darcs.Darcs.setup()=buildslave.commands.darcs.Darcs-class.html#setup,Method buildslave.commands.fs.CopyDirectory.setup()=buildslave.commands.fs.CopyDirectory-class.html#setup,Method buildslave.commands.fs.RemoveDirectory.setup()=buildslave.commands.fs.RemoveDirectory-class.html#setup,Method buildslave.commands.git.Git.setup()=buildslave.commands.git.Git-class.html#setup,Method buildslave.commands.hg.Mercurial.setup()=buildslave.commands.hg.Mercurial-class.html#setup,Method buildslave.commands.mtn.Monotone.setup()=buildslave.commands.mtn.Monotone-class.html#setup,Method buildslave.commands.p4.P4.setup()=buildslave.commands.p4.P4-class.html#setup,Method buildslave.commands.p4.P4Base.setup()=buildslave.commands.p4.P4Base-class.html#setup,Method buildslave.commands.repo.Repo.setup()=buildslave.commands.repo.Repo-class.html#setup,Method buildslave.commands.svn.SVN.setup()=buildslave.commands.svn.SVN-class.html#setup,Method buildslave.commands.transfer.SlaveDirectoryUploadCommand.setup()=buildslave.commands.transfer.SlaveDirectoryUploadCommand-class.html#setup,Method buildslave.commands.transfer.SlaveFileDownloadCommand.setup()=buildslave.commands.transfer.SlaveFileDownloadCommand-class.html#setup,Method buildslave.commands.transfer.SlaveFileUploadCommand.setup()=buildslave.commands.transfer.SlaveFileUploadCommand-class.html#setup,Method buildslave.interfaces.ISlaveCommand.setup()=buildslave.interfaces.ISlaveCommand-class.html#setup"><a title="buildbot.db.connector.DBConnector.setup
+buildslave.commands.base.Command.setup
+buildslave.commands.base.SourceBaseCommand.setup
+buildslave.commands.bk.BK.setup
+buildslave.commands.bzr.Bzr.setup
+buildslave.commands.cvs.CVS.setup
+buildslave.commands.darcs.Darcs.setup
+buildslave.commands.fs.CopyDirectory.setup
+buildslave.commands.fs.RemoveDirectory.setup
+buildslave.commands.git.Git.setup
+buildslave.commands.hg.Mercurial.setup
+buildslave.commands.mtn.Monotone.setup
+buildslave.commands.p4.P4.setup
+buildslave.commands.p4.P4Base.setup
+buildslave.commands.repo.Repo.setup
+buildslave.commands.svn.SVN.setup
+buildslave.commands.transfer.SlaveDirectoryUploadCommand.setup
+buildslave.commands.transfer.SlaveFileDownloadCommand.setup
+buildslave.commands.transfer.SlaveFileUploadCommand.setup
+buildslave.interfaces.ISlaveCommand.setup" class="py-name" href="#" onclick="return doclink('link-81', 'setup', 'link-81');">setup</a></tt><tt class="py-op">(</tt><tt class="py-name">check_version</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">,</tt> <tt class="py-name">verbose</tt><tt class="py-op">=</tt><tt class="py-keyword">not</tt> <tt id="link-82" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-82', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'quiet'</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt id="link-83" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-83', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'quiet'</tt><tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"creating database (%s)"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">master_cfg</tt><tt class="py-op">.</tt><tt id="link-84" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-84', 'db', 'link-6');">db</a></tt><tt class="py-op">[</tt><tt class="py-string">'db_url'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt><tt class="py-op">)</tt> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line">    <tt class="py-keyword">yield</tt> <tt id="link-85" class="py-name"><a title="buildbot.db" class="py-name" href="#" onclick="return doclink('link-85', 'db', 'link-6');">db</a></tt><tt class="py-op">.</tt><tt id="link-86" class="py-name" targets="Module buildbot.db.model=buildbot.db.model-module.html"><a title="buildbot.db.model" class="py-name" href="#" onclick="return doclink('link-86', 'model', 'link-86');">model</a></tt><tt class="py-op">.</tt><tt id="link-87" class="py-name" targets="Method buildbot.db.model.Model.upgrade()=buildbot.db.model.Model-class.html#upgrade"><a title="buildbot.db.model.Model.upgrade" class="py-name" href="#" onclick="return doclink('link-87', 'upgrade', 'link-87');">upgrade</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line"> </tt>
+<a name="createMaster"></a><div id="createMaster-def"><a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line"> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line"><tt class="py-decorator">@</tt><tt class="py-decorator">in_reactor</tt> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line"><tt class="py-decorator">@</tt><tt class="py-decorator">defer</tt><tt class="py-op">.</tt><tt class="py-name">inlineCallbacks</tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt> <a class="py-toggle" href="#" id="createMaster-toggle" onclick="return toggle('createMaster');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="buildbot.scripts.create_master-module.html#createMaster">createMaster</a><tt class="py-op">(</tt><tt class="py-param">config</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="createMaster-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="createMaster-expanded"><a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line">    <tt id="link-88" class="py-name" targets="Function buildbot.scripts.create_master.makeBasedir()=buildbot.scripts.create_master-module.html#makeBasedir"><a title="buildbot.scripts.create_master.makeBasedir" class="py-name" href="#" onclick="return doclink('link-88', 'makeBasedir', 'link-88');">makeBasedir</a></tt><tt class="py-op">(</tt><tt id="link-89" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-89', 'config', 'link-12');">config</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line">    <tt id="link-90" class="py-name" targets="Function buildbot.scripts.create_master.makeTAC()=buildbot.scripts.create_master-module.html#makeTAC"><a title="buildbot.scripts.create_master.makeTAC" class="py-name" href="#" onclick="return doclink('link-90', 'makeTAC', 'link-90');">makeTAC</a></tt><tt class="py-op">(</tt><tt id="link-91" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-91', 'config', 'link-12');">config</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line">    <tt id="link-92" class="py-name" targets="Function buildbot.scripts.create_master.makeSampleConfig()=buildbot.scripts.create_master-module.html#makeSampleConfig"><a title="buildbot.scripts.create_master.makeSampleConfig" class="py-name" href="#" onclick="return doclink('link-92', 'makeSampleConfig', 'link-92');">makeSampleConfig</a></tt><tt class="py-op">(</tt><tt id="link-93" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-93', 'config', 'link-12');">config</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line">    <tt id="link-94" class="py-name" targets="Function buildbot.scripts.create_master.makePublicHtml()=buildbot.scripts.create_master-module.html#makePublicHtml"><a title="buildbot.scripts.create_master.makePublicHtml" class="py-name" href="#" onclick="return doclink('link-94', 'makePublicHtml', 'link-94');">makePublicHtml</a></tt><tt class="py-op">(</tt><tt id="link-95" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-95', 'config', 'link-12');">config</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line">    <tt id="link-96" class="py-name" targets="Function buildbot.scripts.create_master.makeTemplatesDir()=buildbot.scripts.create_master-module.html#makeTemplatesDir"><a title="buildbot.scripts.create_master.makeTemplatesDir" class="py-name" href="#" onclick="return doclink('link-96', 'makeTemplatesDir', 'link-96');">makeTemplatesDir</a></tt><tt class="py-op">(</tt><tt id="link-97" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-97', 'config', 'link-12');">config</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line">    <tt class="py-keyword">yield</tt> <tt id="link-98" class="py-name" targets="Function buildbot.scripts.create_master.createDB()=buildbot.scripts.create_master-module.html#createDB"><a title="buildbot.scripts.create_master.createDB" class="py-name" href="#" onclick="return doclink('link-98', 'createDB', 'link-98');">createDB</a></tt><tt class="py-op">(</tt><tt id="link-99" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-99', 'config', 'link-12');">config</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line"> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt id="link-100" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-100', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'quiet'</tt><tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
+<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"buildmaster configured in %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt id="link-101" class="py-name"><a title="buildbot.clients.tryclient.GitExtractor.config
+buildbot.config
+buildbot.steps.package.rpm.rpmlint.RpmLint.config
+buildbot.steps.vstudio.VisualStudio.config" class="py-name" href="#" onclick="return doclink('link-101', 'config', 'link-12');">config</a></tt><tt class="py-op">[</tt><tt class="py-string">'basedir'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt><tt class="py-op">)</tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line"> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">    <tt class="py-name">defer</tt><tt class="py-op">.</tt><tt class="py-name">returnValue</tt><tt class="py-op">(</tt><tt class="py-number">0</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://buildbot.net/trac">BuildBot 0.8.8-356-g529c3f8</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Fri Aug 23 00:54:25 2013
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
