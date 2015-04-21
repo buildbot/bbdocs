@@ -1,0 +1,1147 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Change Sources &mdash; Buildbot 0.8.12 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.8.12',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/buildbot.ico"/>
+    <link rel="top" title="Buildbot 0.8.12 documentation" href="../index.html" />
+    <link rel="up" title="Configuration" href="configuration.html" />
+    <link rel="next" title="Schedulers" href="cfg-schedulers.html" />
+    <link rel="prev" title="Global Configuration" href="cfg-global.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+  <body>
+    <div class="header-wrapper">
+      <div class="header">
+          <p class="logo"><a href="../index.html">
+            <img class="logo" src="../_static/header-text-transparent.png" alt="Logo"/>
+          </a></p>
+        <div class="headertitle"><a
+          href="../index.html">Buildbot 0.8.12 documentation</a></div>
+        <div class="rel">
+          <a href="cfg-global.html" title="Global Configuration"
+             accesskey="P">previous</a> |
+          <a href="cfg-schedulers.html" title="Schedulers"
+             accesskey="N">next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="change-sources">
+<span id="id1"></span><h1>Change Sources<a class="headerlink" href="#change-sources" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#choosing-a-change-source" id="id22">Choosing a Change Source</a></li>
+<li><a class="reference internal" href="#configuring-change-sources" id="id23">Configuring Change Sources</a><ul>
+<li><a class="reference internal" href="#repository-and-project" id="id24">Repository and Project</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mail-parsing-changesources" id="id25">Mail-parsing ChangeSources</a><ul>
+<li><a class="reference internal" href="#subscribing-the-buildmaster" id="id26">Subscribing the Buildmaster</a></li>
+<li><a class="reference internal" href="#using-maildirs" id="id27">Using Maildirs</a></li>
+<li><a class="reference internal" href="#parsing-email-change-messages" id="id28">Parsing Email Change Messages</a></li>
+<li><a class="reference internal" href="#cvsmaildirsource" id="id29">CVSMaildirSource</a></li>
+<li><a class="reference internal" href="#svncommitemailmaildirsource" id="id30">SVNCommitEmailMaildirSource</a></li>
+<li><a class="reference internal" href="#bzrlaunchpademailmaildirsource" id="id31">BzrLaunchpadEmailMaildirSource</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pbchangesource" id="id32">PBChangeSource</a><ul>
+<li><a class="reference internal" href="#bzr-hook" id="id33">Bzr Hook</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#p4source" id="id34">P4Source</a><ul>
+<li><a class="reference internal" href="#example" id="id35">Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bonsaipoller" id="id36">BonsaiPoller</a></li>
+<li><a class="reference internal" href="#svnpoller" id="id37">SVNPoller</a></li>
+<li><a class="reference internal" href="#bzr-poller" id="id38">Bzr Poller</a></li>
+<li><a class="reference internal" href="#gitpoller" id="id39">GitPoller</a></li>
+<li><a class="reference internal" href="#hgpoller" id="id40">HgPoller</a></li>
+<li><a class="reference internal" href="#bitbucketpullrequestpoller" id="id41">BitbucketPullrequestPoller</a></li>
+<li><a class="reference internal" href="#gerritchangesource" id="id42">GerritChangeSource</a></li>
+<li><a class="reference internal" href="#gerritchangefilter" id="id43">GerritChangeFilter</a></li>
+<li><a class="reference internal" href="#change-hooks-http-notifications" id="id44">Change Hooks (HTTP Notifications)</a></li>
+<li><a class="reference internal" href="#googlecodeatompoller" id="id45">GoogleCodeAtomPoller</a></li>
+</ul>
+</div>
+<p>A Version Control System maintains a source tree, and tells the buildmaster when it changes.
+The first step of each <tt class="xref py py-class docutils literal"><span class="pre">Build</span></tt> is typically to acquire a copy of some version of this tree.</p>
+<p>This chapter describes how the Buildbot learns about what <tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt>s have occurred.
+For more information on VC systems and <tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt>s, see <a class="reference internal" href="concepts.html#version-control-systems"><em>Version Control Systems</em></a>.</p>
+<p><tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt>s can be provided by a variety of <tt class="xref py py-class docutils literal"><span class="pre">ChangeSource</span></tt> types, although any given project will typically have only a single <tt class="xref py py-class docutils literal"><span class="pre">ChangeSource</span></tt> active.
+This section provides a description of all available <tt class="xref py py-class docutils literal"><span class="pre">ChangeSource</span></tt> types and explains how to set up each of them.</p>
+<div class="section" id="choosing-a-change-source">
+<span id="id2"></span><h2><a class="toc-backref" href="#id22">Choosing a Change Source</a><a class="headerlink" href="#choosing-a-change-source" title="Permalink to this headline">¶</a></h2>
+<p>There are a variety of <tt class="xref py py-class docutils literal"><span class="pre">ChangeSource</span></tt> classes available, some of which are meant to be used in conjunction with other tools to deliver <tt class="xref py py-class docutils literal"><span class="pre">Change</span></tt> events from the VC repository to the buildmaster.</p>
+<p>As a quick guide, here is a list of VC systems and the <tt class="xref py py-class docutils literal"><span class="pre">ChangeSource</span></tt>s that might be useful with them.
+Note that some of these modules are in Buildbot's &quot;contrib&quot; directory, meaning that they have been offered by other users in hopes they may be useful, and might require some additional work to make them functional.</p>
+<p>CVS
+* <a class="reference internal" href="#chsrc-CVSMaildirSource" title="CVSMaildirSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">CVSMaildirSource</span></tt></a> (watching mail sent by <tt class="docutils literal"><span class="pre">contrib/buildbot_cvs_mail.py</span></tt> script)
+* <a class="reference internal" href="#chsrc-PBChangeSource" title="PBChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">PBChangeSource</span></tt></a> (listening for connections from <tt class="docutils literal"><span class="pre">buildbot</span> <span class="pre">sendchange</span></tt> run in a loginfo script)
+* <a class="reference internal" href="#chsrc-PBChangeSource" title="PBChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">PBChangeSource</span></tt></a> (listening for connections from a long-running <tt class="file docutils literal"><span class="pre">contrib/viewcvspoll.py</span></tt> polling process which examines the ViewCVS database directly)
+* <a class="reference internal" href="#chsrc-Change Hooks" title="Change Hooks"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">Change</span> <span class="pre">Hooks</span></tt></a> in WebStatus</p>
+<p>SVN
+* <a class="reference internal" href="#chsrc-PBChangeSource" title="PBChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">PBChangeSource</span></tt></a> (listening for connections from <tt class="file docutils literal"><span class="pre">contrib/svn_buildbot.py</span></tt> run in a postcommit script)
+* <a class="reference internal" href="#chsrc-PBChangeSource" title="PBChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">PBChangeSource</span></tt></a> (listening for connections from a long-running <tt class="file docutils literal"><span class="pre">contrib/svn_watcher.py</span></tt> or <tt class="file docutils literal"><span class="pre">contrib/svnpoller.py</span></tt> polling process
+* <a class="reference internal" href="#chsrc-SVNCommitEmailMaildirSource" title="SVNCommitEmailMaildirSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">SVNCommitEmailMaildirSource</span></tt></a> (watching for email sent by <tt class="file docutils literal"><span class="pre">commit-email.pl</span></tt>)
+* <a class="reference internal" href="#chsrc-SVNPoller" title="SVNPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">SVNPoller</span></tt></a> (polling the SVN repository)
+* <a class="reference internal" href="#chsrc-Change Hooks" title="Change Hooks"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">Change</span> <span class="pre">Hooks</span></tt></a> in WebStatus
+* <a class="reference internal" href="#chsrc-GoogleCodeAtomPoller" title="GoogleCodeAtomPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">GoogleCodeAtomPoller</span></tt></a> (polling the commit feed for a GoogleCode Git repository)</p>
+<p>Darcs
+* <a class="reference internal" href="#chsrc-PBChangeSource" title="PBChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">PBChangeSource</span></tt></a> (listening for connections from <tt class="file docutils literal"><span class="pre">contrib/darcs_buildbot.py</span></tt> in a commit script)
+* <a class="reference internal" href="#chsrc-Change Hooks" title="Change Hooks"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">Change</span> <span class="pre">Hooks</span></tt></a> in WebStatus</p>
+<p>Mercurial
+* <a class="reference internal" href="#chsrc-PBChangeSource" title="PBChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">PBChangeSource</span></tt></a> (listening for connections from <tt class="file docutils literal"><span class="pre">contrib/hg_buildbot.py</span></tt> run in an 'changegroup' hook)
+* <a class="reference internal" href="#chsrc-Change Hooks" title="Change Hooks"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">Change</span> <span class="pre">Hooks</span></tt></a> in WebStatus
+* <a class="reference internal" href="#chsrc-PBChangeSource" title="PBChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">PBChangeSource</span></tt></a> (listening for connections from
+* BitBucket change hook (specifically designed for BitBucket notifications, but requiring a publicly-accessible WebStatus)
+* <a class="reference internal" href="#chsrc-HgPoller" title="HgPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">HgPoller</span></tt></a> (polling a remote Mercurial repository)
+* <a class="reference internal" href="#chsrc-GoogleCodeAtomPoller" title="GoogleCodeAtomPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">GoogleCodeAtomPoller</span></tt></a> (polling the commit feed for a GoogleCode Git repository)
+* <a class="reference internal" href="#chsrc-BitbucketPullrequestPoller" title="BitbucketPullrequestPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">BitbucketPullrequestPoller</span></tt></a> (polling Bitbucket for pull requests)</p>
+<p>Bzr (the newer Bazaar)
+* <a class="reference internal" href="#chsrc-PBChangeSource" title="PBChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">PBChangeSource</span></tt></a> (listening for connections from <tt class="file docutils literal"><span class="pre">contrib/bzr_buildbot.py</span></tt> run in a post-change-branch-tip or commit hook)
+* <a class="reference internal" href="#chsrc-BzrPoller" title="BzrPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">BzrPoller</span></tt></a> (polling the Bzr repository)
+* <a class="reference internal" href="#chsrc-Change Hooks" title="Change Hooks"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">Change</span> <span class="pre">Hooks</span></tt></a> in WebStatus</p>
+<p>Git
+* <a class="reference internal" href="#chsrc-PBChangeSource" title="PBChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">PBChangeSource</span></tt></a> (listening for connections from <tt class="file docutils literal"><span class="pre">contrib/git_buildbot.py</span></tt> run in the post-receive hook)
+* <a class="reference internal" href="#chsrc-PBChangeSource" title="PBChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">PBChangeSource</span></tt></a> (listening for connections from <tt class="file docutils literal"><span class="pre">contrib/github_buildbot.py</span></tt>, which listens for notifications from GitHub)
+* <a class="reference internal" href="#chsrc-Change Hooks" title="Change Hooks"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">Change</span> <span class="pre">Hooks</span></tt></a> in WebStatus
+* GitHub change hook (specifically designed for GitHub notifications, but requiring a publicly-accessible WebStatus)
+* BitBucket change hook (specifically designed for BitBucket notifications, but requiring a publicly-accessible WebStatus)
+* <a class="reference internal" href="#chsrc-GitPoller" title="GitPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">GitPoller</span></tt></a> (polling a remote Git repository)
+* <a class="reference internal" href="#chsrc-GoogleCodeAtomPoller" title="GoogleCodeAtomPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">GoogleCodeAtomPoller</span></tt></a> (polling the commit feed for a GoogleCode Git repository)
+* <a class="reference internal" href="#chsrc-BitbucketPullrequestPoller" title="BitbucketPullrequestPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">BitbucketPullrequestPoller</span></tt></a> (polling Bitbucket for pull requests)</p>
+<p>Repo/Git
+* <a class="reference internal" href="#chsrc-GerritChangeSource" title="GerritChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">GerritChangeSource</span></tt></a> connects to Gerrit via SSH to get a live stream of changes</p>
+<p>Monotone
+* <a class="reference internal" href="#chsrc-PBChangeSource" title="PBChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">PBChangeSource</span></tt></a> (listening for connections from <tt class="file docutils literal"><span class="pre">monotone-buildbot.lua</span></tt>, which is available with Monotone)</p>
+<p>All VC systems can be driven by a <a class="reference internal" href="#chsrc-PBChangeSource" title="PBChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">PBChangeSource</span></tt></a> and the <tt class="docutils literal"><span class="pre">buildbot</span> <span class="pre">sendchange</span></tt> tool run from some form of commit script.
+If you write an email parsing function, they can also all be driven by a suitable <a class="reference internal" href="#mail-parsing-changesources"><em>mail-parsing source</em></a>.
+Additionally, handlers for web-based notification (i.e. from GitHub) can be used with WebStatus' change_hook module.
+The interface is simple, so adding your own handlers (and sharing!) should be a breeze.</p>
+<p>See <a class="reference internal" href="../bb-chsrc.html" title="Change Source Index"><em>Change Source Index</em></a> for a full list of change sources.</p>
+<span class="target" id="index-0"></span></div>
+<div class="section" id="configuring-change-sources">
+<span id="cfg-change_source"></span><h2><a class="toc-backref" href="#id23">Configuring Change Sources</a><a class="headerlink" href="#configuring-change-sources" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="#cfg-change_source" title="change_source"><tt class="xref bb bb-cfg docutils literal"><span class="pre">change_source</span></tt></a> configuration key holds all active change sources for the configuration.</p>
+<p>Most configurations have a single <tt class="xref py py-class docutils literal"><span class="pre">ChangeSource</span></tt>, watching only a single tree, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">PBChangeSource</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>For more advanced configurations, the parameter can be a list of change sources:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">source1</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">source2</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">source1</span><span class="p">,</span> <span class="n">source1</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="repository-and-project">
+<h3><a class="toc-backref" href="#id24">Repository and Project</a><a class="headerlink" href="#repository-and-project" title="Permalink to this headline">¶</a></h3>
+<p><tt class="xref py py-class docutils literal"><span class="pre">ChangeSource</span></tt>s will, in general, automatically provide the proper <tt class="xref py py-attr docutils literal"><span class="pre">repository</span></tt> attribute for any changes they produce.
+For systems which operate on URL-like specifiers, this is a repository URL.
+Other <tt class="xref py py-class docutils literal"><span class="pre">ChangeSource</span></tt>s adapt the concept as necessary.</p>
+<p>Many <tt class="xref py py-class docutils literal"><span class="pre">ChangeSource</span></tt>s allow you to specify a project, as well.
+This attribute is useful when building from several distinct codebases in the same buildmaster: the project string can serve to differentiate the different codebases.
+<tt class="xref py py-class docutils literal"><span class="pre">Scheduler</span></tt>s can filter on project, so you can configure different builders to run for each project.</p>
+</div>
+</div>
+<div class="section" id="mail-parsing-changesources">
+<span id="id3"></span><h2><a class="toc-backref" href="#id25">Mail-parsing ChangeSources</a><a class="headerlink" href="#mail-parsing-changesources" title="Permalink to this headline">¶</a></h2>
+<p>Many projects publish information about changes to their source tree by sending an email message out to a mailing list, frequently named <tt class="samp docutils literal"><em><span class="pre">PROJECT</span></em><span class="pre">-commits</span></tt> or <tt class="samp docutils literal"><em><span class="pre">PROJECT</span></em><span class="pre">-changes</span></tt>.
+Each message usually contains a description of the change (who made the change, which files were affected) and sometimes a copy of the diff.
+Humans can subscribe to this list to stay informed about what's happening to the source tree.</p>
+<p>The Buildbot can also be subscribed to a <cite>-commits</cite> mailing list, and can trigger builds in response to Changes that it hears about.
+The buildmaster admin needs to arrange for these email messages to arrive in a place where the buildmaster can find them, and configure the buildmaster to parse the messages correctly.
+Once that is in place, the email parser will create Change objects and deliver them to the Schedulers (see <a class="reference internal" href="cfg-schedulers.html#schedulers"><em>Schedulers</em></a>) just like any other ChangeSource.</p>
+<p>There are two components to setting up an email-based ChangeSource.
+The first is to route the email messages to the buildmaster, which is done by dropping them into a <cite>maildir</cite>.
+The second is to actually parse the messages, which is highly dependent upon the tool that was used to create them.
+Each VC system has a collection of favorite change-emailing tools, and each has a slightly different format, so each has a different parsing function.
+There is a separate ChangeSource variant for each parsing function.</p>
+<p>Once you've chosen a maildir location and a parsing function, create the change source and put it in <tt class="docutils literal"><span class="pre">change_source</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">CVSMaildirSource</span><span class="p">(</span><span class="s">&quot;~/maildir-buildbot&quot;</span><span class="p">,</span>
+                                              <span class="n">prefix</span><span class="o">=</span><span class="s">&quot;/trunk/&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="subscribing-the-buildmaster">
+<span id="id4"></span><h3><a class="toc-backref" href="#id26">Subscribing the Buildmaster</a><a class="headerlink" href="#subscribing-the-buildmaster" title="Permalink to this headline">¶</a></h3>
+<p>The recommended way to install the buildbot is to create a dedicated account for the buildmaster.
+If you do this, the account will probably have a distinct email address (perhaps <cite>buildmaster&#64;example.org</cite>).
+Then just arrange for this account's email to be delivered to a suitable maildir (described in the next section).</p>
+<p>If the buildbot does not have its own account, <cite>extension addresses</cite> can be used to distinguish between email intended for the buildmaster and email intended for the rest of the account.
+In most modern MTAs, the e.g. <cite>foo&#64;example.org</cite> account has control over every email address at example.org which begins with &quot;foo&quot;, such that email addressed to <cite>account-foo&#64;example.org</cite> can be delivered to a different destination than <cite>account-bar&#64;example.org</cite>.
+qmail does this by using separate <tt class="file docutils literal"><span class="pre">.qmail</span></tt> files for the two destinations (<tt class="file docutils literal"><span class="pre">.qmail-foo</span></tt> and <tt class="file docutils literal"><span class="pre">.qmail-bar</span></tt>, with <tt class="file docutils literal"><span class="pre">.qmail</span></tt> controlling the base address and <tt class="file docutils literal"><span class="pre">.qmail-default</span></tt> controlling all other extensions).
+Other MTAs have similar mechanisms.</p>
+<p>Thus you can assign an extension address like <cite>foo-buildmaster&#64;example.org</cite> to the buildmaster, and retain <cite>foo&#64;example.org</cite> for your own use.</p>
+</div>
+<div class="section" id="using-maildirs">
+<span id="id5"></span><h3><a class="toc-backref" href="#id27">Using Maildirs</a><a class="headerlink" href="#using-maildirs" title="Permalink to this headline">¶</a></h3>
+<p>A <cite>maildir</cite> is a simple directory structure originally developed for qmail that allows safe atomic update without locking.
+Create a base directory with three subdirectories: <tt class="file docutils literal"><span class="pre">new</span></tt>, <tt class="file docutils literal"><span class="pre">tmp</span></tt>, and <tt class="file docutils literal"><span class="pre">cur</span></tt>.
+When messages arrive, they are put into a uniquely-named file (using pids, timestamps, and random numbers) in <tt class="file docutils literal"><span class="pre">tmp</span></tt>.
+When the file is complete, it is atomically renamed into <tt class="file docutils literal"><span class="pre">new</span></tt>.
+Eventually the buildmaster notices the file in <tt class="file docutils literal"><span class="pre">new</span></tt>, reads and parses the contents, then moves it into <tt class="file docutils literal"><span class="pre">cur</span></tt>.
+A cronjob can be used to delete files in <tt class="file docutils literal"><span class="pre">cur</span></tt> at leisure.</p>
+<p>Maildirs are frequently created with the <strong class="command">maildirmake</strong> tool, but a simple <strong class="command">mkdir -p ~/MAILDIR/{cur,new,tmp}</strong> is pretty much equivalent.</p>
+<p>Many modern MTAs can deliver directly to maildirs.
+The usual <tt class="file docutils literal"><span class="pre">.forward</span></tt> or <tt class="file docutils literal"><span class="pre">.procmailrc</span></tt> syntax is to name the base directory with a trailing slash, so something like <tt class="docutils literal"><span class="pre">~/MAILDIR/</span></tt>.
+qmail and postfix are maildir-capable MTAs, and procmail is a maildir-capable MDA (Mail Delivery Agent).</p>
+<p>Here is an example procmail config, located in <tt class="file docutils literal"><span class="pre">~/.procmailrc</span></tt>:</p>
+<div class="highlight-none"><div class="highlight"><pre># .procmailrc
+# routes incoming mail to appropriate mailboxes
+PATH=/usr/bin:/usr/local/bin
+MAILDIR=$HOME/Mail
+LOGFILE=.procmail_log
+SHELL=/bin/sh
+
+:0
+*
+new
+</pre></div>
+</div>
+<p>If procmail is not setup on a system wide basis, then the following one-line <tt class="file docutils literal"><span class="pre">.forward</span></tt> file will invoke it.</p>
+<div class="highlight-none"><div class="highlight"><pre>!/usr/bin/procmail
+</pre></div>
+</div>
+<p>For MTAs which cannot put files into maildirs directly, the <cite>safecat</cite> tool can be executed from a <tt class="file docutils literal"><span class="pre">.forward</span></tt> file to accomplish the same thing.</p>
+<p>The Buildmaster uses the linux DNotify facility to receive immediate notification when the maildir's <tt class="file docutils literal"><span class="pre">new</span></tt> directory has changed.
+When this facility is not available, it polls the directory for new messages, every 10 seconds by default.</p>
+</div>
+<div class="section" id="parsing-email-change-messages">
+<span id="id6"></span><h3><a class="toc-backref" href="#id28">Parsing Email Change Messages</a><a class="headerlink" href="#parsing-email-change-messages" title="Permalink to this headline">¶</a></h3>
+<p>The second component to setting up an email-based <tt class="xref py py-class docutils literal"><span class="pre">ChangeSource</span></tt> is to parse the actual notices.
+This is highly dependent upon the VC system and commit script in use.</p>
+<p>A couple of common tools used to create these change emails, along with the buildbot tools to parse them, are:</p>
+<dl class="docutils">
+<dt>CVS</dt>
+<dd><dl class="first last docutils">
+<dt>Buildbot CVS MailNotifier</dt>
+<dd><a class="reference internal" href="#chsrc-CVSMaildirSource" title="CVSMaildirSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">CVSMaildirSource</span></tt></a></dd>
+</dl>
+</dd>
+<dt>SVN</dt>
+<dd><dl class="first last docutils">
+<dt>svnmailer</dt>
+<dd><a class="reference external" href="http://opensource.perlig.de/en/svnmailer/">http://opensource.perlig.de/en/svnmailer/</a></dd>
+<dt><tt class="file docutils literal"><span class="pre">commit-email.pl</span></tt></dt>
+<dd><a class="reference internal" href="#chsrc-SVNCommitEmailMaildirSource" title="SVNCommitEmailMaildirSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">SVNCommitEmailMaildirSource</span></tt></a></dd>
+</dl>
+</dd>
+<dt>Bzr</dt>
+<dd><dl class="first last docutils">
+<dt>Launchpad</dt>
+<dd><a class="reference internal" href="#chsrc-BzrLaunchpadEmailMaildirSource" title="BzrLaunchpadEmailMaildirSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">BzrLaunchpadEmailMaildirSource</span></tt></a></dd>
+</dl>
+</dd>
+<dt>Mercurial</dt>
+<dd><dl class="first last docutils">
+<dt>NotifyExtension</dt>
+<dd><a class="reference external" href="http://www.selenic.com/mercurial/wiki/index.cgi/NotifyExtension">http://www.selenic.com/mercurial/wiki/index.cgi/NotifyExtension</a></dd>
+</dl>
+</dd>
+<dt>Git</dt>
+<dd><dl class="first last docutils">
+<dt>post-receive-email</dt>
+<dd><a class="reference external" href="http://git.kernel.org/?p=git/git.git;a=blob;f=contrib/hooks/post-receive-email;hb=HEAD">http://git.kernel.org/?p=git/git.git;a=blob;f=contrib/hooks/post-receive-email;hb=HEAD</a></dd>
+</dl>
+</dd>
+</dl>
+<p>The following sections describe the parsers available for each of these tools.</p>
+<p>Most of these parsers accept a <tt class="docutils literal"><span class="pre">prefix=</span></tt> argument, which is used to limit the set of files that the buildmaster pays attention to.
+This is most useful for systems like CVS and SVN which put multiple projects in a single repository (or use repository names to indicate branches).
+Each filename that appears in the email is tested against the prefix: if the filename does not start with the prefix, the file is ignored.
+If the filename <em>does</em> start with the prefix, that prefix is stripped from the filename before any further processing is done.
+Thus the prefix usually ends with a slash.</p>
+</div>
+<div class="section" id="cvsmaildirsource">
+<span id="chsrc-CVSMaildirSource"></span><span id="id7"></span><h3><a class="toc-backref" href="#id29">CVSMaildirSource</a><a class="headerlink" href="#cvsmaildirsource" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="buildbot.changes.mail.CVSMaildirSource">
+<em class="property">class </em><tt class="descclassname">buildbot.changes.mail.</tt><tt class="descname">CVSMaildirSource</tt><a class="headerlink" href="#buildbot.changes.mail.CVSMaildirSource" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>This parser works with the <tt class="file docutils literal"><span class="pre">buildbot_cvs_maildir.py</span></tt> script in the contrib directory.</p>
+<p>The script sends an email containing all the files submitted in one directory.
+It is invoked by using the <tt class="file docutils literal"><span class="pre">CVSROOT/loginfo</span></tt> facility.</p>
+<p>The Buildbot's <a class="reference internal" href="#chsrc-CVSMaildirSource" title="CVSMaildirSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">CVSMaildirSource</span></tt></a> knows how to parse these messages and turn them into Change objects.
+It takes the directory name of the maildir root.
+For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">CVSMaildirSource</span><span class="p">(</span><span class="s">&quot;/home/buildbot/Mail&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="configuration-of-cvs-and-buildbot-cvs-mail-py">
+<h4>Configuration of CVS and buildbot_cvs_mail.py<a class="headerlink" href="#configuration-of-cvs-and-buildbot-cvs-mail-py" title="Permalink to this headline">¶</a></h4>
+<p>CVS must be configured to invoke the buildbot_cvs_mail.py script when files are checked in.
+This is done via the CVS loginfo configuration file.</p>
+<p>To update this, first do:</p>
+<div class="highlight-bash"><div class="highlight"><pre>cvs checkout CVSROOT
+</pre></div>
+</div>
+<p>cd to the CVSROOT directory and edit the file loginfo, adding a line like:</p>
+<div class="highlight-none"><div class="highlight"><pre>SomeModule /cvsroot/CVSROOT/buildbot_cvs_mail.py --cvsroot :ext:example.com:/cvsroot -e buildbot -P SomeModule %@{sVv@}
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For cvs version 1.12.x, the <tt class="docutils literal"><span class="pre">--path</span> <span class="pre">%p</span></tt> option is required.
+Version 1.11.x and 1.12.x report the directory path differently.</p>
+</div>
+<p>The above example you put the buildbot_cvs_mail.py script under /cvsroot/CVSROOT.
+It can be anywhere.
+Run the script with --help to see all the options.
+At the very least, the options <tt class="docutils literal"><span class="pre">-e</span></tt> (email) and <tt class="docutils literal"><span class="pre">-P</span></tt> (project) should be specified.
+The line must end with <tt class="docutils literal"><span class="pre">%{sVv}</span></tt> -- this is expanded to the files that were modified.</p>
+<p>Additional entries can be added to support more modules.</p>
+<p>See <strong class="command">buildbot_cvs_mail.py --help`</strong> for more information on the available options.</p>
+</div>
+</div>
+<div class="section" id="svncommitemailmaildirsource">
+<span id="chsrc-SVNCommitEmailMaildirSource"></span><span id="id8"></span><h3><a class="toc-backref" href="#id30">SVNCommitEmailMaildirSource</a><a class="headerlink" href="#svncommitemailmaildirsource" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="buildbot.changes.mail.SVNCommitEmailMaildirSource">
+<em class="property">class </em><tt class="descclassname">buildbot.changes.mail.</tt><tt class="descname">SVNCommitEmailMaildirSource</tt><a class="headerlink" href="#buildbot.changes.mail.SVNCommitEmailMaildirSource" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><a class="reference internal" href="#chsrc-SVNCommitEmailMaildirSource" title="SVNCommitEmailMaildirSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">SVNCommitEmailMaildirSource</span></tt></a> parses message sent out by the <tt class="file docutils literal"><span class="pre">commit-email.pl</span></tt> script, which is included in the Subversion distribution.</p>
+<p>It does not currently handle branches: all of the Change objects that it creates will be associated with the default (i.e. trunk) branch.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">SVNCommitEmailMaildirSource</span><span class="p">(</span><span class="s">&quot;~/maildir-buildbot&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="bzrlaunchpademailmaildirsource">
+<span id="chsrc-BzrLaunchpadEmailMaildirSource"></span><span id="id9"></span><h3><a class="toc-backref" href="#id31">BzrLaunchpadEmailMaildirSource</a><a class="headerlink" href="#bzrlaunchpademailmaildirsource" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="buildbot.changes.mail.BzrLaunchpadEmailMaildirSource">
+<em class="property">class </em><tt class="descclassname">buildbot.changes.mail.</tt><tt class="descname">BzrLaunchpadEmailMaildirSource</tt><a class="headerlink" href="#buildbot.changes.mail.BzrLaunchpadEmailMaildirSource" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><a class="reference internal" href="#chsrc-BzrLaunchpadEmailMaildirSource" title="BzrLaunchpadEmailMaildirSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">BzrLaunchpadEmailMaildirSource</span></tt></a> parses the mails that are sent to addresses that subscribe to branch revision notifications for a bzr branch hosted on Launchpad.</p>
+<p>The branch name defaults to <tt class="samp docutils literal"><span class="pre">lp:</span><em><span class="pre">Launchpad</span> <span class="pre">path</span></em></tt>.
+For example <tt class="docutils literal"><span class="pre">lp:~maria-captains/maria/5.1</span></tt>.</p>
+<p>If only a single branch is used, the default branch name can be changed by setting <tt class="docutils literal"><span class="pre">defaultBranch</span></tt>.</p>
+<p>For multiple branches, pass a dictionary as the value of the <tt class="docutils literal"><span class="pre">branchMap</span></tt> option to map specific repository paths to specific branch names (see example below).
+The leading <tt class="docutils literal"><span class="pre">lp:</span></tt> prefix of the path is optional.</p>
+<p>The <tt class="docutils literal"><span class="pre">prefix</span></tt> option is not supported (it is silently ignored).
+Use the <tt class="docutils literal"><span class="pre">branchMap</span></tt> and <tt class="docutils literal"><span class="pre">defaultBranch</span></tt> instead to assign changes to branches (and just do not subscribe the buildbot to branches that are not of interest).</p>
+<p>The revision number is obtained from the email text.
+The bzr revision id is not available in the mails sent by Launchpad.
+However, it is possible to set the bzr <cite>append_revisions_only</cite> option for public shared repositories to avoid new pushes of merges changing the meaning of old revision numbers.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span>
+
+<span class="n">bm</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;lp:~maria-captains/maria/5.1&#39;</span><span class="p">:</span> <span class="s">&#39;5.1&#39;</span><span class="p">,</span>
+    <span class="s">&#39;lp:~maria-captains/maria/6.0&#39;</span><span class="p">:</span> <span class="s">&#39;6.0&#39;</span>
+<span class="p">}</span>
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">BzrLaunchpadEmailMaildirSource</span><span class="p">(</span><span class="s">&quot;~/maildir-buildbot&quot;</span><span class="p">,</span>
+                                                            <span class="n">branchMap</span><span class="o">=</span><span class="n">bm</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="pbchangesource">
+<span id="chsrc-PBChangeSource"></span><span id="id10"></span><h2><a class="toc-backref" href="#id32">PBChangeSource</a><a class="headerlink" href="#pbchangesource" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.changes.pb.PBChangeSource">
+<em class="property">class </em><tt class="descclassname">buildbot.changes.pb.</tt><tt class="descname">PBChangeSource</tt><a class="headerlink" href="#buildbot.changes.pb.PBChangeSource" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><a class="reference internal" href="#chsrc-PBChangeSource" title="PBChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">PBChangeSource</span></tt></a> actually listens on a TCP port for clients to connect and push change notices <em>into</em> the Buildmaster.
+This is used by the built-in <tt class="docutils literal"><span class="pre">buildbot</span> <span class="pre">sendchange</span></tt> notification tool, as well as several version-control hook scripts.
+This change is also useful for creating new kinds of change sources that work on a <cite>push</cite> model instead of some kind of subscription scheme, for example a script which is run out of an email <tt class="file docutils literal"><span class="pre">.forward</span></tt> file.
+This ChangeSource always runs on the same TCP port as the slaves.
+It shares the same protocol, and in fact shares the same space of &quot;usernames&quot;, so you cannot configure a <a class="reference internal" href="#chsrc-PBChangeSource" title="PBChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">PBChangeSource</span></tt></a> with the same name as a slave.</p>
+<p>If you have a publicly accessible slave port, and are using <a class="reference internal" href="#chsrc-PBChangeSource" title="PBChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">PBChangeSource</span></tt></a>, <em>you must establish a secure username and password for the change source</em>.
+If your sendchange credentials are known (e.g., the defaults), then your buildmaster is susceptible to injection of arbitrary changes, which (depending on the build factories) could lead to arbitrary code execution on buildslaves.</p>
+<p>The <a class="reference internal" href="#chsrc-PBChangeSource" title="PBChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">PBChangeSource</span></tt></a> is created with the following arguments.</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">port</span></tt></dt>
+<dd>which port to listen on.
+If <tt class="docutils literal"><span class="pre">None</span></tt> (which is the default), it shares the port used for buildslave connections.</dd>
+<dt><tt class="docutils literal"><span class="pre">user</span></tt></dt>
+<dd>The user account that the client program must use to connect.
+Defaults to <tt class="docutils literal"><span class="pre">change</span></tt></dd>
+<dt><tt class="docutils literal"><span class="pre">passwd</span></tt></dt>
+<dd>The password for the connection - defaults to <tt class="docutils literal"><span class="pre">changepw</span></tt>.
+Do not use this default on a publicly exposed port!</dd>
+<dt><tt class="docutils literal"><span class="pre">prefix</span></tt></dt>
+<dd><p class="first">The prefix to be found and stripped from filenames delivered over the connection, defaulting to <tt class="docutils literal"><span class="pre">None</span></tt>.
+Any filenames which do not start with this prefix will be removed.
+If all the filenames in a given Change are removed, the that whole Change will be dropped.
+This string should probably end with a directory separator.</p>
+<p class="last">This is useful for changes coming from version control systems that represent branches as parent directories within the repository (like SVN and Perforce).
+Use a prefix of <tt class="docutils literal"><span class="pre">trunk/</span></tt> or <tt class="docutils literal"><span class="pre">project/branches/foobranch/</span></tt> to only follow one branch and to get correct tree-relative filenames.
+Without a prefix, the <a class="reference internal" href="#chsrc-PBChangeSource" title="PBChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">PBChangeSource</span></tt></a> will probably deliver Changes with filenames like <tt class="file docutils literal"><span class="pre">trunk/foo.c</span></tt> instead of just <tt class="file docutils literal"><span class="pre">foo.c</span></tt>.
+Of course this also depends upon the tool sending the Changes in (like <a class="reference internal" href="cmdline.html#cmdline-sendchange" title="sendchange"><tt class="xref bb bb-cmdline docutils literal"><span class="pre">buildbot</span> <span class="pre">sendchange</span></tt></a>) and what filenames it is delivering: that tool may be filtering and stripping prefixes at the sending end.</p>
+</dd>
+</dl>
+<p>For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">PBChangeSource</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="mi">9999</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="s">&#39;laura&#39;</span><span class="p">,</span> <span class="n">passwd</span><span class="o">=</span><span class="s">&#39;fpga&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The following hooks are useful for sending changes to a <a class="reference internal" href="#chsrc-PBChangeSource" title="PBChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">PBChangeSource</span></tt></a>:</p>
+<div class="section" id="bzr-hook">
+<span id="id11"></span><h3><a class="toc-backref" href="#id33">Bzr Hook</a><a class="headerlink" href="#bzr-hook" title="Permalink to this headline">¶</a></h3>
+<p>Bzr is also written in Python, and the Bzr hook depends on Twisted to send the changes.</p>
+<p>To install, put <tt class="file docutils literal"><span class="pre">contrib/bzr_buildbot.py</span></tt> in one of your plugins locations a bzr plugins directory (e.g., <tt class="file docutils literal"><span class="pre">~/.bazaar/plugins</span></tt>).
+Then, in one of your bazaar conf files (e.g., <tt class="file docutils literal"><span class="pre">~/.bazaar/locations.conf</span></tt>), set the location you want to connect with buildbot with these keys:</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">buildbot_on</span></tt></dt>
+<dd>one of 'commit', 'push, or 'change'.
+Turns the plugin on to report changes via commit, changes via push, or any changes to the trunk.
+'change' is recommended.</dd>
+<dt><tt class="docutils literal"><span class="pre">buildbot_server</span></tt></dt>
+<dd>(required to send to a buildbot master) the URL of the buildbot master to which you will connect (as of this writing, the same server and port to which slaves connect).</dd>
+<dt><tt class="docutils literal"><span class="pre">buildbot_port</span></tt></dt>
+<dd>(optional, defaults to 9989) the port of the buildbot master to which you will connect (as of this writing, the same server and port to which slaves connect)</dd>
+<dt><tt class="docutils literal"><span class="pre">buildbot_pqm</span></tt></dt>
+<dd>(optional, defaults to not pqm) Normally, the user that commits the revision is the user that is responsible for the change.
+When run in a pqm (Patch Queue Manager, see <a class="reference external" href="https://launchpad.net/pqm">https://launchpad.net/pqm</a>) environment, the user that commits is the Patch Queue Manager, and the user that committed the <em>parent</em> revision is responsible for the change.
+To turn on the pqm mode, set this value to any of (case-insensitive) &quot;Yes&quot;, &quot;Y&quot;, &quot;True&quot;, or &quot;T&quot;.</dd>
+<dt><tt class="docutils literal"><span class="pre">buildbot_dry_run</span></tt></dt>
+<dd>(optional, defaults to not a dry run) Normally, the post-commit hook will attempt to communicate with the configured buildbot server and port.
+If this parameter is included and any of (case-insensitive) &quot;Yes&quot;, &quot;Y&quot;, &quot;True&quot;, or &quot;T&quot;, then the hook will simply print what it would have sent, but not attempt to contact the buildbot master.</dd>
+<dt><tt class="docutils literal"><span class="pre">buildbot_send_branch_name</span></tt></dt>
+<dd>(optional, defaults to not sending the branch name) If your buildbot's bzr source build step uses a repourl, do <em>not</em> turn this on.
+If your buildbot's bzr build step uses a baseURL, then you may set this value to any of (case-insensitive) &quot;Yes&quot;, &quot;Y&quot;, &quot;True&quot;, or &quot;T&quot; to have the buildbot master append the branch name to the baseURL.</dd>
+</dl>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The bzr smart server (as of version 2.2.2) doesn't know how to resolve <tt class="docutils literal"><span class="pre">bzr://</span></tt> urls into absolute paths so any paths in <tt class="docutils literal"><span class="pre">locations.conf</span></tt> won't match, hence no change notifications will be sent to Buildbot.
+Setting configuration parameters globally or in-branch might still work.
+When buildbot no longer has a hardcoded password, it will be a configuration option here as well.</p>
+</div>
+<p>Here's a simple example that you might have in your <tt class="file docutils literal"><span class="pre">~/.bazaar/locations.conf</span></tt>.</p>
+<div class="highlight-ini"><div class="highlight"><pre><span class="k">[chroot-*:///var/local/myrepo/mybranch]</span>
+<span class="na">buildbot_on</span> <span class="o">=</span> <span class="s">change</span>
+<span class="na">buildbot_server</span> <span class="o">=</span> <span class="s">localhost</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="p4source">
+<span id="chsrc-P4Source"></span><span id="id12"></span><h2><a class="toc-backref" href="#id34">P4Source</a><a class="headerlink" href="#p4source" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="#chsrc-P4Source" title="P4Source"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">P4Source</span></tt></a> periodically polls a <a class="reference external" href="http://www.perforce.com/">Perforce</a> depot for changes.
+It accepts the following arguments:</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">p4port</span></tt></dt>
+<dd>The Perforce server to connect to (as <tt class="samp docutils literal"><em><span class="pre">host</span></em><span class="pre">:</span><em><span class="pre">port</span></em></tt>).</dd>
+<dt><tt class="docutils literal"><span class="pre">p4user</span></tt></dt>
+<dd>The Perforce user.</dd>
+<dt><tt class="docutils literal"><span class="pre">p4passwd</span></tt></dt>
+<dd>The Perforce password.</dd>
+<dt><tt class="docutils literal"><span class="pre">p4base</span></tt></dt>
+<dd>The base depot path to watch, without the trailing '/...'.</dd>
+<dt><tt class="docutils literal"><span class="pre">p4bin</span></tt></dt>
+<dd>An optional string parameter.
+Specify the location of the perforce command line binary (p4).
+You only need to do this if the perforce binary is not in the path of the buildbot user.
+Defaults to <cite>p4</cite>.</dd>
+<dt><tt class="docutils literal"><span class="pre">split_file</span></tt></dt>
+<dd>A function that maps a pathname, without the leading <tt class="docutils literal"><span class="pre">p4base</span></tt>, to a (branch, filename) tuple.
+The default just returns <tt class="docutils literal"><span class="pre">(None,</span> <span class="pre">branchfile)</span></tt>, which effectively disables branch support.
+You should supply a function which understands your repository structure.</dd>
+<dt><tt class="docutils literal"><span class="pre">pollInterval</span></tt></dt>
+<dd>How often to poll, in seconds.
+Defaults to 600 (10 minutes).</dd>
+<dt><tt class="docutils literal"><span class="pre">project</span></tt></dt>
+<dd>Set the name of the project to be used for the <a class="reference internal" href="#chsrc-P4Source" title="P4Source"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">P4Source</span></tt></a>.
+This will then be set in any changes generated by the <tt class="docutils literal"><span class="pre">P4Source</span></tt>, and can be used in a Change Filter for triggering particular builders.</dd>
+<dt><tt class="docutils literal"><span class="pre">pollAtLaunch</span></tt></dt>
+<dd>Determines when the first poll occurs.
+True = immediately on launch, False = wait for one pollInterval (default).</dd>
+<dt><tt class="docutils literal"><span class="pre">histmax</span></tt></dt>
+<dd>The maximum number of changes to inspect at a time.
+If more than this number occur since the last poll, older changes will be silently ignored.</dd>
+<dt><tt class="docutils literal"><span class="pre">encoding</span></tt></dt>
+<dd>The character encoding of <tt class="docutils literal"><span class="pre">p4</span></tt>'s output.
+This defaults to &quot;utf8&quot;, but if your commit messages are in another encoding, specify that here.
+For example, if you're using Perforce on Windows, you may need to use &quot;cp437&quot; as the encoding if &quot;utf8&quot; generates errors in your master log.</dd>
+<dt><tt class="docutils literal"><span class="pre">server_tz</span></tt></dt>
+<dd>The timezone of the Perforce server, using the usual timezone format (e.g: <tt class="docutils literal"><span class="pre">Europe/Stockholm</span></tt>) in case it's in a different timezone than the buildbot master.</dd>
+<dt><tt class="docutils literal"><span class="pre">use_tickets</span></tt></dt>
+<dd>Set to <tt class="docutils literal"><span class="pre">True</span></tt> to use ticket-based authentication, instead of passwords (but you still need to specify <tt class="docutils literal"><span class="pre">p4passwd</span></tt>).</dd>
+<dt><tt class="docutils literal"><span class="pre">ticket_login_interval</span></tt></dt>
+<dd>How often to get a new ticket, in seconds, when <tt class="docutils literal"><span class="pre">use_tickets</span></tt> is enabled.
+Defaults to 86400 (24 hours).</dd>
+</dl>
+<div class="section" id="example">
+<h3><a class="toc-backref" href="#id35">Example</a><a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h3>
+<p>This configuration uses the <span class="target" id="index-1"></span><tt class="xref std std-envvar docutils literal"><span class="pre">P4PORT</span></tt>, <span class="target" id="index-2"></span><tt class="xref std std-envvar docutils literal"><span class="pre">P4USER</span></tt>, and <span class="target" id="index-3"></span><tt class="xref std std-envvar docutils literal"><span class="pre">P4PASSWD</span></tt> specified in the buildmaster's environment.
+It watches a project in which the branch name is simply the next path component, and the file is all path components after.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">P4Source</span><span class="p">(</span><span class="n">p4base</span><span class="o">=</span><span class="s">&#39;//depot/project/&#39;</span><span class="p">,</span>
+                     <span class="n">split_file</span><span class="o">=</span><span class="k">lambda</span> <span class="n">branchfile</span><span class="p">:</span> <span class="n">branchfile</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="bonsaipoller">
+<span id="chsrc-BonsaiPoller"></span><span id="id13"></span><h2><a class="toc-backref" href="#id36">BonsaiPoller</a><a class="headerlink" href="#bonsaipoller" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="#chsrc-BonsaiPoller" title="BonsaiPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">BonsaiPoller</span></tt></a> periodically polls a Bonsai server.
+This is a CGI script accessed through a web server that provides information about a CVS tree, for example the Mozilla bonsai server at <a class="reference external" href="http://bonsai.mozilla.org">http://bonsai.mozilla.org</a>.
+Bonsai servers are usable by both humans and machines.
+In this case, the buildbot's change source forms a query which asks about any files in the specified branch which have changed since the last query.</p>
+<p><a class="reference internal" href="#chsrc-BonsaiPoller" title="BonsaiPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">BonsaiPoller</span></tt></a> accepts the following arguments:</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">bonsaiURL</span></tt></dt>
+<dd>The base URL of the Bonsai server, e.g., <tt class="docutils literal"><span class="pre">http://bonsai.mozilla.org</span></tt></dd>
+<dt><tt class="docutils literal"><span class="pre">module</span></tt></dt>
+<dd>The module to look for changes in.
+Commonly this is <tt class="docutils literal"><span class="pre">all</span></tt>.</dd>
+<dt><tt class="docutils literal"><span class="pre">branch</span></tt></dt>
+<dd>The branch to look for changes in.
+This will appear in the <tt class="docutils literal"><span class="pre">branch</span></tt> field of the resulting change objects.</dd>
+<dt><tt class="docutils literal"><span class="pre">tree</span></tt></dt>
+<dd>The tree to look for changes in.
+Commonly this is <tt class="docutils literal"><span class="pre">all</span></tt>.</dd>
+<dt><tt class="docutils literal"><span class="pre">cvsroot</span></tt></dt>
+<dd>The CVS root of the repository.
+Usually this is <tt class="docutils literal"><span class="pre">/cvsroot</span></tt>.</dd>
+<dt><tt class="docutils literal"><span class="pre">pollInterval</span></tt></dt>
+<dd>The time (in seconds) between queries for changes.</dd>
+<dt><tt class="docutils literal"><span class="pre">pollAtLaunch</span></tt></dt>
+<dd>Determines when the first poll occurs.
+True = immediately on launch, False = wait for one pollInterval (default).</dd>
+<dt><tt class="docutils literal"><span class="pre">project</span></tt></dt>
+<dd>The project name to attach to all change objects produced by this change source.</dd>
+</dl>
+</div>
+<div class="section" id="svnpoller">
+<span id="chsrc-SVNPoller"></span><span id="id14"></span><h2><a class="toc-backref" href="#id37">SVNPoller</a><a class="headerlink" href="#svnpoller" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.changes.svnpoller.SVNPoller">
+<em class="property">class </em><tt class="descclassname">buildbot.changes.svnpoller.</tt><tt class="descname">SVNPoller</tt><a class="headerlink" href="#buildbot.changes.svnpoller.SVNPoller" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>The <a class="reference internal" href="#chsrc-SVNPoller" title="SVNPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">SVNPoller</span></tt></a> is a ChangeSource which periodically polls a <a class="reference external" href="http://subversion.tigris.org/">Subversion</a> repository for new revisions, by running the <tt class="docutils literal"><span class="pre">svn</span> <span class="pre">log</span></tt> command in a subshell.
+It can watch a single branch or multiple branches.</p>
+<p><a class="reference internal" href="#chsrc-SVNPoller" title="SVNPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">SVNPoller</span></tt></a> accepts the following arguments:</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">svnurl</span></tt></dt>
+<dd><p class="first">The base URL path to watch, like <tt class="docutils literal"><span class="pre">svn://svn.twistedmatrix.com/svn/Twisted/trunk</span></tt>, or <tt class="docutils literal"><span class="pre">http://divmod.org/svn/Divmo/</span></tt>, or even <tt class="docutils literal"><span class="pre">file:///home/svn/Repository/ProjectA/branches/1.5/</span></tt>.
+This must include the access scheme, the location of the repository (both the hostname for remote ones, and any additional directory names necessary to get to the repository), and the sub-path within the repository's virtual filesystem for the project and branch of interest.</p>
+<p class="last">The <a class="reference internal" href="#chsrc-SVNPoller" title="SVNPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">SVNPoller</span></tt></a> will only pay attention to files inside the subdirectory specified by the complete svnurl.</p>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">split_file</span></tt></dt>
+<dd><p class="first">A function to convert pathnames into <tt class="docutils literal"><span class="pre">(branch,</span> <span class="pre">relative_pathname)</span></tt> tuples.
+Use this to explain your repository's branch-naming policy to <a class="reference internal" href="#chsrc-SVNPoller" title="SVNPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">SVNPoller</span></tt></a>.
+This function must accept a single string (the pathname relative to the repository) and return a two-entry tuple.
+Directory pathnames always end with a right slash to distinguish them from files, like <tt class="docutils literal"><span class="pre">trunk/src/</span></tt>, or <tt class="docutils literal"><span class="pre">src/</span></tt>.
+There are a few utility functions in <tt class="xref py py-mod docutils literal"><span class="pre">buildbot.changes.svnpoller</span></tt> that can be used as a <tt class="xref py py-meth docutils literal"><span class="pre">split_file</span></tt> function; see below for details.</p>
+<p>For directories, the relative pathname returned by <tt class="xref py py-meth docutils literal"><span class="pre">split_file</span></tt> should end with a right slash but an empty string is also accepted for the root, like <tt class="docutils literal"><span class="pre">(&quot;branches/1.5.x&quot;,</span> <span class="pre">&quot;&quot;)</span></tt> being converted from <tt class="docutils literal"><span class="pre">&quot;branches/1.5.x/&quot;</span></tt>.</p>
+<p>The default value always returns <tt class="docutils literal"><span class="pre">(None,</span> <span class="pre">path)</span></tt>, which indicates that all files are on the trunk.</p>
+<p class="last">Subclasses of <a class="reference internal" href="#chsrc-SVNPoller" title="SVNPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">SVNPoller</span></tt></a> can override the <tt class="xref py py-meth docutils literal"><span class="pre">split_file</span></tt> method instead of using the <tt class="docutils literal"><span class="pre">split_file=</span></tt> argument.</p>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">project</span></tt></dt>
+<dd>Set the name of the project to be used for the <a class="reference internal" href="#chsrc-SVNPoller" title="SVNPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">SVNPoller</span></tt></a>.
+This will then be set in any changes generated by the <a class="reference internal" href="#chsrc-SVNPoller" title="SVNPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">SVNPoller</span></tt></a>, and can be used in a <a class="reference internal" href="cfg-schedulers.html#change-filters"><em>Change Filter</em></a> for triggering particular builders.</dd>
+<dt><tt class="docutils literal"><span class="pre">svnuser</span></tt></dt>
+<dd>An optional string parameter.
+If set, the <em class="xref std std-option">--user</em> argument will be added to all <strong class="command">svn</strong> commands.
+Use this if you have to authenticate to the svn server before you can do <strong class="command">svn info</strong> or <strong class="command">svn log</strong> commands.</dd>
+<dt><tt class="docutils literal"><span class="pre">svnpasswd</span></tt></dt>
+<dd>Like <tt class="docutils literal"><span class="pre">svnuser</span></tt>, this will cause a <em class="xref std std-option">--password</em> argument to be passed to all <strong class="command">svn</strong> commands.</dd>
+<dt><tt class="docutils literal"><span class="pre">pollInterval</span></tt></dt>
+<dd>How often to poll, in seconds.
+Defaults to 600 (checking once every 10 minutes).
+Lower this if you want the buildbot to notice changes faster, raise it if you want to reduce the network and CPU load on your svn server.
+Please be considerate of public SVN repositories by using a large interval when polling them.</dd>
+<dt><tt class="docutils literal"><span class="pre">pollAtLaunch</span></tt></dt>
+<dd>Determines when the first poll occurs.
+True = immediately on launch, False = wait for one pollInterval (default).</dd>
+<dt><tt class="docutils literal"><span class="pre">histmax</span></tt></dt>
+<dd>The maximum number of changes to inspect at a time.
+Every <tt class="docutils literal"><span class="pre">pollInterval</span></tt> seconds, the <a class="reference internal" href="#chsrc-SVNPoller" title="SVNPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">SVNPoller</span></tt></a> asks for the last <tt class="docutils literal"><span class="pre">histmax</span></tt> changes and looks through them for any revisions it does not already know about.
+If more than <tt class="docutils literal"><span class="pre">histmax</span></tt> revisions have been committed since the last poll, older changes will be silently ignored.
+Larger values of <tt class="docutils literal"><span class="pre">histmax</span></tt> will cause more time and memory to be consumed on each poll attempt.
+<tt class="docutils literal"><span class="pre">histmax</span></tt> defaults to 100.</dd>
+<dt><tt class="docutils literal"><span class="pre">svnbin</span></tt></dt>
+<dd>This controls the <strong class="command">svn</strong> executable to use.
+If subversion is installed in a weird place on your system (outside of the buildmaster's <span class="target" id="index-4"></span><tt class="xref std std-envvar docutils literal"><span class="pre">PATH</span></tt>), use this to tell <a class="reference internal" href="#chsrc-SVNPoller" title="SVNPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">SVNPoller</span></tt></a> where to find it.
+The default value of <cite>svn</cite> will almost always be sufficient.</dd>
+<dt><tt class="docutils literal"><span class="pre">revlinktmpl</span></tt></dt>
+<dd>This parameter is deprecated in favour of specifying a global revlink option.
+This parameter allows a link to be provided for each revision (for example, to websvn or viewvc).
+These links appear anywhere changes are shown, such as on build or change pages.
+The proper form for this parameter is an URL with the portion that will substitute for a revision number replaced by ''%s''.
+For example, <tt class="docutils literal"><span class="pre">'http://myserver/websvn/revision.php?rev=%s'</span></tt> could be used to cause revision links to be created to a websvn repository viewer.</dd>
+<dt><tt class="docutils literal"><span class="pre">cachepath</span></tt></dt>
+<dd>If specified, this is a pathname of a cache file that <a class="reference internal" href="#chsrc-SVNPoller" title="SVNPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">SVNPoller</span></tt></a> will use to store its state between restarts of the master.</dd>
+<dt><tt class="docutils literal"><span class="pre">extra_args</span></tt></dt>
+<dd>If specified, the extra arguments will be added to the svn command args.</dd>
+</dl>
+<p>Several split file functions are available for common SVN repository layouts.
+For a poller that is only monitoring trunk, the default split file function is available explicitly as <tt class="docutils literal"><span class="pre">split_file_alwaystrunk</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span><span class="p">,</span> <span class="n">util</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">SVNPoller</span><span class="p">(</span>
+    <span class="n">svnurl</span><span class="o">=</span><span class="s">&quot;svn://svn.twistedmatrix.com/svn/Twisted/trunk&quot;</span><span class="p">,</span>
+    <span class="n">split_file</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">svn</span><span class="o">.</span><span class="n">split_file_alwaystrunk</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For repositories with the <tt class="docutils literal"><span class="pre">/trunk</span></tt> and <tt class="docutils literal"><span class="pre">/branches/{BRANCH}</span></tt> layout, <tt class="docutils literal"><span class="pre">split_file_branches</span></tt> will do the job:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span><span class="p">,</span> <span class="n">util</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">SVNPoller</span><span class="p">(</span>
+    <span class="n">svnurl</span><span class="o">=</span><span class="s">&quot;https://amanda.svn.sourceforge.net/svnroot/amanda/amanda&quot;</span><span class="p">,</span>
+    <span class="n">split_file</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">svn</span><span class="o">.</span><span class="n">split_file_branches</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When using this splitter the poller will set the <tt class="docutils literal"><span class="pre">project</span></tt> attribute of any changes to the <tt class="docutils literal"><span class="pre">project</span></tt> attribute of the poller.</p>
+<p>For repositories with the <tt class="docutils literal"><span class="pre">{PROJECT}/trunk</span></tt> and <tt class="docutils literal"><span class="pre">{PROJECT}/branches/{BRANCH}</span></tt> layout, <tt class="docutils literal"><span class="pre">split_file_projects_branches</span></tt> will do the job:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span><span class="p">,</span> <span class="n">util</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">SVNPoller</span><span class="p">(</span>
+    <span class="n">svnurl</span><span class="o">=</span><span class="s">&quot;https://amanda.svn.sourceforge.net/svnroot/amanda/&quot;</span><span class="p">,</span>
+    <span class="n">split_file</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">svn</span><span class="o">.</span><span class="n">split_file_projects_branches</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When using this splitter the poller will set the <tt class="docutils literal"><span class="pre">project</span></tt> attribute of any changes to the project determined by the splitter.</p>
+<p>The <a class="reference internal" href="#chsrc-SVNPoller" title="SVNPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">SVNPoller</span></tt></a> is highly adaptable to various Subversion layouts.
+See <a class="reference internal" href="customization.html#customizing-svnpoller"><em>Customizing SVNPoller</em></a> for details and some common scenarios.</p>
+</div>
+<div class="section" id="bzr-poller">
+<span id="chsrc-BzrPoller"></span><span id="id15"></span><h2><a class="toc-backref" href="#id38">Bzr Poller</a><a class="headerlink" href="#bzr-poller" title="Permalink to this headline">¶</a></h2>
+<p>If you cannot insert a Bzr hook in the server, you can use the Bzr Poller.
+To use, put <tt class="file docutils literal"><span class="pre">contrib/bzr_buildbot.py</span></tt> somewhere that your buildbot configuration can import it.
+Even putting it in the same directory as the <tt class="file docutils literal"><span class="pre">master.cfg</span></tt> should work.
+Install the poller in the buildbot configuration as with any other change source.
+Minimally, provide a URL that you want to poll (<tt class="docutils literal"><span class="pre">bzr://</span></tt>, <tt class="docutils literal"><span class="pre">bzr+ssh://</span></tt>, or <tt class="docutils literal"><span class="pre">lp:</span></tt>), making sure the buildbot user has necessary privileges.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># bzr_buildbot.py in the same directory as master.cfg</span>
+<span class="kn">from</span> <span class="nn">bzr_buildbot</span> <span class="kn">import</span> <span class="n">BzrPoller</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">BzrPoller</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="s">&#39;bzr://hostname/my_project&#39;</span><span class="p">,</span>
+                               <span class="n">poll_interval</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">BzrPoller</span></tt> parameters are:</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">url</span></tt></dt>
+<dd>The URL to poll.</dd>
+<dt><tt class="docutils literal"><span class="pre">poll_interval</span></tt></dt>
+<dd>The number of seconds to wait between polls.
+Defaults to 10 minutes.</dd>
+<dt><tt class="docutils literal"><span class="pre">branch_name</span></tt></dt>
+<dd>Any value to be used as the branch name.
+Defaults to None, or specify a string, or specify the constants from <tt class="file docutils literal"><span class="pre">bzr_buildbot.py</span></tt> <tt class="docutils literal"><span class="pre">SHORT</span></tt> or <tt class="docutils literal"><span class="pre">FULL</span></tt> to get the short branch name or full branch address.</dd>
+<dt><tt class="docutils literal"><span class="pre">blame_merge_author</span></tt></dt>
+<dd>normally, the user that commits the revision is the user that is responsible for the change.
+When run in a pqm (Patch Queue Manager, see <a class="reference external" href="https://launchpad.net/pqm">https://launchpad.net/pqm</a>) environment, the user that commits is the Patch Queue Manager, and the user that committed the merged, <em>parent</em> revision is responsible for the change.
+Set this value to <tt class="docutils literal"><span class="pre">True</span></tt> if this is pointed against a PQM-managed branch.</dd>
+</dl>
+</div>
+<div class="section" id="gitpoller">
+<span id="chsrc-GitPoller"></span><span id="id16"></span><h2><a class="toc-backref" href="#id39">GitPoller</a><a class="headerlink" href="#gitpoller" title="Permalink to this headline">¶</a></h2>
+<p>If you cannot take advantage of post-receive hooks as provided by <tt class="file docutils literal"><span class="pre">contrib/git_buildbot.py</span></tt> for example, then you can use the <a class="reference internal" href="#chsrc-GitPoller" title="GitPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">GitPoller</span></tt></a>.</p>
+<p>The <a class="reference internal" href="#chsrc-GitPoller" title="GitPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">GitPoller</span></tt></a> periodically fetches from a remote Git repository and processes any changes.
+It requires its own working directory for operation.
+The default should be adequate, but it can be overridden via the <tt class="docutils literal"><span class="pre">workdir</span></tt> property.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">There can only be a single <cite>GitPoller</cite> pointed at any given repository.</p>
+</div>
+<p>The <a class="reference internal" href="#chsrc-GitPoller" title="GitPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">GitPoller</span></tt></a> requires Git-1.7 and later.
+It accepts the following arguments:</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">repourl</span></tt></dt>
+<dd>the git-url that describes the remote repository, e.g. <tt class="docutils literal"><span class="pre">git&#64;example.com:foobaz/myrepo.git</span></tt> (see the <strong class="command">git fetch</strong> help for more info on git-url formats)</dd>
+<dt><tt class="docutils literal"><span class="pre">branches</span></tt></dt>
+<dd><p class="first">One of the following:</p>
+<ul class="last simple">
+<li>a list of the branches to fetch.</li>
+<li><tt class="docutils literal"><span class="pre">True</span></tt> indicating that all branches should be fetched</li>
+<li>a callable which takes a single argument.
+It should take a remote refspec (such as <tt class="docutils literal"><span class="pre">'refs/heads/master'</span></tt>, and return a boolean indicating whether that branch should be fetched.</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">branch</span></tt></dt>
+<dd>accepts a single branch name to fetch.
+Exists for backwards compatibility with old configurations.</dd>
+<dt><tt class="docutils literal"><span class="pre">pollInterval</span></tt></dt>
+<dd>interval in seconds between polls, default is 10 minutes</dd>
+<dt><tt class="docutils literal"><span class="pre">pollAtLaunch</span></tt></dt>
+<dd>Determines when the first poll occurs.
+True = immediately on launch, False = wait for one pollInterval (default).</dd>
+<dt><tt class="docutils literal"><span class="pre">gitbin</span></tt></dt>
+<dd>path to the Git binary, defaults to just <tt class="docutils literal"><span class="pre">'git'</span></tt></dd>
+<dt><tt class="docutils literal"><span class="pre">category</span></tt></dt>
+<dd>Set the category to be used for the changes produced by the <a class="reference internal" href="#chsrc-GitPoller" title="GitPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">GitPoller</span></tt></a>.
+This will then be set in any changes generated by the <a class="reference internal" href="#chsrc-GitPoller" title="GitPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">GitPoller</span></tt></a>, and can be used in a Change Filter for triggering particular builders.</dd>
+<dt><tt class="docutils literal"><span class="pre">project</span></tt></dt>
+<dd>Set the name of the project to be used for the <a class="reference internal" href="#chsrc-GitPoller" title="GitPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">GitPoller</span></tt></a>.
+This will then be set in any changes generated by the <tt class="docutils literal"><span class="pre">GitPoller</span></tt>, and can be used in a Change Filter for triggering particular builders.</dd>
+<dt><tt class="docutils literal"><span class="pre">usetimestamps</span></tt></dt>
+<dd>parse each revision's commit timestamp (default is <tt class="docutils literal"><span class="pre">True</span></tt>), or ignore it in favor of the current time (so recently processed commits appear together in the waterfall page)</dd>
+<dt><tt class="docutils literal"><span class="pre">encoding</span></tt></dt>
+<dd>Set encoding will be used to parse author's name and commit message.
+Default encoding is <tt class="docutils literal"><span class="pre">'utf-8'</span></tt>.
+This will not be applied to file names since Git will translate non-ascii file names to unreadable escape sequences.</dd>
+<dt><tt class="docutils literal"><span class="pre">workdir</span></tt></dt>
+<dd>the directory where the poller should keep its local repository.
+The default is <tt class="samp docutils literal"><span class="pre">gitpoller_work</span></tt>.
+If this is a relative path, it will be interpreted relative to the master's basedir.
+Multiple Git pollers can share the same directory.</dd>
+</dl>
+<p>A configuration for the Git poller might look like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">GitPoller</span><span class="p">(</span><span class="n">repourl</span><span class="o">=</span><span class="s">&#39;git@example.com:foobaz/myrepo.git&#39;</span><span class="p">,</span>
+                                       <span class="n">branches</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">,</span> <span class="s">&#39;great_new_feature&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="hgpoller">
+<span id="chsrc-HgPoller"></span><span id="id17"></span><h2><a class="toc-backref" href="#id40">HgPoller</a><a class="headerlink" href="#hgpoller" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="#chsrc-HgPoller" title="HgPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">HgPoller</span></tt></a> periodically pulls a named branch from a remote Mercurial repository and processes any changes.
+It requires its own working directory for operation, which must be specified via the <tt class="docutils literal"><span class="pre">workdir</span></tt> property.</p>
+<p>The <a class="reference internal" href="#chsrc-HgPoller" title="HgPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">HgPoller</span></tt></a> requires a working <tt class="docutils literal"><span class="pre">hg</span></tt> executable, and at least a read-only access to the repository it polls (possibly through ssh keys or by tweaking the <tt class="docutils literal"><span class="pre">hgrc</span></tt> of the system user buildbot runs as).</p>
+<p>The <a class="reference internal" href="#chsrc-HgPoller" title="HgPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">HgPoller</span></tt></a> will not transmit any change if there are several heads on the watched named branch.
+This is similar (although not identical) to the Mercurial executable behaviour.
+This exceptional condition is usually the result of a developer mistake, and usually does not last for long.
+It is reported in logs.
+If fixed by a later merge, the buildmaster administrator does not have anything to do: that merge will be transmitted, together with the intermediate ones.</p>
+<p>The <a class="reference internal" href="#chsrc-HgPoller" title="HgPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">HgPoller</span></tt></a> accepts the following arguments:</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">repourl</span></tt></dt>
+<dd>the url that describes the remote repository, e.g. <tt class="docutils literal"><span class="pre">http://hg.example.com/projects/myrepo</span></tt>.
+Any url suitable for <tt class="docutils literal"><span class="pre">hg</span> <span class="pre">pull</span></tt> can be specified.</dd>
+<dt><tt class="docutils literal"><span class="pre">branch</span></tt></dt>
+<dd>the desired branch to pull, will default to <tt class="docutils literal"><span class="pre">'default'</span></tt></dd>
+<dt><tt class="docutils literal"><span class="pre">workdir</span></tt></dt>
+<dd><p class="first">the directory where the poller should keep its local repository.
+It is mandatory for now, although later releases may provide a meaningful default.</p>
+<p>It also serves to identify the poller in the buildmaster internal database.
+Changing it may result in re-processing all changes so far.</p>
+<p>Several <a class="reference internal" href="#chsrc-HgPoller" title="HgPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">HgPoller</span></tt></a> instances may share the same <tt class="docutils literal"><span class="pre">workdir</span></tt> for mutualisation of the common history between two different branches, thus easing on local and remote system resources and bandwidth.</p>
+<p class="last">If relative, the <tt class="docutils literal"><span class="pre">workdir</span></tt> will be interpreted from the master directory.</p>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">pollInterval</span></tt></dt>
+<dd>interval in seconds between polls, default is 10 minutes</dd>
+<dt><tt class="docutils literal"><span class="pre">pollAtLaunch</span></tt></dt>
+<dd>Determines when the first poll occurs.
+True = immediately on launch, False = wait for one pollInterval (default).</dd>
+<dt><tt class="docutils literal"><span class="pre">hgbin</span></tt></dt>
+<dd>path to the Mercurial binary, defaults to just <tt class="docutils literal"><span class="pre">'hg'</span></tt></dd>
+<dt><tt class="docutils literal"><span class="pre">category</span></tt></dt>
+<dd>Set the category to be used for the changes produced by the <a class="reference internal" href="#chsrc-HgPoller" title="HgPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">HgPoller</span></tt></a>.
+This will then be set in any changes generated by the <a class="reference internal" href="#chsrc-HgPoller" title="HgPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">HgPoller</span></tt></a>, and can be used in a Change Filter for triggering particular builders.</dd>
+<dt><tt class="docutils literal"><span class="pre">project</span></tt></dt>
+<dd>Set the name of the project to be used for the <a class="reference internal" href="#chsrc-HgPoller" title="HgPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">HgPoller</span></tt></a>.
+This will then be set in any changes generated by the <tt class="docutils literal"><span class="pre">HgPoller</span></tt>, and can be used in a Change Filter for triggering particular builders.</dd>
+<dt><tt class="docutils literal"><span class="pre">usetimestamps</span></tt></dt>
+<dd>parse each revision's commit timestamp (default is <tt class="docutils literal"><span class="pre">True</span></tt>), or ignore it in favor of the current time (so recently processed commits appear together in the waterfall page)</dd>
+<dt><tt class="docutils literal"><span class="pre">encoding</span></tt></dt>
+<dd>Set encoding will be used to parse author's name and commit message.
+Default encoding is <tt class="docutils literal"><span class="pre">'utf-8'</span></tt>.</dd>
+</dl>
+<p>A configuration for the Mercurial poller might look like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">HgPoller</span><span class="p">(</span><span class="n">repourl</span><span class="o">=</span><span class="s">&#39;http://hg.example.org/projects/myrepo&#39;</span><span class="p">,</span>
+                                      <span class="n">branch</span><span class="o">=</span><span class="s">&#39;great_new_feature&#39;</span><span class="p">,</span>
+                                      <span class="n">workdir</span><span class="o">=</span><span class="s">&#39;hg-myrepo&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="bitbucketpullrequestpoller">
+<span id="chsrc-BitbucketPullrequestPoller"></span><span id="id18"></span><h2><a class="toc-backref" href="#id41">BitbucketPullrequestPoller</a><a class="headerlink" href="#bitbucketpullrequestpoller" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.changes.bitbucket.BitbucketPullrequestPoller">
+<em class="property">class </em><tt class="descclassname">buildbot.changes.bitbucket.</tt><tt class="descname">BitbucketPullrequestPoller</tt><a class="headerlink" href="#buildbot.changes.bitbucket.BitbucketPullrequestPoller" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>This <a class="reference internal" href="#chsrc-BitbucketPullrequestPoller" title="BitbucketPullrequestPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">BitbucketPullrequestPoller</span></tt></a> periodically polls Bitbucket for new or updated pull requests.
+It uses Bitbuckets powerful <a class="reference external" href="https://confluence.atlassian.com/display/BITBUCKET/pullrequests+Resource">Pull Request REST API</a> to gather the information needed.</p>
+<p>The <a class="reference internal" href="#chsrc-BitbucketPullrequestPoller" title="BitbucketPullrequestPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">BitbucketPullrequestPoller</span></tt></a> accepts the following arguments:</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">owner</span></tt></dt>
+<dd>The owner of the Bitbucket repository.
+All Bitbucket Urls are of the form <a class="reference external" href="https://bitbucket.org/owner/slug/">https://bitbucket.org/owner/slug/</a>.</dd>
+<dt><tt class="docutils literal"><span class="pre">slug</span></tt></dt>
+<dd>The name of the Bitbucket repository.</dd>
+<dt><tt class="docutils literal"><span class="pre">branch</span></tt></dt>
+<dd>A single branch or a list of branches which should be processed.
+If it is <tt class="docutils literal"><span class="pre">None</span></tt> (the default) all pull requests are used.</dd>
+<dt><tt class="docutils literal"><span class="pre">pollInterval</span></tt></dt>
+<dd>Interval in seconds between polls, default is 10 minutes.</dd>
+<dt><tt class="docutils literal"><span class="pre">pollAtLaunch</span></tt></dt>
+<dd>Determines when the first poll occurs.
+<tt class="docutils literal"><span class="pre">True</span></tt> = immediately on launch, <tt class="docutils literal"><span class="pre">False</span></tt> = wait for one <tt class="docutils literal"><span class="pre">pollInterval</span></tt> (default).</dd>
+<dt><tt class="docutils literal"><span class="pre">category</span></tt></dt>
+<dd>Set the category to be used for the changes produced by the <a class="reference internal" href="#chsrc-BitbucketPullrequestPoller" title="BitbucketPullrequestPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">BitbucketPullrequestPoller</span></tt></a>.
+This will then be set in any changes generated by the <a class="reference internal" href="#chsrc-BitbucketPullrequestPoller" title="BitbucketPullrequestPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">BitbucketPullrequestPoller</span></tt></a>, and can be used in a Change Filter for triggering particular builders.</dd>
+<dt><tt class="docutils literal"><span class="pre">project</span></tt></dt>
+<dd>Set the name of the project to be used for the <a class="reference internal" href="#chsrc-BitbucketPullrequestPoller" title="BitbucketPullrequestPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">BitbucketPullrequestPoller</span></tt></a>.
+This will then be set in any changes generated by the <tt class="docutils literal"><span class="pre">BitbucketPullrequestPoller</span></tt>, and can be used in a Change Filter for triggering particular builders.</dd>
+<dt><tt class="docutils literal"><span class="pre">pullrequest_filter</span></tt></dt>
+<dd>A callable which takes one parameter, the decoded Python object of the pull request JSON.
+If the it returns <tt class="docutils literal"><span class="pre">False</span></tt> the pull request is ignored.
+It can be used to define custom filters based on the content of the pull request.
+See the Bitbucket documentation for more information about the format of the response.
+By default the filter always returns <tt class="docutils literal"><span class="pre">True</span></tt>.</dd>
+<dt><tt class="docutils literal"><span class="pre">usetimestamps</span></tt></dt>
+<dd>parse each revision's commit timestamp (default is <tt class="docutils literal"><span class="pre">True</span></tt>), or ignore it in favor of the current time (so recently processed commits appear together in the waterfall page)</dd>
+<dt><tt class="docutils literal"><span class="pre">encoding</span></tt></dt>
+<dd>Set encoding will be used to parse author's name and commit message.
+Default encoding is <tt class="docutils literal"><span class="pre">'utf-8'</span></tt>.</dd>
+</dl>
+<p>A minimal configuration for the Bitbucket pull request poller might look like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">BitbucketPullrequestPoller</span><span class="p">(</span>
+    <span class="n">owner</span><span class="o">=</span><span class="s">&#39;myname&#39;</span><span class="p">,</span>
+    <span class="n">slug</span><span class="o">=</span><span class="s">&#39;myrepo&#39;</span><span class="p">,</span>
+  <span class="p">)</span>
+</pre></div>
+</div>
+<p>Here is a more complex configuration using a <tt class="docutils literal"><span class="pre">pullrequest_filter</span></tt>.
+The pull request is only processed if at least 3 people have already approved it:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span>
+
+<span class="k">def</span> <span class="nf">approve_filter</span><span class="p">(</span><span class="n">pr</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
+    <span class="n">approves</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">participant</span> <span class="ow">in</span> <span class="n">pr</span><span class="p">[</span><span class="s">&#39;participants&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">participant</span><span class="p">[</span><span class="s">&#39;approved&#39;</span><span class="p">]:</span>
+            <span class="n">approves</span> <span class="o">=</span> <span class="n">approves</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">approves</span> <span class="o">&lt;</span> <span class="n">threshold</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">return</span> <span class="bp">True</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">BitbucketPullrequestPoller</span><span class="p">(</span>
+    <span class="n">owner</span><span class="o">=</span><span class="s">&#39;myname&#39;</span><span class="p">,</span>
+    <span class="n">slug</span><span class="o">=</span><span class="s">&#39;myrepo&#39;</span><span class="p">,</span>
+    <span class="n">branch</span><span class="o">=</span><span class="s">&#39;mybranch&#39;</span><span class="p">,</span>
+    <span class="n">project</span><span class="o">=</span><span class="s">&#39;myproject&#39;</span><span class="p">,</span>
+    <span class="n">pullrequest_filter</span><span class="o">=</span><span class="k">lambda</span> <span class="n">pr</span><span class="p">:</span> <span class="n">approve_filter</span><span class="p">(</span><span class="n">pr</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span>
+    <span class="n">pollInterval</span><span class="o">=</span><span class="mi">600</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Anyone who can create pull requests for the Bitbucket repository can initiate a change, potentially causing the buildmaster to run arbitrary code.</p>
+</div>
+</div>
+<div class="section" id="gerritchangesource">
+<span id="chsrc-GerritChangeSource"></span><span id="id19"></span><h2><a class="toc-backref" href="#id42">GerritChangeSource</a><a class="headerlink" href="#gerritchangesource" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.changes.gerritchangesource.GerritChangeSource">
+<em class="property">class </em><tt class="descclassname">buildbot.changes.gerritchangesource.</tt><tt class="descname">GerritChangeSource</tt><a class="headerlink" href="#buildbot.changes.gerritchangesource.GerritChangeSource" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>The <a class="reference internal" href="#chsrc-GerritChangeSource" title="GerritChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">GerritChangeSource</span></tt></a> class connects to a Gerrit server by its SSH interface and uses its event source mechanism, <a class="reference external" href="http://gerrit.googlecode.com/svn/documentation/2.2.1/cmd-stream-events.html">gerrit stream-events</a>.</p>
+<p>The <a class="reference internal" href="#chsrc-GerritChangeSource" title="GerritChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">GerritChangeSource</span></tt></a> accepts the following arguments:</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">gerritserver</span></tt></dt>
+<dd>the dns or ip that host the gerrit ssh server</dd>
+<dt><tt class="docutils literal"><span class="pre">gerritport</span></tt></dt>
+<dd>the port of the gerrit ssh server</dd>
+<dt><tt class="docutils literal"><span class="pre">username</span></tt></dt>
+<dd>the username to use to connect to gerrit</dd>
+<dt><tt class="docutils literal"><span class="pre">identity_file</span></tt></dt>
+<dd>ssh identity file to for authentication (optional).
+Pay attention to the <cite>ssh passphrase</cite></dd>
+<dt><tt class="docutils literal"><span class="pre">handled_events</span></tt></dt>
+<dd>event to be handled (optional).
+By default processes <cite>patchset-created</cite> and <cite>ref-updated</cite></dd>
+</dl>
+<p>By default this class adds a change to the buildbot system for each of the following events:</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">patchset-created</span></tt></dt>
+<dd>A change is proposed for review.
+Automatic checks like <tt class="file docutils literal"><span class="pre">checkpatch.pl</span></tt> can be automatically triggered.
+Beware of what kind of automatic task you trigger.
+At this point, no trusted human has reviewed the code, and a patch could be specially crafted by an attacker to compromise your buildslaves.</dd>
+<dt><tt class="docutils literal"><span class="pre">ref-updated</span></tt></dt>
+<dd>A change has been merged into the repository.
+Typically, this kind of event can lead to a complete rebuild of the project, and upload binaries to an incremental build results server.</dd>
+</dl>
+<p>But you can specify how to handle Events:</p>
+<ul class="simple">
+<li>Any event with change and patchSet will be processed by universal collector by default.</li>
+<li>In case you've specified processing function for the given kind of events, all events of this kind will be processed only by this function, bypassing universal collector.</li>
+</ul>
+<p>An example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span>
+
+<span class="k">class</span> <span class="nc">MyGerritChangeSource</span><span class="p">(</span><span class="n">changes</span><span class="o">.</span><span class="n">GerritChangeSource</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Custom GerritChangeSource</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">eventReceived_patchset_created</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handler events without properties</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">properties</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addChangeFromEvent</span><span class="p">(</span><span class="n">properties</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This class will populate the property list of the triggered build with the info received from Gerrit server in JSON format.</p>
+<p id="index-5">In case of <tt class="docutils literal"><span class="pre">patchset-created</span></tt> event, these properties will be:</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">event.change.branch</span></tt></dt>
+<dd>Branch of the Change</dd>
+<dt><tt class="docutils literal"><span class="pre">event.change.id</span></tt></dt>
+<dd>Change's ID in the Gerrit system (the ChangeId: in commit comments)</dd>
+<dt><tt class="docutils literal"><span class="pre">event.change.number</span></tt></dt>
+<dd>Change's number in Gerrit system</dd>
+<dt><tt class="docutils literal"><span class="pre">event.change.owner.email</span></tt></dt>
+<dd>Change's owner email (owner is first uploader)</dd>
+<dt><tt class="docutils literal"><span class="pre">event.change.owner.name</span></tt></dt>
+<dd>Change's owner name</dd>
+<dt><tt class="docutils literal"><span class="pre">event.change.project</span></tt></dt>
+<dd>Project of the Change</dd>
+<dt><tt class="docutils literal"><span class="pre">event.change.subject</span></tt></dt>
+<dd>Change's subject</dd>
+<dt><tt class="docutils literal"><span class="pre">event.change.url</span></tt></dt>
+<dd>URL of the Change in the Gerrit's web interface</dd>
+<dt><tt class="docutils literal"><span class="pre">event.patchSet.number</span></tt></dt>
+<dd>Patchset's version number</dd>
+<dt><tt class="docutils literal"><span class="pre">event.patchSet.ref</span></tt></dt>
+<dd>Patchset's Gerrit &quot;virtual branch&quot;</dd>
+<dt><tt class="docutils literal"><span class="pre">event.patchSet.revision</span></tt></dt>
+<dd>Patchset's Git commit ID</dd>
+<dt><tt class="docutils literal"><span class="pre">event.patchSet.uploader.email</span></tt></dt>
+<dd>Patchset uploader's email (owner is first uploader)</dd>
+<dt><tt class="docutils literal"><span class="pre">event.patchSet.uploader.name</span></tt></dt>
+<dd>Patchset uploader's name (owner is first uploader)</dd>
+<dt><tt class="docutils literal"><span class="pre">event.type</span></tt></dt>
+<dd>Event type (<tt class="docutils literal"><span class="pre">patchset-created</span></tt>)</dd>
+<dt><tt class="docutils literal"><span class="pre">event.uploader.email</span></tt></dt>
+<dd>Patchset uploader's email</dd>
+<dt><tt class="docutils literal"><span class="pre">event.uploader.name</span></tt></dt>
+<dd>Patchset uploader's name</dd>
+</dl>
+<p>In case of <tt class="docutils literal"><span class="pre">ref-updated</span></tt> event, these properties will be:</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">event.refUpdate.newRev</span></tt></dt>
+<dd>New Git commit ID (after merger)</dd>
+<dt><tt class="docutils literal"><span class="pre">event.refUpdate.oldRev</span></tt></dt>
+<dd>Previous Git commit ID (before merger)</dd>
+<dt><tt class="docutils literal"><span class="pre">event.refUpdate.project</span></tt></dt>
+<dd>Project that was updated</dd>
+<dt><tt class="docutils literal"><span class="pre">event.refUpdate.refName</span></tt></dt>
+<dd>Branch that was updated</dd>
+<dt><tt class="docutils literal"><span class="pre">event.submitter.email</span></tt></dt>
+<dd>Submitter's email (merger responsible)</dd>
+<dt><tt class="docutils literal"><span class="pre">event.submitter.name</span></tt></dt>
+<dd>Submitter's name (merger responsible)</dd>
+<dt><tt class="docutils literal"><span class="pre">event.type</span></tt></dt>
+<dd>Event type (<tt class="docutils literal"><span class="pre">ref-updated</span></tt>)</dd>
+<dt><tt class="docutils literal"><span class="pre">event.submitter.email</span></tt></dt>
+<dd>Submitter's email (merger responsible)</dd>
+<dt><tt class="docutils literal"><span class="pre">event.submitter.name</span></tt></dt>
+<dd>Submitter's name (merger responsible)</dd>
+</dl>
+<p>A configuration for this source might look like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">GerritChangeSource</span><span class="p">(</span>
+    <span class="s">&quot;gerrit.example.com&quot;</span><span class="p">,</span>
+    <span class="s">&quot;gerrit_user&quot;</span><span class="p">,</span>
+    <span class="n">handled_events</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;patchset-created&quot;</span><span class="p">,</span> <span class="s">&quot;change-merged&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>See <tt class="file docutils literal"><span class="pre">master/docs/examples/git_gerrit.cfg</span></tt> or <tt class="file docutils literal"><span class="pre">master/docs/examples/repo_gerrit.cfg</span></tt> in the Buildbot distribution for a full example setup of Git+Gerrit or Repo+Gerrit of <a class="reference internal" href="#chsrc-GerritChangeSource" title="GerritChangeSource"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">GerritChangeSource</span></tt></a>.</p>
+</div>
+<div class="section" id="gerritchangefilter">
+<h2><a class="toc-backref" href="#id43">GerritChangeFilter</a><a class="headerlink" href="#gerritchangefilter" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.changes.gerritchangesource.GerritChangeFilter">
+<em class="property">class </em><tt class="descclassname">buildbot.changes.gerritchangesource.</tt><tt class="descname">GerritChangeFilter</tt><a class="headerlink" href="#buildbot.changes.gerritchangesource.GerritChangeFilter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>GerritChangeFilter is a ready to use ChangeFilter you can pass to AnyBranchScheduler in order to filter changes, to create pre-commit builders or post-commit schedulers.
+It has the same api as <a class="reference internal" href="cfg-schedulers.html#change-filters"><em>Change Filter</em></a>, except it has additionnal <cite>eventtype</cite> set of filter (can as well be specified as value, list, regular expression or callable)</p>
+<p>An example is following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># this scheduler will create builds when a patch is uploaded to gerrit</span>
+<span class="c"># but only if it is uploaded to the &quot;main&quot; branch</span>
+<span class="n">AnyBranchScheduler</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;main-precommit&quot;</span><span class="p">,</span>
+                   <span class="n">change_filter</span><span class="o">=</span><span class="n">GerritChangeFilter</span><span class="p">(</span><span class="n">branch</span><span class="o">=</span><span class="s">&quot;main&quot;</span><span class="p">,</span>
+                                                    <span class="n">eventtype</span><span class="o">=</span><span class="s">&quot;patchset-created&quot;</span><span class="p">),</span>
+                   <span class="n">treeStableTimer</span><span class="o">=</span><span class="mi">15</span><span class="o">*</span><span class="mi">60</span><span class="p">,</span>
+                   <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;main-precommit&quot;</span><span class="p">])</span>
+
+<span class="c"># this scheduler will create builds when a patch is merged in the &quot;main&quot; branch</span>
+<span class="c"># for post-commit tests</span>
+<span class="n">AnyBranchScheduler</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;main-postcommit&quot;</span><span class="p">,</span>
+                   <span class="n">change_filter</span><span class="o">=</span><span class="n">GerritChangeFilter</span><span class="p">(</span><span class="s">&quot;main&quot;</span><span class="p">,</span>
+                                                    <span class="s">&quot;ref-updated&quot;</span><span class="p">),</span>
+                   <span class="n">treeStableTimer</span><span class="o">=</span><span class="mi">15</span><span class="o">*</span><span class="mi">60</span><span class="p">,</span>
+                   <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;main-postcommit&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="change-hooks-http-notifications">
+<span id="chsrc-Change Hooks"></span><span id="id20"></span><h2><a class="toc-backref" href="#id44">Change Hooks (HTTP Notifications)</a><a class="headerlink" href="#change-hooks-http-notifications" title="Permalink to this headline">¶</a></h2>
+<p>Buildbot already provides a web frontend, and that frontend can easily be used to receive HTTP push notifications of commits from services like GitHub or GoogleCode.
+See <a class="reference internal" href="cfg-statustargets.html#change-hooks"><em>Change Hooks</em></a> for more information.</p>
+</div>
+<div class="section" id="googlecodeatompoller">
+<span id="chsrc-GoogleCodeAtomPoller"></span><span id="id21"></span><h2><a class="toc-backref" href="#id45">GoogleCodeAtomPoller</a><a class="headerlink" href="#googlecodeatompoller" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="#chsrc-GoogleCodeAtomPoller" title="GoogleCodeAtomPoller"><tt class="xref bb bb-chsrc docutils literal"><span class="pre">GoogleCodeAtomPoller</span></tt></a> periodically polls a Google Code Project's commit feed for changes.
+Works on SVN, Git, and Mercurial repositories.
+Branches are not understood (yet).
+It accepts the following arguments:</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">feedurl</span></tt></dt>
+<dd>The commit Atom feed URL of the GoogleCode repository (MANDATORY)</dd>
+<dt><tt class="docutils literal"><span class="pre">pollinterval</span></tt></dt>
+<dd>Polling frequency for the feed (in seconds).
+Default is 1 hour (OPTIONAL)</dd>
+</dl>
+<p>As an example, to poll the Ostinato project's commit feed every 3 hours, the configuration would look like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">GoogleCodeAtomPoller</span><span class="p">(</span>
+    <span class="n">feedurl</span><span class="o">=</span><span class="s">&quot;http://code.google.com/feeds/p/ostinato/hgchanges/basic&quot;</span><span class="p">,</span>
+    <span class="n">pollinterval</span><span class="o">=</span><span class="mi">10800</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You will need to download <tt class="docutils literal"><span class="pre">googlecode_atom.py</span></tt> from the Buildbot source and install it somewhere on your <span class="target" id="index-6"></span><tt class="xref std std-envvar docutils literal"><span class="pre">PYTHONPATH</span></tt> first.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+<h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concepts.html">Concepts</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="configuration.html">Configuration</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="cfg-intro.html">Configuring Buildbot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-global.html">Global Configuration</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="">Change Sources</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-schedulers.html">Schedulers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-buildslaves.html">Buildslaves</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-builders.html">Builder Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-buildfactories.html">Build Factories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-properties.html">Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-buildsteps.html">Build Steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-interlocks.html">Interlocks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-statustargets.html">Status Targets</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="customization.html">Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="new-style-steps.html">New-Style Build Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmdline.html">Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resources.html">Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html">Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins.html">Plugin Infrastructure in Buildbot</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">Release Notes for Buildbot 0.8.12</a></li>
+</ul>
+
+          <h3 style="margin-top: 1.5em;">Search</h3>
+          <form class="search" action="../search.html" method="get">
+            <input type="text" name="q" />
+            <input type="submit" value="Go" />
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+          </form>
+          <p class="searchtip" style="font-size: 90%">
+            Enter search terms or a module, class or function name.
+          </p>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <a href="cfg-global.html" title="Global Configuration"
+             >previous</a> |
+          <a href="cfg-schedulers.html" title="Schedulers"
+             >next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             >index</a>
+            <br/>
+            <a href="../_sources/manual/cfg-changesources.txt"
+               rel="nofollow">Show Source</a>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer">
+        &copy; Copyright Buildbot Team Members.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>
