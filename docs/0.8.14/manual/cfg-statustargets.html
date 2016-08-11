@@ -1,0 +1,1658 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Status Targets &mdash; Buildbot 0.8.14 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.8.14',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/buildbot.ico"/>
+    <link rel="top" title="Buildbot 0.8.14 documentation" href="../index.html" />
+    <link rel="up" title="Configuration" href="configuration.html" />
+    <link rel="next" title="Customization" href="customization.html" />
+    <link rel="prev" title="Interlocks" href="cfg-interlocks.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+          <p class="logo"><a href="../index.html">
+            <img class="logo" src="../_static/header-text-transparent.png" alt="Logo"/>
+          </a></p>
+        <div class="headertitle"><a
+          href="../index.html">Buildbot 0.8.14 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="cfg-interlocks.html" title="Interlocks"
+             accesskey="P">previous</a> |
+          <a href="customization.html" title="Customization"
+             accesskey="N">next</a> |
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="status-targets">
+<span id="cfg-status"></span><span id="id1"></span><h1>Status Targets<a class="headerlink" href="#status-targets" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#webstatus" id="id9">WebStatus</a><ul>
+<li><a class="reference internal" href="#configuration" id="id10">Configuration</a></li>
+<li><a class="reference internal" href="#buildbot-web-resources" id="id11">Buildbot Web Resources</a></li>
+<li><a class="reference internal" href="#webstatus-configuration-parameters" id="id12">WebStatus Configuration Parameters</a></li>
+<li><a class="reference internal" href="#change-hooks" id="id13">Change Hooks</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mailnotifier" id="id14">MailNotifier</a><ul>
+<li><a class="reference internal" href="#mailnotifier-arguments" id="id15">MailNotifier arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#irc-bot" id="id16">IRC Bot</a></li>
+<li><a class="reference internal" href="#pblistener" id="id17">PBListener</a></li>
+<li><a class="reference internal" href="#statuspush" id="id18">StatusPush</a></li>
+<li><a class="reference internal" href="#httpstatuspush" id="id19">HttpStatusPush</a></li>
+<li><a class="reference internal" href="#gerritstatuspush" id="id20">GerritStatusPush</a></li>
+<li><a class="reference internal" href="#githubstatus" id="id21">GitHubStatus</a></li>
+<li><a class="reference internal" href="#stashstatuspush" id="id22">StashStatusPush</a></li>
+</ul>
+</div>
+<p>The Buildmaster has a variety of ways to present build status to various users.
+Each such delivery method is a <cite>Status Target</cite> object in the configuration's <a class="reference internal" href="#cfg-status" title="status"><code class="xref bb bb-cfg docutils literal"><span class="pre">status</span></code></a> list.
+To add status targets, you just append more objects to this list:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">status</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span><span class="n">http_port</span><span class="o">=</span><span class="mi">8010</span><span class="p">))</span>
+
+<span class="n">m</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">MailNotifier</span><span class="p">(</span><span class="n">fromaddr</span><span class="o">=</span><span class="s2">&quot;buildbot@localhost&quot;</span><span class="p">,</span>
+                        <span class="n">extraRecipients</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;builds@lists.example.com&quot;</span><span class="p">],</span>
+                        <span class="n">sendToInterestedUsers</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">IRC</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s2">&quot;irc.example.com&quot;</span><span class="p">,</span> <span class="n">nick</span><span class="o">=</span><span class="s2">&quot;bb&quot;</span><span class="p">,</span>
+                              <span class="n">channels</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;channel&quot;</span><span class="p">:</span> <span class="s2">&quot;#example1&quot;</span><span class="p">},</span>
+                                        <span class="p">{</span><span class="s2">&quot;channel&quot;</span><span class="p">:</span> <span class="s2">&quot;#example2&quot;</span><span class="p">,</span>
+                                         <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;somesecretpassword&quot;</span><span class="p">}]))</span>
+</pre></div>
+</div>
+<p>Most status delivery objects take a <code class="docutils literal"><span class="pre">tags=</span></code> argument, which can contain a list of <cite>tag</cite> names: in this case, it will only show status for Builders that have one of the named tags.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Implementation Note</p>
+<p class="last">Each of these objects should be a <code class="xref py py-class docutils literal"><span class="pre">service.MultiService</span></code> which will be attached to the BuildMaster object when the configuration is processed.
+They should use <code class="docutils literal"><span class="pre">self.parent.getStatus()</span></code> to get access to the top-level <code class="xref py py-class docutils literal"><span class="pre">IStatus</span></code> object, either inside <code class="xref py py-meth docutils literal"><span class="pre">startService</span></code> or later.
+They may call <code class="xref py py-meth docutils literal"><span class="pre">status.subscribe</span></code> in <code class="xref py py-meth docutils literal"><span class="pre">startService</span></code> to receive notifications of builder events, in which case they must define <code class="xref py py-meth docutils literal"><span class="pre">builderAdded</span></code> and related methods.
+See the docstrings in <code class="file docutils literal"><span class="pre">buildbot/interfaces.py</span></code> for full details.</p>
+</div>
+<p>The remainder of this section describes each built-in status target.
+A full list of status targets is available in the <a class="reference internal" href="../bb-status.html" title="Status Target Index"><em>Status Target Index</em></a>.</p>
+<div class="section" id="webstatus">
+<span id="status-WebStatus"></span><h2><a class="toc-backref" href="#id9">WebStatus</a><a class="headerlink" href="#webstatus" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.status.web.baseweb.WebStatus">
+<em class="property">class </em><code class="descclassname">buildbot.status.web.baseweb.</code><code class="descname">WebStatus</code><a class="headerlink" href="#buildbot.status.web.baseweb.WebStatus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>The <code class="xref py py-class docutils literal"><span class="pre">buildbot.status.html.WebStatus</span></code> status target runs a small web server inside the buildmaster.
+You can point a browser at this web server and retrieve information about every build the buildbot knows about, as well as find out what the buildbot is currently working on.</p>
+<p>The first page you will see is the <em>Welcome Page</em>, which contains links to all the other useful pages. By default, this page is served from the <code class="file docutils literal"><span class="pre">status/web/templates/root.html</span></code> file in buildbot's library area.</p>
+<p>One of the most complex resource provided by <code class="xref py py-class docutils literal"><span class="pre">WebStatus</span></code> is the <em>Waterfall Display</em>, which shows a time-based chart of events.
+This somewhat-busy display provides detailed information about all steps of all recent builds, and provides hyperlinks to look at individual build logs and source changes.
+By simply reloading this page on a regular basis, you will see a complete description of everything the buildbot is currently working on.</p>
+<p>A similar, but more developer-oriented display is the <cite>Grid</cite> display.
+This arranges builds by <code class="xref py py-class docutils literal"><span class="pre">SourceStamp</span></code> (horizontal axis) and builder (vertical axis), and can provide quick information as to which revisions are passing or failing on which builders.</p>
+<p>There are also pages with more specialized information.
+For example, there is a page which shows the last 20 builds performed by the buildbot, one line each.
+Each line is a link to detailed information about that build.
+By adding query arguments to the URL used to reach this page, you can narrow the display to builds that involved certain branches, or which ran on certain <code class="xref py py-class docutils literal"><span class="pre">Builder</span></code>s.
+These pages are described in great detail below.</p>
+<div class="section" id="configuration">
+<h3><a class="toc-backref" href="#id10">Configuration</a><a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
+<p>The simplest possible configuration for WebStatus is:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">status</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span><span class="mi">8080</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Buildbot uses a templating system for the web interface.
+The source of these templates can be found in the <code class="file docutils literal"><span class="pre">status/web/templates/</span></code> directory in buildbot's library area.
+You can override these templates by creating alternate versions in a <code class="file docutils literal"><span class="pre">templates/</span></code> directory within the buildmaster's base directory.</p>
+<p>If that isn't enough you can also provide additional Jinja2 template loaders:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">jinja2</span>
+<span class="n">myloaders</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">jinja2</span><span class="o">.</span><span class="n">FileSystemLoader</span><span class="p">(</span><span class="s2">&quot;/tmp/mypath&quot;</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span>
+    <span class="c1"># ...</span>
+    <span class="n">jinja_loaders</span> <span class="o">=</span> <span class="n">myloaders</span>
+<span class="p">))</span>
+</pre></div>
+</div>
+<p>The first time a buildmaster is created, the <code class="file docutils literal"><span class="pre">public_html/</span></code> directory is populated with some sample files, which you will probably want to customize for your own project.
+These files are all static: the Buildbot does not modify them in any way as it serves them to HTTP clients.</p>
+<p>Templates in <code class="file docutils literal"><span class="pre">templates/</span></code> take precedence over static files in <code class="file docutils literal"><span class="pre">public_html/</span></code>.</p>
+<p>The initial <code class="file docutils literal"><span class="pre">robots.txt</span></code> file has Disallow lines for all of the dynamically-generated buildbot pages, to discourage web spiders and search engines from consuming a lot of CPU time as they crawl through the entire history of your buildbot.
+If you are running the buildbot behind a reverse proxy, you'll probably need to put the <code class="file docutils literal"><span class="pre">robots.txt</span></code> file somewhere else (at the top level of the parent web server), and replace the URL prefixes in it with more suitable values.</p>
+<p>If you would like to use an alternative root directory, add the <code class="docutils literal"><span class="pre">public_html=</span></code> option to the <code class="xref py py-class docutils literal"><span class="pre">WebStatus</span></code> creation:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span><span class="mi">8080</span><span class="p">,</span> <span class="n">public_html</span><span class="o">=</span><span class="s2">&quot;/var/www/buildbot&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>In addition, if you are familiar with twisted.web <em>Resource Trees</em>, you can write code to add additional pages at places inside this web space.
+Just use <code class="xref py py-meth docutils literal"><span class="pre">webstatus.putChild</span></code> to place these resources.</p>
+<p>The following section describes the special URLs and the status views they provide.</p>
+</div>
+<div class="section" id="buildbot-web-resources">
+<h3><a class="toc-backref" href="#id11">Buildbot Web Resources</a><a class="headerlink" href="#buildbot-web-resources" title="Permalink to this headline">¶</a></h3>
+<p>Certain URLs are <cite>magic</cite>, and the pages they serve are created by code in various classes in the <code class="file docutils literal"><span class="pre">buildbot.status.web</span></code> package instead of being read from disk.
+The most common way to access these pages is for the buildmaster admin to write or modify the <code class="file docutils literal"><span class="pre">index.html</span></code> page to contain links to them.
+Of course other project web pages can contain links to these buildbot pages as well.</p>
+<p>Many pages can be modified by adding query arguments to the URL.
+For example, a page which shows the results of the most recent build normally does this for all builders at once.
+But by appending <code class="docutils literal"><span class="pre">?builder=i386</span></code> to the end of the URL, the page will show only the results for the <cite>i386</cite> builder.
+When used in this way, you can add multiple <code class="docutils literal"><span class="pre">builder=</span></code> arguments to see multiple builders.
+Remembering that URL query arguments are separated <em>from each other</em> with ampersands, a URL that ends in <code class="docutils literal"><span class="pre">?builder=i386&amp;builder=ppc</span></code> would show builds for just those two Builders.</p>
+<p>The <code class="docutils literal"><span class="pre">branch=</span></code> query argument can be used on some pages.
+This filters the information displayed by that page down to only the builds or changes which involved the given branch.
+Use <code class="docutils literal"><span class="pre">branch=trunk</span></code> to reference the trunk: if you aren't intentionally using branches, you're probably using trunk.
+Multiple <code class="docutils literal"><span class="pre">branch=</span></code> arguments can be used to examine multiple branches at once (so appending <code class="docutils literal"><span class="pre">?branch=foo&amp;branch=bar</span></code> to the URL will show builds involving either branch).
+No <code class="docutils literal"><span class="pre">branch=</span></code> arguments means to show builds and changes for all branches.</p>
+<p>Some pages may include the Builder name or the build number in the main part of the URL itself.
+For example, a page that describes Build #7 of the <cite>i386</cite> builder would live at <code class="file docutils literal"><span class="pre">/builders/i386/builds/7</span></code>.</p>
+<p>The table below lists all of the internal pages and the URLs that can be used to access them.</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">/waterfall</span></code></dt>
+<dd><p class="first">This provides a chronologically-oriented display of the activity of all builders.
+It is the same display used by the Waterfall display.</p>
+<p>By adding one or more <code class="docutils literal"><span class="pre">builder=</span></code> query arguments, the Waterfall is restricted to only showing information about the given Builders.
+By adding one or more <code class="docutils literal"><span class="pre">branch=</span></code> query arguments, the display is restricted to showing information about the given branches.
+In addition, adding one or more <code class="docutils literal"><span class="pre">tag=</span></code> query arguments to the URL will limit the display to Builders that were defined with one of the given tags.</p>
+<p>A <code class="docutils literal"><span class="pre">show_events=true</span></code> query argument causes the display to include non-<code class="xref py py-class docutils literal"><span class="pre">Build</span></code> events, like slaves attaching and detaching, as well as reconfiguration events.
+<code class="docutils literal"><span class="pre">show_events=false</span></code> hides these events.
+The default is to show them.</p>
+<p>By adding the <code class="docutils literal"><span class="pre">failures_only=true</span></code> query argument, the Waterfall is restricted to only showing information about the builders that are currently failing.
+A builder is considered failing if the last finished build was not successful, a step in the current build(s) is failing, or if the builder is offline.</p>
+<p>The <code class="docutils literal"><span class="pre">last_time=</span></code>, <code class="docutils literal"><span class="pre">first_time=</span></code>, and  <code class="docutils literal"><span class="pre">show_time=</span></code> arguments will control what interval of time is displayed.
+The default is to show the latest events, but these can be used to look at earlier periods in history.
+The <code class="docutils literal"><span class="pre">num_events=</span></code> argument also provides a limit on the size of the displayed page.</p>
+<p class="last">The Waterfall has references to resources many of the other portions of the URL space: <code class="file docutils literal"><span class="pre">/builders</span></code> for access to individual builds, <code class="file docutils literal"><span class="pre">/changes</span></code> for access to information about source code changes, etc.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">/grid</span></code></dt>
+<dd><p class="first">This provides a chronologically oriented display of builders, by revision.
+The builders are listed down the left side of the page, and the revisions are listed across the top.</p>
+<p>By adding one or more <code class="docutils literal"><span class="pre">tag=</span></code> arguments the grid will be restricted to builders with those tags.</p>
+<p>A <code class="samp docutils literal"><span class="pre">width=</span><em><span class="pre">N</span></em></code> argument will limit the number of revisions shown to <em>N</em>, defaulting to 5.</p>
+<p class="last">A <code class="samp docutils literal"><span class="pre">branch=</span><em><span class="pre">BRANCHNAME</span></em></code> argument will limit the grid to revisions on branch <em>BRANCHNAME</em>.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">/tgrid</span></code></dt>
+<dd><p class="first">The Transposed Grid is similar to the standard grid, but, as the name implies, transposes the grid: the revisions are listed down the left side of the page, and the build hosts are listed across the top.
+It accepts the same query arguments.
+The exception being that instead of <code class="docutils literal"><span class="pre">width</span></code> the argument is named <code class="docutils literal"><span class="pre">length</span></code>.</p>
+<p class="last">This page also has a <code class="docutils literal"><span class="pre">rev_order=</span></code> query argument that lets you change in what order revisions are shown.
+Valid values are <code class="docutils literal"><span class="pre">asc</span></code> (ascending, oldest revision first) and <code class="docutils literal"><span class="pre">desc</span></code> (descending, newest revision first).</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">/console</span></code></dt>
+<dd><p class="first">EXPERIMENTAL: This provides a developer-oriented display of the last changes and how they affected the builders.</p>
+<p>It allows a developer to quickly see the status of each builder for the first build including his or her change.
+A green box means that the change succeeded for all the steps for a given builder.
+A red box means that the changed introduced a new regression on a builder.
+An orange box means that at least one of the tests failed, but it was also failing in the previous build, so it is not possible to see if there were any regressions from this change.
+Finally a yellow box means that the test is in progress.</p>
+<p>By adding one or more <code class="docutils literal"><span class="pre">builder=</span></code> query arguments, the Console view is restricted to only showing information about the given Builders.
+Adding a <code class="docutils literal"><span class="pre">repository=</span></code> argument will limit display to a given repository.
+By adding one or more <code class="docutils literal"><span class="pre">branch=</span></code> query arguments, the display is restricted to showing information about the given branches.
+In addition, adding one or more <code class="docutils literal"><span class="pre">tag=</span></code> query arguments to the URL will limit the display to Builders that were defined with one of the given tags.
+With the <code class="docutils literal"><span class="pre">project=</span></code> query argument, it's possible to restrict the view to changes from the given project.
+With the <code class="docutils literal"><span class="pre">codebase=</span></code> query argument, it's possible to restrict the view to changes for the given codebase.</p>
+<p>By adding one or more <code class="docutils literal"><span class="pre">name=</span></code> query arguments to the URL, the console view is restricted to only showing changes made by the given users.</p>
+<p>NOTE: To use this page, your <code class="file docutils literal"><span class="pre">buildbot.css</span></code> file in <code class="file docutils literal"><span class="pre">public_html</span></code> must be the one found in <a class="reference external" href="https://github.com/buildbot/buildbot/blob/master/master/buildbot/status/web/files/default.css" title="master/buildbot/status/web/files/default.css"><code class="docutils literal"><span class="pre">master/buildbot/status/web/files/default.css</span></code></a>.
+This is the default for new installs, but upgrades of very old installs of Buildbot may need to manually fix the CSS file.</p>
+<p>The console view is still in development.
+At this moment by default the view sorts revisions lexically, which can lead to odd behavior with non-integer revisions (e.g., Git), or with integer revisions of different length (e.g., 999 and 1000).
+It also has some issues with displaying multiple branches at the same time.
+If you do have multiple branches, you should use the <code class="docutils literal"><span class="pre">branch=</span></code> query argument.
+The <code class="docutils literal"><span class="pre">order_console_by_time</span></code> option may help sorting revisions, although it depends on the date being set correctly in each commit:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="n">w</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span><span class="n">http_port</span><span class="o">=</span><span class="mi">8080</span><span class="p">,</span> <span class="n">order_console_by_time</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt><code class="docutils literal"><span class="pre">/rss</span></code></dt>
+<dd>This provides a rss feed summarizing all failed builds.
+The same query-arguments used by 'waterfall' can be added to filter the feed output.</dd>
+<dt><code class="docutils literal"><span class="pre">/atom</span></code></dt>
+<dd>This provides an atom feed summarizing all failed builds.
+The same query-arguments used by 'waterfall' can be added to filter the feed output.</dd>
+<dt><code class="docutils literal"><span class="pre">/json</span></code></dt>
+<dd>This view provides quick access to Buildbot status information in a form that is easily digested from other programs, including JavaScript.
+See <code class="docutils literal"><span class="pre">/json/help</span></code> for detailed interactive documentation of the output formats for this view.</dd>
+<dt><code class="samp docutils literal"><span class="pre">/buildstatus?builder=$</span><em><span class="pre">BUILDERNAME</span></em><span class="pre">&amp;number=$</span><em><span class="pre">BUILDNUM</span></em></code></dt>
+<dd>This displays a waterfall-like chronologically-oriented view of all the steps for a given build number on a given builder.</dd>
+<dt><code class="samp docutils literal"><span class="pre">/builders/$</span><em><span class="pre">BUILDERNAME</span></em></code></dt>
+<dd>This describes the given <code class="xref py py-class docutils literal"><span class="pre">Builder</span></code> and provides buttons to force a build.
+A <code class="docutils literal"><span class="pre">numbuilds=</span></code> argument will control how many build lines are displayed (5 by default).
+This page also accepts property filters of the form <code class="docutils literal"><span class="pre">property.${PROPERTYNAME}=${PROPERTVALUE}</span></code>.
+When used, only builds and build requests which have properties with matching string representations will be shown.</dd>
+<dt><code class="samp docutils literal"><span class="pre">/builders/$</span><em><span class="pre">BUILDERNAME</span></em><span class="pre">/builds/$</span><em><span class="pre">BUILDNUM</span></em></code></dt>
+<dd>This describes a specific Build.</dd>
+<dt><code class="samp docutils literal"><span class="pre">/builders/$</span><em><span class="pre">BUILDERNAME</span></em><span class="pre">/builds/$</span><em><span class="pre">BUILDNUM</span></em><span class="pre">/steps/$</span><em><span class="pre">STEPNAME</span></em></code></dt>
+<dd>This describes a specific BuildStep.</dd>
+<dt><code class="samp docutils literal"><span class="pre">/builders/$</span><em><span class="pre">BUILDERNAME</span></em><span class="pre">/builds/$</span><em><span class="pre">BUILDNUM</span></em><span class="pre">/steps/$</span><em><span class="pre">STEPNAME</span></em><span class="pre">/logs/$</span><em><span class="pre">LOGNAME</span></em></code></dt>
+<dd>This provides an HTML representation of a specific logfile.</dd>
+<dt><code class="samp docutils literal"><span class="pre">/builders/$</span><em><span class="pre">BUILDERNAME</span></em><span class="pre">/builds/$</span><em><span class="pre">BUILDNUM</span></em><span class="pre">/steps/$</span><em><span class="pre">STEPNAME</span></em><span class="pre">/logs/$</span><em><span class="pre">LOGNAME</span></em><span class="pre">/text</span></code></dt>
+<dd>This returns the logfile as plain text, without any HTML coloring markup.
+It also removes the <cite>headers</cite>, which are the lines that describe what command was run and what the environment variable settings were like.
+This maybe be useful for saving to disk and feeding to tools like <strong class="command">grep</strong>.</dd>
+<dt><code class="docutils literal"><span class="pre">/changes</span></code></dt>
+<dd>This provides a brief description of the <code class="xref py py-class docutils literal"><span class="pre">ChangeSource</span></code> in use (see <a class="reference internal" href="cfg-changesources.html#change-sources"><span class="std std-ref">Change Sources</span></a>).</dd>
+<dt><code class="samp docutils literal"><span class="pre">/changes/</span><em><span class="pre">NN</span></em></code></dt>
+<dd>This shows detailed information about the numbered <code class="xref py py-class docutils literal"><span class="pre">Change</span></code>: who was the author, what files were changed, what revision number was represented, etc.</dd>
+<dt><code class="docutils literal"><span class="pre">/buildslaves</span></code></dt>
+<dd><p class="first">This summarizes each <code class="xref py py-class docutils literal"><span class="pre">BuildSlave</span></code>, including which <cite>Builder</cite>s are configured to use it, whether the buildslave is currently connected or not, and host information retrieved from the buildslave itself.</p>
+<p class="last">A <code class="docutils literal"><span class="pre">no_builders=1</span></code> URL argument will omit the builders column.
+This is useful if each buildslave is assigned to a large number of builders.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">/one_line_per_build</span></code></dt>
+<dd><p class="first">This page shows one line of text for each build, merging information from all <code class="xref py py-class docutils literal"><span class="pre">Builder</span></code>s <a class="footnote-reference" href="#id7" id="id2">[1]</a>.
+Each line specifies the name of the Builder, the number of the <code class="xref py py-class docutils literal"><span class="pre">Build</span></code>, what revision it used, and a summary of the results.
+Successful builds are in green, while failing builds are in red.
+The date and time of the build are added to the right-hand edge of the line.
+The lines are ordered by build finish timestamp.</p>
+<p class="last">One or more <code class="docutils literal"><span class="pre">builder=</span></code> or <code class="docutils literal"><span class="pre">branch=</span></code> arguments can be used to restrict the list.
+In addition, a <code class="docutils literal"><span class="pre">numbuilds=</span></code> argument will control how many lines are displayed (20 by default).</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">/builders</span></code></dt>
+<dd><p class="first">This page shows a small table, with one box for each <code class="xref py py-class docutils literal"><span class="pre">Builder</span></code>, containing the results of the most recent <code class="xref py py-class docutils literal"><span class="pre">Build</span></code>.
+It does not show the individual steps, or the current status.
+This is a simple summary of buildbot status: if this page is green, then all tests are passing.</p>
+<p class="last">As with <code class="docutils literal"><span class="pre">/one_line_per_build</span></code>, this page will also honor <code class="docutils literal"><span class="pre">builder=</span></code> and <code class="docutils literal"><span class="pre">branch=</span></code> arguments.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">/png</span></code></dt>
+<dd>This view produces an image in png format with information about the last build for the given builder name or whatever other build number if is passed as an argument to the view.</dd>
+<dt><code class="samp docutils literal"><span class="pre">/png?builder=$</span><em><span class="pre">BUILDERNAME</span></em><span class="pre">&amp;number=$BUILDNUM&amp;size=large</span></code></dt>
+<dd><p class="first">This generate a large png image reporting the status of the given $BUILDNUM for the given builder $BUILDERNAME.
+The sizes are <cite>small</cite>, <cite>normal</cite> and <cite>large</cite> if no size is given the <cite>normal</cite> size is returned, if no $BUILDNUM is given the last build is returned.
+For example:</p>
+<img alt="../_images/success_normal.png" class="last" src="../_images/success_normal.png" />
+</dd>
+<dt><code class="samp docutils literal"><span class="pre">/png?builder=$</span><em><span class="pre">BUILDERNAME</span></em><span class="pre">&amp;revision=$REVHASH&amp;size=large</span></code></dt>
+<dd>This generate a large png image reporting the status of the build of the given $REVHASH for the given builder $BUILDERNAME.
+If both number and revision are specified revision will be ignored.
+$REVHASH must be the full length hash not the short one.</dd>
+</dl>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Buildbot stores old build details in pickle files so it's a good idea to enable cache if you are planning to actively search build statuses by revision.</p>
+</div>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">/users</span></code></dt>
+<dd>This page exists for authentication reasons when checking <code class="docutils literal"><span class="pre">showUsersPage</span></code>.
+It'll redirect to <code class="docutils literal"><span class="pre">/authfail</span></code> on <code class="docutils literal"><span class="pre">False</span></code>, <code class="docutils literal"><span class="pre">/users/table</span></code> on <code class="docutils literal"><span class="pre">True</span></code>, and give a username/password login prompt on <code class="docutils literal"><span class="pre">'auth'</span></code>.
+Passing or failing results redirect to the same pages as <code class="docutils literal"><span class="pre">False</span></code> and <code class="docutils literal"><span class="pre">True</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">/users/table</span></code></dt>
+<dd>This page shows a table containing users that are stored in the database.
+It has columns for their respective <code class="docutils literal"><span class="pre">uid</span></code> and <code class="docutils literal"><span class="pre">identifier</span></code> values, with the <code class="docutils literal"><span class="pre">uid</span></code> values being clickable for more detailed information relating to a user.</dd>
+<dt><code class="docutils literal"><span class="pre">/users/table/{NN}</span></code></dt>
+<dd>Shows all the attributes stored in the database relating to the user with uid <code class="docutils literal"><span class="pre">{NN}</span></code> in a table.</dd>
+<dt><code class="docutils literal"><span class="pre">/about</span></code></dt>
+<dd>This page gives a brief summary of the Buildbot itself: software version, versions of some libraries that the Buildbot depends upon, etc.
+It also contains a link to the buildbot.net home page.</dd>
+</dl>
+<p>There is also a set of web-status resources that are intended for use by other programs, rather than humans.</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">/change_hook</span></code></dt>
+<dd>This provides an endpoint for web-based source change notification.
+It is used by GitHub and contrib/post_build_request.py.
+See <a class="reference internal" href="#change-hooks"><span class="std std-ref">Change Hooks</span></a> for more details.</dd>
+</dl>
+</div>
+<div class="section" id="webstatus-configuration-parameters">
+<h3><a class="toc-backref" href="#id12">WebStatus Configuration Parameters</a><a class="headerlink" href="#webstatus-configuration-parameters" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="http-connection">
+<h4>HTTP Connection<a class="headerlink" href="#http-connection" title="Permalink to this headline">¶</a></h4>
+<p>The most common way to run a <code class="xref py py-class docutils literal"><span class="pre">WebStatus</span></code> is on a regular TCP port.
+To do this, just pass in the TCP port number when you create the <code class="xref py py-class docutils literal"><span class="pre">WebStatus</span></code> instance; this is called the <code class="docutils literal"><span class="pre">http_port</span></code> argument:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">status</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span><span class="n">http_port</span><span class="o">=</span><span class="mi">8080</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">http_port</span></code> argument is actually a <cite>strports specification</cite> for the port that the web server should listen on.
+This can be a simple port number, or a string like <code class="docutils literal"><span class="pre">http_port=&quot;tcp:8080:interface=127.0.0.1&quot;</span></code> (to limit connections to the loopback interface, and therefore to clients running on the same host) <a class="footnote-reference" href="#id8" id="id3">[2]</a>.</p>
+<p>If instead (or in addition) you provide the <code class="docutils literal"><span class="pre">distrib_port</span></code> argument, a twisted.web distributed server will be started either on a TCP port (if <code class="docutils literal"><span class="pre">distrib_port</span></code> is like <code class="docutils literal"><span class="pre">&quot;tcp:12345&quot;</span></code>) or more likely on a UNIX socket (if <code class="docutils literal"><span class="pre">distrib_port</span></code> is like <code class="docutils literal"><span class="pre">&quot;unix:/path/to/socket&quot;</span></code>).</p>
+<p>The <code class="docutils literal"><span class="pre">public_html</span></code> option gives the path to a regular directory of HTML files that will be displayed alongside the various built-in URLs buildbot supplies.
+This is most often used to supply CSS files (<code class="file docutils literal"><span class="pre">/buildbot.css</span></code>) and a top-level navigational file (<code class="file docutils literal"><span class="pre">/index.html</span></code>), but can also serve any other files required - even build results!</p>
+</div>
+<div class="section" id="authorization">
+<span id="id4"></span><h4>Authorization<a class="headerlink" href="#authorization" title="Permalink to this headline">¶</a></h4>
+<p>The buildbot web status is, by default, read-only.
+It displays lots of information, but users are not allowed to affect the operation of the buildmaster.
+However, there are a number of supported activities that can be enabled, and Buildbot can also perform rudimentary username/password authentication.
+The actions are:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">view</span></code></dt>
+<dd>view buildbot web status</dd>
+<dt><code class="docutils literal"><span class="pre">forceBuild</span></code></dt>
+<dd>force a particular builder to begin building, optionally with a specific revision, branch, etc.</dd>
+<dt><code class="docutils literal"><span class="pre">forceAllBuilds</span></code></dt>
+<dd>force <em>all</em> builders to start building</dd>
+<dt><code class="docutils literal"><span class="pre">pingBuilder</span></code></dt>
+<dd>&quot;ping&quot; a builder's buildslaves to check that they are alive</dd>
+<dt><code class="docutils literal"><span class="pre">gracefulShutdown</span></code></dt>
+<dd>gracefully shut down a slave when it is finished with its current build</dd>
+<dt><code class="docutils literal"><span class="pre">pauseSlave</span></code></dt>
+<dd>temporarily stop running new builds on a slave</dd>
+<dt><code class="docutils literal"><span class="pre">stopBuild</span></code></dt>
+<dd>stop a running build</dd>
+<dt><code class="docutils literal"><span class="pre">stopAllBuilds</span></code></dt>
+<dd>stop all running builds</dd>
+<dt><code class="docutils literal"><span class="pre">cancelPendingBuild</span></code></dt>
+<dd>cancel a build that has not yet started</dd>
+<dt><code class="docutils literal"><span class="pre">cancelAllPendingBuilds</span></code></dt>
+<dd>cancel all or selected subset of builds that has not yet started</dd>
+<dt><code class="docutils literal"><span class="pre">stopChange</span></code></dt>
+<dd>cancel builds that include a given change number</dd>
+<dt><code class="docutils literal"><span class="pre">cleanShutdown</span></code></dt>
+<dd>shut down the master gracefully, without interrupting builds</dd>
+<dt><code class="docutils literal"><span class="pre">showUsersPage</span></code></dt>
+<dd>access to page displaying users in the database, see <a class="reference internal" href="concepts.html#user-objects"><span class="std std-ref">User Objects</span></a></dd>
+</dl>
+<p>For each of these actions, you can configure buildbot to never allow the action, always allow the action, allow the action to any authenticated user, or check with a function of your creation to determine whether the action is OK (see below).</p>
+<p>This is all configured with the <code class="xref py py-class docutils literal"><span class="pre">Authz</span></code> class:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">status</span><span class="p">,</span> <span class="n">util</span>
+
+<span class="n">authz</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Authz</span><span class="p">(</span><span class="n">forceBuild</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stopBuild</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span><span class="n">http_port</span><span class="o">=</span><span class="mi">8080</span><span class="p">,</span> <span class="n">authz</span><span class="o">=</span><span class="n">authz</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Each of the actions listed above is an option to <code class="xref py py-class docutils literal"><span class="pre">Authz</span></code>.
+You can specify <code class="docutils literal"><span class="pre">False</span></code> (the default) to prohibit that action or <code class="docutils literal"><span class="pre">True</span></code> to enable it.
+Or you can specify a callable.
+Each such callable will take a username as its first argument.
+The remaining arguments vary depending on the type of authorization request.
+For <code class="docutils literal"><span class="pre">forceBuild</span></code>, the second argument is the builder status.</p>
+</div>
+<div class="section" id="authentication">
+<h4>Authentication<a class="headerlink" href="#authentication" title="Permalink to this headline">¶</a></h4>
+<p>If you do not wish to allow strangers to perform actions, but do want developers to have such access, you will need to add some authentication support.
+Pass an instance of <code class="xref py py-class docutils literal"><span class="pre">status.web.auth.IAuth</span></code> as a <code class="docutils literal"><span class="pre">auth</span></code> keyword argument to <code class="xref py py-class docutils literal"><span class="pre">Authz</span></code>, and specify the action as <code class="docutils literal"><span class="pre">&quot;auth&quot;</span></code>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">status</span><span class="p">,</span> <span class="n">util</span>
+
+<span class="n">users</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s1">&#39;bob&#39;</span><span class="p">,</span> <span class="s1">&#39;secret-pass&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;jill&#39;</span><span class="p">,</span> <span class="s1">&#39;super-pass&#39;</span><span class="p">)</span>
+<span class="p">]</span>
+<span class="n">authz</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Authz</span><span class="p">(</span><span class="n">auth</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">BasicAuth</span><span class="p">(</span><span class="n">users</span><span class="p">),</span>
+    <span class="n">forceBuild</span><span class="o">=</span><span class="s1">&#39;auth&#39;</span><span class="p">,</span> <span class="c1"># only authenticated users</span>
+    <span class="n">pingBuilder</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="c1"># but anyone can do this</span>
+<span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span><span class="n">http_port</span><span class="o">=</span><span class="mi">8080</span><span class="p">,</span> <span class="n">authz</span><span class="o">=</span><span class="n">authz</span><span class="p">))</span>
+<span class="c1"># or</span>
+<span class="n">auth</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">HTPasswdAuth</span><span class="p">(</span><span class="s1">&#39;/path/to/htpasswd&#39;</span><span class="p">)</span>
+<span class="c1"># or</span>
+<span class="n">auth</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">UsersAuth</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The class <code class="xref py py-class docutils literal"><span class="pre">BasicAuth</span></code> implements a basic authentication mechanism using a list of user/password tuples provided from the configuration file.
+The class <cite>HTPasswdAuth</cite> implements an authentication against an <code class="file docutils literal"><span class="pre">.htpasswd</span></code> file.
+The <cite>HTPasswdAprAuth</cite> a subclass of <cite>HTPasswdAuth</cite> use libaprutil for authenticating.
+This adds support for apr1/md5 and sha1 password hashes but requires libaprutil at runtime.
+The <code class="xref py py-class docutils literal"><span class="pre">UsersAuth</span></code> works with <a class="reference internal" href="concepts.html#user-objects"><span class="std std-ref">User Objects</span></a> to check for valid user credentials.</p>
+<p>If you need still-more flexibility, pass a function for the authentication action.
+That function will be called with an authenticated username and some action-specific arguments, and should return true if the action is authorized.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">canForceBuild</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">builder_status</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">builder_status</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;smoketest&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span> <span class="c1"># any authenticated user can run smoketest</span>
+    <span class="k">elif</span> <span class="n">username</span> <span class="o">==</span> <span class="s1">&#39;releng&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span> <span class="c1"># releng can force whatever they want</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span> <span class="c1"># otherwise, no way.</span>
+
+<span class="n">authz</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Authz</span><span class="p">(</span><span class="n">auth</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">BasicAuth</span><span class="p">(</span><span class="n">users</span><span class="p">),</span>
+                   <span class="n">forceBuild</span><span class="o">=</span><span class="n">canForceBuild</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">forceBuild</span></code> and <code class="docutils literal"><span class="pre">pingBuilder</span></code> actions both supply a <code class="xref py py-class docutils literal"><span class="pre">BuilderStatus</span></code> object.
+The <code class="docutils literal"><span class="pre">stopBuild</span></code> action supplies a <code class="xref py py-class docutils literal"><span class="pre">BuildStatus</span></code> object.
+The <code class="docutils literal"><span class="pre">cancelPendingBuild</span></code> action supplies a <code class="xref py py-class docutils literal"><span class="pre">BuildRequest</span></code>.
+The remainder do not supply any extra arguments.</p>
+</div>
+<div class="section" id="http-based-authentication-by-frontend-server">
+<h4>HTTP-based authentication by frontend server<a class="headerlink" href="#http-based-authentication-by-frontend-server" title="Permalink to this headline">¶</a></h4>
+<p>In case if WebStatus is served through reverse proxy that supports HTTP-based authentication (like apache, lighttpd), it's possible to to tell WebStatus to trust web server and get username from request headers.
+This allows displaying correct usernames in build reason, interrupt messages, etc.</p>
+<p>Just set <code class="docutils literal"><span class="pre">useHttpHeader</span></code> to <code class="docutils literal"><span class="pre">True</span></code> in <code class="xref py py-class docutils literal"><span class="pre">Authz</span></code> constructor.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">authz</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Authz</span><span class="p">(</span><span class="n">useHttpHeader</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># WebStatus secured by web frontend with HTTP auth</span>
+</pre></div>
+</div>
+<p>Please note that WebStatus can decode password for HTTP Basic requests only (for Digest authentication it's just impossible).
+Custom <code class="xref py py-class docutils literal"><span class="pre">status.web.auth.IAuth</span></code> subclasses may just ignore password at all since it's already validated by web server.</p>
+<p>Administrator must make sure that it's impossible to get access to WebStatus using other way than through frontend.
+Usually this means that WebStatus should listen for incoming connections only on localhost (or on some firewall-protected port).
+Frontend must require HTTP authentication to access WebStatus pages (using any source for credentials, such as htpasswd, PAM, LDAP).</p>
+<p>If you allow unauthenticated access through frontend as well, it's possible to specify a <code class="docutils literal"><span class="pre">httpLoginUrl</span></code> which will be rendered on the WebStatus for unauthenticated users as a link named Login.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">authz</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Authz</span><span class="p">(</span><span class="n">useHttpHeader</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                   <span class="n">httpLoginUrl</span><span class="o">=</span><span class="s1">&#39;https://buildbot.example.org/login&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A configuration example with Apache HTTPD as reverse proxy could look like the following.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">authz</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Authz</span><span class="p">(</span><span class="n">useHttpHeader</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                   <span class="n">httpLoginUrl</span><span class="o">=</span><span class="s1">&#39;https://buildbot.example.org/login&#39;</span><span class="p">,</span>
+                   <span class="n">auth</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">HTPasswdAprAuth</span><span class="p">(</span><span class="s1">&#39;/var/www/htpasswd&#39;</span><span class="p">),</span>
+                   <span class="n">forceBuild</span><span class="o">=</span><span class="s1">&#39;auth&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Corresponding Apache configuration.</p>
+<div class="highlight-apache"><div class="highlight"><pre><span></span><span class="nb">ProxyPass</span> / http://127.0.0.1:8010/
+
+<span class="nt">&lt;Location</span> <span class="s">/login</span><span class="nt">&gt;</span>
+    <span class="nb">AuthType</span> Basic
+    <span class="nb">AuthName</span> <span class="s2">&quot;Buildbot&quot;</span>
+    <span class="nb">AuthUserFile</span> <span class="sx">/var/www/htpasswd</span>
+    <span class="nb">Require</span> valid-user
+
+    <span class="nb">RewriteEngine</span> <span class="k">on</span>
+    <span class="nb">RewriteCond</span> %{HTTP_REFERER} ^https?://([^/]+)/(.*)$
+    <span class="nb">RewriteRule</span> ^.*$ https://%1/%2 [R,L]
+<span class="nt">&lt;/Location&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="logging-configuration">
+<h4>Logging configuration<a class="headerlink" href="#logging-configuration" title="Permalink to this headline">¶</a></h4>
+<p>The <cite>WebStatus</cite> uses a separate log file (<code class="file docutils literal"><span class="pre">http.log</span></code>) to avoid clutter buildbot's default log (<code class="file docutils literal"><span class="pre">twistd.log</span></code>) with request/response messages.
+This log is also, by default, rotated in the same way as the twistd.log file, but you can also customize the rotation logic with the following parameters if you need a different behaviour.</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">rotateLength</span></code></dt>
+<dd>An integer defining the file size at which log files are rotated.</dd>
+<dt><code class="docutils literal"><span class="pre">maxRotatedFiles</span></code></dt>
+<dd>The maximum number of old log files to keep.</dd>
+</dl>
+</div>
+<div class="section" id="url-decorating-options">
+<h4>URL-decorating options<a class="headerlink" href="#url-decorating-options" title="Permalink to this headline">¶</a></h4>
+<p>These arguments adds an URL link to various places in the WebStatus, such as revisions, repositories, projects and, optionally, ticket/bug references in change comments.</p>
+<div class="section" id="revlink">
+<h5>revlink<a class="headerlink" href="#revlink" title="Permalink to this headline">¶</a></h5>
+<p>The <code class="docutils literal"><span class="pre">revlink</span></code> argument on <code class="xref py py-class docutils literal"><span class="pre">WebStatus</span></code> is deprecated in favour of the global <a class="reference internal" href="cfg-global.html#cfg-revlink" title="revlink"><code class="xref bb bb-cfg docutils literal"><span class="pre">revlink</span></code></a> option.
+Only use this if you need to generate different URLs for different web status instances.</p>
+<p>In addition to a callable like <a class="reference internal" href="cfg-global.html#cfg-revlink" title="revlink"><code class="xref bb bb-cfg docutils literal"><span class="pre">revlink</span></code></a>, this argument accepts a format string or a dict mapping a string (repository name) to format strings.</p>
+<p>The format string should use <code class="docutils literal"><span class="pre">%s</span></code> to insert the revision id in the url.
+For example, for Buildbot on GitHub:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">revlink</span><span class="o">=</span><span class="s1">&#39;http://github.com/buildbot/buildbot/tree/</span><span class="si">%s</span><span class="s1">&#39;</span>
+</pre></div>
+</div>
+<p>The revision ID will be URL encoded before inserted in the replacement string</p>
+</div>
+<div class="section" id="changecommentlink">
+<h5>changecommentlink<a class="headerlink" href="#changecommentlink" title="Permalink to this headline">¶</a></h5>
+<p>The <code class="docutils literal"><span class="pre">changecommentlink</span></code> argument can be used to create links to ticket-ids from change comments (i.e. #123).</p>
+<p>The argument can either be a tuple of three strings, a dictionary mapping strings (project names) to tuples or a callable taking a changetext (a <code class="xref py py-class docutils literal"><span class="pre">jinja2.Markup</span></code> instance) and a project name, returning a the same change text with additional links/html tags added to it.</p>
+<p>If the tuple is used, it should contain three strings where the first element is a regex that searches for strings (with match groups), the second is a replace-string that, when substituted with <code class="docutils literal"><span class="pre">\1</span></code> etc, yields the URL and the third is the title attribute of the link.
+(The <code class="docutils literal"><span class="pre">&lt;a</span> <span class="pre">href=&quot;&quot;</span> <span class="pre">title=&quot;&quot;&gt;&lt;/a&gt;</span></code> is added by the system.)
+So, for Trac tickets (#42, etc): <code class="docutils literal"><span class="pre">changecommentlink(r&quot;#(\d+)&quot;,</span> <span class="pre">r&quot;http://buildbot.net/trac/ticket/\1&quot;,</span> <span class="pre">r&quot;Ticket</span> <span class="pre">\g&lt;0&gt;&quot;)</span></code> .</p>
+</div>
+<div class="section" id="projects">
+<h5>projects<a class="headerlink" href="#projects" title="Permalink to this headline">¶</a></h5>
+<p>A dictionary from strings to strings, mapping project names to URLs, or a callable taking a project name and returning an URL.</p>
+</div>
+<div class="section" id="repositories">
+<h5>repositories<a class="headerlink" href="#repositories" title="Permalink to this headline">¶</a></h5>
+<p>Same as the projects arg above, a dict or callable mapping project names to URLs.</p>
+</div>
+</div>
+<div class="section" id="display-specific-options">
+<h4>Display-Specific Options<a class="headerlink" href="#display-specific-options" title="Permalink to this headline">¶</a></h4>
+<p>The <code class="docutils literal"><span class="pre">order_console_by_time</span></code> option affects the rendering of the console; see the description of the console above.</p>
+<p>The <code class="docutils literal"><span class="pre">numbuilds</span></code> option determines the number of builds that most status displays will show.
+It can usually be overriden in the URL, e.g., <code class="docutils literal"><span class="pre">?numbuilds=13</span></code>.</p>
+<p>The <code class="docutils literal"><span class="pre">num_events</span></code> option gives the default number of events that the waterfall will display.
+The <code class="docutils literal"><span class="pre">num_events_max</span></code> gives the maximum number of events displayed, even if the web browser requests more.</p>
+</div>
+</div>
+<div class="section" id="change-hooks">
+<span id="id5"></span><h3><a class="toc-backref" href="#id13">Change Hooks</a><a class="headerlink" href="#change-hooks" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal"><span class="pre">/change_hook</span></code> url is a magic URL which will accept HTTP requests and translate them into changes for buildbot.
+Implementations (such as a trivial json-based endpoint and a GitHub implementation) can be found in <a class="reference external" href="https://github.com/buildbot/buildbot/blob/master/master/buildbot/status/web/hooks" title="master/buildbot/status/web/hooks"><code class="docutils literal"><span class="pre">master/buildbot/status/web/hooks</span></code></a>.
+The format of the url is <code class="samp docutils literal"><span class="pre">/change_hook/</span><em><span class="pre">DIALECT</span></em></code> where DIALECT is a package within the hooks directory.
+Change_hook is disabled by default and each DIALECT has to be enabled separately, for security reasons.</p>
+<p>An example WebStatus configuration line which enables change_hook and two DIALECTS:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span><span class="n">http_port</span><span class="o">=</span><span class="mi">8010</span><span class="p">,</span> <span class="n">allowForce</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;base&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;somehook&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;option1&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                     <span class="s1">&#39;option2&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}}))</span>
+</pre></div>
+</div>
+<p>Within the WebStatus arguments, the <code class="docutils literal"><span class="pre">change_hook</span></code> key enables/disables the module and <code class="docutils literal"><span class="pre">change_hook_dialects</span></code> whitelists DIALECTs where the keys are the module names and the values are optional arguments which will be passed to the hooks.</p>
+<p>The <code class="file docutils literal"><span class="pre">post_build_request.py</span></code> script in <code class="file docutils literal"><span class="pre">master/contrib</span></code> allows for the submission of an arbitrary change request.
+Run <strong class="command">post_build_request.py --help</strong> for more information.
+The <code class="docutils literal"><span class="pre">base</span></code> dialect must be enabled for this to work.</p>
+<div class="section" id="github-hook">
+<span id="id6"></span><h4>GitHub hook<a class="headerlink" href="#github-hook" title="Permalink to this headline">¶</a></h4>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">There is a standalone HTTP server available for receiving GitHub notifications as well: <code class="file docutils literal"><span class="pre">contrib/github_buildbot.py</span></code>.
+This script may be useful in cases where you cannot expose the WebStatus for public consumption.</p>
+</div>
+<p>The GitHub hook has the following parameters:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">secret</span></code> (default <cite>None</cite>)</dt>
+<dd>Secret token to use to validate payloads</dd>
+<dt><code class="docutils literal"><span class="pre">strict</span></code> (default <cite>False</cite>)</dt>
+<dd>If the hook must be strict regarding valid payloads.
+If the value is <cite>False</cite> (default), the signature will only be checked if a secret is specified and a signature was supplied with the payload.
+If the value is <cite>True</cite>, a secret must be provided, and payloads without signature will be ignored.</dd>
+<dt><code class="docutils literal"><span class="pre">codebase</span></code> (default <cite>None</cite>)</dt>
+<dd>The codebase value to include with created changes.
+If the value is a function (or any other callable), it will be called with the GitHub event payload as argument and the function must return the codebase value to use for the event.</dd>
+<dt><code class="docutils literal"><span class="pre">class</span></code> (default <cite>None</cite>)</dt>
+<dd><p class="first">A class to be used for processing incoming payloads.
+If the value is <cite>None</cite> (default), the default class -- <code class="xref py py-class docutils literal"><span class="pre">buildbot.status.web.hooks.github.GitHubEventHandler</span></code> -- will be used.
+The default class handles <cite>ping</cite>, <cite>push</cite> and <cite>pull_request</cite> events only.
+If you'd like to handle other events (see <a class="reference external" href="https://developer.github.com/v3/activity/events/types/">Event Types &amp; Payloads</a> for more information), you'd need to subclass <cite>GitHubEventHandler</cite> and add handler methods for the corresponding events.
+For example, if you'd like to handle <cite>blah</cite> events, your code should look something like this:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.status.web.hooks.github</span> <span class="k">import</span> <span class="n">GitHubEventHandler</span>
+
+<span class="k">class</span> <span class="nc">MyBlahHandler</span><span class="p">(</span><span class="n">GitHubEventHandler</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">handle_blah</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+        <span class="c1"># Do some magic here</span>
+        <span class="k">return</span> <span class="p">[],</span> <span class="s1">&#39;git&#39;</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>The simples way to use GitHub hook is as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span><span class="o">...</span><span class="p">,</span>
+                                    <span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;github&#39;</span><span class="p">:</span> <span class="p">{}},</span>
+                                    <span class="o">...</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Having added this line, you should add a webhook for your GitHub project (see <a class="reference external" href="https://developer.github.com/webhooks/creating/">Creating Webhooks page at GitHub</a>).
+The parameters are:</p>
+<dl class="docutils">
+<dt><span class="guilabel">Payload URL</span></dt>
+<dd>This URL should point to <code class="docutils literal"><span class="pre">/change_hook/github</span></code> relative to the root of the web status.
+For example, if the grid URL is <code class="docutils literal"><span class="pre">http://builds.example.com/bbot/grid</span></code>, then point GitHub to <code class="docutils literal"><span class="pre">http://builds.example.com/bbot/change_hook/github</span></code>.
+To specify a project associated to the repository, append <code class="docutils literal"><span class="pre">?project=name</span></code> to the URL.</dd>
+<dt><span class="guilabel">Content Type</span></dt>
+<dd>Specify <code class="docutils literal"><span class="pre">application/x-www-form-urlencoded</span></code>.
+JSON is not currently not supported.</dd>
+<dt><span class="guilabel">Secret</span></dt>
+<dd><p class="first">Any value.
+If you provide a non-empty value (recommended), make sure that your hook is configured to use it:</p>
+<div class="last highlight-python"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span><span class="o">...</span><span class="p">,</span>
+                                    <span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span>
+                                        <span class="s1">&#39;github&#39;</span><span class="p">:</span> <span class="p">{</span>
+                                            <span class="s1">&#39;secret&#39;</span><span class="p">:</span> <span class="s1">&#39;MY-SECRET&#39;</span><span class="p">,</span>
+                                            <span class="s1">&#39;strict&#39;</span><span class="p">:</span> <span class="bp">True</span>
+                                        <span class="p">}</span>
+                                    <span class="p">},</span>
+                                    <span class="o">...</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd>
+<dt><span class="guilabel">Which events would you like to trigger this webhook?</span></dt>
+<dd>Leave the default -- <code class="docutils literal"><span class="pre">Just</span> <span class="pre">the</span> <span class="pre">push</span> <span class="pre">event</span></code> -- other kind of events are not currently supported.</dd>
+</dl>
+<p>And then press the <code class="docutils literal"><span class="pre">Add</span> <span class="pre">Webhook</span></code> button.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The incoming HTTP requests for this hook are not authenticated by default.
+If you do not specify a secret, anyone who can access the web status can &quot;fake&quot; a request from GitHub, potentially causing the buildmaster to run arbitrary code.</p>
+</div>
+<p>To protect URL against unauthorized access you either specify a secret, or you should use <code class="docutils literal"><span class="pre">change_hook_auth</span></code> option:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span><span class="o">...</span><span class="p">,</span>
+                                  <span class="n">change_hook_auth</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;file:changehook.passwd&quot;</span><span class="p">],</span>
+                                  <span class="o">...</span>
+                                 <span class="p">))</span>
+</pre></div>
+</div>
+<p>create a file <code class="docutils literal"><span class="pre">changehook.passwd</span></code>:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>user:password
+</pre></div>
+</div>
+<p>and change the the <code class="docutils literal"><span class="pre">Payload</span> <span class="pre">URL</span></code> of your GitHub webhook to <code class="docutils literal"><span class="pre">http://user:password&#64;builds.example.com/bbot/change_hook/github</span></code>.</p>
+<p>See the <a class="reference external" href="https://twistedmatrix.com/documents/current/core/howto/cred.html">documentation for twisted cred</a> for more options to pass to <code class="docutils literal"><span class="pre">change_hook_auth</span></code>.</p>
+<p>Note that not using <code class="docutils literal"><span class="pre">change_hook_auth</span></code> may expose you to security risks.</p>
+</div>
+<div class="section" id="bitbucket-hook">
+<h4>BitBucket hook<a class="headerlink" href="#bitbucket-hook" title="Permalink to this headline">¶</a></h4>
+<p>The BitBucket hook is as simple as GitHub one and it also takes no options.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span><span class="o">...</span><span class="p">,</span>
+                        <span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;bitbucket&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}))</span>
+</pre></div>
+</div>
+<p>When this is setup you should add a <cite>POST</cite> service pointing to <code class="docutils literal"><span class="pre">/change_hook/bitbucket</span></code> relative to the root of the web status.
+For example, it the grid URL is <code class="docutils literal"><span class="pre">http://builds.mycompany.com/bbot/grid</span></code>, then point BitBucket to <code class="docutils literal"><span class="pre">http://builds.mycompany.com/change_hook/bitbucket</span></code>.
+To specify a project associated to the repository, append <code class="docutils literal"><span class="pre">?project=name</span></code> to the URL.</p>
+<p>Note that there is a satandalone HTTP server available for receiving BitBucket notifications, as well: <code class="file docutils literal"><span class="pre">contrib/bitbucket_buildbot.py</span></code>.
+This script may be useful in cases where you cannot expose the WebStatus for public consumption.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">As in the previous case, the incoming HTTP requests for this hook are not authenticated bu default.
+Anyone who can access the web status can &quot;fake&quot; a request from BitBucket, potentially causing the buildmaster to run arbitrary code.</p>
+</div>
+<p>To protect URL against unauthorized access you should use <code class="docutils literal"><span class="pre">change_hook_auth</span></code> option.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span><span class="o">...</span><span class="p">,</span>
+                                  <span class="n">change_hook_auth</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;file:changehook.passwd&quot;</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>Then, create a BitBucket service hook (see <a class="reference external" href="https://confluence.atlassian.com/display/BITBUCKET/POST+Service+Management">https://confluence.atlassian.com/display/BITBUCKET/POST+Service+Management</a>) with a WebHook URL like <code class="docutils literal"><span class="pre">http://user:password&#64;builds.mycompany.com/bbot/change_hook/bitbucket</span></code>.</p>
+<p>Note that as before, not using <code class="docutils literal"><span class="pre">change_hook_auth</span></code> can expose you to security risks.</p>
+</div>
+<div class="section" id="google-code-hook">
+<h4>Google Code hook<a class="headerlink" href="#google-code-hook" title="Permalink to this headline">¶</a></h4>
+<p>The Google Code hook is quite similar to the GitHub Hook.
+It has one option for the &quot;Post-Commit Authentication Key&quot; used to check if the request is legitimate:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span>
+    <span class="c1"># ...</span>
+    <span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;googlecode&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;secret_key&#39;</span><span class="p">:</span> <span class="s1">&#39;FSP3p-Ghdn4T0oqX&#39;</span><span class="p">}}</span>
+<span class="p">))</span>
+</pre></div>
+</div>
+<p>This will add a &quot;Post-Commit URL&quot; for the project in the Google Code administrative interface, pointing to <code class="docutils literal"><span class="pre">/change_hook/googlecode</span></code> relative to the root of the web status.</p>
+<p>Alternatively, you can use the <a class="reference internal" href="cfg-changesources.html#googlecodeatompoller"><span class="std std-ref">GoogleCodeAtomPoller</span></a> <code class="xref py py-class docutils literal"><span class="pre">ChangeSource</span></code> that periodically poll the Google Code commit feed for changes.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Google Code doesn't send the branch on which the changes were made.
+So, the hook always returns <code class="docutils literal"><span class="pre">'default'</span></code> as the branch, you can override it with the <code class="docutils literal"><span class="pre">'branch'</span></code> option:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;googlecode&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;secret_key&#39;</span><span class="p">:</span> <span class="s1">&#39;FSP3p-Ghdn4T0oqX&#39;</span><span class="p">,</span> <span class="s1">&#39;branch&#39;</span><span class="p">:</span> <span class="s1">&#39;master&#39;</span><span class="p">}}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="poller-hook">
+<h4>Poller hook<a class="headerlink" href="#poller-hook" title="Permalink to this headline">¶</a></h4>
+<p>The poller hook allows you to use GET or POST requests to trigger polling.
+One advantage of this is your buildbot instance can poll at launch (using the pollAtLaunch flag) to get changes that happened while it was down, but then you can still use a commit hook to get fast notification of new changes.</p>
+<p>Suppose you have a poller configured like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SVNPoller</span><span class="p">(</span>
+    <span class="n">svnurl</span><span class="o">=</span><span class="s2">&quot;https://amanda.svn.sourceforge.net/svnroot/amanda/amanda&quot;</span><span class="p">,</span>
+    <span class="n">split_file</span><span class="o">=</span><span class="n">split_file_branches</span><span class="p">,</span>
+    <span class="n">pollInterval</span><span class="o">=</span><span class="mi">24</span><span class="o">*</span><span class="mi">60</span><span class="o">*</span><span class="mi">60</span><span class="p">,</span>
+    <span class="n">pollAtLaunch</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>And you configure your WebStatus to enable this hook:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span>
+    <span class="c1"># ...</span>
+    <span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;poller&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="p">))</span>
+</pre></div>
+</div>
+<p>Then you will be able to trigger a poll of the SVN repository by poking the <code class="docutils literal"><span class="pre">/change_hook/poller</span></code> URL from a commit hook like this:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>curl -s -F <span class="nv">poller</span><span class="o">=</span>https://amanda.svn.sourceforge.net/svnroot/amanda/amanda <span class="se">\</span>
+    http://yourbuildbot/change_hook/poller
+</pre></div>
+</div>
+<p>If no <code class="docutils literal"><span class="pre">poller</span></code> argument is provided then the hook will trigger polling of all polling change sources.</p>
+<p>You can restrict which pollers the webhook has access to using the <code class="docutils literal"><span class="pre">allowed</span></code> option:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span>
+    <span class="c1"># ...</span>
+    <span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;poller&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;allowed&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;https://amanda.svn.sourceforge.net/svnroot/amanda/amanda&#39;</span><span class="p">]}}</span>
+<span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="gitlab-hook">
+<h4>GitLab hook<a class="headerlink" href="#gitlab-hook" title="Permalink to this headline">¶</a></h4>
+<p>The GitLab hook is as simple as GitHub one and it also takes no options.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span>
+    <span class="c1"># ...</span>
+    <span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span> <span class="s1">&#39;gitlab&#39;</span> <span class="p">:</span> <span class="kc">True</span> <span class="p">}</span>
+<span class="p">))</span>
+</pre></div>
+</div>
+<p>When this is setup you should add a <cite>POST</cite> service pointing to <code class="docutils literal"><span class="pre">/change_hook/gitlab</span></code> relative to the root of the web status.
+For example, it the grid URL is <code class="docutils literal"><span class="pre">http://builds.mycompany.com/bbot/grid</span></code>, then point GitLab to <code class="docutils literal"><span class="pre">http://builds.mycompany.com/change_hook/gitlab</span></code>.
+The project and/or codebase can also be passed in the URL by appending <code class="docutils literal"><span class="pre">?project=name</span></code> or <code class="docutils literal"><span class="pre">?codebase=foo</span></code> to the URL.
+These parameters will be passed along to the scheduler.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">As in the previous case, the incoming HTTP requests for this hook are not authenticated bu default.
+Anyone who can access the web status can &quot;fake&quot; a request from your GitLab server, potentially causing the buildmaster to run arbitrary code.</p>
+</div>
+<p>To protect URL against unauthorized access you should use <code class="docutils literal"><span class="pre">change_hook_auth</span></code> option.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span>
+    <span class="c1"># ...</span>
+    <span class="n">change_hook_auth</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;file:changehook.passwd&quot;</span><span class="p">]</span>
+<span class="p">))</span>
+</pre></div>
+</div>
+<p>Then, create a GitLab service hook (see <a class="reference external" href="https://your.gitlab.server/help/web_hooks">https://your.gitlab.server/help/web_hooks</a>) with a WebHook URL like <code class="docutils literal"><span class="pre">http://user:password&#64;builds.mycompany.com/bbot/change_hook/gitlab</span></code>.</p>
+<p>Note that as before, not using <code class="docutils literal"><span class="pre">change_hook_auth</span></code> can expose you to security risks.</p>
+</div>
+<div class="section" id="gitorious-hook">
+<h4>Gitorious Hook<a class="headerlink" href="#gitorious-hook" title="Permalink to this headline">¶</a></h4>
+<p>The Gitorious hook is as simple as GitHub one and it also takes no options.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span>
+    <span class="c1"># ...</span>
+    <span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;gitorious&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="p">))</span>
+</pre></div>
+</div>
+<p>When this is setup you should add a <cite>POST</cite> service pointing to <code class="docutils literal"><span class="pre">/change_hook/gitorious</span></code> relative to the root of the web status.
+For example, it the grid URL is <code class="docutils literal"><span class="pre">http://builds.example.com/bbot/grid</span></code>, then point Gitorious to <code class="docutils literal"><span class="pre">http://builds.example.com/change_hook/gitorious</span></code>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">As in the previous case, the incoming HTTP requests for this hook are not authenticated by default.
+Anyone who can access the web status can &quot;fake&quot; a request from your Gitorious server, potentially causing the buildmaster to run arbitrary code.</p>
+</div>
+<p>To protect URL against unauthorized access you should use <code class="docutils literal"><span class="pre">change_hook_auth</span></code> option.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">WebStatus</span><span class="p">(</span>
+    <span class="c1"># ...</span>
+    <span class="n">change_hook_auth</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;file:changehook.passwd&quot;</span><span class="p">]</span>
+<span class="p">))</span>
+</pre></div>
+</div>
+<p>Then, create a Gitorious web hook (see <a class="reference external" href="http://gitorious.org/gitorious/pages/WebHooks">http://gitorious.org/gitorious/pages/WebHooks</a>) with a WebHook URL like <code class="docutils literal"><span class="pre">http://user:password&#64;builds.example.com/bbot/change_hook/gitorious</span></code>.</p>
+<p>Note that as before, not using <code class="docutils literal"><span class="pre">change_hook_auth</span></code> can expose you to security risks.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Web hooks are only available for local Gitorious installations, since this feature is not offered as part of Gitorious.org yet.</p>
+</div>
+<span class="target" id="status-MailNotifier"></span></div>
+</div>
+</div>
+<div class="section" id="mailnotifier">
+<span id="index-0"></span><h2><a class="toc-backref" href="#id14">MailNotifier</a><a class="headerlink" href="#mailnotifier" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.status.mail.MailNotifier">
+<em class="property">class </em><code class="descclassname">buildbot.status.mail.</code><code class="descname">MailNotifier</code><a class="headerlink" href="#buildbot.status.mail.MailNotifier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>The buildbot can also send email when builds finish.
+The most common use of this is to tell developers when their change has caused the build to fail.
+It is also quite common to send a message to a mailing list (usually named <cite>builds</cite> or similar) about every build.</p>
+<p>The <code class="xref py py-class docutils literal"><span class="pre">MailNotifier</span></code> status target is used to accomplish this.
+You configure it by specifying who mail should be sent to, under what circumstances mail should be sent, and how to deliver the mail.
+It can be configured to only send out mail for certain builders, and only send messages when the build fails, or when the builder transitions from success to failure.
+It can also be configured to include various build logs in each message.</p>
+<p>If a proper lookup function is configured, the message will be sent to the &quot;interested users&quot; list (<a class="reference internal" href="concepts.html#doing-things-with-users"><span class="std std-ref">Doing Things With Users</span></a>), which includes all developers who made changes in the build.
+By default, however, Buildbot does not know how to construct an email addressed based on the information from the version control system.
+See the <code class="docutils literal"><span class="pre">lookup</span></code> argument, below, for more information.</p>
+<p>You can add additional, statically-configured, recipients with the <code class="docutils literal"><span class="pre">extraRecipients</span></code> argument.
+You can also add interested users by setting the <code class="docutils literal"><span class="pre">owners</span></code> build property to a list of users in the scheduler constructor (<a class="reference internal" href="cfg-schedulers.html#configuring-schedulers"><span class="std std-ref">Configuring Schedulers</span></a>).</p>
+<p>Each <code class="xref py py-class docutils literal"><span class="pre">MailNotifier</span></code> sends mail to a single set of recipients.
+To send different kinds of mail to different recipients, use multiple <code class="xref py py-class docutils literal"><span class="pre">MailNotifier</span></code>s.</p>
+<p>The following simple example will send an email upon the completion of each build, to just those developers whose <code class="xref py py-class docutils literal"><span class="pre">Change</span></code>s were included in the build.
+The email contains a description of the <code class="xref py py-class docutils literal"><span class="pre">Build</span></code>, its results, and URLs where more information can be obtained.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">status</span>
+
+<span class="n">mn</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">MailNotifier</span><span class="p">(</span><span class="n">fromaddr</span><span class="o">=</span><span class="s2">&quot;buildbot@example.org&quot;</span><span class="p">,</span> <span class="n">lookup</span><span class="o">=</span><span class="s2">&quot;example.org&quot;</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mn</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To get a simple one-message-per-build (say, for a mailing list), use the following form instead.
+This form does not send mail to individual developers (and thus does not need the <code class="docutils literal"><span class="pre">lookup=</span></code> argument, explained below), instead it only ever sends mail to the <cite>extra recipients</cite> named in the arguments:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mn</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">MailNotifier</span><span class="p">(</span><span class="n">fromaddr</span><span class="o">=</span><span class="s2">&quot;buildbot@example.org&quot;</span><span class="p">,</span>
+                         <span class="n">sendToInterestedUsers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                         <span class="n">extraRecipients</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;listaddr@example.org&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>If your SMTP host requires authentication before it allows you to send emails, this can also be done by specifying <code class="docutils literal"><span class="pre">smtpUser</span></code> and <code class="docutils literal"><span class="pre">smtpPassword</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mn</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">MailNotifier</span><span class="p">(</span><span class="n">fromaddr</span><span class="o">=</span><span class="s2">&quot;myuser@gmail.com&quot;</span><span class="p">,</span>
+                         <span class="n">sendToInterestedUsers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                         <span class="n">extraRecipients</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;listaddr@example.org&quot;</span><span class="p">],</span>
+                         <span class="n">relayhost</span><span class="o">=</span><span class="s2">&quot;smtp.gmail.com&quot;</span><span class="p">,</span> <span class="n">smtpPort</span><span class="o">=</span><span class="mi">587</span><span class="p">,</span>
+                         <span class="n">smtpUser</span><span class="o">=</span><span class="s2">&quot;myuser@gmail.com&quot;</span><span class="p">,</span> <span class="n">smtpPassword</span><span class="o">=</span><span class="s2">&quot;mypassword&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you want to require Transport Layer Security (TLS), then you can also set <code class="docutils literal"><span class="pre">useTls</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mn</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">MailNotifier</span><span class="p">(</span><span class="n">fromaddr</span><span class="o">=</span><span class="s2">&quot;myuser@gmail.com&quot;</span><span class="p">,</span>
+                         <span class="n">sendToInterestedUsers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                         <span class="n">extraRecipients</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;listaddr@example.org&quot;</span><span class="p">],</span>
+                         <span class="n">useTls</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">relayhost</span><span class="o">=</span><span class="s2">&quot;smtp.gmail.com&quot;</span><span class="p">,</span> <span class="n">smtpPort</span><span class="o">=</span><span class="mi">587</span><span class="p">,</span>
+                         <span class="n">smtpUser</span><span class="o">=</span><span class="s2">&quot;myuser@gmail.com&quot;</span><span class="p">,</span> <span class="n">smtpPassword</span><span class="o">=</span><span class="s2">&quot;mypassword&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you see <code class="docutils literal"><span class="pre">twisted.mail.smtp.TLSRequiredError</span></code> exceptions in the log while using TLS, this can be due <em>either</em> to the server not supporting TLS or to a missing <a class="reference external" href="http://pyopenssl.sourceforge.net/">PyOpenSSL</a> package on the buildmaster system.</p>
+</div>
+<p>In some cases it is desirable to have different information then what is provided in a standard MailNotifier message.
+For this purpose MailNotifier provides the argument <code class="docutils literal"><span class="pre">messageFormatter</span></code> (a function) which allows for the creation of messages with unique content.</p>
+<p>For example, if only short emails are desired (e.g., for delivery to phones):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">util</span><span class="p">,</span> <span class="n">status</span>
+
+<span class="k">def</span> <span class="nf">messageFormatter</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">build</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">master_status</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Results</span><span class="p">[</span><span class="n">results</span><span class="p">]</span>
+
+    <span class="n">text</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;STATUS: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">result</span><span class="o">.</span><span class="n">title</span><span class="p">())</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;body&#39;</span> <span class="p">:</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">text</span><span class="p">),</span>
+        <span class="s1">&#39;type&#39;</span> <span class="p">:</span> <span class="s1">&#39;plain&#39;</span>
+    <span class="p">}</span>
+
+<span class="n">mn</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">MailNotifier</span><span class="p">(</span><span class="n">fromaddr</span><span class="o">=</span><span class="s2">&quot;buildbot@example.org&quot;</span><span class="p">,</span>
+                         <span class="n">sendToInterestedUsers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                         <span class="n">mode</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;problem&#39;</span><span class="p">,),</span>
+                         <span class="n">extraRecipients</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;listaddr@example.org&#39;</span><span class="p">],</span>
+                         <span class="n">messageFormatter</span><span class="o">=</span><span class="n">messageFormatter</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Another example of a function delivering a customized html email containing the last 80 log lines of logs of the last build step that finished is given below:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">util</span><span class="p">,</span> <span class="n">status</span>
+<span class="kn">import</span> <span class="nn">cgi</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="k">def</span> <span class="nf">html_message_formatter</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">build</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">master_status</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Provide a customized message to Buildbot&#39;s MailNotifier.</span>
+
+<span class="sd">    The last 80 lines of the log are provided as well as the changes</span>
+<span class="sd">    relevant to the build.  Message content is formatted as html.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Results</span><span class="p">[</span><span class="n">results</span><span class="p">]</span>
+
+    <span class="n">limit_lines</span> <span class="o">=</span> <span class="mi">80</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;h4&gt;Build status: </span><span class="si">%s</span><span class="s1">&lt;/h4&gt;&#39;</span> <span class="o">%</span> <span class="n">result</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+    <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;table cellspacing=&quot;10&quot;&gt;&lt;tr&gt;&#39;</span><span class="p">)</span>
+    <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">u&quot;&lt;td&gt;Buildslave for this Build:&lt;/td&gt;&lt;td&gt;&lt;b&gt;</span><span class="si">%s</span><span class="s2">&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;&quot;</span> <span class="o">%</span> <span class="n">build</span><span class="o">.</span><span class="n">getSlavename</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">master_status</span><span class="o">.</span><span class="n">getURLForThing</span><span class="p">(</span><span class="n">build</span><span class="p">):</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;tr&gt;&lt;td&gt;Complete logs for all build steps:&lt;/td&gt;&lt;td&gt;&lt;a href=&quot;</span><span class="si">%s</span><span class="s1">&quot;&gt;</span><span class="si">%s</span><span class="s1">&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span><span class="n">master_status</span><span class="o">.</span><span class="n">getURLForThing</span><span class="p">(</span><span class="n">build</span><span class="p">),</span>
+                       <span class="n">master_status</span><span class="o">.</span><span class="n">getURLForThing</span><span class="p">(</span><span class="n">build</span><span class="p">))</span>
+                    <span class="p">)</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;tr&gt;&lt;td&gt;Build Reason:&lt;/td&gt;&lt;td&gt;</span><span class="si">%s</span><span class="s1">&lt;/td&gt;&lt;/tr&gt;&#39;</span> <span class="o">%</span> <span class="n">build</span><span class="o">.</span><span class="n">getReason</span><span class="p">())</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="s2">u&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">ss</span> <span class="ow">in</span> <span class="n">build</span><span class="o">.</span><span class="n">getSourceStamps</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">ss</span><span class="o">.</span><span class="n">codebase</span><span class="p">:</span>
+                <span class="n">source</span> <span class="o">+=</span> <span class="s1">u&#39;</span><span class="si">%s</span><span class="s1">: &#39;</span> <span class="o">%</span> <span class="n">ss</span><span class="o">.</span><span class="n">codebase</span>
+            <span class="k">if</span> <span class="n">ss</span><span class="o">.</span><span class="n">branch</span><span class="p">:</span>
+                <span class="n">source</span> <span class="o">+=</span> <span class="s2">u&quot;[branch </span><span class="si">%s</span><span class="s2">] &quot;</span> <span class="o">%</span> <span class="n">ss</span><span class="o">.</span><span class="n">branch</span>
+            <span class="k">if</span> <span class="n">ss</span><span class="o">.</span><span class="n">revision</span><span class="p">:</span>
+                <span class="n">source</span> <span class="o">+=</span>  <span class="n">ss</span><span class="o">.</span><span class="n">revision</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">source</span> <span class="o">+=</span> <span class="s2">u&quot;HEAD&quot;</span>
+            <span class="k">if</span> <span class="n">ss</span><span class="o">.</span><span class="n">patch</span><span class="p">:</span>
+                <span class="n">source</span> <span class="o">+=</span> <span class="s2">u&quot; (plus patch)&quot;</span>
+            <span class="k">if</span> <span class="n">ss</span><span class="o">.</span><span class="n">patch_info</span><span class="p">:</span> <span class="c1"># add patch comment</span>
+                <span class="n">source</span> <span class="o">+=</span> <span class="s2">u&quot; (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">ss</span><span class="o">.</span><span class="n">patch_info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">u&quot;&lt;tr&gt;&lt;td&gt;Build Source Stamp:&lt;/td&gt;&lt;td&gt;&lt;b&gt;</span><span class="si">%s</span><span class="s2">&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;&quot;</span> <span class="o">%</span> <span class="n">source</span><span class="p">)</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">u&quot;&lt;tr&gt;&lt;td&gt;Blamelist:&lt;/td&gt;&lt;td&gt;</span><span class="si">%s</span><span class="s2">&lt;/td&gt;&lt;/tr&gt;&quot;</span> <span class="o">%</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">build</span><span class="o">.</span><span class="n">getResponsibleUsers</span><span class="p">()))</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;/table&gt;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ss</span><span class="o">.</span><span class="n">changes</span><span class="p">:</span>
+            <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;h4&gt;Recent Changes:&lt;/h4&gt;&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ss</span><span class="o">.</span><span class="n">changes</span><span class="p">:</span>
+                <span class="n">cd</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">asDict</span><span class="p">()</span>
+                <span class="n">when</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">cd</span><span class="p">[</span><span class="s1">&#39;when&#39;</span><span class="p">]</span> <span class="p">)</span><span class="o">.</span><span class="n">ctime</span><span class="p">()</span>
+                <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;table cellspacing=&quot;10&quot;&gt;&#39;</span><span class="p">)</span>
+                <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;tr&gt;&lt;td&gt;Repository:&lt;/td&gt;&lt;td&gt;</span><span class="si">%s</span><span class="s1">&lt;/td&gt;&lt;/tr&gt;&#39;</span> <span class="o">%</span> <span class="n">cd</span><span class="p">[</span><span class="s1">&#39;repository&#39;</span><span class="p">]</span> <span class="p">)</span>
+                <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;tr&gt;&lt;td&gt;Project:&lt;/td&gt;&lt;td&gt;</span><span class="si">%s</span><span class="s1">&lt;/td&gt;&lt;/tr&gt;&#39;</span> <span class="o">%</span> <span class="n">cd</span><span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">]</span> <span class="p">)</span>
+                <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;tr&gt;&lt;td&gt;Time:&lt;/td&gt;&lt;td&gt;</span><span class="si">%s</span><span class="s1">&lt;/td&gt;&lt;/tr&gt;&#39;</span> <span class="o">%</span> <span class="n">when</span><span class="p">)</span>
+                <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;tr&gt;&lt;td&gt;Changed by:&lt;/td&gt;&lt;td&gt;</span><span class="si">%s</span><span class="s1">&lt;/td&gt;&lt;/tr&gt;&#39;</span> <span class="o">%</span> <span class="n">cd</span><span class="p">[</span><span class="s1">&#39;who&#39;</span><span class="p">]</span> <span class="p">)</span>
+                <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;tr&gt;&lt;td&gt;Comments:&lt;/td&gt;&lt;td&gt;</span><span class="si">%s</span><span class="s1">&lt;/td&gt;&lt;/tr&gt;&#39;</span> <span class="o">%</span> <span class="n">cd</span><span class="p">[</span><span class="s1">&#39;comments&#39;</span><span class="p">]</span> <span class="p">)</span>
+                <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;/table&gt;&#39;</span><span class="p">)</span>
+                <span class="n">files</span> <span class="o">=</span> <span class="n">cd</span><span class="p">[</span><span class="s1">&#39;files&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">files</span><span class="p">:</span>
+                    <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;table cellspacing=&quot;10&quot;&gt;&lt;tr&gt;&lt;th align=&quot;left&quot;&gt;Files&lt;/th&gt;&lt;/tr&gt;&#39;</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+                        <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;tr&gt;&lt;td&gt;</span><span class="si">%s</span><span class="s1">:&lt;/td&gt;&lt;/tr&gt;&#39;</span> <span class="o">%</span> <span class="n">file</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="p">)</span>
+                    <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;/table&gt;&#39;</span><span class="p">)</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;br&gt;&#39;</span><span class="p">)</span>
+        <span class="c1"># get all the steps in build in reversed order</span>
+        <span class="n">rev_steps</span> <span class="o">=</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">build</span><span class="o">.</span><span class="n">getSteps</span><span class="p">())</span>
+        <span class="c1"># find the last step that finished</span>
+        <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">rev_steps</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">step</span><span class="o">.</span><span class="n">isFinished</span><span class="p">():</span>
+                <span class="k">break</span>
+        <span class="c1"># get logs for the last finished step</span>
+        <span class="k">if</span> <span class="n">step</span><span class="o">.</span><span class="n">isFinished</span><span class="p">():</span>
+            <span class="n">logs</span> <span class="o">=</span> <span class="n">step</span><span class="o">.</span><span class="n">getLogs</span><span class="p">()</span>
+        <span class="c1"># No step finished, loop just exhausted itself; so as a special case we fetch all logs</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logs</span> <span class="o">=</span> <span class="n">build</span><span class="o">.</span><span class="n">getLogs</span><span class="p">()</span>
+        <span class="c1"># logs within a step are in reverse order. Search back until we find stdio</span>
+        <span class="k">for</span> <span class="n">log</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">logs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">log</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;stdio&#39;</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">log</span><span class="o">.</span><span class="n">getStep</span><span class="p">()</span><span class="o">.</span><span class="n">getName</span><span class="p">(),</span> <span class="n">log</span><span class="o">.</span><span class="n">getName</span><span class="p">())</span>
+        <span class="n">status</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">log</span><span class="o">.</span><span class="n">getStep</span><span class="p">()</span><span class="o">.</span><span class="n">getResults</span><span class="p">()</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">log</span><span class="o">.</span><span class="n">getText</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="c1"># Note: can be VERY LARGE</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">u&#39;</span><span class="si">%s</span><span class="s1">/steps/</span><span class="si">%s</span><span class="s1">/logs/</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">master_status</span><span class="o">.</span><span class="n">getURLForThing</span><span class="p">(</span><span class="n">build</span><span class="p">),</span>
+                                       <span class="n">log</span><span class="o">.</span><span class="n">getStep</span><span class="p">()</span><span class="o">.</span><span class="n">getName</span><span class="p">(),</span>
+                                       <span class="n">log</span><span class="o">.</span><span class="n">getName</span><span class="p">())</span>
+
+        <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;i&gt;Detailed log of last build step:&lt;/i&gt; &lt;a href=&quot;</span><span class="si">%s</span><span class="s1">&quot;&gt;</span><span class="si">%s</span><span class="s1">&lt;/a&gt;&#39;</span>
+                    <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">url</span><span class="p">))</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;br&gt;&#39;</span><span class="p">)</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;h4&gt;Last </span><span class="si">%d</span><span class="s1"> lines of &quot;</span><span class="si">%s</span><span class="s1">&quot;&lt;/h4&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">limit_lines</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+        <span class="n">unilist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">content</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">content</span><span class="p">)</span><span class="o">-</span><span class="n">limit_lines</span><span class="p">:]:</span>
+            <span class="n">unilist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cgi</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">unicode</span><span class="p">(</span><span class="n">line</span><span class="p">,</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)))</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;pre&gt;&#39;</span><span class="p">)</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">unilist</span><span class="p">)</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;/pre&gt;&#39;</span><span class="p">)</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;br&gt;&lt;br&gt;&#39;</span><span class="p">)</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">u&#39;&lt;b&gt;-The Buildbot&lt;/b&gt;&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;body&#39;</span><span class="p">:</span> <span class="s2">u&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">text</span><span class="p">),</span>
+            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;html&#39;</span>
+        <span class="p">}</span>
+
+<span class="n">mn</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">MailNotifier</span><span class="p">(</span><span class="n">fromaddr</span><span class="o">=</span><span class="s2">&quot;buildbot@example.org&quot;</span><span class="p">,</span>
+                         <span class="n">sendToInterestedUsers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                         <span class="n">mode</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;failing&#39;</span><span class="p">,),</span>
+                         <span class="n">extraRecipients</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;listaddr@example.org&#39;</span><span class="p">],</span>
+                         <span class="n">messageFormatter</span><span class="o">=</span><span class="n">html_message_formatter</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="mailnotifier-arguments">
+<h3><a class="toc-backref" href="#id15">MailNotifier arguments</a><a class="headerlink" href="#mailnotifier-arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">fromaddr</span></code></dt>
+<dd>The email address to be used in the 'From' header.</dd>
+<dt><code class="docutils literal"><span class="pre">sendToInterestedUsers</span></code> (boolean)</dt>
+<dd>If <code class="docutils literal"><span class="pre">True</span></code> (the default), send mail to all of the Interested Users.
+If <code class="docutils literal"><span class="pre">False</span></code>, only send mail to the <code class="docutils literal"><span class="pre">extraRecipients</span></code> list.</dd>
+<dt><code class="docutils literal"><span class="pre">extraRecipients</span></code> (list of strings)</dt>
+<dd>A list of email addresses to which messages should be sent (in addition to the InterestedUsers list, which includes any developers who made <code class="xref py py-class docutils literal"><span class="pre">Change</span></code>s that went into this build).
+It is a good idea to create a small mailing list and deliver to that, then let subscribers come and go as they please.</dd>
+<dt><code class="docutils literal"><span class="pre">subject</span></code> (string)</dt>
+<dd>A string to be used as the subject line of the message.
+<code class="docutils literal"><span class="pre">%(builder)s</span></code> will be replaced with the name of the builder which provoked the message.</dd>
+<dt><code class="docutils literal"><span class="pre">mode</span></code></dt>
+<dd><p class="first">Mode is a list of strings; however there are two strings which can be used as shortcuts instead of the full lists.
+The possible shortcuts are:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">all</span></code></dt>
+<dd>Always send mail about builds.
+Equivalent to (<code class="docutils literal"><span class="pre">change</span></code>, <code class="docutils literal"><span class="pre">failing</span></code>, <code class="docutils literal"><span class="pre">passing</span></code>, <code class="docutils literal"><span class="pre">problem</span></code>, <code class="docutils literal"><span class="pre">warnings</span></code>, <code class="docutils literal"><span class="pre">exception</span></code>).</dd>
+<dt><code class="docutils literal"><span class="pre">warnings</span></code></dt>
+<dd>Equivalent to (<code class="docutils literal"><span class="pre">warnings</span></code>, <code class="docutils literal"><span class="pre">failing</span></code>).</dd>
+<dt>(list of strings)</dt>
+<dd><p class="first">A combination of:</p>
+<dl class="last docutils">
+<dt><code class="docutils literal"><span class="pre">change</span></code></dt>
+<dd>Send mail about builds which change status.</dd>
+<dt><code class="docutils literal"><span class="pre">failing</span></code></dt>
+<dd>Send mail about builds which fail.</dd>
+<dt><code class="docutils literal"><span class="pre">passing</span></code></dt>
+<dd>Send mail about builds which succeed.</dd>
+<dt><code class="docutils literal"><span class="pre">problem</span></code></dt>
+<dd>Send mail about a build which failed when the previous build has passed.</dd>
+<dt><code class="docutils literal"><span class="pre">warnings</span></code></dt>
+<dd>Send mail about builds which generate warnings.</dd>
+<dt><code class="docutils literal"><span class="pre">exception</span></code></dt>
+<dd>Send mail about builds which generate exceptions.</dd>
+</dl>
+</dd>
+</dl>
+<p class="last">Defaults to (<code class="docutils literal"><span class="pre">failing</span></code>, <code class="docutils literal"><span class="pre">passing</span></code>, <code class="docutils literal"><span class="pre">warnings</span></code>).</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">builders</span></code> (list of strings)</dt>
+<dd>A list of builder names for which mail should be sent.
+Defaults to <code class="docutils literal"><span class="pre">None</span></code> (send mail for all builds).
+Use either builders or tags, but not both.</dd>
+<dt><code class="docutils literal"><span class="pre">tags</span></code> (list of strings)</dt>
+<dd>A list of tag names to serve status information for.
+Defaults to <code class="docutils literal"><span class="pre">None</span></code> (all tags).
+Use either builders or tags, but not both.</dd>
+<dt><code class="docutils literal"><span class="pre">addLogs</span></code> (boolean)</dt>
+<dd>If <code class="docutils literal"><span class="pre">True</span></code>, include all build logs as attachments to the messages.
+These can be quite large.
+This can also be set to a list of log names, to send a subset of the logs.
+Defaults to <code class="docutils literal"><span class="pre">False</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">addPatch</span></code> (boolean)</dt>
+<dd>If <code class="docutils literal"><span class="pre">True</span></code>, include the patch content if a patch was present.
+Patches are usually used on a <code class="xref py py-class docutils literal"><span class="pre">Try</span></code> server.
+Defaults to <code class="docutils literal"><span class="pre">True</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">buildSetSummary</span></code> (boolean)</dt>
+<dd>If <code class="docutils literal"><span class="pre">True</span></code>, send a single summary email consisting of the concatenation of all build completion messages rather than a completion message for each build.
+Defaults to <code class="docutils literal"><span class="pre">False</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">relayhost</span></code> (string)</dt>
+<dd>The host to which the outbound SMTP connection should be made.
+Defaults to 'localhost'</dd>
+<dt><code class="docutils literal"><span class="pre">smtpPort</span></code> (int)</dt>
+<dd>The port that will be used on outbound SMTP connections.
+Defaults to 25.</dd>
+<dt><code class="docutils literal"><span class="pre">useTls</span></code> (boolean)</dt>
+<dd>When this argument is <code class="docutils literal"><span class="pre">True</span></code> (default is <code class="docutils literal"><span class="pre">False</span></code>) <code class="docutils literal"><span class="pre">MailNotifier</span></code> sends emails using TLS and authenticates with the <code class="docutils literal"><span class="pre">relayhost</span></code>.
+When using TLS the arguments <code class="docutils literal"><span class="pre">smtpUser</span></code> and <code class="docutils literal"><span class="pre">smtpPassword</span></code> must also be specified.</dd>
+<dt><code class="docutils literal"><span class="pre">smtpUser</span></code> (string)</dt>
+<dd>The user name to use when authenticating with the <code class="docutils literal"><span class="pre">relayhost</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">smtpPassword</span></code> (string)</dt>
+<dd>The password that will be used when authenticating with the <code class="docutils literal"><span class="pre">relayhost</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">lookup</span></code> (implementor of <code class="xref py py-class docutils literal"><span class="pre">IEmailLookup</span></code>)</dt>
+<dd><p class="first">Object which provides <code class="xref py py-class docutils literal"><span class="pre">IEmailLookup</span></code>, which is responsible for mapping User names (which come from the VC system) into valid email addresses.</p>
+<p>If the argument is not provided, the <code class="docutils literal"><span class="pre">MailNotifier</span></code> will attempt to build the <code class="docutils literal"><span class="pre">sendToInterestedUsers</span></code> from the authors of the Changes that led to the Build via <a class="reference internal" href="concepts.html#user-objects"><span class="std std-ref">User Objects</span></a>.
+If the author of one of the Build's Changes has an email address stored, it will added to the recipients list.
+With this method, <code class="docutils literal"><span class="pre">owners</span></code> are still added to the recipients.
+Note that, in the current implementation of user objects, email addresses are not stored; as a result, unless you have specifically added email addresses to the user database, this functionality is unlikely to actually send any emails.</p>
+<p>Most of the time you can use a simple Domain instance.
+As a shortcut, you can pass as string: this will be treated as if you had provided <code class="docutils literal"><span class="pre">Domain(str)</span></code>.
+For example, <code class="docutils literal"><span class="pre">lookup='twistedmatrix.com'</span></code> will allow mail to be sent to all developers whose SVN usernames match their twistedmatrix.com account names.
+See <code class="file docutils literal"><span class="pre">buildbot/status/mail.py</span></code> for more details.</p>
+<p class="last">Regardless of the setting of <code class="docutils literal"><span class="pre">lookup</span></code>, <code class="docutils literal"><span class="pre">MailNotifier</span></code> will also send mail to addresses in the <code class="docutils literal"><span class="pre">extraRecipients</span></code> list.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">messageFormatter</span></code></dt>
+<dd>This is a optional function that can be used to generate a custom mail message.
+A <code class="xref py py-func docutils literal"><span class="pre">messageFormatter</span></code> function takes the mail mode (<code class="docutils literal"><span class="pre">mode</span></code>), builder name (<code class="docutils literal"><span class="pre">name</span></code>), the build status (<code class="docutils literal"><span class="pre">build</span></code>), the result code (<code class="docutils literal"><span class="pre">results</span></code>), and the BuildMaster status (<code class="docutils literal"><span class="pre">master_status</span></code>).
+It returns a dictionary.
+The <code class="docutils literal"><span class="pre">body</span></code> key gives a string that is the complete text of the message.
+The <code class="docutils literal"><span class="pre">type</span></code> key is the message type ('plain' or 'html').
+The 'html' type should be used when generating an HTML message.
+The <code class="docutils literal"><span class="pre">subject</span></code> key is optional, but gives the subject for the email.</dd>
+<dt><code class="docutils literal"><span class="pre">extraHeaders</span></code> (dictionary)</dt>
+<dd>A dictionary containing key/value pairs of extra headers to add to sent e-mails.
+Both the keys and the values may be a <cite>Interpolate</cite> instance.</dd>
+<dt><code class="docutils literal"><span class="pre">previousBuildGetter</span></code></dt>
+<dd>An optional function to calculate the previous build to the one at hand.
+A <code class="xref py py-func docutils literal"><span class="pre">previousBuildGetter</span></code> takes a <code class="xref py py-class docutils literal"><span class="pre">BuildStatus</span></code> and returns a <code class="xref py py-class docutils literal"><span class="pre">BuildStatus</span></code>.
+This function is useful when builders don't process their requests in order of arrival (chronologically) and therefore the order of completion of builds does not reflect the order in which changes (and their respective requests) arrived into the system.
+In such scenarios, status transitions in the chronological sequence of builds within a builder might not reflect the actual status transition in the topological sequence of changes in the tree.
+What's more, the latest build (the build at hand) might not always be for the most recent request so it might not make sense to send a &quot;change&quot; or &quot;problem&quot; email about it.
+Returning None from this function will prevent such emails from going out.</dd>
+</dl>
+<p>As a help to those writing <code class="xref py py-func docutils literal"><span class="pre">messageFormatter</span></code> functions, the following table describes how to get some useful pieces of information from the various status objects:</p>
+<dl class="docutils">
+<dt>Name of the builder that generated this event</dt>
+<dd><code class="docutils literal"><span class="pre">name</span></code></dd>
+<dt>Title of the buildmaster</dt>
+<dd><code class="xref py py-meth docutils literal"><span class="pre">master_status.getTitle</span></code></dd>
+<dt>MailNotifier mode</dt>
+<dd><code class="docutils literal"><span class="pre">mode</span></code> (a combination of <code class="docutils literal"><span class="pre">change</span></code>, <code class="docutils literal"><span class="pre">failing</span></code>, <code class="docutils literal"><span class="pre">passing</span></code>, <code class="docutils literal"><span class="pre">problem</span></code>, <code class="docutils literal"><span class="pre">warnings</span></code>, <code class="docutils literal"><span class="pre">exception</span></code>, <code class="docutils literal"><span class="pre">all</span></code>)</dd>
+</dl>
+<p>Builder result as a string:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.status.builder</span> <span class="k">import</span> <span class="n">Results</span>
+<span class="n">result_str</span> <span class="o">=</span> <span class="n">Results</span><span class="p">[</span><span class="n">results</span><span class="p">]</span>
+<span class="c1"># one of &#39;success&#39;, &#39;warnings&#39;, &#39;failure&#39;, &#39;skipped&#39;, or &#39;exception&#39;</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>URL to build page</dt>
+<dd><code class="docutils literal"><span class="pre">master_status.getURLForThing(build)</span></code></dd>
+<dt>URL to buildbot main page.</dt>
+<dd><code class="docutils literal"><span class="pre">master_status.getBuildbotURL()</span></code></dd>
+<dt>Build text</dt>
+<dd><code class="docutils literal"><span class="pre">build.getText()</span></code></dd>
+<dt>Mapping of property names to values</dt>
+<dd><code class="docutils literal"><span class="pre">build.getProperties()</span></code> (a <code class="xref py py-class docutils literal"><span class="pre">Properties</span></code> instance)</dd>
+<dt>Slave name</dt>
+<dd><code class="docutils literal"><span class="pre">build.getSlavename()</span></code></dd>
+<dt>Build reason (from a forced build)</dt>
+<dd><code class="docutils literal"><span class="pre">build.getReason()</span></code></dd>
+<dt>List of responsible users</dt>
+<dd><code class="docutils literal"><span class="pre">build.getResponsibleUsers()</span></code></dd>
+</dl>
+<p>Source information (only valid if ss is not <code class="docutils literal"><span class="pre">None</span></code>)</p>
+<blockquote>
+<div><p>A build has a set of sourcestamps:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">ss</span> <span class="ow">in</span> <span class="n">build</span><span class="o">.</span><span class="n">getSourceStamp</span><span class="p">():</span>
+    <span class="n">branch</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">branch</span>
+    <span class="n">revision</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">revision</span>
+    <span class="n">patch</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">patch</span>
+    <span class="n">changes</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">changes</span> <span class="c1"># list</span>
+</pre></div>
+</div>
+<p>A change object has the following useful information:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">who</span></code></dt>
+<dd>(str) who made this change</dd>
+<dt><code class="docutils literal"><span class="pre">revision</span></code></dt>
+<dd>(str) what VC revision is this change</dd>
+<dt><code class="docutils literal"><span class="pre">branch</span></code></dt>
+<dd>(str) on what branch did this change occur</dd>
+<dt><code class="docutils literal"><span class="pre">when</span></code></dt>
+<dd>(str) when did this change occur</dd>
+<dt><code class="docutils literal"><span class="pre">files</span></code></dt>
+<dd>(list of str) what files were affected in this change</dd>
+<dt><code class="docutils literal"><span class="pre">comments</span></code></dt>
+<dd>(str) comments reguarding the change.</dd>
+</dl>
+<p>The <code class="docutils literal"><span class="pre">Change</span></code> methods <code class="xref py py-meth docutils literal"><span class="pre">asText</span></code> and <code class="xref py py-meth docutils literal"><span class="pre">asDict</span></code> can be used to format the information above.
+<code class="xref py py-meth docutils literal"><span class="pre">asText</span></code> returns a list of strings and <code class="xref py py-meth docutils literal"><span class="pre">asDict</span></code> returns a dictionary suitable for html/mail rendering.</p>
+</div></blockquote>
+<p>Log information:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">logs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">log</span> <span class="ow">in</span> <span class="n">build</span><span class="o">.</span><span class="n">getLogs</span><span class="p">():</span>
+    <span class="n">log_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">log</span><span class="o">.</span><span class="n">getStep</span><span class="p">()</span><span class="o">.</span><span class="n">getName</span><span class="p">(),</span> <span class="n">log</span><span class="o">.</span><span class="n">getName</span><span class="p">())</span>
+    <span class="n">log_status</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">log</span><span class="o">.</span><span class="n">getStep</span><span class="p">()</span><span class="o">.</span><span class="n">getResults</span><span class="p">()</span>
+    <span class="n">log_body</span> <span class="o">=</span> <span class="n">log</span><span class="o">.</span><span class="n">getText</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="c1"># Note: can be VERY LARGE</span>
+    <span class="n">log_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/steps/</span><span class="si">%s</span><span class="s1">/logs/</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">master_status</span><span class="o">.</span><span class="n">getURLForThing</span><span class="p">(</span><span class="n">build</span><span class="p">),</span>
+                                       <span class="n">log</span><span class="o">.</span><span class="n">getStep</span><span class="p">()</span><span class="o">.</span><span class="n">getName</span><span class="p">(),</span>
+                                       <span class="n">log</span><span class="o">.</span><span class="n">getName</span><span class="p">())</span>
+    <span class="n">logs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">log_name</span><span class="p">,</span> <span class="n">log_url</span><span class="p">,</span> <span class="n">log_body</span><span class="p">,</span> <span class="n">log_status</span><span class="p">))</span>
+</pre></div>
+</div>
+<span class="target" id="status-IRC"></span></div>
+</div>
+<div class="section" id="irc-bot">
+<span id="index-1"></span><h2><a class="toc-backref" href="#id16">IRC Bot</a><a class="headerlink" href="#irc-bot" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.status.words.IRC">
+<em class="property">class </em><code class="descclassname">buildbot.status.words.</code><code class="descname">IRC</code><a class="headerlink" href="#buildbot.status.words.IRC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>The <a class="reference internal" href="#buildbot.status.words.IRC" title="buildbot.status.words.IRC"><code class="xref py py-class docutils literal"><span class="pre">buildbot.status.words.IRC</span></code></a> status target creates an IRC bot which will attach to certain channels and be available for status queries.
+It can also be asked to announce builds as they occur, or be told to shut up.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">status</span>
+
+<span class="n">irc</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">IRC</span><span class="p">(</span><span class="s2">&quot;irc.example.org&quot;</span><span class="p">,</span> <span class="s2">&quot;botnickname&quot;</span><span class="p">,</span>
+                 <span class="n">useColors</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">channels</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;channel&quot;</span><span class="p">:</span> <span class="s2">&quot;#example1&quot;</span><span class="p">},</span>
+                           <span class="p">{</span><span class="s2">&quot;channel&quot;</span><span class="p">:</span> <span class="s2">&quot;#example2&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;somesecretpassword&quot;</span><span class="p">}],</span>
+                 <span class="n">password</span><span class="o">=</span><span class="s2">&quot;mysecretnickservpassword&quot;</span><span class="p">,</span>
+                 <span class="n">notify_events</span><span class="o">=</span><span class="p">{</span>
+                   <span class="s1">&#39;exception&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                   <span class="s1">&#39;successToFailure&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                   <span class="s1">&#39;failureToSuccess&#39;</span><span class="p">:</span> <span class="mi">1</span>
+                 <span class="p">})</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">irc</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Take a look at the docstring for <code class="xref py py-class docutils literal"><span class="pre">words.IRC</span></code> for more details on configuring this service.
+Note that the <code class="docutils literal"><span class="pre">useSSL</span></code> option requires <a class="reference external" href="http://pyopenssl.sourceforge.net/">PyOpenSSL</a>.
+The <code class="docutils literal"><span class="pre">password</span></code> argument, if provided, will be sent to Nickserv to claim the nickname: some IRC servers will not allow clients to send private messages until they have logged in with a password.
+We can also specify a different <code class="docutils literal"><span class="pre">port</span></code> number.
+Default value is 6667.</p>
+<p>To use the service, you address messages at the buildbot, either normally (<code class="docutils literal"><span class="pre">botnickname:</span> <span class="pre">status</span></code>) or with private messages (<code class="docutils literal"><span class="pre">/msg</span> <span class="pre">botnickname</span> <span class="pre">status</span></code>).
+The buildbot will respond in kind.</p>
+<p>The bot will add color to some of its messages.
+This is enabled by default, you might turn it off with <code class="docutils literal"><span class="pre">useColors=False</span></code> argument to words.IRC().</p>
+<p>If you issue a command that is currently not available, the buildbot will respond with an error message.
+If the <code class="docutils literal"><span class="pre">noticeOnChannel=True</span></code> option was used, error messages will be sent as channel notices instead of messaging.
+The default value is <code class="docutils literal"><span class="pre">noticeOnChannel=False</span></code>.</p>
+<p>Some of the commands currently available:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">list</span> <span class="pre">builders</span></code></dt>
+<dd>Emit a list of all configured builders</dd>
+<dt><code class="samp docutils literal"><span class="pre">status</span> <em><span class="pre">BUILDER</span></em></code></dt>
+<dd>Announce the status of a specific Builder: what it is doing right now.</dd>
+<dt><code class="docutils literal"><span class="pre">status</span> <span class="pre">all</span></code></dt>
+<dd>Announce the status of all Builders</dd>
+<dt><code class="samp docutils literal"><span class="pre">watch</span> <em><span class="pre">BUILDER</span></em></code></dt>
+<dd>If the given <code class="xref py py-class docutils literal"><span class="pre">Builder</span></code> is currently running, wait until the <code class="xref py py-class docutils literal"><span class="pre">Build</span></code> is finished and then announce the results.</dd>
+<dt><code class="samp docutils literal"><span class="pre">last</span> <em><span class="pre">BUILDER</span></em></code></dt>
+<dd>Return the results of the last build to run on the given <code class="xref py py-class docutils literal"><span class="pre">Builder</span></code>.</dd>
+<dt><code class="samp docutils literal"><span class="pre">join</span> <em><span class="pre">CHANNEL</span></em></code></dt>
+<dd>Join the given IRC channel</dd>
+<dt><code class="samp docutils literal"><span class="pre">leave</span> <em><span class="pre">CHANNEL</span></em></code></dt>
+<dd>Leave the given IRC channel</dd>
+<dt><code class="samp docutils literal"><span class="pre">notify</span> <span class="pre">on|off|list</span> <em><span class="pre">EVENT</span></em></code></dt>
+<dd><p class="first">Report events relating to builds.
+If the command is issued as a private message, then the report will be sent back as a private message to the user who issued the command.
+Otherwise, the report will be sent to the channel.
+Available events to be notified are:</p>
+<dl class="last docutils">
+<dt><code class="docutils literal"><span class="pre">started</span></code></dt>
+<dd>A build has started</dd>
+<dt><code class="docutils literal"><span class="pre">finished</span></code></dt>
+<dd>A build has finished</dd>
+<dt><code class="docutils literal"><span class="pre">success</span></code></dt>
+<dd>A build finished successfully</dd>
+<dt><code class="docutils literal"><span class="pre">failure</span></code></dt>
+<dd>A build failed</dd>
+<dt><code class="docutils literal"><span class="pre">exception</span></code></dt>
+<dd>A build generated and exception</dd>
+<dt><code class="samp docutils literal"><em><span class="pre">x</span></em><span class="pre">To</span><em><span class="pre">Y</span></em></code></dt>
+<dd>The previous build was x, but this one is Y, where x and Y are each one of success, warnings, failure, exception (except Y is capitalized).
+For example: <code class="docutils literal"><span class="pre">successToFailure</span></code> will notify if the previous build was successful, but this one failed</dd>
+</dl>
+</dd>
+<dt><code class="samp docutils literal"><span class="pre">help</span> <em><span class="pre">COMMAND</span></em></code></dt>
+<dd>Describe a command.
+Use <strong class="command">help commands</strong> to get a list of known commands.</dd>
+<dt><code class="samp docutils literal"><span class="pre">shutdown</span> <em><span class="pre">ARG</span></em></code></dt>
+<dd><p class="first">Control the shutdown process of the buildbot master.
+Available arguments are:</p>
+<dl class="last docutils">
+<dt><code class="docutils literal"><span class="pre">check</span></code></dt>
+<dd>Check if the buildbot master is running or shutting down</dd>
+<dt><code class="docutils literal"><span class="pre">start</span></code></dt>
+<dd>Start clean shutdown</dd>
+<dt><code class="docutils literal"><span class="pre">stop</span></code></dt>
+<dd>Stop clean shutdown</dd>
+<dt><code class="docutils literal"><span class="pre">now</span></code></dt>
+<dd>Shutdown immediately without waiting for the builders to finish</dd>
+</dl>
+</dd>
+<dt><code class="docutils literal"><span class="pre">source</span></code></dt>
+<dd>Announce the URL of the Buildbot's home page.</dd>
+<dt><code class="docutils literal"><span class="pre">version</span></code></dt>
+<dd>Announce the version of this Buildbot.</dd>
+</dl>
+<p>Additionally, the config file may specify default notification options as shown in the example earlier.</p>
+<p>If the <code class="docutils literal"><span class="pre">allowForce=True</span></code> option was used, some additional commands will be available:</p>
+<dl class="docutils" id="index-2">
+<dt><code class="samp docutils literal"><span class="pre">force</span> <span class="pre">build</span> <span class="pre">[--branch=</span><em><span class="pre">BRANCH</span></em><span class="pre">]</span> <span class="pre">[--revision=</span><em><span class="pre">REVISION</span></em><span class="pre">]</span> <span class="pre">[--props=PROP1=VAL1,PROP2=VAL2...]</span> <em><span class="pre">BUILDER</span></em> <em><span class="pre">REASON</span></em></code></dt>
+<dd>Tell the given <code class="xref py py-class docutils literal"><span class="pre">Builder</span></code> to start a build of the latest code.
+The user requesting the build and <em>REASON</em> are recorded in the <code class="xref py py-class docutils literal"><span class="pre">Build</span></code> status.
+The buildbot will announce the build's status when it finishes.
+The user can specify a branch and/or revision with the optional parameters <code class="samp docutils literal"><span class="pre">--branch=</span><em><span class="pre">BRANCH</span></em></code> and <code class="samp docutils literal"><span class="pre">--revision=</span><em><span class="pre">REVISION</span></em></code>.
+The user can also give a list of properties with <code class="samp docutils literal"><span class="pre">--props=</span><em><span class="pre">PROP1=VAL1,PROP2=VAL2..</span></em></code>.</dd>
+<dt><code class="samp docutils literal"><span class="pre">stop</span> <span class="pre">build</span> <em><span class="pre">BUILDER</span></em> <em><span class="pre">REASON</span></em></code></dt>
+<dd>Terminate any running build in the given <code class="xref py py-class docutils literal"><span class="pre">Builder</span></code>.
+<em>REASON</em> will be added to the build status to explain why it was stopped.
+You might use this if you committed a bug, corrected it right away, and don't want to wait for the first build (which is destined to fail) to complete before starting the second (hopefully fixed) build.</dd>
+</dl>
+<p>If the <cite>tags</cite> is set (see the tags option in <a class="reference internal" href="cfg-builders.html#builder-configuration"><span class="std std-ref">Builder Configuration</span></a>) changes related to only builders belonging to those tags of builders will be sent to the channel.</p>
+<p>If the <cite>useRevisions</cite> option is set to <cite>True</cite>, the IRC bot will send status messages that replace the build number with a list of revisions that are contained in that build.
+So instead of seeing <cite>build #253 of ...</cite>, you would see something like <cite>build containing revisions [a87b2c4]</cite>.
+Revisions that are stored as hashes are shortened to 7 characters in length, as multiple revisions can be contained in one build and may exceed the IRC message length limit.</p>
+<p>Two additional arguments can be set to control how fast the IRC bot tries to reconnect when it encounters connection issues.
+<code class="docutils literal"><span class="pre">lostDelay</span></code> is the number of of seconds the bot will wait to reconnect when the connection is lost, where as <code class="docutils literal"><span class="pre">failedDelay</span></code> is the number of seconds until the bot tries to reconnect when the connection failed.
+<code class="docutils literal"><span class="pre">lostDelay</span></code> defaults to a random number between 1 and 5, while <code class="docutils literal"><span class="pre">failedDelay</span></code> defaults to a random one between 45 and 60.
+Setting random defaults like this means multiple IRC bots are less likely to deny each other by flooding the server.</p>
+</div>
+<div class="section" id="pblistener">
+<span id="status-PBListener"></span><h2><a class="toc-backref" href="#id17">PBListener</a><a class="headerlink" href="#pblistener" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.status.client.PBListener">
+<em class="property">class </em><code class="descclassname">buildbot.status.client.</code><code class="descname">PBListener</code><a class="headerlink" href="#buildbot.status.client.PBListener" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">status</span>
+
+<span class="n">pbl</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">PBListener</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">passwd</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pbl</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This sets up a PB listener on the given TCP port, to which a PB-based status client can connect and retrieve status information.
+<strong class="command">buildbot statusgui</strong> (<a class="reference internal" href="cmdline.html#cmdline-statusgui" title="statusgui"><code class="xref bb bb-cmdline docutils literal"><span class="pre">statusgui</span></code></a>) is an example of such a status client.
+The <code class="docutils literal"><span class="pre">port</span></code> argument can also be a strports specification string.</p>
+</div>
+<div class="section" id="statuspush">
+<span id="status-StatusPush"></span><h2><a class="toc-backref" href="#id18">StatusPush</a><a class="headerlink" href="#statuspush" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.status.status_push.StatusPush">
+<em class="property">class </em><code class="descclassname">buildbot.status.status_push.</code><code class="descname">StatusPush</code><a class="headerlink" href="#buildbot.status.status_push.StatusPush" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">status</span>
+
+<span class="k">def</span> <span class="nf">Process</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="nb">print</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">popChunk</span><span class="p">())</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">queueNextServerPush</span><span class="p">()</span>
+
+<span class="n">sp</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">StatusPush</span><span class="p">(</span><span class="n">serverPushCb</span><span class="o">=</span><span class="n">Process</span><span class="p">,</span>
+                       <span class="n">bufferDelay</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                       <span class="n">retryDelay</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="xref py py-class docutils literal"><span class="pre">StatusPush</span></code> batches events normally processed and sends it to the <code class="xref py py-func docutils literal"><span class="pre">serverPushCb</span></code> callback every <code class="docutils literal"><span class="pre">bufferDelay</span></code> seconds.
+The callback should pop items from the queue and then queue the next callback.
+If no items were popped from <code class="docutils literal"><span class="pre">self.queue</span></code>, <code class="docutils literal"><span class="pre">retryDelay</span></code> seconds will be waited instead.</p>
+</div>
+<div class="section" id="httpstatuspush">
+<span id="status-HttpStatusPush"></span><h2><a class="toc-backref" href="#id19">HttpStatusPush</a><a class="headerlink" href="#httpstatuspush" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">status</span>
+
+<span class="n">sp</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">HttpStatusPush</span><span class="p">(</span><span class="n">serverUrl</span><span class="o">=</span><span class="s2">&quot;http://example.com/submit&quot;</span><span class="p">)</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="xref py py-class docutils literal"><span class="pre">HttpStatusPush</span></code> builds on <code class="xref py py-class docutils literal"><span class="pre">StatusPush</span></code> and sends HTTP requests to <code class="docutils literal"><span class="pre">serverUrl</span></code>, with all the items json-encoded.
+It is useful to create a status front end outside of Buildbot for better scalability.</p>
+</div>
+<div class="section" id="gerritstatuspush">
+<span id="status-GerritStatusPush"></span><h2><a class="toc-backref" href="#id20">GerritStatusPush</a><a class="headerlink" href="#gerritstatuspush" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.status.status_gerrit.GerritStatusPush">
+<em class="property">class </em><code class="descclassname">buildbot.status.status_gerrit.</code><code class="descname">GerritStatusPush</code><a class="headerlink" href="#buildbot.status.status_gerrit.GerritStatusPush" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><a class="reference internal" href="#GerritStatusPush" title="GerritStatusPush"><code class="xref py py-class docutils literal"><span class="pre">GerritStatusPush</span></code></a> sends review of the <code class="xref py py-class docutils literal"><span class="pre">Change</span></code> back to the Gerrit server, optionally also sending a message when a build is started.
+GerritStatusPush can send a separate review for each build that completes, or a single review summarizing the results for all of the builds.</p>
+<dl class="class">
+<dt id="GerritStatusPush">
+<em class="property">class </em><code class="descname">GerritStatusPush</code><span class="sig-paren">(</span><em>server</em>, <em>username</em>, <em>notify</em>, <em>reviewCB</em>, <em>startCB</em>, <em>port</em>, <em>reviewArg</em>, <em>startArg</em>, <em>summaryCB</em>, <em>summaryArg</em>, <em>...</em><span class="sig-paren">)</span><a class="headerlink" href="#GerritStatusPush" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>server</strong> (<em>string</em>) -- Gerrit SSH server's address to use for push event notifications.</li>
+<li><strong>username</strong> (<em>string</em>) -- Gerrit SSH server's username.</li>
+<li><strong>notify</strong> (<em>string</em>) -- Notify handling that defines to whom email notifications should be sent after the review is stored.
+Allowed values are NONE, OWNER, OWNER_REVIEWERS and ALL. If not set, the default is ALL.
+This parameter released in Gerrit 2.9:
+<a class="reference external" href="https://gerrit-documentation.storage.googleapis.com/Documentation/2.9/cmd-review.html#_options">https://gerrit-documentation.storage.googleapis.com/Documentation/2.9/cmd-review.html#_options</a></li>
+<li><strong>port</strong> (<em>int</em>) -- (optional) Gerrit SSH server's port (default: 29418)</li>
+<li><strong>reviewCB</strong> -- (optional) callback that is called each time a build is finished, and that is used to define the message and review approvals depending on the build result.</li>
+<li><strong>reviewArg</strong> -- <p>(optional) argument passed to the review callback.</p>
+<p>If <code class="xref py py-func docutils literal"><span class="pre">reviewCB</span></code> callback is specified, it determines the message and score to give when sending a review for each separate build.
+It should return a dictionary:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="n">message</span><span class="p">,</span>
+ <span class="s1">&#39;labels&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">label</span><span class="o">-</span><span class="n">name</span><span class="p">:</span> <span class="n">label</span><span class="o">-</span><span class="n">score</span><span class="p">,</span>
+            <span class="o">...</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gerritReviewCB</span><span class="p">(</span><span class="n">builderName</span><span class="p">,</span> <span class="n">build</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="n">util</span><span class="o">.</span><span class="n">RETRY</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="n">message</span> <span class="o">=</span>  <span class="s2">&quot;Buildbot finished compiling your patchset</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="n">message</span> <span class="o">+=</span> <span class="s2">&quot;on configuration: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">builderName</span>
+    <span class="n">message</span> <span class="o">+=</span> <span class="s2">&quot;The result is: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">util</span><span class="o">.</span><span class="n">Results</span><span class="p">[</span><span class="n">result</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">arg</span><span class="p">:</span>
+        <span class="n">message</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">For more details visit:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">message</span> <span class="o">+=</span> <span class="n">status</span><span class="o">.</span><span class="n">getURLForThing</span><span class="p">(</span><span class="n">build</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">,</span>
+                <span class="n">labels</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s1">&#39;Verified&#39;</span><span class="p">:</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="n">util</span><span class="o">.</span><span class="n">SUCCESS</span> <span class="ow">or</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="p">})</span>
+</pre></div>
+</div>
+<p>Where <code class="docutils literal"><span class="pre">Results</span></code>, <code class="docutils literal"><span class="pre">RETRY</span></code> and <code class="docutils literal"><span class="pre">SUCCESS</span></code> are imported like</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.status.builder</span> <span class="kn">import</span> <span class="n">Results</span><span class="p">,</span> <span class="n">SUCCESS</span><span class="p">,</span> <span class="n">RETRY</span>
+</pre></div>
+</div>
+</li>
+<li><strong>startCB</strong> -- (optional) callback that is called each time a build is started.
+Used to define the message sent to Gerrit.</li>
+<li><strong>startArg</strong> -- <p>(optional) argument passed to the start callback.</p>
+<p>If <code class="xref py py-func docutils literal"><span class="pre">startCB</span></code> is specified, it should return a message.
+This message will be sent to the Gerrit server when each build is started, for example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gerritStartCB</span><span class="p">(</span><span class="n">builderName</span><span class="p">,</span> <span class="n">build</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
+    <span class="nb">print</span> <span class="s2">&quot;gerritStartCB...&quot;</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;Buildbot started compiling your patchset</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="n">message</span> <span class="o">+=</span> <span class="s2">&quot;on configuration: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">builderName</span>
+
+    <span class="k">return</span> <span class="n">message</span>
+</pre></div>
+</div>
+</li>
+<li><strong>summaryCB</strong> -- (optional) callback that is called each time a buildset finishes, and that is used to define a message and review approvals depending on the build result.</li>
+<li><strong>summaryArg</strong> -- <p>(optional) argument passed to the summary callback.</p>
+<p>If <code class="xref py py-func docutils literal"><span class="pre">summaryCB</span></code> callback is specified, determines the message and score to give when sending a single review summarizing all of the builds.
+It should return a dictionary:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="n">message</span><span class="p">,</span>
+ <span class="s1">&#39;labels&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">label</span><span class="o">-</span><span class="n">name</span><span class="p">:</span> <span class="n">label</span><span class="o">-</span><span class="n">score</span><span class="p">,</span>
+            <span class="o">...</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gerritSummaryCB</span><span class="p">(</span><span class="n">buildInfoList</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
+    <span class="n">success</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">failure</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="n">msgs</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">buildInfo</span> <span class="ow">in</span> <span class="n">buildInfoList</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Builder </span><span class="si">%(name)s</span><span class="s2"> </span><span class="si">%(resultText)s</span><span class="s2"> (</span><span class="si">%(text)s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">buildInfo</span>
+        <span class="n">link</span> <span class="o">=</span> <span class="n">buildInfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;url&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">link</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot; - &quot;</span> <span class="o">+</span> <span class="n">link</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;.&quot;</span>
+        <span class="n">msgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">buildInfo</span><span class="p">[</span><span class="s1">&#39;result&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">SUCCESS</span><span class="p">:</span>
+            <span class="n">success</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">failure</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="k">if</span> <span class="n">success</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">failure</span><span class="p">:</span>
+        <span class="n">verified</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">verified</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">msgs</span><span class="p">),</span>
+                <span class="n">labels</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s1">&#39;Verified&#39;</span><span class="p">:</span> <span class="n">verified</span>
+                <span class="p">})</span>
+</pre></div>
+</div>
+</li>
+<li><strong>identity_file</strong> (<em>string</em>) -- (optional) Gerrit SSH identity file.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">By default, a single summary review is sent; that is, a default summaryCB is provided, but no reviewCB or startCB.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If <code class="xref py py-func docutils literal"><span class="pre">reviewCB</span></code> or <code class="xref py py-func docutils literal"><span class="pre">summaryCB</span></code> do not return any labels, only a message will be pushed to the Gerrit server.</p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><code class="file docutils literal"><span class="pre">master/docs/examples/git_gerrit.cfg</span></code> and <code class="file docutils literal"><span class="pre">master/docs/examples/repo_gerrit.cfg</span></code> in the Buildbot distribution provide a full example setup of Git+Gerrit or Repo+Gerrit of <a class="reference internal" href="#status-GerritStatusPush" title="GerritStatusPush"><code class="xref bb bb-status docutils literal"><span class="pre">GerritStatusPush</span></code></a>.</p>
+</div>
+</div>
+<div class="section" id="githubstatus">
+<span id="status-GitHubStatus"></span><h2><a class="toc-backref" href="#id21">GitHubStatus</a><a class="headerlink" href="#githubstatus" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.status.github.GitHubStatus">
+<em class="property">class </em><code class="descclassname">buildbot.status.github.</code><code class="descname">GitHubStatus</code><a class="headerlink" href="#buildbot.status.github.GitHubStatus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">status</span><span class="p">,</span> <span class="n">util</span>
+
+<span class="n">repoOwner</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Interpolate</span><span class="p">(</span><span class="s2">&quot;%(prop:github_repo_owner)s&quot;</span><span class="p">)</span>
+<span class="n">repoName</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Interpolate</span><span class="p">(</span><span class="s2">&quot;%(prop:github_repo_name)s&quot;</span><span class="p">)</span>
+<span class="n">sha</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Interpolate</span><span class="p">(</span><span class="s2">&quot;%(src::revision)s&quot;</span><span class="p">)</span>
+<span class="n">context</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Interpolate</span><span class="p">(</span><span class="s2">&quot;buildbot/%(prop:buildername)s&quot;</span><span class="p">)</span>
+<span class="n">gs</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">GitHubStatus</span><span class="p">(</span><span class="n">token</span><span class="o">=</span><span class="s1">&#39;githubAPIToken&#39;</span><span class="p">,</span>
+                         <span class="n">repoOwner</span><span class="o">=</span><span class="n">repoOwner</span><span class="p">,</span>
+                         <span class="n">repoName</span><span class="o">=</span><span class="n">repoName</span><span class="p">,</span>
+                         <span class="n">sha</span><span class="o">=</span><span class="n">sha</span><span class="p">,</span>
+                         <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
+                         <span class="n">startDescription</span><span class="o">=</span><span class="s1">&#39;Build started.&#39;</span><span class="p">,</span>
+                         <span class="n">endDescription</span><span class="o">=</span><span class="s1">&#39;Build done.&#39;</span><span class="p">)</span>
+<span class="n">buildbot_bbtools</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">BuilderConfig</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;builder-name&#39;</span><span class="p">,</span>
+    <span class="n">slavenames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;slave1&#39;</span><span class="p">],</span>
+    <span class="n">factory</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">BuilderFactory</span><span class="p">(),</span>
+    <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;github_repo_owner&quot;</span><span class="p">:</span> <span class="s2">&quot;buildbot&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;github_repo_name&quot;</span><span class="p">:</span> <span class="s2">&quot;bbtools&quot;</span><span class="p">,</span>
+    <span class="p">})</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;builders&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">buildbot_bbtools</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="xref py py-class docutils literal"><span class="pre">GitHubStatus</span></code> publishes a build status using <a class="reference external" href="http://developer.github.com/v3/repos/statuses">GitHub Status API</a>.</p>
+<p>It requires <cite>txgithub &lt;https://pypi.python.org/pypi/txgithub&gt;</cite> package to allow interaction with GitHub API.</p>
+<p>It is configured with at least a GitHub API token, repoOwner and repoName arguments.</p>
+<p>You can create a token from you own <a class="reference external" href="https://github.com/settings/applications">GitHub - Profile - Applications - Register new application</a> or use an external tool to generate one.</p>
+<p><cite>repoOwner</cite>, <cite>repoName</cite> are used to inform the plugin where to send status for build.
+This allow using a single <code class="xref py py-class docutils literal"><span class="pre">GitHubStatus</span></code> for multiple projects.
+<cite>repoOwner</cite>, <cite>repoName</cite> can be passes as a static <cite>string</cite> (for single project) or <code class="xref py py-class docutils literal"><span class="pre">Interpolate</span></code> for dynamic substitution in multiple project.</p>
+<p><cite>sha</cite> argument is use to define the commit SHA for which to send the status.
+By default <cite>sha</cite> is defined as: <cite>%(src::revision)s</cite>.</p>
+<p>In case any of <cite>repoOwner</cite>, <cite>repoName</cite> or <cite>sha</cite> returns <cite>None</cite>, <cite>False</cite> or empty string, the plugin will skip sending the status.</p>
+<p>The <cite>context</cite> argument is passed to GitHub to differentiate between statuses. A static string can be passed or <code class="xref py py-class docutils literal"><span class="pre">Interpolate</span></code> for dynamic substitution.
+The default context is <cite>buildbot/%(prop:buildername)s</cite>.</p>
+<p>You can define custom start and end build messages using the <cite>startDescription</cite> and <cite>endDescription</cite> optional interpolation arguments.</p>
+<p>Starting with Buildbot version 0.8.11, <code class="xref py py-class docutils literal"><span class="pre">GitHubStatus</span></code> supports additional parameter -- <code class="docutils literal"><span class="pre">baseURL</span></code> -- that allows to specify a different API base endpoint.
+This is required if you work with GitHub Enterprise installation.
+This feature requires <code class="docutils literal"><span class="pre">txgithub</span></code> of version 0.2.0 or better.</p>
+</div>
+<div class="section" id="stashstatuspush">
+<h2><a class="toc-backref" href="#id22">StashStatusPush</a><a class="headerlink" href="#stashstatuspush" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.status.status_stash.StashStatusPush">
+<em class="property">class </em><code class="descclassname">buildbot.status.status_stash.</code><code class="descname">StashStatusPush</code><a class="headerlink" href="#buildbot.status.status_stash.StashStatusPush" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.status.status_stash</span> <span class="k">import</span> <span class="n">StashStatusPush</span>
+
+<span class="n">ss</span> <span class="o">=</span> <span class="n">StashStatusPush</span><span class="p">(</span><span class="s1">&#39;https://stash.example.com:8080/&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;stash_username&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;secret_password&#39;</span><span class="p">,</span>
+                     <span class="n">key_format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(builderName)s</span><span class="s1">-</span><span class="si">%(branch)s</span><span class="s1">&#39;</span><span class="p">,</span>
+                     <span class="n">name_format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(builderName)s</span><span class="s1">-</span><span class="si">%(branch)s</span><span class="s1">-</span><span class="si">%(buildNumber)s</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="xref py py-class docutils literal"><span class="pre">StashStatusPush</span></code> publishes build status using <a class="reference external" href="https://developer.atlassian.com/static/rest/stash/3.6.0/stash-build-integration-rest.html">Stash Build Integration REST API</a>.
+The build status is published to a specific commit SHA in Stash.
+It tracks the last build for each builderName for each commit built.</p>
+<p>Specifically, it follows the <a class="reference external" href="https://developer.atlassian.com/stash/docs/latest/how-tos/updating-build-status-for-commits.html">Updating build status for commits</a> document.</p>
+<p>It uses the standard Python Twisted Agent to make REST requests to the stash server.
+It uses HTTP Basic AUTH.
+As a result, we recommend you either connect over a secured network or use https in your base_url rather than http.
+If you use https, it requires <cite>pyOpenSSL</cite>.</p>
+<p>Configuration requires 3 parameters:
+<cite>base_url</cite> is the base url of the stash host, up to and optionally including the first / of the path.
+<cite>user</cite> is the stash user to post as
+<cite>password</cite> is the stash user's password
+There are also two optional parameters:
+<cite>key_format</cite> is a python format string used to define the aggregation key for builds in stash.
+It defaults to <cite>%(builderName)s</cite> for backwards compatability.
+<cite>name_format</cite> is a python format string used to define the human-readable build name in stash.
+It defaults to <cite>None</cite> which does not include a name parameter in the REST request.</p>
+<table class="docutils footnote" frame="void" id="id7" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[1]</a></td><td>Apparently this is the same way <a class="reference external" href="http://buildd.debian.org">http://buildd.debian.org</a> displays build status</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id8" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[2]</a></td><td>It may even be possible to provide SSL access by using a
+specification like <code class="docutils literal"><span class="pre">&quot;ssl:12345:privateKey=mykey.pen:certKey=cert.pem&quot;</span></code>,
+but this is completely untested</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+<h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concepts.html">Concepts</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="configuration.html">Configuration</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="cfg-intro.html">Configuring Buildbot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-global.html">Global Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-changesources.html">Change Sources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-schedulers.html">Schedulers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-buildslaves.html">Buildslaves</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-builders.html">Builder Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-buildfactories.html">Build Factories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-properties.html">Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-buildsteps.html">Build Steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-interlocks.html">Interlocks</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Status Targets</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="customization.html">Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="new-style-steps.html">New-Style Build Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmdline.html">Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resources.html">Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html">Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins.html">Plugin Infrastructure in Buildbot</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">Release Notes for Buildbot 0.8.14</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="cfg-interlocks.html" title="Interlocks"
+              >previous</a> |
+            <a href="customization.html" title="Customization"
+              >next</a> |
+            <a href="../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="../_sources/manual/cfg-statustargets.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright Buildbot Team Members.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.5.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>
