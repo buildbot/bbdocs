@@ -1,0 +1,1158 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>2.6. Customization &#8212; Buildbot 0.9.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/qtile.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/buildbot.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="top" title="Buildbot 0.9.0 documentation" href="../index.html" />
+    <link rel="up" title="2. Buildbot Manual" href="index.html" />
+    <link rel="next" title="2.7. New-Style Build Steps" href="new-style-steps.html" />
+    <link rel="prev" title="2.5. Transition to &#34;worker&#34; terminology" href="worker-transition.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="new-style-steps.html" title="2.7. New-Style Build Steps"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="worker-transition.html" title="2.5. Transition to &#34;worker&#34; terminology"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Buildbot 0.9.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">2. Buildbot Manual</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="customization">
+<h1>2.6. Customization<a class="headerlink" href="#customization" title="Permalink to this headline">¶</a></h1>
+<p>For advanced users, Buildbot acts as a framework supporting a customized build application.
+For the most part, such configurations consist of subclasses set up for use in a regular Buildbot configuration file.</p>
+<p>This chapter describes some of the more common idioms in advanced Buildbot configurations.</p>
+<p>At the moment, this chapter is an unordered set of suggestions:</p>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#programmatic-configuration-generation" id="id12">Programmatic Configuration Generation</a></li>
+<li><a class="reference internal" href="#collapse-request-functions" id="id13">Collapse Request Functions</a></li>
+<li><a class="reference internal" href="#builder-priority-functions" id="id14">Builder Priority Functions</a></li>
+<li><a class="reference internal" href="#build-priority-functions" id="id15">Build Priority Functions</a></li>
+<li><a class="reference internal" href="#customizing-svnpoller" id="id16">Customizing SVNPoller</a><ul>
+<li><a class="reference internal" href="#project-branchname-filepath-repositories" id="id17"><code class="samp docutils literal"><em><span class="pre">PROJECT</span></em><span class="pre">/</span><em><span class="pre">BRANCHNAME</span></em><span class="pre">/</span><em><span class="pre">FILEPATH</span></em></code> repositories</a></li>
+<li><a class="reference internal" href="#branchname-project-filepath-repositories" id="id18"><code class="samp docutils literal"><em><span class="pre">BRANCHNAME</span></em><span class="pre">/</span><em><span class="pre">PROJECT</span></em><span class="pre">/</span><em><span class="pre">FILEPATH</span></em></code> repositories</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#writing-change-sources" id="id19">Writing Change Sources</a><ul>
+<li><a class="reference internal" href="#writing-a-notification-based-change-source" id="id20">Writing a Notification-based Change Source</a></li>
+<li><a class="reference internal" href="#writing-a-change-poller" id="id21">Writing a Change Poller</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#writing-a-new-latent-worker-implementation" id="id22">Writing a New Latent Worker Implementation</a></li>
+<li><a class="reference internal" href="#custom-build-classes" id="id23">Custom Build Classes</a></li>
+<li><a class="reference internal" href="#factory-workdir-functions" id="id24">Factory Workdir Functions</a></li>
+<li><a class="reference internal" href="#writing-new-buildsteps" id="id25">Writing New BuildSteps</a><ul>
+<li><a class="reference internal" href="#writing-buildstep-constructors" id="id26">Writing BuildStep Constructors</a></li>
+<li><a class="reference internal" href="#step-execution-process" id="id27">Step Execution Process</a></li>
+<li><a class="reference internal" href="#running-commands" id="id28">Running Commands</a></li>
+<li><a class="reference internal" href="#updating-status-strings" id="id29">Updating Status Strings</a></li>
+<li><a class="reference internal" href="#about-logfiles" id="id30">About Logfiles</a></li>
+<li><a class="reference internal" href="#writing-log-files" id="id31">Writing Log Files</a></li>
+<li><a class="reference internal" href="#reading-logfiles" id="id32">Reading Logfiles</a></li>
+<li><a class="reference internal" href="#adding-logobservers" id="id33">Adding LogObservers</a></li>
+<li><a class="reference internal" href="#using-properties" id="id34">Using Properties</a></li>
+<li><a class="reference internal" href="#using-statistics" id="id35">Using Statistics</a></li>
+<li><a class="reference internal" href="#buildstep-urls" id="id36">BuildStep URLs</a></li>
+<li><a class="reference internal" href="#discovering-files" id="id37">Discovering files</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#writing-new-status-plugins" id="id38">Writing New Status Plugins</a></li>
+<li><a class="reference internal" href="#a-somewhat-whimsical-example-or-it-s-now-customized-how-do-i-deploy-it" id="id39">A Somewhat Whimsical Example (or &quot;It's now customized, how do I deploy it?&quot;)</a><ul>
+<li><a class="reference internal" href="#inclusion-in-the-master-cfg-file" id="id40">Inclusion in the <code class="file docutils literal"><span class="pre">master.cfg</span></code> file</a></li>
+<li><a class="reference internal" href="#python-file-somewhere-on-the-system" id="id41">Python file somewhere on the system</a></li>
+<li><a class="reference internal" href="#install-this-code-into-a-standard-python-library-directory" id="id42">Install this code into a standard Python library directory</a></li>
+<li><a class="reference internal" href="#distribute-a-buildbot-plug-in" id="id43">Distribute a Buildbot Plug-In</a></li>
+<li><a class="reference internal" href="#submit-the-code-for-inclusion-in-the-buildbot-distribution" id="id44">Submit the code for inclusion in the Buildbot distribution</a></li>
+<li><a class="reference internal" href="#summary" id="id45">Summary</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<p>If you'd like to clean it up, fork the project on GitHub and get started!</p>
+<div class="section" id="programmatic-configuration-generation">
+<h2><a class="toc-backref" href="#id12">2.6.1. Programmatic Configuration Generation</a><a class="headerlink" href="#programmatic-configuration-generation" title="Permalink to this headline">¶</a></h2>
+<p>Bearing in mind that <code class="docutils literal"><span class="pre">master.cfg</span></code> is a Python file, large configurations can be shortened considerably by judicious use of Python loops.
+For example, the following will generate a builder for each of a range of supported versions of Python:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pythons</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;python2.4&#39;</span><span class="p">,</span> <span class="s1">&#39;python2.5&#39;</span><span class="p">,</span> <span class="s1">&#39;python2.6&#39;</span><span class="p">,</span> <span class="s1">&#39;python2.7&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;python3.2&#39;</span><span class="p">,</span> <span class="s1">&#39;python3.3&#39;</span><span class="p">]</span>
+<span class="n">pytest_workers</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;worker</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
+<span class="k">for</span> <span class="n">python</span> <span class="ow">in</span> <span class="n">pythons</span><span class="p">:</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">BuildFactory</span><span class="p">()</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">steps</span><span class="o">.</span><span class="n">SVN</span><span class="p">(</span><span class="o">...</span><span class="p">))</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">steps</span><span class="o">.</span><span class="n">ShellCommand</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="n">python</span><span class="p">,</span> <span class="s1">&#39;test.py&#39;</span><span class="p">]))</span>
+    <span class="n">c</span><span class="p">[</span><span class="s1">&#39;builders&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">BuilderConfig</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;test-</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">python</span><span class="p">,</span>
+            <span class="n">factory</span><span class="o">=</span><span class="n">f</span><span class="p">,</span>
+            <span class="n">workernames</span><span class="o">=</span><span class="n">pytest_workers</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Next step would be the loading of <code class="docutils literal"><span class="pre">pythons</span></code> list from a .yaml/.ini file.</p>
+</div>
+<div class="section" id="collapse-request-functions">
+<span id="id1"></span><h2><a class="toc-backref" href="#id13">2.6.2. Collapse Request Functions</a><a class="headerlink" href="#collapse-request-functions" title="Permalink to this headline">¶</a></h2>
+<p id="index-0">The logic Buildbot uses to decide which build request can be merged can be customized by providing a Python function (a callable) instead of <code class="docutils literal"><span class="pre">True</span></code> or <code class="docutils literal"><span class="pre">False</span></code> described in <a class="reference internal" href="cfg-builders.html#collapsing-build-requests"><span class="std std-ref">Collapsing Build Requests</span></a>.</p>
+<p>Arguments for the callable are:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">master</span></code></dt>
+<dd>pointer to the master object, which can be used to make additional data api calls via <cite>master.data.get</cite></dd>
+<dt><code class="docutils literal"><span class="pre">builder</span></code></dt>
+<dd>dictionary of type <a class="reference internal" href="../developer/rest.html#rtype-builder" title="builder"><code class="xref bb bb-rtype docutils literal"><span class="pre">builder</span></code></a></dd>
+<dt><code class="docutils literal"><span class="pre">req1</span></code></dt>
+<dd>dictionary of type <a class="reference internal" href="../developer/rest.html#rtype-buildrequest" title="buildrequest"><code class="xref bb bb-rtype docutils literal"><span class="pre">buildrequest</span></code></a></dd>
+<dt><code class="docutils literal"><span class="pre">req2</span></code></dt>
+<dd>dictionary of type <a class="reference internal" href="../developer/rest.html#rtype-buildrequest" title="buildrequest"><code class="xref bb bb-rtype docutils literal"><span class="pre">buildrequest</span></code></a></dd>
+</dl>
+</div></blockquote>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The number of invocations of the callable is proportional to the square of the request queue length, so a long-running callable may cause undesirable delays when the queue length grows.</p>
+</div>
+<p>It should return true if the requests can be merged, and False otherwise.
+For example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">collapseRequests</span><span class="p">(</span><span class="n">master</span><span class="p">,</span> <span class="n">builder</span><span class="p">,</span> <span class="n">req1</span><span class="p">,</span> <span class="n">req2</span><span class="p">):</span>
+    <span class="s2">&quot;any requests with the same branch can be merged&quot;</span>
+
+    <span class="c1"># get the buildsets for each buildrequest</span>
+    <span class="n">selfBuildset</span> <span class="p">,</span> <span class="n">otherBuildset</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">defer</span><span class="o">.</span><span class="n">gatherResults</span><span class="p">([</span>
+        <span class="n">master</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="s1">&#39;buildsets&#39;</span><span class="p">,</span> <span class="n">req1</span><span class="p">[</span><span class="s1">&#39;buildsetid&#39;</span><span class="p">])),</span>
+        <span class="n">master</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="s1">&#39;buildsets&#39;</span><span class="p">,</span> <span class="n">req2</span><span class="p">[</span><span class="s1">&#39;buildsetid&#39;</span><span class="p">]))</span>
+        <span class="p">])</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">selfBuildset</span><span class="p">[</span><span class="s1">&#39;sourcestamps&#39;</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">otherBuildset</span><span class="p">[</span><span class="s1">&#39;sourcestamps&#39;</span><span class="p">]):</span>
+        <span class="n">defer</span><span class="o">.</span><span class="n">returnValue</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">selfSourcestamp</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">selfBuildset</span><span class="p">[</span><span class="s1">&#39;sourcestamps&#39;</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="n">selfSourcestamp</span><span class="p">[</span><span class="s1">&#39;branch&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">otherBuildset</span><span class="p">[</span><span class="s1">&#39;sourcestamps&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;branch&#39;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">return</span> <span class="kc">True</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;collapseRequests&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">collapseRequests</span>
+</pre></div>
+</div>
+<p>In many cases, the details of the <a class="reference internal" href="../developer/rest.html#rtype-sourcestamp" title="sourcestamp"><code class="xref bb bb-rtype docutils literal"><span class="pre">sourcestamp</span></code></a> and <a class="reference internal" href="../developer/rest.html#rtype-buildrequest" title="buildrequest"><code class="xref bb bb-rtype docutils literal"><span class="pre">buildrequest</span></code></a> are important.</p>
+<p>In the following example, only <a class="reference internal" href="../developer/rest.html#rtype-buildrequest" title="buildrequest"><code class="xref bb bb-rtype docutils literal"><span class="pre">buildrequest</span></code></a> with the same &quot;reason&quot; are merged; thus developers forcing builds for different reasons will see distinct builds.</p>
+<p>Note the use of the <code class="xref py py-meth docutils literal"><span class="pre">buildrequest.BuildRequest.canBeCollapsed</span></code> method to access the source stamp compatibility algorithm.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">collapseRequests</span><span class="p">(</span><span class="n">master</span><span class="p">,</span> <span class="n">builder</span><span class="p">,</span> <span class="n">req1</span><span class="p">,</span> <span class="n">req2</span><span class="p">):</span>
+    <span class="n">canBeCollapsed</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">buildrequest</span><span class="o">.</span><span class="n">BuildRequest</span><span class="o">.</span><span class="n">canBeCollapsed</span><span class="p">(</span><span class="n">master</span><span class="p">,</span> <span class="n">req1</span><span class="p">,</span> <span class="n">req2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">canBeCollapsed</span> <span class="ow">and</span> <span class="n">req1</span><span class="o">.</span><span class="n">reason</span> <span class="o">==</span> <span class="n">req2</span><span class="o">.</span><span class="n">reason</span><span class="p">:</span>
+       <span class="n">defer</span><span class="o">.</span><span class="n">returnValue</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+       <span class="n">defer</span><span class="o">.</span><span class="n">returnValue</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;collapseRequests&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">collapseRequests</span>
+</pre></div>
+</div>
+<p>Another common example is to prevent collapsing of requests coming from a <a class="reference internal" href="cfg-buildsteps.html#step-Trigger" title="Trigger"><code class="xref bb bb-step docutils literal"><span class="pre">Trigger</span></code></a> step.
+<a class="reference internal" href="cfg-buildsteps.html#step-Trigger" title="Trigger"><code class="xref bb bb-step docutils literal"><span class="pre">Trigger</span></code></a> step can indeed be used in order to implement parallel testing of the same source.</p>
+<p>Buildrequests will all have the same sourcestamp, but probably different properties, and shall not be collapsed.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In most of the cases, just setting collapseRequests=False for triggered builders will do the trick.</p>
+</div>
+<p>In other cases, <code class="docutils literal"><span class="pre">parent_buildid</span></code> from buildset can be used:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">collapseRequests</span><span class="p">(</span><span class="n">master</span><span class="p">,</span> <span class="n">builder</span><span class="p">,</span> <span class="n">req1</span><span class="p">,</span> <span class="n">req2</span><span class="p">):</span>
+    <span class="n">canBeCollapsed</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">buildrequest</span><span class="o">.</span><span class="n">BuildRequest</span><span class="o">.</span><span class="n">canBeCollapsed</span><span class="p">(</span><span class="n">master</span><span class="p">,</span> <span class="n">req1</span><span class="p">,</span> <span class="n">req2</span><span class="p">)</span>
+    <span class="n">selfBuildset</span> <span class="p">,</span> <span class="n">otherBuildset</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">defer</span><span class="o">.</span><span class="n">gatherResults</span><span class="p">([</span>
+        <span class="n">master</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="s1">&#39;buildsets&#39;</span><span class="p">,</span> <span class="n">req1</span><span class="p">[</span><span class="s1">&#39;buildsetid&#39;</span><span class="p">])),</span>
+        <span class="n">master</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="s1">&#39;buildsets&#39;</span><span class="p">,</span> <span class="n">req2</span><span class="p">[</span><span class="s1">&#39;buildsetid&#39;</span><span class="p">]))</span>
+    <span class="p">])</span>
+    <span class="k">if</span> <span class="n">canBeCollapsed</span> <span class="ow">and</span> <span class="n">selfBuildset</span><span class="p">[</span><span class="s1">&#39;parent_buildid&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">otherBuildset</span><span class="p">[</span><span class="s1">&#39;parent_buildid&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+       <span class="n">defer</span><span class="o">.</span><span class="n">returnValue</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+       <span class="n">defer</span><span class="o">.</span><span class="n">returnValue</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;collapseRequests&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">collapseRequests</span>
+</pre></div>
+</div>
+<p>If it's necessary to perform some extended operation to determine whether two requests can be merged, then the <code class="docutils literal"><span class="pre">collapseRequests</span></code> callable may return its result via Deferred.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Again, the number of invocations of the callable is proportional to the square of the request queue length, so a long-running callable may cause undesirable delays when the queue length grows.</p>
+</div>
+<p>For example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">collapseRequests</span><span class="p">(</span><span class="n">master</span><span class="p">,</span> <span class="n">builder</span><span class="p">,</span> <span class="n">req1</span><span class="p">,</span> <span class="n">req2</span><span class="p">):</span>
+    <span class="n">info1</span><span class="p">,</span> <span class="n">info2</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">defer</span><span class="o">.</span><span class="n">gatherResults</span><span class="p">([</span>
+        <span class="n">getMergeInfo</span><span class="p">(</span><span class="n">req1</span><span class="p">),</span>
+        <span class="n">getMergeInfo</span><span class="p">(</span><span class="n">req2</span><span class="p">),</span>
+    <span class="p">])</span>
+    <span class="n">defer</span><span class="o">.</span><span class="n">returnValue</span><span class="p">(</span><span class="n">info1</span> <span class="o">==</span> <span class="n">info2</span><span class="p">)</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;collapseRequests&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">collapseRequests</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="builder-priority-functions">
+<span id="id2"></span><h2><a class="toc-backref" href="#id14">2.6.3. Builder Priority Functions</a><a class="headerlink" href="#builder-priority-functions" title="Permalink to this headline">¶</a></h2>
+<p id="index-1">The <a class="reference internal" href="cfg-global.html#cfg-prioritizeBuilders" title="prioritizeBuilders"><code class="xref bb bb-cfg docutils literal"><span class="pre">prioritizeBuilders</span></code></a> configuration key specifies a function which is called with two arguments: a <code class="xref py py-class docutils literal"><span class="pre">BuildMaster</span></code> and a list of <code class="xref py py-class docutils literal"><span class="pre">Builder</span></code> objects.
+It should return a list of the same <code class="xref py py-class docutils literal"><span class="pre">Builder</span></code> objects, in the desired order.
+It may also remove items from the list if builds should not be started on those builders.
+If necessary, this function can return its results via a Deferred (it is called with <code class="docutils literal"><span class="pre">maybeDeferred</span></code>).</p>
+<p>A simple <code class="docutils literal"><span class="pre">prioritizeBuilders</span></code> implementation might look like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">prioritizeBuilders</span><span class="p">(</span><span class="n">buildmaster</span><span class="p">,</span> <span class="n">builders</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Prioritize builders.  &#39;finalRelease&#39; builds have the highest</span>
+<span class="sd">    priority, so they should be built before running tests, or</span>
+<span class="sd">    creating builds.&quot;&quot;&quot;</span>
+    <span class="n">builderPriorities</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;finalRelease&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;test&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;build&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">builders</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">b</span><span class="p">:</span> <span class="n">builderPriorities</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">builders</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;prioritizeBuilders&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prioritizeBuilders</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="build-priority-functions">
+<span id="index-2"></span><span id="id3"></span><h2><a class="toc-backref" href="#id15">2.6.4. Build Priority Functions</a><a class="headerlink" href="#build-priority-functions" title="Permalink to this headline">¶</a></h2>
+<p>When a builder has multiple pending build requests, it uses a <code class="docutils literal"><span class="pre">nextBuild</span></code> function to decide which build it should start first.
+This function is given two parameters: the <code class="xref py py-class docutils literal"><span class="pre">Builder</span></code>, and a list of <code class="xref py py-class docutils literal"><span class="pre">BuildRequest</span></code> objects representing pending build requests.</p>
+<p>A simple function to prioritize release builds over other builds might look like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">nextBuild</span><span class="p">(</span><span class="n">bldr</span><span class="p">,</span> <span class="n">requests</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">requests</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">branch</span> <span class="o">==</span> <span class="s1">&#39;release&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">r</span>
+    <span class="k">return</span> <span class="n">requests</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>If some non-immediate result must be calculated, the <code class="docutils literal"><span class="pre">nextBuild</span></code> function can also return a Deferred:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">nextBuild</span><span class="p">(</span><span class="n">bldr</span><span class="p">,</span> <span class="n">requests</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">get_request_priorities</span><span class="p">(</span><span class="n">requests</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">pick</span><span class="p">(</span><span class="n">priorities</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">requests</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">priorities</span><span class="p">,</span> <span class="n">requests</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">d</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">pick</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">d</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">nextBuild</span></code> function is passed as parameter to <code class="xref py py-class docutils literal"><span class="pre">BuilderConfig</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">...</span> <span class="n">BuilderConfig</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">nextBuild</span><span class="o">=</span><span class="n">nextBuild</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span> <span class="o">...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="customizing-svnpoller">
+<span id="id4"></span><h2><a class="toc-backref" href="#id16">2.6.5. Customizing SVNPoller</a><a class="headerlink" href="#customizing-svnpoller" title="Permalink to this headline">¶</a></h2>
+<p>Each source file that is tracked by a Subversion repository has a fully-qualified SVN URL in the following form: <code class="samp docutils literal"><span class="pre">(</span><em><span class="pre">REPOURL</span></em><span class="pre">)(</span><em><span class="pre">PROJECT-plus-BRANCH</span></em><span class="pre">)(</span><em><span class="pre">FILEPATH</span></em><span class="pre">)</span></code>.
+When you create the <a class="reference internal" href="cfg-changesources.html#chsrc-SVNPoller" title="SVNPoller"><code class="xref bb bb-chsrc docutils literal"><span class="pre">SVNPoller</span></code></a>, you give it a <code class="docutils literal"><span class="pre">repourl</span></code> value that includes all of the <code class="samp docutils literal"><em><span class="pre">REPOURL</span></em></code> and possibly some portion of the <code class="samp docutils literal"><em><span class="pre">PROJECT-plus-BRANCH</span></em></code> string.
+The <a class="reference internal" href="cfg-changesources.html#chsrc-SVNPoller" title="SVNPoller"><code class="xref bb bb-chsrc docutils literal"><span class="pre">SVNPoller</span></code></a> is responsible for producing Changes that contain a branch name and a <code class="samp docutils literal"><em><span class="pre">FILEPATH</span></em></code> (which is relative to the top of a checked-out tree).
+The details of how these strings are split up depend upon how your repository names its branches.</p>
+<div class="section" id="project-branchname-filepath-repositories">
+<h3><a class="toc-backref" href="#id17">2.6.5.1. <code class="samp docutils literal"><em><span class="pre">PROJECT</span></em><span class="pre">/</span><em><span class="pre">BRANCHNAME</span></em><span class="pre">/</span><em><span class="pre">FILEPATH</span></em></code> repositories</a><a class="headerlink" href="#project-branchname-filepath-repositories" title="Permalink to this headline">¶</a></h3>
+<p>One common layout is to have all the various projects that share a repository get a single top-level directory each, with <code class="docutils literal"><span class="pre">branches</span></code>, <code class="docutils literal"><span class="pre">tags</span></code>, and <code class="docutils literal"><span class="pre">trunk</span></code> subdirectories:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>amanda/trunk
+      /branches/3_2
+               /3_3
+      /tags/3_2_1
+           /3_2_2
+           /3_3_0
+</pre></div>
+</div>
+<p>To set up a <a class="reference internal" href="cfg-changesources.html#chsrc-SVNPoller" title="SVNPoller"><code class="xref bb bb-chsrc docutils literal"><span class="pre">SVNPoller</span></code></a> that watches the Amanda trunk (and nothing else), we would use the following, using the default <code class="docutils literal"><span class="pre">split_file</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">changes</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">SVNPoller</span><span class="p">(</span>
+   <span class="n">repourl</span><span class="o">=</span><span class="s2">&quot;https://svn.amanda.sourceforge.net/svnroot/amanda/amanda/trunk&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In this case, every Change that our <a class="reference internal" href="cfg-changesources.html#chsrc-SVNPoller" title="SVNPoller"><code class="xref bb bb-chsrc docutils literal"><span class="pre">SVNPoller</span></code></a> produces will have its branch attribute set to <code class="docutils literal"><span class="pre">None</span></code>, to indicate that the Change is on the trunk.
+No other sub-projects or branches will be tracked.</p>
+<p>If we want our ChangeSource to follow multiple branches, we have to do two things.
+First we have to change our <code class="docutils literal"><span class="pre">repourl=</span></code> argument to watch more than just <code class="docutils literal"><span class="pre">amanda/trunk</span></code>.
+We will set it to <code class="docutils literal"><span class="pre">amanda</span></code> so that we'll see both the trunk and all the branches.
+Second, we have to tell <a class="reference internal" href="cfg-changesources.html#chsrc-SVNPoller" title="SVNPoller"><code class="xref bb bb-chsrc docutils literal"><span class="pre">SVNPoller</span></code></a> how to split the <code class="samp docutils literal"><span class="pre">(</span><em><span class="pre">PROJECT-plus-BRANCH</span></em><span class="pre">)(</span><em><span class="pre">FILEPATH</span></em><span class="pre">)</span></code> strings it gets from the repository out into <code class="samp docutils literal"><span class="pre">(</span><em><span class="pre">BRANCH</span></em><span class="pre">)</span></code> and <code class="samp docutils literal"><span class="pre">(</span><em><span class="pre">FILEPATH</span></em><span class="pre">)</span></code>.</p>
+<p>We do the latter by providing a <code class="docutils literal"><span class="pre">split_file</span></code> function.
+This function is responsible for splitting something like <code class="docutils literal"><span class="pre">branches/3_3/common-src/amanda.h</span></code> into <code class="docutils literal"><span class="pre">branch='branches/3_3'</span></code> and <code class="docutils literal"><span class="pre">filepath='common-src/amanda.h'</span></code>.
+The function is always given a string that names a file relative to the subdirectory pointed to by the <a class="reference internal" href="cfg-changesources.html#chsrc-SVNPoller" title="SVNPoller"><code class="xref bb bb-chsrc docutils literal"><span class="pre">SVNPoller</span></code></a>'s <code class="docutils literal"><span class="pre">repourl=</span></code> argument.
+It is expected to return a dictionary with at least the <code class="docutils literal"><span class="pre">path</span></code> key.
+The splitter may optionally set <code class="docutils literal"><span class="pre">branch</span></code>, <code class="docutils literal"><span class="pre">project</span></code> and <code class="docutils literal"><span class="pre">repository</span></code>.
+For backwards compatibility it may return a tuple of <code class="docutils literal"><span class="pre">(branchname,</span> <span class="pre">path)</span></code>.
+It may also return <code class="docutils literal"><span class="pre">None</span></code> to indicate that the file is of no interest.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The function should return <code class="docutils literal"><span class="pre">branches/3_3</span></code> rather than just <code class="docutils literal"><span class="pre">3_3</span></code> because the SVN checkout step, will append the branch name to the <code class="docutils literal"><span class="pre">baseURL</span></code>, which requires that we keep the <code class="docutils literal"><span class="pre">branches</span></code> component in there.
+Other VC schemes use a different approach towards branches and may not require this artifact.</p>
+</div>
+<p>If your repository uses this same <code class="docutils literal"><span class="pre">{PROJECT}/{BRANCH}/{FILEPATH}</span></code> naming scheme, the following function will work:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">split_file_branches</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">pieces</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pieces</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">pieces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;trunk&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pieces</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">pieces</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">pieces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;branches&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pieces</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]),</span>
+                <span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pieces</span><span class="p">[</span><span class="mi">2</span><span class="p">:]))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+</pre></div>
+</div>
+<p>In fact, this is the definition of the provided <code class="docutils literal"><span class="pre">split_file_branches</span></code> function.
+So to have our Twisted-watching <a class="reference internal" href="cfg-changesources.html#chsrc-SVNPoller" title="SVNPoller"><code class="xref bb bb-chsrc docutils literal"><span class="pre">SVNPoller</span></code></a> follow multiple branches, we would use this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">changes</span><span class="p">,</span> <span class="n">util</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">SVNPoller</span><span class="p">(</span><span class="s2">&quot;svn://svn.twistedmatrix.com/svn/Twisted&quot;</span><span class="p">,</span>
+                                       <span class="n">split_file</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">svn</span><span class="o">.</span><span class="n">split_file_branches</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Changes for all sorts of branches (with names like <code class="docutils literal"><span class="pre">&quot;branches/1.5.x&quot;</span></code>, and <code class="docutils literal"><span class="pre">None</span></code> to indicate the trunk) will be delivered to the Schedulers.
+Each Scheduler is then free to use or ignore each branch as it sees fit.</p>
+<p>If you have multiple projects in the same repository your split function can attach a project name to the Change to help the Scheduler filter out unwanted changes:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">util</span>
+<span class="k">def</span> <span class="nf">split_file_projects_branches</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">project</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">svn</span><span class="o">.</span><span class="n">split_file_branches</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">project</span><span class="o">=</span><span class="n">project</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">info</span><span class="p">[</span><span class="s1">&#39;branch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">info</span>
+    <span class="k">return</span> <span class="n">f</span>
+</pre></div>
+</div>
+<p>Again, this is provided by default.
+To use it you would do this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">changes</span><span class="p">,</span> <span class="n">util</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">SVNPoller</span><span class="p">(</span>
+   <span class="n">repourl</span><span class="o">=</span><span class="s2">&quot;https://svn.amanda.sourceforge.net/svnroot/amanda/&quot;</span><span class="p">,</span>
+   <span class="n">split_file</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">svn</span><span class="o">.</span><span class="n">split_file_projects_branches</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note here that we are monitoring at the root of the repository, and that within that repository is a <code class="docutils literal"><span class="pre">amanda</span></code> subdirectory which in turn has <code class="docutils literal"><span class="pre">trunk</span></code> and <code class="docutils literal"><span class="pre">branches</span></code>.
+It is that <code class="docutils literal"><span class="pre">amanda</span></code> subdirectory whose name becomes the <code class="docutils literal"><span class="pre">project</span></code> field of the Change.</p>
+</div>
+<div class="section" id="branchname-project-filepath-repositories">
+<h3><a class="toc-backref" href="#id18">2.6.5.2. <code class="samp docutils literal"><em><span class="pre">BRANCHNAME</span></em><span class="pre">/</span><em><span class="pre">PROJECT</span></em><span class="pre">/</span><em><span class="pre">FILEPATH</span></em></code> repositories</a><a class="headerlink" href="#branchname-project-filepath-repositories" title="Permalink to this headline">¶</a></h3>
+<p>Another common way to organize a Subversion repository is to put the branch name at the top, and the projects underneath.
+This is especially frequent when there are a number of related sub-projects that all get released in a group.</p>
+<p>For example, <code class="docutils literal"><span class="pre">Divmod.org</span></code> hosts a project named <cite>Nevow</cite> as well as one named <cite>Quotient</cite>.
+In a checked-out Nevow tree there is a directory named <cite>formless</cite> that contains a Python source file named <code class="file docutils literal"><span class="pre">webform.py</span></code>.
+This repository is accessible via webdav (and thus uses an <cite>http:</cite> scheme) through the divmod.org hostname.
+There are many branches in this repository, and they use a <code class="docutils literal"><span class="pre">({BRANCHNAME})/({PROJECT})</span></code> naming policy.</p>
+<p>The fully-qualified SVN URL for the trunk version of <code class="file docutils literal"><span class="pre">webform.py</span></code> is <code class="docutils literal"><span class="pre">http://divmod.org/svn/Divmod/trunk/Nevow/formless/webform.py</span></code>.
+The 1.5.x branch version of this file would have a URL of <code class="docutils literal"><span class="pre">http://divmod.org/svn/Divmod/branches/1.5.x/Nevow/formless/webform.py</span></code>.
+The whole Nevow trunk would be checked out with <code class="docutils literal"><span class="pre">http://divmod.org/svn/Divmod/trunk/Nevow</span></code>, while the Quotient trunk would be checked out using <code class="docutils literal"><span class="pre">http://divmod.org/svn/Divmod/trunk/Quotient</span></code>.</p>
+<p>Now suppose we want to have an <a class="reference internal" href="cfg-changesources.html#chsrc-SVNPoller" title="SVNPoller"><code class="xref bb bb-chsrc docutils literal"><span class="pre">SVNPoller</span></code></a> that only cares about the Nevow trunk.
+This case looks just like the <code class="samp docutils literal"><em><span class="pre">PROJECT</span></em><span class="pre">/</span><em><span class="pre">BRANCH</span></em></code> layout described earlier:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">changes</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">SVNPoller</span><span class="p">(</span><span class="s2">&quot;http://divmod.org/svn/Divmod/trunk/Nevow&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>But what happens when we want to track multiple Nevow branches?
+We have to point our <code class="docutils literal"><span class="pre">repourl=</span></code> high enough to see all those branches, but we also don't want to include Quotient changes (since we're only building Nevow).
+To accomplish this, we must rely upon the <code class="docutils literal"><span class="pre">split_file</span></code> function to help us tell the difference between files that belong to Nevow and those that belong to Quotient, as well as figuring out which branch each one is on.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">changes</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">SVNPoller</span><span class="p">(</span><span class="s2">&quot;http://divmod.org/svn/Divmod&quot;</span><span class="p">,</span>
+                                       <span class="n">split_file</span><span class="o">=</span><span class="n">my_file_splitter</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">my_file_splitter</span></code> function will be called with repository-relative pathnames like:</p>
+<dl class="docutils">
+<dt><code class="file docutils literal"><span class="pre">trunk/Nevow/formless/webform.py</span></code></dt>
+<dd>This is a Nevow file, on the trunk.
+We want the Change that includes this to see a filename of <code class="file docutils literal"><span class="pre">formless/webform.py</span></code>, and a branch of <code class="docutils literal"><span class="pre">None</span></code></dd>
+<dt><code class="file docutils literal"><span class="pre">branches/1.5.x/Nevow/formless/webform.py</span></code></dt>
+<dd>This is a Nevow file, on a branch.
+We want to get <code class="docutils literal"><span class="pre">branch='branches/1.5.x'</span></code> and <code class="docutils literal"><span class="pre">filename='formless/webform.py'</span></code>.</dd>
+<dt><code class="file docutils literal"><span class="pre">trunk/Quotient/setup.py</span></code></dt>
+<dd>This is a Quotient file, so we want to ignore it by having <code class="xref py py-meth docutils literal"><span class="pre">my_file_splitter</span></code> return <code class="docutils literal"><span class="pre">None</span></code>.</dd>
+<dt><code class="file docutils literal"><span class="pre">branches/1.5.x/Quotient/setup.py</span></code></dt>
+<dd>This is also a Quotient file, which should be ignored.</dd>
+</dl>
+<p>The following definition for <code class="xref py py-meth docutils literal"><span class="pre">my_file_splitter</span></code> will do the job:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">my_file_splitter</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">pieces</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pieces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;trunk&#39;</span><span class="p">:</span>
+        <span class="n">branch</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">pieces</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># remove &#39;trunk&#39;</span>
+    <span class="k">elif</span> <span class="n">pieces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;branches&#39;</span><span class="p">:</span>
+        <span class="n">pieces</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># remove &#39;branches&#39;</span>
+        <span class="c1"># grab branch name</span>
+        <span class="n">branch</span> <span class="o">=</span> <span class="s1">&#39;branches/&#39;</span> <span class="o">+</span> <span class="n">pieces</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span> <span class="c1"># something weird</span>
+    <span class="n">projectname</span> <span class="o">=</span> <span class="n">pieces</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">projectname</span> <span class="o">!=</span> <span class="s1">&#39;Nevow&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span> <span class="c1"># wrong project</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">branch</span><span class="o">=</span><span class="n">branch</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pieces</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>If you later decide you want to get changes for Quotient as well you could replace the last 3 lines with simply:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">project</span><span class="o">=</span><span class="n">projectname</span><span class="p">,</span> <span class="n">branch</span><span class="o">=</span><span class="n">branch</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pieces</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="writing-change-sources">
+<span id="id5"></span><h2><a class="toc-backref" href="#id19">2.6.6. Writing Change Sources</a><a class="headerlink" href="#writing-change-sources" title="Permalink to this headline">¶</a></h2>
+<p>For some version-control systems, making Buildbot aware of new changes can be a challenge.
+If the pre-supplied classes in <a class="reference internal" href="cfg-changesources.html#change-sources"><span class="std std-ref">Change Sources</span></a> are not sufficient, then you will need to write your own.</p>
+<p>There are three approaches, one of which is not even a change source.
+The first option is to write a change source that exposes some service to which the version control system can &quot;push&quot; changes.
+This can be more complicated, since it requires implementing a new service, but delivers changes to Buildbot immediately on commit.</p>
+<p>The second option is often preferable to the first: implement a notification service in an external process (perhaps one that is started directly by the version control system, or by an email server) and delivers changes to Buildbot via <a class="reference internal" href="cfg-changesources.html#pbchangesource"><span class="std std-ref">PBChangeSource</span></a>.
+This section does not describe this particular approach, since it requires no customization within the buildmaster process.</p>
+<p>The third option is to write a change source which polls for changes - repeatedly connecting to an external service to check for new changes.
+This works well in many cases, but can produce a high load on the version control system if polling is too frequent, and can take too long to notice changes if the polling is not frequent enough.</p>
+<div class="section" id="writing-a-notification-based-change-source">
+<h3><a class="toc-backref" href="#id20">2.6.6.1. Writing a Notification-based Change Source</a><a class="headerlink" href="#writing-a-notification-based-change-source" title="Permalink to this headline">¶</a></h3>
+<p>A custom change source must implement <code class="xref py py-class docutils literal"><span class="pre">buildbot.interfaces.IChangeSource</span></code>.</p>
+<p>The easiest way to do this is to subclass <a class="reference internal" href="../developer/cls-changesources.html#buildbot.changes.base.ChangeSource" title="buildbot.changes.base.ChangeSource"><code class="xref py py-class docutils literal"><span class="pre">buildbot.changes.base.ChangeSource</span></code></a>, implementing the <code class="xref py py-meth docutils literal"><span class="pre">describe</span></code> method to describe the instance.
+<code class="xref py py-class docutils literal"><span class="pre">ChangeSource</span></code> is a Twisted service, so you will need to implement the <code class="xref py py-meth docutils literal"><span class="pre">startService</span></code> and <code class="xref py py-meth docutils literal"><span class="pre">stopService</span></code> methods to control the means by which your change source receives notifications.</p>
+<p>When the class does receive a change, it should call <code class="docutils literal"><span class="pre">self.master.addChange(..)</span></code> to submit it to the buildmaster.
+This method shares the same parameters as <code class="docutils literal"><span class="pre">master.db.changes.addChange</span></code>, so consult the API documentation for that function for details on the available arguments.</p>
+<p>You will probably also want to set <code class="docutils literal"><span class="pre">compare_attrs</span></code> to the list of object attributes which Buildbot will use to compare one change source to another when reconfiguring.
+During reconfiguration, if the new change source is different from the old, then the old will be stopped and the new started.</p>
+</div>
+<div class="section" id="writing-a-change-poller">
+<h3><a class="toc-backref" href="#id21">2.6.6.2. Writing a Change Poller</a><a class="headerlink" href="#writing-a-change-poller" title="Permalink to this headline">¶</a></h3>
+<p>Polling is a very common means of seeking changes, so Buildbot supplies a utility parent class to make it easier.
+A poller should subclass <a class="reference internal" href="../developer/cls-changesources.html#buildbot.changes.base.PollingChangeSource" title="buildbot.changes.base.PollingChangeSource"><code class="xref py py-class docutils literal"><span class="pre">buildbot.changes.base.PollingChangeSource</span></code></a>, which is a subclass of <a class="reference internal" href="../developer/cls-changesources.html#buildbot.changes.base.ChangeSource" title="buildbot.changes.base.ChangeSource"><code class="xref py py-class docutils literal"><span class="pre">ChangeSource</span></code></a>.
+This subclass implements the <code class="xref py py-meth docutils literal"><span class="pre">Service</span></code> methods, and calls the <code class="xref py py-meth docutils literal"><span class="pre">poll</span></code> method according to the <code class="docutils literal"><span class="pre">pollInterval</span></code> and <code class="docutils literal"><span class="pre">pollAtLaunch</span></code> options.
+The <code class="docutils literal"><span class="pre">poll</span></code> method should return a Deferred to signal its completion.</p>
+<p>Aside from the service methods, the other concerns in the previous section apply here, too.</p>
+</div>
+</div>
+<div class="section" id="writing-a-new-latent-worker-implementation">
+<h2><a class="toc-backref" href="#id22">2.6.7. Writing a New Latent Worker Implementation</a><a class="headerlink" href="#writing-a-new-latent-worker-implementation" title="Permalink to this headline">¶</a></h2>
+<p>Writing a new latent worker should only require subclassing <code class="xref py py-class docutils literal"><span class="pre">buildbot.worker.AbstractLatentWorker</span></code> and implementing <code class="xref py py-meth docutils literal"><span class="pre">start_instance</span></code> and <code class="xref py py-meth docutils literal"><span class="pre">stop_instance</span></code>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">start_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="c1"># responsible for starting instance that will try to connect with this</span>
+    <span class="c1"># master. Should return deferred. Problems should use an errback. The</span>
+    <span class="c1"># callback value can be None, or can be an iterable of short strings to</span>
+    <span class="c1"># include in the &quot;substantiate success&quot; status message, such as</span>
+    <span class="c1"># identifying the instance that started.</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+<span class="k">def</span> <span class="nf">stop_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fast</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="c1"># responsible for shutting down instance. Return a deferred. If `fast`,</span>
+    <span class="c1"># we&#39;re trying to shut the master down, so callback as soon as is safe.</span>
+    <span class="c1"># Callback value is ignored.</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="cfg-workers-ec2.html#buildbot.worker.ec2.EC2LatentWorker" title="buildbot.worker.ec2.EC2LatentWorker"><code class="xref py py-class docutils literal"><span class="pre">buildbot.worker.ec2.EC2LatentWorker</span></code></a> for an example.</p>
+</div>
+<div class="section" id="custom-build-classes">
+<h2><a class="toc-backref" href="#id23">2.6.8. Custom Build Classes</a><a class="headerlink" href="#custom-build-classes" title="Permalink to this headline">¶</a></h2>
+<p>The standard <code class="xref py py-class docutils literal"><span class="pre">BuildFactory</span></code> object creates <code class="xref py py-class docutils literal"><span class="pre">Build</span></code> objects by default.
+These Builds will each execute a collection of <code class="xref py py-class docutils literal"><span class="pre">BuildStep</span></code>s in a fixed sequence.
+Each step can affect the results of the build, but in general there is little intelligence to tie the different steps together.</p>
+<p>By setting the factory's <code class="docutils literal"><span class="pre">buildClass</span></code> attribute to a different class, you can instantiate a different build class.
+This might be useful, for example, to create a build class that dynamically determines which steps to run.
+The skeleton of such a project would look like:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">DynamicBuild</span><span class="p">(</span><span class="n">Build</span><span class="p">):</span>
+    <span class="c1"># override some methods</span>
+    <span class="o">...</span>
+
+<span class="n">f</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">BuildFactory</span><span class="p">()</span>
+<span class="n">f</span><span class="o">.</span><span class="n">buildClass</span> <span class="o">=</span> <span class="n">DynamicBuild</span>
+<span class="n">f</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="factory-workdir-functions">
+<span id="id6"></span><h2><a class="toc-backref" href="#id24">2.6.9. Factory Workdir Functions</a><a class="headerlink" href="#factory-workdir-functions" title="Permalink to this headline">¶</a></h2>
+<p>It is sometimes helpful to have a build's workdir determined at runtime based on the parameters of the build.
+To accomplish this, set the <code class="docutils literal"><span class="pre">workdir</span></code> attribute of the build factory to a callable.
+That callable will be invoked with the <code class="xref py py-class docutils literal"><span class="pre">SourceStamp</span></code> for the build, and should return the appropriate workdir.
+Note that the value must be returned immediately - Deferreds are not supported.</p>
+<p>This can be useful, for example, in scenarios with multiple repositories submitting changes to Buildbot.
+In this case you likely will want to have a dedicated workdir per repository, since otherwise a sourcing step with mode = &quot;update&quot; will fail as a workdir with a working copy of repository A can't be &quot;updated&quot; for changes from a repository B.
+Here is an example how you can achieve workdir-per-repo:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">workdir</span><span class="p">(</span><span class="n">source_stamp</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="n">source_stamp</span><span class="o">.</span><span class="n">repository</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">8</span><span class="p">]</span>
+
+<span class="n">build_factory</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">BuildFactory</span><span class="p">()</span>
+<span class="n">build_factory</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">workdir</span>
+
+<span class="n">build_factory</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">Git</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;update&quot;</span><span class="p">))</span>
+<span class="c1"># ...</span>
+<span class="n">builders</span><span class="o">.</span><span class="n">append</span> <span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;mybuilder&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;workername&#39;</span><span class="p">:</span> <span class="s1">&#39;myworker&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;builddir&#39;</span><span class="p">:</span> <span class="s1">&#39;mybuilder&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;factory&#39;</span><span class="p">:</span> <span class="n">build_factory</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>The end result is a set of workdirs like</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>Repo1 =&gt; &lt;worker-base&gt;/mybuilder/a78890ba
+Repo2 =&gt; &lt;worker-base&gt;/mybuilder/0823ba88
+</pre></div>
+</div>
+<p>You could make the <code class="xref py py-func docutils literal"><span class="pre">workdir</span></code> function compute other paths, based on parts of the repo URL in the sourcestamp, or lookup in a lookup table based on repo URL.
+As long as there is a permanent 1:1 mapping between repos and workdir, this will work.</p>
+</div>
+<div class="section" id="writing-new-buildsteps">
+<span id="id7"></span><h2><a class="toc-backref" href="#id25">2.6.10. Writing New BuildSteps</a><a class="headerlink" href="#writing-new-buildsteps" title="Permalink to this headline">¶</a></h2>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Buildbot has transitioned to a new, simpler style for writing custom steps.
+See <a class="reference internal" href="new-style-steps.html"><span class="doc">New-Style Build Steps</span></a> for details.
+This section documents new-style steps.
+Old-style steps are supported in Buildbot-0.9.0, but not in later releases.</p>
+</div>
+<p>While it is a good idea to keep your build process self-contained in the source code tree, sometimes it is convenient to put more intelligence into your Buildbot configuration.
+One way to do this is to write a custom <a class="reference internal" href="../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep" title="buildbot.process.buildstep.BuildStep"><code class="xref py py-class docutils literal"><span class="pre">BuildStep</span></code></a>.
+Once written, this Step can be used in the <code class="file docutils literal"><span class="pre">master.cfg</span></code> file.</p>
+<p>The best reason for writing a custom <code class="xref py py-class docutils literal"><span class="pre">BuildStep</span></code> is to better parse the results of the command being run.
+For example, a <a class="reference internal" href="../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep" title="buildbot.process.buildstep.BuildStep"><code class="xref py py-class docutils literal"><span class="pre">BuildStep</span></code></a> that knows about JUnit could look at the logfiles to determine which tests had been run, how many passed and how many failed, and then report more detailed information than a simple <code class="docutils literal"><span class="pre">rc==0</span></code> -based <cite>good/bad</cite> decision.</p>
+<p>Buildbot has acquired a large fleet of build steps, and sports a number of knobs and hooks to make steps easier to write.
+This section may seem a bit overwhelming, but most custom steps will only need to apply one or two of the techniques outlined here.</p>
+<p>For complete documentation of the build step interfaces, see <a class="reference internal" href="../developer/cls-buildsteps.html"><span class="doc">BuildSteps</span></a>.</p>
+<div class="section" id="writing-buildstep-constructors">
+<span id="id8"></span><h3><a class="toc-backref" href="#id26">2.6.10.1. Writing BuildStep Constructors</a><a class="headerlink" href="#writing-buildstep-constructors" title="Permalink to this headline">¶</a></h3>
+<p>Build steps act as their own factories, so their constructors are a bit more complex than necessary.
+The configuration file instantiates a <a class="reference internal" href="../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep" title="buildbot.process.buildstep.BuildStep"><code class="xref py py-class docutils literal"><span class="pre">BuildStep</span></code></a> object, but the step configuration must be re-used for multiple builds, so Buildbot needs some way to create more steps.</p>
+<p>Consider the use of a <code class="xref py py-class docutils literal"><span class="pre">BuildStep</span></code> in <code class="file docutils literal"><span class="pre">master.cfg</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">f</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">MyStep</span><span class="p">(</span><span class="n">someopt</span><span class="o">=</span><span class="s2">&quot;stuff&quot;</span><span class="p">,</span> <span class="n">anotheropt</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>This creates a single instance of class <code class="docutils literal"><span class="pre">MyStep</span></code>.
+However, Buildbot needs a new object each time the step is executed.
+An instance of <a class="reference internal" href="../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep" title="buildbot.process.buildstep.BuildStep"><code class="xref py py-class docutils literal"><span class="pre">BuildStep</span></code></a> remembers how it was constructed, and can create copies of itself.
+When writing a new step class, then, keep in mind are that you cannot do anything &quot;interesting&quot; in the constructor -- limit yourself to checking and storing arguments.</p>
+<p>It is customary to call the parent class's constructor with all otherwise-unspecified keyword arguments.
+Keep a <code class="docutils literal"><span class="pre">**kwargs</span></code> argument on the end of your options, and pass that up to the parent class's constructor.</p>
+<p>The whole thing looks like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Frobnify</span><span class="p">(</span><span class="n">LoggingBuildStep</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">frob_what</span><span class="o">=</span><span class="s2">&quot;frobee&quot;</span><span class="p">,</span>
+            <span class="n">frob_how_many</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">frob_how</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="c1"># check</span>
+        <span class="k">if</span> <span class="n">frob_how_many</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Frobnify argument how_many is required&quot;</span><span class="p">)</span>
+
+        <span class="c1"># override a parent option</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;parentOpt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;xyz&#39;</span>
+
+        <span class="c1"># call parent</span>
+        <span class="n">LoggingBuildStep</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># set Frobnify attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frob_what</span> <span class="o">=</span> <span class="n">frob_what</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frob_how_many</span> <span class="o">=</span> <span class="n">how_many</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frob_how</span> <span class="o">=</span> <span class="n">frob_how</span>
+
+<span class="k">class</span> <span class="nc">FastFrobnify</span><span class="p">(</span><span class="n">Frobnify</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">speed</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">Frobnify</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">speed</span> <span class="o">=</span> <span class="n">speed</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="step-execution-process">
+<h3><a class="toc-backref" href="#id27">2.6.10.2. Step Execution Process</a><a class="headerlink" href="#step-execution-process" title="Permalink to this headline">¶</a></h3>
+<p>A step's execution occurs in its <a class="reference internal" href="../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.run" title="buildbot.process.buildstep.BuildStep.run"><code class="xref py py-meth docutils literal"><span class="pre">run</span></code></a> method.
+When this method returns (more accurately, when the Deferred it returns fires), the step is complete.
+The method's result must be an integer, giving the result of the step.
+Any other output from the step (logfiles, status strings, URLs, etc.) is the responsibility of the <code class="docutils literal"><span class="pre">run</span></code> method.</p>
+<p>The <a class="reference internal" href="cfg-buildsteps.html#step-ShellCommand" title="ShellCommand"><code class="xref bb bb-step docutils literal"><span class="pre">ShellCommand</span></code></a> class implements this <code class="docutils literal"><span class="pre">run</span></code> method, and in most cases steps subclassing <code class="docutils literal"><span class="pre">ShellCommand</span></code> simply implement some of the subsidiary methods that its <code class="docutils literal"><span class="pre">run</span></code> method calls.</p>
+</div>
+<div class="section" id="running-commands">
+<h3><a class="toc-backref" href="#id28">2.6.10.3. Running Commands</a><a class="headerlink" href="#running-commands" title="Permalink to this headline">¶</a></h3>
+<p>To spawn a command in the worker, create a <a class="reference internal" href="../developer/cls-remotecommands.html#buildbot.process.remotecommand.RemoteCommand" title="buildbot.process.remotecommand.RemoteCommand"><code class="xref py py-class docutils literal"><span class="pre">RemoteCommand</span></code></a> instance in your step's <code class="docutils literal"><span class="pre">run</span></code> method and run it with <code class="xref py py-meth docutils literal"><span class="pre">runCommand</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cmd</span> <span class="o">=</span> <span class="n">RemoteCommand</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+<span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runCommand</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="xref py py-class docutils literal"><span class="pre">CommandMixin</span></code> class offers a simple interface to several common worker-side commands.</p>
+<p>For the much more common task of running a shell command on the worker, use <code class="xref py py-class docutils literal"><span class="pre">ShellMixin</span></code>.
+This class provides a method to handle the myriad constructor arguments related to shell commands, as well as a method to create new <a class="reference internal" href="../developer/cls-remotecommands.html#buildbot.process.remotecommand.RemoteCommand" title="buildbot.process.remotecommand.RemoteCommand"><code class="xref py py-class docutils literal"><span class="pre">RemoteCommand</span></code></a> instances.
+This mixin is the recommended method of implementing custom shell-based steps.
+The older pattern of subclassing <code class="docutils literal"><span class="pre">ShellCommand</span></code> is no longer recommended.</p>
+<p>A simple example of a step using the shell mixin is:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">RunCleanup</span><span class="p">(</span><span class="n">buildstep</span><span class="o">.</span><span class="n">ShellMixin</span><span class="p">,</span> <span class="n">buildstep</span><span class="o">.</span><span class="n">BuildStep</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cleanupScript</span><span class="o">=</span><span class="s1">&#39;./cleanup.sh&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cleanupScript</span> <span class="o">=</span> <span class="n">cleanupScript</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setupShellMixin</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">prohibitArgs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;command&#39;</span><span class="p">])</span>
+        <span class="n">buildstep</span><span class="o">.</span><span class="n">BuildStep</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">makeRemoteShellCommand</span><span class="p">(</span>
+                <span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cleanupScript</span><span class="p">])</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">runCommand</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cmd</span><span class="o">.</span><span class="n">didFail</span><span class="p">():</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">makeRemoteShellCommand</span><span class="p">(</span>
+                    <span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cleanupScript</span><span class="p">,</span> <span class="s1">&#39;--force&#39;</span><span class="p">],</span>
+                    <span class="n">logEnviron</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">runCommand</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="n">defer</span><span class="o">.</span><span class="n">returnValue</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">results</span><span class="p">())</span>
+
+<span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="n">RemoteCommand</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">addLog</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">)</span>
+    <span class="n">cmd</span><span class="o">.</span><span class="n">useLog</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">closeWhenFinished</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">runCommand</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="updating-status-strings">
+<h3><a class="toc-backref" href="#id29">2.6.10.4. Updating Status Strings</a><a class="headerlink" href="#updating-status-strings" title="Permalink to this headline">¶</a></h3>
+<p>Each step can summarize its current status in a very short string.
+For example, a compile step might display the file being compiled.
+This information can be helpful users eager to see their build finish.</p>
+<p>Similarly, a build has a set of short strings collected from its steps summarizing the overall state of the build.
+Useful information here might include the number of tests run, but probably not the results of a <code class="docutils literal"><span class="pre">make</span> <span class="pre">clean</span></code> step.</p>
+<p>As a step runs, Buildbot calls its <a class="reference internal" href="../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.getCurrentSummary" title="buildbot.process.buildstep.BuildStep.getCurrentSummary"><code class="xref py py-meth docutils literal"><span class="pre">getCurrentSummary</span></code></a> method as necessary to get the step's current status.
+&quot;As necessary&quot; is determined by calls to <a class="reference internal" href="../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.updateSummary" title="buildbot.process.buildstep.BuildStep.updateSummary"><code class="xref py py-meth docutils literal"><span class="pre">buildbot.process.buildstep.BuildStep.updateSummary</span></code></a>.
+Your step should call this method every time the status summary may have changed.
+Buildbot will take care of rate-limiting summary updates.</p>
+<p>When the step is complete, Buildbot calls its <a class="reference internal" href="../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.getResultSummary" title="buildbot.process.buildstep.BuildStep.getResultSummary"><code class="xref py py-meth docutils literal"><span class="pre">getResultSummary</span></code></a> method to get a final summary of the step along with a summary for the build.</p>
+</div>
+<div class="section" id="about-logfiles">
+<h3><a class="toc-backref" href="#id30">2.6.10.5. About Logfiles</a><a class="headerlink" href="#about-logfiles" title="Permalink to this headline">¶</a></h3>
+<p>Each BuildStep has a collection of log files.
+Each one has a short name, like <cite>stdio</cite> or <cite>warnings</cite>.
+Each log file contains an arbitrary amount of text, usually the contents of some output file generated during a build or test step, or a record of everything that was printed to <code class="file docutils literal"><span class="pre">stdout</span></code>/<code class="file docutils literal"><span class="pre">stderr</span></code> during the execution of some command.</p>
+<p>Each can contain multiple <cite>channels</cite>, generally limited to three basic ones: stdout, stderr, and <cite>headers</cite>.
+For example, when a shell command runs, it writes a few lines to the headers channel to indicate the exact argv strings being run, which directory the command is being executed in, and the contents of the current environment variables.
+Then, as the command runs, it adds a lot of <code class="file docutils literal"><span class="pre">stdout</span></code> and <code class="file docutils literal"><span class="pre">stderr</span></code> messages.
+When the command finishes, a final <cite>header</cite> line is added with the exit code of the process.</p>
+<p>Status display plugins can format these different channels in different ways.
+For example, the web page shows log files as text/html, with header lines in blue text, stdout in black, and stderr in red.
+A different URL is available which provides a text/plain format, in which stdout and stderr are collapsed together, and header lines are stripped completely.
+This latter option makes it easy to save the results to a file and run <strong class="command">grep</strong> or whatever against the output.</p>
+</div>
+<div class="section" id="writing-log-files">
+<h3><a class="toc-backref" href="#id31">2.6.10.6. Writing Log Files</a><a class="headerlink" href="#writing-log-files" title="Permalink to this headline">¶</a></h3>
+<p>Most commonly, logfiles come from commands run on the worker.
+Internally, these are configured by supplying the <a class="reference internal" href="../developer/cls-remotecommands.html#buildbot.process.remotecommand.RemoteCommand" title="buildbot.process.remotecommand.RemoteCommand"><code class="xref py py-class docutils literal"><span class="pre">RemoteCommand</span></code></a> instance with log files via the <code class="xref py py-meth docutils literal"><span class="pre">useLog</span></code> method:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">addLog</span><span class="p">(</span><span class="s1">&#39;stdio&#39;</span><span class="p">)</span>
+    <span class="n">cmd</span><span class="o">.</span><span class="n">useLog</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">closeWhenFinished</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;stdio&#39;</span><span class="p">)</span>
+    <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">runCommand</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The name passed to <code class="xref py py-meth docutils literal"><span class="pre">useLog</span></code> must match that configured in the command.
+In this case, <code class="docutils literal"><span class="pre">stdio</span></code> is the default.</p>
+<p>If the log file was already added by another part of the step, it can be retrieved with <a class="reference internal" href="../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.getLog" title="buildbot.process.buildstep.BuildStep.getLog"><code class="xref py py-meth docutils literal"><span class="pre">getLog</span></code></a>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">stdioLog</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getLog</span><span class="p">(</span><span class="s1">&#39;stdio&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Less frequently, some master-side processing produces a log file.
+If this log file is short and easily stored in memory, this is as simple as a call to <a class="reference internal" href="../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.addCompleteLog" title="buildbot.process.buildstep.BuildStep.addCompleteLog"><code class="xref py py-meth docutils literal"><span class="pre">addCompleteLog</span></code></a>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="s1">u&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+                         <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lint_results</span><span class="o">.</span><span class="n">iteritems</span><span class="p">())</span>
+    <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">addCompleteLog</span><span class="p">(</span><span class="s1">&#39;summary&#39;</span><span class="p">,</span> <span class="n">summary</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that the log contents must be a unicode string.</p>
+<p>Longer logfiles can be constructed line-by-line using the <code class="docutils literal"><span class="pre">add</span></code> methods of the log file:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">updates</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">addLog</span><span class="p">(</span><span class="s1">&#39;updates&#39;</span><span class="p">)</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="o">...</span>
+        <span class="k">yield</span> <span class="n">updates</span><span class="o">.</span><span class="n">addStdout</span><span class="p">(</span><span class="n">some_update</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Again, note that the log input must be a unicode string.</p>
+<p>Finally, <a class="reference internal" href="../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.addHTMLLog" title="buildbot.process.buildstep.BuildStep.addHTMLLog"><code class="xref py py-meth docutils literal"><span class="pre">addHTMLLog</span></code></a> is similar to <a class="reference internal" href="../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.addCompleteLog" title="buildbot.process.buildstep.BuildStep.addCompleteLog"><code class="xref py py-meth docutils literal"><span class="pre">addCompleteLog</span></code></a>, but the resulting log will be tagged as containing HTML.
+The web UI will display the contents of the log using the browser.</p>
+<p>The <code class="docutils literal"><span class="pre">logfiles=</span></code> argument to <a class="reference internal" href="cfg-buildsteps.html#step-ShellCommand" title="ShellCommand"><code class="xref bb bb-step docutils literal"><span class="pre">ShellCommand</span></code></a> and its subclasses creates new log files and fills them in realtime by asking the worker to watch a actual file on disk.
+The worker will look for additions in the target file and report them back to the <code class="xref py py-class docutils literal"><span class="pre">BuildStep</span></code>.
+These additions will be added to the log file by calling <code class="xref py py-meth docutils literal"><span class="pre">addStdout</span></code>.</p>
+<p>All log files can be used as the source of a <a class="reference internal" href="../developer/cls-logobserver.html#buildbot.process.logobserver.LogObserver" title="buildbot.process.logobserver.LogObserver"><code class="xref py py-class docutils literal"><span class="pre">LogObserver</span></code></a> just like the normal <code class="file docutils literal"><span class="pre">stdio</span></code> <code class="xref py py-class docutils literal"><span class="pre">LogFile</span></code>.
+In fact, it's possible for one <a class="reference internal" href="../developer/cls-logobserver.html#buildbot.process.logobserver.LogObserver" title="buildbot.process.logobserver.LogObserver"><code class="xref py py-class docutils literal"><span class="pre">LogObserver</span></code></a> to observe a logfile created by another.</p>
+</div>
+<div class="section" id="reading-logfiles">
+<h3><a class="toc-backref" href="#id32">2.6.10.7. Reading Logfiles</a><a class="headerlink" href="#reading-logfiles" title="Permalink to this headline">¶</a></h3>
+<p>For the most part, Buildbot tries to avoid loading the contents of a log file into memory as a single string.
+For large log files on a busy master, this behavior can quickly consume a great deal of memory.</p>
+<p>Instead, steps should implement a <a class="reference internal" href="../developer/cls-logobserver.html#buildbot.process.logobserver.LogObserver" title="buildbot.process.logobserver.LogObserver"><code class="xref py py-class docutils literal"><span class="pre">LogObserver</span></code></a> to examine log files one chunk or line at a time.</p>
+<p>For commands which only produce a small quantity of output, <a class="reference internal" href="../developer/cls-remotecommands.html#buildbot.process.remotecommand.RemoteCommand" title="buildbot.process.remotecommand.RemoteCommand"><code class="xref py py-class docutils literal"><span class="pre">RemoteCommand</span></code></a> will collect the command's stdout into its <a class="reference internal" href="../developer/cls-remotecommands.html#buildbot.process.remotecommand.RemoteCommand.stdout" title="buildbot.process.remotecommand.RemoteCommand.stdout"><code class="xref py py-attr docutils literal"><span class="pre">stdout</span></code></a> attribute if given the <code class="docutils literal"><span class="pre">collectStdout=True</span></code> constructor argument.</p>
+</div>
+<div class="section" id="adding-logobservers">
+<span id="id9"></span><h3><a class="toc-backref" href="#id33">2.6.10.8. Adding LogObservers</a><a class="headerlink" href="#adding-logobservers" title="Permalink to this headline">¶</a></h3>
+<p>Most shell commands emit messages to stdout or stderr as they operate, especially if you ask them nicely with a option <cite>--verbose</cite> flag of some sort.
+They may also write text to a log file while they run.
+Your <code class="xref py py-class docutils literal"><span class="pre">BuildStep</span></code> can watch this output as it arrives, to keep track of how much progress the command has made or to process log output for later summarization.</p>
+<p>To accomplish this, you will need to attach a <a class="reference internal" href="../developer/cls-logobserver.html#buildbot.process.logobserver.LogObserver" title="buildbot.process.logobserver.LogObserver"><code class="xref py py-class docutils literal"><span class="pre">LogObserver</span></code></a> to the log.
+This observer is given all text as it is emitted from the command, and has the opportunity to parse that output incrementally.</p>
+<p>There are a number of pre-built <a class="reference internal" href="../developer/cls-logobserver.html#buildbot.process.logobserver.LogObserver" title="buildbot.process.logobserver.LogObserver"><code class="xref py py-class docutils literal"><span class="pre">LogObserver</span></code></a> classes that you can choose from (defined in <a class="reference internal" href="../developer/cls-buildsteps.html#module-buildbot.process.buildstep" title="buildbot.process.buildstep"><code class="xref py py-mod docutils literal"><span class="pre">buildbot.process.buildstep</span></code></a>, and of course you can subclass them to add further customization.
+The <code class="xref py py-class docutils literal"><span class="pre">LogLineObserver</span></code> class handles the grunt work of buffering and scanning for end-of-line delimiters, allowing your parser to operate on complete <code class="file docutils literal"><span class="pre">stdout</span></code>/<code class="file docutils literal"><span class="pre">stderr</span></code> lines.</p>
+<p>For example, let's take a look at the <code class="xref py py-class docutils literal"><span class="pre">TrialTestCaseCounter</span></code>, which is used by the <a class="reference internal" href="cfg-buildsteps.html#step-Trial" title="Trial"><code class="xref bb bb-step docutils literal"><span class="pre">Trial</span></code></a> step to count test cases as they are run.
+As Trial executes, it emits lines like the following:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>buildbot.test.test_config.ConfigTest.testDebugPassword ... [OK]
+buildbot.test.test_config.ConfigTest.testEmpty ... [OK]
+buildbot.test.test_config.ConfigTest.testIRC ... [FAIL]
+buildbot.test.test_config.ConfigTest.testLocks ... [OK]
+</pre></div>
+</div>
+<p>When the tests are finished, trial emits a long line of <cite>======</cite> and then some lines which summarize the tests that failed.
+We want to avoid parsing these trailing lines, because their format is less well-defined than the <cite>[OK]</cite> lines.</p>
+<p>A simple version of the parser for this output looks like this.
+The full version is in <a class="reference external" href="https://github.com/buildbot/buildbot/blob/master/master/buildbot/steps/python_twisted.py">https://github.com/buildbot/buildbot/blob/master/master/buildbot/steps/python_twisted.py</a>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">util</span>
+
+<span class="k">class</span> <span class="nc">TrialTestCaseCounter</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">LogLineObserver</span><span class="p">):</span>
+    <span class="n">_line_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">r&#39;^([\w\.]+) \.\.\. \[([^\]]+)\]$&#39;</span><span class="p">)</span>
+    <span class="n">numTests</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">finished</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="k">def</span> <span class="nf">outLineReceived</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">40</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">return</span>
+
+        <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_line_re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+            <span class="n">testname</span><span class="p">,</span> <span class="n">result</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">numTests</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="o">.</span><span class="n">setProgress</span><span class="p">(</span><span class="s1">&#39;tests&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">numTests</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This parser only pays attention to stdout, since that's where trial writes the progress lines.
+It has a mode flag named <code class="docutils literal"><span class="pre">finished</span></code> to ignore everything after the <code class="docutils literal"><span class="pre">====</span></code> marker, and a scary-looking regular expression to match each line while hopefully ignoring other messages that might get displayed as the test runs.</p>
+<p>Each time it identifies a test has been completed, it increments its counter and delivers the new progress value to the step with <code class="docutils literal"><span class="pre">self.step.setProgress</span></code>.
+This helps Buildbot to determine the ETA for the step.</p>
+<p>To connect this parser into the <a class="reference internal" href="cfg-buildsteps.html#step-Trial" title="Trial"><code class="xref bb bb-step docutils literal"><span class="pre">Trial</span></code></a> build step, <code class="docutils literal"><span class="pre">Trial.__init__</span></code> ends with the following clause:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># this counter will feed Progress along the &#39;test cases&#39; metric</span>
+<span class="n">counter</span> <span class="o">=</span> <span class="n">TrialTestCaseCounter</span><span class="p">()</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">addLogObserver</span><span class="p">(</span><span class="s1">&#39;stdio&#39;</span><span class="p">,</span> <span class="n">counter</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">progressMetrics</span> <span class="o">+=</span> <span class="p">(</span><span class="s1">&#39;tests&#39;</span><span class="p">,)</span>
+</pre></div>
+</div>
+<p>This creates a <code class="xref py py-class docutils literal"><span class="pre">TrialTestCaseCounter</span></code> and tells the step that the counter wants to watch the <code class="file docutils literal"><span class="pre">stdio</span></code> log.
+The observer is automatically given a reference to the step in its <code class="xref py py-attr docutils literal"><span class="pre">step</span></code> attribute.</p>
+</div>
+<div class="section" id="using-properties">
+<h3><a class="toc-backref" href="#id34">2.6.10.9. Using Properties</a><a class="headerlink" href="#using-properties" title="Permalink to this headline">¶</a></h3>
+<p>In custom <code class="xref py py-class docutils literal"><span class="pre">BuildSteps</span></code>, you can get and set the build properties with the <a class="reference internal" href="../developer/cls-iproperties.html#getProperty" title="getProperty"><code class="xref py py-meth docutils literal"><span class="pre">getProperty</span></code></a> and <a class="reference internal" href="../developer/cls-iproperties.html#setProperty" title="setProperty"><code class="xref py py-meth docutils literal"><span class="pre">setProperty</span></code></a> methods.
+Each takes a string for the name of the property, and returns or accepts an arbitrary JSON-able (lists, dicts, strings, and numbers) object.
+For example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MakeTarball</span><span class="p">(</span><span class="n">ShellCommand</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s2">&quot;os&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;win&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setCommand</span><span class="p">([</span> <span class="o">...</span> <span class="p">])</span> <span class="c1"># windows-only command</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setCommand</span><span class="p">([</span> <span class="o">...</span> <span class="p">])</span> <span class="c1"># equivalent for other systems</span>
+        <span class="n">ShellCommand</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Remember that properties set in a step may not be available until the next step begins.
+In particular, any <code class="xref py py-class docutils literal"><span class="pre">Property</span></code> or <code class="xref py py-class docutils literal"><span class="pre">Interpolate</span></code> instances for the current step are interpolated before the step starts, so they cannot use the value of any properties determined in that step.</p>
+</div>
+<div class="section" id="using-statistics">
+<span id="index-3"></span><h3><a class="toc-backref" href="#id35">2.6.10.10. Using Statistics</a><a class="headerlink" href="#using-statistics" title="Permalink to this headline">¶</a></h3>
+<p>Statistics can be generated for each step, and then summarized across all steps in a build.
+For example, a test step might set its <code class="docutils literal"><span class="pre">warnings</span></code> statistic to the number of warnings observed.
+The build could then sum the <code class="docutils literal"><span class="pre">warnings</span></code> on all steps to get a total number of warnings.</p>
+<p>Statistics are set and retrieved with the <a class="reference internal" href="../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.setStatistic" title="buildbot.process.buildstep.BuildStep.setStatistic"><code class="xref py py-meth docutils literal"><span class="pre">setStatistic</span></code></a> and <a class="reference internal" href="../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.getStatistic" title="buildbot.process.buildstep.BuildStep.getStatistic"><code class="xref py py-meth docutils literal"><span class="pre">getStatistic</span></code></a> methods.
+The <a class="reference internal" href="../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.hasStatistic" title="buildbot.process.buildstep.BuildStep.hasStatistic"><code class="xref py py-meth docutils literal"><span class="pre">hasStatistic</span></code></a> method determines whether a statistic exists.</p>
+<p>The Build method <a class="reference internal" href="../developer/cls-build.html#buildbot.process.build.Build.getSummaryStatistic" title="buildbot.process.build.Build.getSummaryStatistic"><code class="xref py py-meth docutils literal"><span class="pre">getSummaryStatistic</span></code></a> can be used to aggregate over all steps in a Build.</p>
+</div>
+<div class="section" id="buildstep-urls">
+<h3><a class="toc-backref" href="#id36">2.6.10.11. BuildStep URLs</a><a class="headerlink" href="#buildstep-urls" title="Permalink to this headline">¶</a></h3>
+<p>Each BuildStep has a collection of <cite>links</cite>.
+Each has a name and a target URL.
+The web display displays clickable links for each link, making them a useful way to point to extra information about a step.
+For example, a step that uploads a build result to an external service might include a link to the uploaded file.</p>
+<p>To set one of these links, the <code class="xref py py-class docutils literal"><span class="pre">BuildStep</span></code> should call the <a class="reference internal" href="../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.addURL" title="buildbot.process.buildstep.BuildStep.addURL"><code class="xref py py-meth docutils literal"><span class="pre">addURL</span></code></a> method with the name of the link and the target URL.
+Multiple URLs can be set.
+For example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="o">...</span> <span class="c1"># create and upload report to coverage server</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://coverage.example.com/reports/</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">reportname</span>
+    <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">addURL</span><span class="p">(</span><span class="s1">&#39;coverage&#39;</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="discovering-files">
+<h3><a class="toc-backref" href="#id37">2.6.10.12. Discovering files</a><a class="headerlink" href="#discovering-files" title="Permalink to this headline">¶</a></h3>
+<p>When implementing a <code class="xref py py-class docutils literal"><span class="pre">BuildStep</span></code> it may be necessary to know about files that are created during the build.
+There are a few worker commands that can be used to find files on the worker and test for the existence (and type) of files and directories.</p>
+<p>The worker provides the following file-discovery related commands:</p>
+<ul class="simple">
+<li><cite>stat</cite> calls <code class="xref py py-func docutils literal"><span class="pre">os.stat</span></code> for a file in the worker's build directory.
+This can be used to check if a known file exists and whether it is a regular file, directory or symbolic link.</li>
+<li><cite>listdir</cite> calls <code class="xref py py-func docutils literal"><span class="pre">os.listdir</span></code> for a directory on the worker.
+It can be used to obtain a list of files that are present in a directory on the worker.</li>
+<li><cite>glob</cite> calls <code class="xref py py-func docutils literal"><span class="pre">glob.glob</span></code> on the worker, with a given shell-style pattern containing wildcards.</li>
+</ul>
+<p>For example, we could use stat to check if a given path exists and contains <code class="docutils literal"><span class="pre">*.pyc</span></code> files.
+If the path does not exist (or anything fails) we mark the step as failed; if the path exists but is not a directory, we mark the step as having &quot;warnings&quot;.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">steps</span><span class="p">,</span> <span class="n">util</span>
+<span class="kn">from</span> <span class="nn">buildbot.interfaces</span> <span class="kn">import</span> <span class="n">WorkerTooOldError</span>
+<span class="kn">import</span> <span class="nn">stat</span>
+
+<span class="k">class</span> <span class="nc">MyBuildStep</span><span class="p">(</span><span class="n">steps</span><span class="o">.</span><span class="n">BuildStep</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">buildstep</span><span class="o">.</span><span class="n">BuildStep</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dirname</span> <span class="o">=</span> <span class="n">dirname</span>
+
+    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># make sure the worker knows about stat</span>
+        <span class="n">workerver</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workerVersion</span><span class="p">(</span><span class="s1">&#39;stat&#39;</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">workerVersion</span><span class="p">(</span><span class="s1">&#39;glob&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">workerver</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">WorkerTooOldError</span><span class="p">(</span><span class="s1">&#39;need stat and glob&#39;</span><span class="p">)</span>
+
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">buildstep</span><span class="o">.</span><span class="n">RemoteCommand</span><span class="p">(</span><span class="s1">&#39;stat&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;file&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dirname</span><span class="p">})</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runCommand</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="k">lambda</span> <span class="n">res</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluateStat</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">addErrback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">failed</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">d</span>
+
+    <span class="k">def</span> <span class="nf">evaluateStat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cmd</span><span class="o">.</span><span class="n">didFail</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step_status</span><span class="o">.</span><span class="n">setText</span><span class="p">([</span><span class="s2">&quot;File not found.&quot;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finished</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">FAILURE</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">cmd</span><span class="o">.</span><span class="n">updates</span><span class="p">[</span><span class="s2">&quot;stat&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_ISDIR</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">stat</span><span class="o">.</span><span class="n">ST_MODE</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step_status</span><span class="o">.</span><span class="n">setText</span><span class="p">([</span><span class="s2">&quot;&#39;tis not a directory&quot;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finished</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">WARNINGS</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">buildstep</span><span class="o">.</span><span class="n">RemoteCommand</span><span class="p">(</span><span class="s1">&#39;glob&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dirname</span> <span class="o">+</span> <span class="s1">&#39;/*.pyc&#39;</span><span class="p">})</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runCommand</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="k">lambda</span> <span class="n">res</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluateGlob</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">addErrback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">failed</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">d</span>
+
+    <span class="k">def</span> <span class="nf">evaluateGlob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cmd</span><span class="o">.</span><span class="n">didFail</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step_status</span><span class="o">.</span><span class="n">setText</span><span class="p">([</span><span class="s2">&quot;Glob failed.&quot;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finished</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">FAILURE</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="n">cmd</span><span class="o">.</span><span class="n">updates</span><span class="p">[</span><span class="s2">&quot;files&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step_status</span><span class="o">.</span><span class="n">setText</span><span class="p">([</span><span class="s2">&quot;Found pycs&quot;</span><span class="p">]</span><span class="o">+</span><span class="n">files</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step_status</span><span class="o">.</span><span class="n">setText</span><span class="p">([</span><span class="s2">&quot;No pycs found&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For more information on the available commands, see <a class="reference internal" href="../developer/master-worker.html"><span class="doc">Master-Worker API</span></a>.</p>
+<div class="admonition-todo admonition" id="index-4">
+<p class="first admonition-title">Todo</p>
+<p class="last">Step Progress
+BuildStepFailed</p>
+</div>
+</div>
+</div>
+<div class="section" id="writing-new-status-plugins">
+<h2><a class="toc-backref" href="#id38">2.6.11. Writing New Status Plugins</a><a class="headerlink" href="#writing-new-status-plugins" title="Permalink to this headline">¶</a></h2>
+<p>Each status plugin is an object which provides the <code class="xref py py-class docutils literal"><span class="pre">twisted.application.service.IService</span></code> interface, which creates a tree of Services with the buildmaster at the top [not strictly true].
+The status plugins are all children of an object which implements <code class="xref py py-class docutils literal"><span class="pre">buildbot.interfaces.IStatus</span></code>, the main status object.
+From this object, the plugin can retrieve anything it wants about current and past builds.
+It can also subscribe to hear about new and upcoming builds.</p>
+<p>Status plugins which only react to human queries (like the Waterfall display) never need to subscribe to anything: they are idle until someone asks a question, then wake up and extract the information they need to answer it, then they go back to sleep.
+Plugins which need to act spontaneously when builds complete (like the <code class="xref py py-class docutils literal"><span class="pre">MailNotifier</span></code> plugin) need to subscribe to hear about new builds.</p>
+<p>If the status plugin needs to run network services (like the HTTP server used by the Waterfall plugin), they can be attached as Service children of the plugin itself, using the <code class="xref py py-class docutils literal"><span class="pre">IServiceCollection</span></code> interface.</p>
+</div>
+<div class="section" id="a-somewhat-whimsical-example-or-it-s-now-customized-how-do-i-deploy-it">
+<h2><a class="toc-backref" href="#id39">2.6.12. A Somewhat Whimsical Example (or &quot;It's now customized, how do I deploy it?&quot;)</a><a class="headerlink" href="#a-somewhat-whimsical-example-or-it-s-now-customized-how-do-i-deploy-it" title="Permalink to this headline">¶</a></h2>
+<p>Let's say that we've got some snazzy new unit-test framework called Framboozle.
+It's the hottest thing since sliced bread.
+It slices, it dices, it runs unit tests like there's no tomorrow.
+Plus if your unit tests fail, you can use its name for a Web 2.1 startup company, make millions of dollars, and hire engineers to fix the bugs for you, while you spend your afternoons lazily hang-gliding along a scenic pacific beach, blissfully unconcerned about the state of your tests.
+<a class="footnote-reference" href="#framboozle-reg" id="id10">[1]</a></p>
+<p>To run a Framboozle-enabled test suite, you just run the 'framboozler' command from the top of your source code tree.
+The 'framboozler' command emits a bunch of stuff to stdout, but the most interesting bit is that it emits the line &quot;FNURRRGH!&quot; every time it finishes running a test case You'd like to have a test-case counting LogObserver that watches for these lines and counts them, because counting them will help the buildbot more accurately calculate how long the build will take, and this will let you know exactly how long you can sneak out of the office for your hang-gliding lessons without anyone noticing that you're gone.</p>
+<p>This will involve writing a new <code class="xref py py-class docutils literal"><span class="pre">BuildStep</span></code> (probably named &quot;Framboozle&quot;) which inherits from <a class="reference internal" href="cfg-buildsteps.html#step-ShellCommand" title="ShellCommand"><code class="xref bb bb-step docutils literal"><span class="pre">ShellCommand</span></code></a>.
+The <code class="xref py py-class docutils literal"><span class="pre">BuildStep</span></code> class definition itself will look something like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">steps</span><span class="p">,</span> <span class="n">util</span>
+
+<span class="k">class</span> <span class="nc">FNURRRGHCounter</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">LogLineObserver</span><span class="p">):</span>
+    <span class="n">numTests</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">def</span> <span class="nf">outLineReceived</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s2">&quot;FNURRRGH!&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">numTests</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="o">.</span><span class="n">setProgress</span><span class="p">(</span><span class="s1">&#39;tests&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">numTests</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Framboozle</span><span class="p">(</span><span class="n">steps</span><span class="o">.</span><span class="n">ShellCommand</span><span class="p">):</span>
+    <span class="n">command</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;framboozler&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">steps</span><span class="o">.</span><span class="n">ShellCommand</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>   <span class="c1"># always upcall!</span>
+        <span class="n">counter</span> <span class="o">=</span> <span class="n">FNURRRGHCounter</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addLogObserver</span><span class="p">(</span><span class="s1">&#39;stdio&#39;</span><span class="p">,</span> <span class="n">counter</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progressMetrics</span> <span class="o">+=</span> <span class="p">(</span><span class="s1">&#39;tests&#39;</span><span class="p">,)</span>
+</pre></div>
+</div>
+<p>So that's the code that we want to wind up using.
+How do we actually deploy it?</p>
+<p>You have a number of different options:</p>
+<div class="contents local topic" id="id11">
+<ul class="simple">
+<li><a class="reference internal" href="#inclusion-in-the-master-cfg-file" id="id46">Inclusion in the <code class="file docutils literal"><span class="pre">master.cfg</span></code> file</a></li>
+<li><a class="reference internal" href="#python-file-somewhere-on-the-system" id="id47">Python file somewhere on the system</a></li>
+<li><a class="reference internal" href="#install-this-code-into-a-standard-python-library-directory" id="id48">Install this code into a standard Python library directory</a></li>
+<li><a class="reference internal" href="#distribute-a-buildbot-plug-in" id="id49">Distribute a Buildbot Plug-In</a></li>
+<li><a class="reference internal" href="#submit-the-code-for-inclusion-in-the-buildbot-distribution" id="id50">Submit the code for inclusion in the Buildbot distribution</a></li>
+<li><a class="reference internal" href="#summary" id="id51">Summary</a></li>
+</ul>
+</div>
+<div class="section" id="inclusion-in-the-master-cfg-file">
+<h3><a class="toc-backref" href="#id46">2.6.12.1. Inclusion in the <code class="file docutils literal"><span class="pre">master.cfg</span></code> file</a><a class="headerlink" href="#inclusion-in-the-master-cfg-file" title="Permalink to this headline">¶</a></h3>
+<p>The simplest technique is to simply put the step class definitions in your <code class="file docutils literal"><span class="pre">master.cfg</span></code> file, somewhere before the <code class="xref py py-class docutils literal"><span class="pre">BuildFactory</span></code> definition where you actually use it in a clause like:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">f</span> <span class="o">=</span> <span class="n">BuildFactory</span><span class="p">()</span>
+<span class="n">f</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">SVN</span><span class="p">(</span><span class="n">repourl</span><span class="o">=</span><span class="s2">&quot;stuff&quot;</span><span class="p">))</span>
+<span class="n">f</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">Framboozle</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>Remember that <code class="file docutils literal"><span class="pre">master.cfg</span></code> is secretly just a Python program with one job: populating the <code class="xref py py-data docutils literal"><span class="pre">BuildmasterConfig</span></code> dictionary.
+And Python programs are allowed to define as many classes as they like.
+So you can define classes and use them in the same file, just as long as the class is defined before some other code tries to use it.</p>
+<p>This is easy, and it keeps the point of definition very close to the point of use, and whoever replaces you after that unfortunate hang-gliding accident will appreciate being able to easily figure out what the heck this stupid &quot;Framboozle&quot; step is doing anyways.
+The downside is that every time you reload the config file, the Framboozle class will get redefined, which means that the buildmaster will think that you've reconfigured all the Builders that use it, even though nothing changed.
+Bleh.</p>
+</div>
+<div class="section" id="python-file-somewhere-on-the-system">
+<h3><a class="toc-backref" href="#id47">2.6.12.2. Python file somewhere on the system</a><a class="headerlink" href="#python-file-somewhere-on-the-system" title="Permalink to this headline">¶</a></h3>
+<p>Instead, we can put this code in a separate file, and import it into the master.cfg file just like we would the normal buildsteps like <a class="reference internal" href="cfg-buildsteps.html#step-ShellCommand" title="ShellCommand"><code class="xref bb bb-step docutils literal"><span class="pre">ShellCommand</span></code></a> and <a class="reference internal" href="cfg-buildsteps.html#step-SVN" title="SVN"><code class="xref bb bb-step docutils literal"><span class="pre">SVN</span></code></a>.</p>
+<p>Create a directory named <code class="file docutils literal"><span class="pre">~/lib/python</span></code>, put the step class definitions in <code class="file docutils literal"><span class="pre">~/lib/python/framboozle.py</span></code>, and run your buildmaster using:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nv">PYTHONPATH</span><span class="o">=</span>~/lib/python buildbot start MASTERDIR
+</pre></div>
+</div>
+<p>or use the <code class="file docutils literal"><span class="pre">Makefile.buildbot</span></code> to control the way <code class="docutils literal"><span class="pre">buildbot</span> <span class="pre">start</span></code> works.
+Or add something like this to something like your <code class="file docutils literal"><span class="pre">~/.bashrc</span></code> or <code class="file docutils literal"><span class="pre">~/.bash_profile</span></code> or <code class="file docutils literal"><span class="pre">~/.cshrc</span></code>:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">PYTHONPATH</span><span class="o">=</span>~/lib/python
+</pre></div>
+</div>
+<p>Once we've done this, our <code class="file docutils literal"><span class="pre">master.cfg</span></code> can look like:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">framboozle</span> <span class="k">import</span> <span class="n">Framboozle</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">BuildFactory</span><span class="p">()</span>
+<span class="n">f</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">SVN</span><span class="p">(</span><span class="n">repourl</span><span class="o">=</span><span class="s2">&quot;stuff&quot;</span><span class="p">))</span>
+<span class="n">f</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">Framboozle</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>or:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">framboozle</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">BuildFactory</span><span class="p">()</span>
+<span class="n">f</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">SVN</span><span class="p">(</span><span class="n">repourl</span><span class="o">=</span><span class="s2">&quot;stuff&quot;</span><span class="p">))</span>
+<span class="n">f</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">framboozle</span><span class="o">.</span><span class="n">Framboozle</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>(check out the Python docs for details about how <code class="docutils literal"><span class="pre">import</span></code> and <code class="docutils literal"><span class="pre">from</span> <span class="pre">A</span> <span class="pre">import</span> <span class="pre">B</span></code> work).</p>
+<p>What we've done here is to tell Python that every time it handles an &quot;import&quot; statement for some named module, it should look in our <code class="file docutils literal"><span class="pre">~/lib/python/</span></code> for that module before it looks anywhere else.
+After our directories, it will try in a bunch of standard directories too (including the one where buildbot is installed).
+By setting the <span class="target" id="index-5"></span><code class="xref std std-envvar docutils literal"><span class="pre">PYTHONPATH</span></code> environment variable, you can add directories to the front of this search list.</p>
+<p>Python knows that once it &quot;import&quot;s a file, it doesn't need to re-import it again.
+This means that reconfiguring the buildmaster (with <code class="docutils literal"><span class="pre">buildbot</span> <span class="pre">reconfig</span></code>, for example) won't make it think the Framboozle class has changed every time, so the Builders that use it will not be spuriously restarted.
+On the other hand, you either have to start your buildmaster in a slightly weird way, or you have to modify your environment to set the <span class="target" id="index-6"></span><code class="xref std std-envvar docutils literal"><span class="pre">PYTHONPATH</span></code> variable.</p>
+</div>
+<div class="section" id="install-this-code-into-a-standard-python-library-directory">
+<h3><a class="toc-backref" href="#id48">2.6.12.3. Install this code into a standard Python library directory</a><a class="headerlink" href="#install-this-code-into-a-standard-python-library-directory" title="Permalink to this headline">¶</a></h3>
+<p>Find out what your Python's standard include path is by asking it:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>80:warner@luther% python
+Python 2.4.4c0 (#2, Oct  2 2006, 00:57:46)
+[GCC 4.1.2 20060928 (prerelease) (Debian 4.1.1-15)] on linux2
+Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
+&gt;&gt;&gt; import sys
+&gt;&gt;&gt; import pprint
+&gt;&gt;&gt; pprint.pprint(sys.path)
+[&#39;&#39;,
+ &#39;/usr/lib/python24.zip&#39;,
+ &#39;/usr/lib/python2.4&#39;,
+ &#39;/usr/lib/python2.4/plat-linux2&#39;,
+ &#39;/usr/lib/python2.4/lib-tk&#39;,
+ &#39;/usr/lib/python2.4/lib-dynload&#39;,
+ &#39;/usr/local/lib/python2.4/site-packages&#39;,
+ &#39;/usr/lib/python2.4/site-packages&#39;,
+ &#39;/usr/lib/python2.4/site-packages/Numeric&#39;,
+ &#39;/var/lib/python-support/python2.4&#39;,
+ &#39;/usr/lib/site-python&#39;]
+</pre></div>
+</div>
+<p>In this case, putting the code into <code class="file docutils literal"><span class="pre">/usr/local/lib/python2.4/site-packages/framboozle.py</span></code> would work just fine.
+We can use the same <code class="file docutils literal"><span class="pre">master.cfg</span></code> <code class="docutils literal"><span class="pre">import</span> <span class="pre">framboozle</span></code> statement as in Option 2.
+By putting it in a standard include directory (instead of the decidedly non-standard <code class="file docutils literal"><span class="pre">~/lib/python</span></code>), we don't even have to set <span class="target" id="index-7"></span><code class="xref std std-envvar docutils literal"><span class="pre">PYTHONPATH</span></code> to anything special.
+The downside is that you probably have to be root to write to one of those standard include directories.</p>
+</div>
+<div class="section" id="distribute-a-buildbot-plug-in">
+<span id="plugin-module"></span><h3><a class="toc-backref" href="#id49">2.6.12.4. Distribute a Buildbot Plug-In</a><a class="headerlink" href="#distribute-a-buildbot-plug-in" title="Permalink to this headline">¶</a></h3>
+<p>First of all, you must prepare a Python package (if you do not know what that is, please check <a class="reference internal" href="../developer/plugins-publish.html"><span class="doc">How to package Buildbot plugins</span></a>, where you can find a couple of pointers to tutorials).</p>
+<p>When you have a package, you will have a special file called <code class="file docutils literal"><span class="pre">setup.py</span></code>.
+This file needs to be updated to include a pointer to your new step:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">setup</span><span class="p">(</span>
+    <span class="o">...</span>
+    <span class="n">entry_points</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="o">...</span><span class="p">,</span>
+        <span class="s1">&#39;buildbot.steps&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s1">&#39;Framboozle = framboozle:Framboozle&#39;</span>
+        <span class="p">]</span>
+    <span class="p">},</span>
+    <span class="o">...</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Where:</p>
+<ul>
+<li><p class="first"><code class="docutils literal"><span class="pre">buildbot.steps</span></code> is the kind of plugin you offer (more information about possible kinds you can find in <a class="reference internal" href="../developer/plugins-publish.html"><span class="doc">How to package Buildbot plugins</span></a>)</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">framboozle:Framboozle</span></code> consists of two parts: <code class="docutils literal"><span class="pre">framboozle</span></code> is the name of the Python module where to look for <code class="docutils literal"><span class="pre">Framboozle</span></code> class, which implements the plugin</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">Framboozle</span></code> is the name of the plugin.</p>
+<p>This will allow users of your plugin to use it just like any other Buildbot plugins:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">steps</span>
+
+<span class="o">...</span> <span class="n">steps</span><span class="o">.</span><span class="n">Framboozle</span> <span class="o">...</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>Now you can upload it to <a class="reference external" href="http://pypi.python.org/">PyPI</a> where other people can download it from and use in their build systems.
+Once again, the information about how to prepare and upload a package to <a class="reference external" href="http://pypi.python.org/">PyPI</a> can be found in tutorials listed in <a class="reference internal" href="../developer/plugins-publish.html"><span class="doc">How to package Buildbot plugins</span></a>.</p>
+</div>
+<div class="section" id="submit-the-code-for-inclusion-in-the-buildbot-distribution">
+<h3><a class="toc-backref" href="#id50">2.6.12.5. Submit the code for inclusion in the Buildbot distribution</a><a class="headerlink" href="#submit-the-code-for-inclusion-in-the-buildbot-distribution" title="Permalink to this headline">¶</a></h3>
+<p>Make a fork of buildbot on <a class="reference external" href="http://github.com/buildbot/buildbot">http://github.com/buildbot/buildbot</a> or post a patch in a bug at <a class="reference external" href="http://trac.buildbot.net/">http://trac.buildbot.net/</a>.
+In either case, post a note about your patch to the mailing list, so others can provide feedback and, eventually, commit it.</p>
+<p>When it's committed to the master, the usage is the same as in the previous approach:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">steps</span><span class="p">,</span> <span class="n">util</span>
+
+<span class="o">...</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">BuildFactory</span><span class="p">()</span>
+<span class="n">f</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">steps</span><span class="o">.</span><span class="n">SVN</span><span class="p">(</span><span class="n">repourl</span><span class="o">=</span><span class="s2">&quot;stuff&quot;</span><span class="p">))</span>
+<span class="n">f</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">steps</span><span class="o">.</span><span class="n">Framboozle</span><span class="p">())</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>And then you don't even have to install <code class="file docutils literal"><span class="pre">framboozle.py</span></code> anywhere on your system, since it will ship with Buildbot.
+You don't have to be root, you don't have to set <span class="target" id="index-8"></span><code class="xref std std-envvar docutils literal"><span class="pre">PYTHONPATH</span></code>.
+But you do have to make a good case for Framboozle being worth going into the main distribution, you'll probably have to provide docs and some unit test cases, you'll need to figure out what kind of beer the author likes (IPA's and Stouts for Dustin), and then you'll have to wait until the next release.
+But in some environments, all this is easier than getting root on your buildmaster box, so the tradeoffs may actually be worth it.</p>
+</div>
+<div class="section" id="summary">
+<h3><a class="toc-backref" href="#id51">2.6.12.6. Summary</a><a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h3>
+<p>Putting the code in master.cfg (1) makes it available to that buildmaster instance.
+Putting it in a file in a personal library directory (2) makes it available for any buildmasters you might be running.
+Putting it in a file in a system-wide shared library directory (3) makes it available for any buildmasters that anyone on that system might be running.
+Getting it into the buildbot's upstream repository (4) makes it available for any buildmasters that anyone in the world might be running.
+It's all a matter of how widely you want to deploy that new class.</p>
+<table class="docutils footnote" frame="void" id="framboozle-reg" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id10">[1]</a></td><td>framboozle.com is still available.
+Remember, I get 10% :).</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/header-text-transparent.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script><h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">2.4. Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="worker-transition.html">2.5. Transition to &quot;worker&quot; terminology</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">2.6. Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="new-style-steps.html">2.7. New-Style Build Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmdline.html">2.8. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resources.html">2.9. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html">2.10. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins.html">2.11. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deploy.html">2.12. Deployment</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">4. Release Notes for Buildbot <code class="docutils literal"><span class="pre">|version|</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../indices.html">5. Indices and Tables</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="worker-transition.html"
+                        title="previous chapter">2.5. Transition to &quot;worker&quot; terminology</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="new-style-steps.html"
+                        title="next chapter">2.7. New-Style Build Steps</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/manual/customization.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>
