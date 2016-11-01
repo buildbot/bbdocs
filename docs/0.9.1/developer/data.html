@@ -1,0 +1,851 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>3.2.2. Data API &#8212; Buildbot 0.9.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/qtile.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/buildbot.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="top" title="Buildbot 0.9.1 documentation" href="../index.html" />
+    <link rel="up" title="3.2. APIs" href="apis.html" />
+    <link rel="next" title="3.2.3. Database" href="database.html" />
+    <link rel="prev" title="3.2.1. REST API" href="rest.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="database.html" title="3.2.3. Database"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rest.html" title="3.2.1. REST API"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Buildbot 0.9.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >3. Buildbot Development</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="apis.html" accesskey="U">3.2. APIs</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="data-api">
+<span id="id1"></span><h1>3.2.2. Data API<a class="headerlink" href="#data-api" title="Permalink to this headline">¶</a></h1>
+<p>The data layer combines access to stored state and messages, ensuring consistency between them, and exposing a well-defined API that can be used both internally and externally.
+Using caching and the clock information provided by the db and mq layers, this layer ensures that its callers can easily receive a dump of current state plus changes to that state, without missing or duplicating messages.</p>
+<div class="section" id="sections">
+<h2>3.2.2.1. Sections<a class="headerlink" href="#sections" title="Permalink to this headline">¶</a></h2>
+<p>The data api is divided into four sections:</p>
+<ul class="simple">
+<li>getters - fetching data from the db API, and</li>
+<li>subscriptions - subscribing to messages from the mq layer;</li>
+<li>control - allows state to be changed in specific ways by sending appropriate messages (e.g., stopping a build); and</li>
+<li>updates - direct updates to state appropriate messages.</li>
+</ul>
+<p>The getters and subscriptions are exposed everywhere.
+Access to the control section should be authenticated at higher levels, as the data layer does no authentication.
+The updates section is for use only by the process layer.</p>
+<p>The interfaces for all sections but the updates sections are intended to be language-agnostic.
+That is, they should be callable from JavaScript via HTTP, or via some other interface added to Buildbot after the fact.</p>
+<div class="section" id="getter">
+<h3>Getter<a class="headerlink" href="#getter" title="Permalink to this headline">¶</a></h3>
+<p>The getter section can get either a single resource, or a list of resources.
+Getting a single resource requires a resource identifier (a tuple of strings) and a set of options to support automatic expansion of links to other resources (thus saving round-trips).
+Lists are requested with a partial resource identifier (a tuple of strings) and an optional set of filter options.
+In some cases, certain filters are implicit in the path, e.g., the list of buildsteps for a particular build.</p>
+</div>
+<div class="section" id="subscriptions">
+<h3>Subscriptions<a class="headerlink" href="#subscriptions" title="Permalink to this headline">¶</a></h3>
+<p>Message subscriptions can be made to anything that can be listed or gotten from the getter sections, using the same resource identifiers.
+Options and explicit filters are not supported - a message contains only the most basic information about a resource, and a list subscription results in a message for every new resource of the desired type.
+Implicit filters are supported.</p>
+</div>
+<div class="section" id="control">
+<h3>Control<a class="headerlink" href="#control" title="Permalink to this headline">¶</a></h3>
+<p>The control sections defines a set of actions that cause Buildbot to behave in a certain way, e.g., rebuilding a build or shutting down a worker.
+Actions correspond to a particular resource, although sometimes that resource is the root resource (an empty tuple).</p>
+</div>
+</div>
+<div class="section" id="updates">
+<h2>3.2.2.2. Updates<a class="headerlink" href="#updates" title="Permalink to this headline">¶</a></h2>
+<p>The updates section defines a free-form set of methods that Buildbot's process implementation calls to update data.
+Most update methods both modify state via the db API and send a message via the mq API.
+Some are simple wrappers for these APIs, while others contain more complex logic, e.g., building a source stamp set for a collection of changes.
+This section is the proper place to put common functionality, e.g., rebuilding builds or assembling buildsets.</p>
+</div>
+<div class="section" id="concrete-interfaces">
+<h2>3.2.2.3. Concrete Interfaces<a class="headerlink" href="#concrete-interfaces" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-buildbot.data.connector">
+<span id="python-interface"></span><h3>Python Interface<a class="headerlink" href="#module-buildbot.data.connector" title="Permalink to this headline">¶</a></h3>
+<p>Within the buildmaster process, the root of the data API is available at <cite>self.master.data</cite>, which is a <a class="reference internal" href="#buildbot.data.connector.DataConnector" title="buildbot.data.connector.DataConnector"><code class="xref py py-class docutils literal"><span class="pre">DataConnector</span></code></a> instance.</p>
+<dl class="class">
+<dt id="buildbot.data.connector.DataConnector">
+<em class="property">class </em><code class="descclassname">buildbot.data.connector.</code><code class="descname">DataConnector</code><a class="headerlink" href="#buildbot.data.connector.DataConnector" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class implements the root of the data API.
+Within the buildmaster process, the data connector is available at <cite>self.master.data</cite>.
+The first three sections are implemented with the <code class="xref py py-meth docutils literal"><span class="pre">get</span></code> and <a class="reference internal" href="#buildbot.data.connector.DataConnector.control" title="buildbot.data.connector.DataConnector.control"><code class="xref py py-meth docutils literal"><span class="pre">control</span></code></a> methods, respectively, while the updates section is implemented using the <code class="xref py py-attr docutils literal"><span class="pre">updates</span></code> attribute.
+The <code class="docutils literal"><span class="pre">path</span></code> arguments to these methods should always be tuples.
+Integer arguments can be presented as either integers or strings that can be parsed by <code class="docutils literal"><span class="pre">int</span></code>; all other arguments must be strings.</p>
+<dl class="method">
+<dt>
+<code class="descname">get(path, filters=None, fields=None, order=None, limit=None, offset=None):</code></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<em>tuple</em>) -- A tuple of path elements representing the API path to fetch.
+Numbers can be passed as strings or integers.</li>
+<li><strong>filters</strong> -- result spec filters</li>
+<li><strong>fields</strong> -- result spec fields</li>
+<li><strong>order</strong> -- result spec order</li>
+<li><strong>limit</strong> -- result spec limit</li>
+<li><strong>offset</strong> -- result spec offset</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference internal" href="#buildbot.data.exceptions.InvalidPathError" title="buildbot.data.exceptions.InvalidPathError"><code class="xref py py-exc docutils literal"><span class="pre">InvalidPathError</span></code></a></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a resource or list via Deferred, or None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This method implements the getter section.
+Depending on the path, it will return a single resource or a list of resources.
+If a single resource is not specified, it returns <code class="docutils literal"><span class="pre">None</span></code>.</p>
+<p>The <code class="docutils literal"><span class="pre">filters</span></code>, <code class="docutils literal"><span class="pre">fields</span></code>, <code class="docutils literal"><span class="pre">order</span></code>, <code class="docutils literal"><span class="pre">limit</span></code>, and <code class="docutils literal"><span class="pre">offset</span></code> are passed to the <a class="reference internal" href="cls-resultspec.html#buildbot.data.resultspec.ResultSpec" title="buildbot.data.resultspec.ResultSpec"><code class="xref py py-class docutils literal"><span class="pre">ResultSpec</span></code></a> constructor.</p>
+<p>The return value is composed of simple Python objects - lists, dicts, strings, numbers, and None.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.data.connector.DataConnector.getEndpoint">
+<code class="descname">getEndpoint</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.data.connector.DataConnector.getEndpoint" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>tuple</em>) -- A tuple of path elements representing the API path.
+Numbers can be passed as strings or integers.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="#buildbot.data.exceptions.InvalidPathError" title="buildbot.data.exceptions.InvalidPathError"><code class="xref py py-exc docutils literal"><span class="pre">InvalidPathError</span></code></a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">tuple of endpoint and a dictionary of keyword arguments from the path</td>
+</tr>
+</tbody>
+</table>
+<p>Get the endpoint responsible for the given path, along with any arguments extracted from the path.
+This can be used by callers that need access to information from the endpoint beyond that returned from <code class="docutils literal"><span class="pre">get</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.data.connector.DataConnector.produceEvent">
+<code class="descname">produceEvent</code><span class="sig-paren">(</span><em>rtype</em>, <em>msg</em>, <em>event</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.data.connector.DataConnector.produceEvent" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>rtype</strong> -- the name identifying a resource type</li>
+<li><strong>msg</strong> -- a dictionary describing the msg to send</li>
+<li><strong>event</strong> -- the event to produce</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This method implements the production of an event, for the rtype identified by its name string.
+Usually, this is the role of the data layer to produce the events inside the update methods.
+For the potential use cases where it would make sense to solely produce an event, and not update data, please use this API, rather than directly call mq.
+It ensures the event is sent to all the routingkeys specified by eventPathPatterns.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.data.connector.DataConnector.control">
+<code class="descname">control</code><span class="sig-paren">(</span><em>action</em>, <em>args</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.data.connector.DataConnector.control" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>action</strong> -- a short string naming the action to perform</li>
+<li><strong>args</strong> -- dictionary containing arguments for the action</li>
+<li><strong>path</strong> (<em>tuple</em>) -- A tuple of path elements representing the API path.
+Numbers can be passed as strings or integers.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference internal" href="#buildbot.data.exceptions.InvalidPathError" title="buildbot.data.exceptions.InvalidPathError"><code class="xref py py-exc docutils literal"><span class="pre">InvalidPathError</span></code></a></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a resource or list via Deferred, or None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This method implements the control section.
+Depending on the path, it may return a new created resource.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.data.connector.DataConnector.allEndpoints">
+<code class="descname">allEndpoints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.data.connector.DataConnector.allEndpoints" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of endpoint specifications</td>
+</tr>
+</tbody>
+</table>
+<p>This method returns the deprecated API spec.
+Please use <a class="reference internal" href="rest.html#raml-spec"><span class="std std-ref">Raml Specs</span></a> instead.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="buildbot.data.connector.DataConnector.rtypes">
+<code class="descname">rtypes</code><a class="headerlink" href="#buildbot.data.connector.DataConnector.rtypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object has an attribute named for each resource type, named after the singular form (e.g., <cite>self.master.data.builder</cite>).
+These attributes allow resource types to access one another for purposes of coordination.
+They are <em>not</em> intended for external access -- all external access to the data API should be via the methods above or update methods.</p>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="id2">
+<h4>Updates<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
+<p>The updates section is available at <cite>self.master.data.updates</cite>, and contains a number of ad-hoc methods needed by the process modules.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The update methods are implemented in resource type classes, but through some initialization-time magic, all appear as attributes of <code class="docutils literal"><span class="pre">self.master.data.updates</span></code>.</p>
+</div>
+<p>The update methods are found in the resource type pages.</p>
+</div>
+<div class="section" id="module-buildbot.data.exceptions">
+<span id="exceptions"></span><h4>Exceptions<a class="headerlink" href="#module-buildbot.data.exceptions" title="Permalink to this headline">¶</a></h4>
+<dl class="exception">
+<dt id="buildbot.data.exceptions.DataException">
+<em class="property">exception </em><code class="descclassname">buildbot.data.exceptions.</code><code class="descname">DataException</code><a class="headerlink" href="#buildbot.data.exceptions.DataException" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a base class for all other Data API exceptions.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="buildbot.data.exceptions.InvalidPathError">
+<em class="property">exception </em><code class="descclassname">buildbot.data.exceptions.</code><code class="descname">InvalidPathError</code><a class="headerlink" href="#buildbot.data.exceptions.InvalidPathError" title="Permalink to this definition">¶</a></dt>
+<dd><p>The path argument was invalid or unknown.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="buildbot.data.exceptions.InvalidOptionError">
+<em class="property">exception </em><code class="descclassname">buildbot.data.exceptions.</code><code class="descname">InvalidOptionError</code><a class="headerlink" href="#buildbot.data.exceptions.InvalidOptionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>A value in the <code class="docutils literal"><span class="pre">options</span></code> argument was invalid or ill-formed.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="buildbot.data.exceptions.SchedulerAlreadyClaimedError">
+<em class="property">exception </em><code class="descclassname">buildbot.data.exceptions.</code><code class="descname">SchedulerAlreadyClaimedError</code><a class="headerlink" href="#buildbot.data.exceptions.SchedulerAlreadyClaimedError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identical to <a class="reference internal" href="database.html#buildbot.db.schedulers.SchedulerAlreadyClaimedError" title="buildbot.db.schedulers.SchedulerAlreadyClaimedError"><code class="xref py py-exc docutils literal"><span class="pre">SchedulerAlreadyClaimedError</span></code></a>.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="web-interface">
+<h3>Web Interface<a class="headerlink" href="#web-interface" title="Permalink to this headline">¶</a></h3>
+<p>The HTTP interface is implemented by the <code class="xref py py-mod docutils literal"><span class="pre">buildbot.www</span></code> package, as configured by the user.
+Part of that configuration is a base URL, which is considered a prefix for all paths mentioned here.</p>
+<p>See <a class="reference internal" href="www-base-app.html#www-base-app"><span class="std std-ref">Base web application</span></a> for more information.</p>
+</div>
+</div>
+<div class="section" id="extending-the-data-api">
+<span id="data-model"></span><h2>3.2.2.4. Extending the Data API<a class="headerlink" href="#extending-the-data-api" title="Permalink to this headline">¶</a></h2>
+<p>The data API may be extended in various ways: adding new endpoints, new fields to resource types, new update methods, or entirely new resource types.
+In any case, you should only extend the API if you plan to submit the extensions to be merged into Buildbot itself.
+Private API extensions are strongly discouraged.</p>
+<div class="section" id="adding-resource-types">
+<h3>Adding Resource Types<a class="headerlink" href="#adding-resource-types" title="Permalink to this headline">¶</a></h3>
+<p>You'll need to use both plural and singular forms of the resource type; in this example, we'll use 'pub' and 'pubs'.
+You can also follow an existing file, like <a class="reference external" href="https://github.com/buildbot/buildbot/blob/master/master/buildbot/data/changes.py">https://github.com/buildbot/buildbot/blob/master/master/buildbot/data/changes.py</a>, to see when to use which form.</p>
+<p>In <code class="docutils literal"><span class="pre">master/buildbot/data/pubs.py</span></code>, create a subclass of <a class="reference internal" href="#buildbot.data.base.ResourceType" title="buildbot.data.base.ResourceType"><code class="xref py py-class docutils literal"><span class="pre">ResourceType</span></code></a>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.data</span> <span class="k">import</span> <span class="n">base</span>
+
+<span class="k">class</span> <span class="nc">Pub</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">ResourceType</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;pub&quot;</span>
+    <span class="n">endpoints</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">keyFields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;pubid&#39;</span><span class="p">]</span>
+
+    <span class="k">class</span> <span class="nc">EntityType</span><span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">Entity</span><span class="p">):</span>
+        <span class="n">pubid</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">Integer</span><span class="p">()</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+        <span class="n">num_taps</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">Integer</span><span class="p">()</span>
+        <span class="n">closes_at</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">Integer</span><span class="p">()</span>
+
+    <span class="n">entityType</span> <span class="o">=</span> <span class="n">EntityType</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="class">
+<dt id="buildbot.data.base.ResourceType">
+<em class="property">class </em><code class="descclassname">buildbot.data.base.</code><code class="descname">ResourceType</code><a class="headerlink" href="#buildbot.data.base.ResourceType" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="buildbot.data.base.ResourceType.name">
+<code class="descname">name</code><a class="headerlink" href="#buildbot.data.base.ResourceType.name" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">string</td>
+</tr>
+</tbody>
+</table>
+<p>The singular, lower-cased name of the resource type.
+This becomes the first component in message routing keys.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="buildbot.data.base.ResourceType.plural">
+<code class="descname">plural</code><a class="headerlink" href="#buildbot.data.base.ResourceType.plural" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">string</td>
+</tr>
+</tbody>
+</table>
+<p>The plural, lower-cased name of the resource type.
+This becomes the key containing the data in REST responses.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="buildbot.data.base.ResourceType.endpoints">
+<code class="descname">endpoints</code><a class="headerlink" href="#buildbot.data.base.ResourceType.endpoints" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+<p>Subclasses should set this to a list of endpoint classes for this resource type.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="buildbot.data.base.ResourceType.eventPathPatterns">
+<code class="descname">eventPathPatterns</code><a class="headerlink" href="#buildbot.data.base.ResourceType.eventPathPatterns" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+<p>This attribute should list the message routes where events should be sent, encoded as a REST like endpoint:</p>
+<p><code class="docutils literal"><span class="pre">pub/:pubid</span></code></p>
+<p>In the example above, a call to <code class="docutils literal"><span class="pre">produceEvent({'pubid':</span> <span class="pre">10,</span> <span class="pre">'name':</span> <span class="pre">'Winchester'},</span> <span class="pre">'opened')</span></code> would result in a message with routing key <code class="docutils literal"><span class="pre">('pub',</span> <span class="pre">'10',</span> <span class="pre">'opened')</span></code>.</p>
+<p>Several paths can be specified in order to be consistent with rest endpoints.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="buildbot.data.base.ResourceType.entityType">
+<code class="descname">entityType</code><a class="headerlink" href="#buildbot.data.base.ResourceType.entityType" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference internal" href="#buildbot.data.types.Entity" title="buildbot.data.types.Entity"><code class="xref py py-class docutils literal"><span class="pre">buildbot.data.types.Entity</span></code></a></td>
+</tr>
+</tbody>
+</table>
+<p>The entity type describes the types of all of the fields in this particular resource type.
+See <a class="reference internal" href="#buildbot.data.types.Entity" title="buildbot.data.types.Entity"><code class="xref py py-class docutils literal"><span class="pre">buildbot.data.types.Entity</span></code></a> and <a class="reference internal" href="#adding-fields-to-resource-types"><span class="std std-ref">Adding Fields to Resource Types</span></a>.</p>
+</dd></dl>
+
+<p>The parent class provides the following methods</p>
+<dl class="method">
+<dt id="buildbot.data.base.ResourceType.getEndpoints">
+<code class="descname">getEndpoints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.data.base.ResourceType.getEndpoints" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a list of <a class="reference internal" href="#buildbot.data.base.Endpoint" title="buildbot.data.base.Endpoint"><code class="xref py py-class docutils literal"><span class="pre">Endpoint</span></code></a> instances</td>
+</tr>
+</tbody>
+</table>
+<p>This method returns a list of the endpoint instances associated with the resource type.</p>
+<p>The base method instantiates each class in the <a class="reference internal" href="#buildbot.data.base.ResourceType.endpoints" title="buildbot.data.base.ResourceType.endpoints"><code class="xref py py-attr docutils literal"><span class="pre">endpoints</span></code></a> attribute.
+Most subclasses can simply list <a class="reference internal" href="#buildbot.data.base.Endpoint" title="buildbot.data.base.Endpoint"><code class="xref py py-class docutils literal"><span class="pre">Endpoint</span></code></a> subclasses in <code class="docutils literal"><span class="pre">endpoints</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.data.base.ResourceType.produceEvent">
+<code class="descname">produceEvent</code><span class="sig-paren">(</span><em>msg</em>, <em>event</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.data.base.ResourceType.produceEvent" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>msg</strong> (<em>dict</em>) -- the message body</li>
+<li><strong>event</strong> (<em>string</em>) -- the name of the event that has occurred</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This is a convenience method to produce an event message for this resource type.
+It formats the routing key correctly and sends the message, thereby ensuring consistent routing-key structure.</p>
+</dd></dl>
+
+</dd></dl>
+
+<p>Like all Buildbot source files, every resource type module must have corresponding tests.
+These should thoroughly exercise all update methods.</p>
+<p>All resource types must be documented in the Buildbot documentation and linked from the bottom of this file (<a class="reference external" href="https://github.com/buildbot/buildbot/blob/master/master/docs/developer/data.rst">https://github.com/buildbot/buildbot/blob/master/master/docs/developer/data.rst</a>).</p>
+</div>
+<div class="section" id="adding-endpoints">
+<h3>Adding Endpoints<a class="headerlink" href="#adding-endpoints" title="Permalink to this headline">¶</a></h3>
+<p>Each resource path is implemented as an <a class="reference internal" href="#buildbot.data.base.Endpoint" title="buildbot.data.base.Endpoint"><code class="xref py py-class docutils literal"><span class="pre">Endpoint</span></code></a> instance.
+In most cases, each instance is of a different class, but this is not required.</p>
+<p>The data connector's <code class="xref py py-meth docutils literal"><span class="pre">get</span></code> and <a class="reference internal" href="#buildbot.data.connector.DataConnector.control" title="buildbot.data.connector.DataConnector.control"><code class="xref py py-meth docutils literal"><span class="pre">control</span></code></a> methods both take a <code class="docutils literal"><span class="pre">path</span></code> argument that is used to look up the corresponding endpoint.
+The path matching is performed by <a class="reference internal" href="utils.html#module-buildbot.util.pathmatch" title="buildbot.util.pathmatch"><code class="xref py py-mod docutils literal"><span class="pre">buildbot.util.pathmatch</span></code></a>, and supports automatically extracting variable fields from the path.
+See that module's description for details.</p>
+<dl class="class">
+<dt id="buildbot.data.base.Endpoint">
+<em class="property">class </em><code class="descclassname">buildbot.data.base.</code><code class="descname">Endpoint</code><a class="headerlink" href="#buildbot.data.base.Endpoint" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="buildbot.data.base.Endpoint.pathPatterns">
+<code class="descname">pathPatterns</code><a class="headerlink" href="#buildbot.data.base.Endpoint.pathPatterns" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">string</td>
+</tr>
+</tbody>
+</table>
+<p>This attribute defines the path patterns which incoming paths must match to select this endpoint.
+Paths are specified as URIs, and can contain variables as parsed by <a class="reference internal" href="utils.html#buildbot.util.pathmatch.Matcher" title="buildbot.util.pathmatch.Matcher"><code class="xref py py-class docutils literal"><span class="pre">buildbot.util.pathmatch.Matcher</span></code></a>.
+Multiple paths are separated by whitespace.</p>
+<p>For example, the following specifies two paths with the second having a single variable:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pathPatterns</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    /bugs</span>
+<span class="s2">    /component/i:component_name/bugs</span>
+<span class="s2">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="buildbot.data.base.Endpoint.rootLinkName">
+<code class="descname">rootLinkName</code><a class="headerlink" href="#buildbot.data.base.Endpoint.rootLinkName" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">string</td>
+</tr>
+</tbody>
+</table>
+<p>If set, then the first path pattern for this endpoint will be included as a link in the root of the API.
+This should be set for any endpoints that begin an explorable tree.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="buildbot.data.base.Endpoint.isCollection">
+<code class="descname">isCollection</code><a class="headerlink" href="#buildbot.data.base.Endpoint.isCollection" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">boolean</td>
+</tr>
+</tbody>
+</table>
+<p>If true, then this endpoint returns collections of resources.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="buildbot.data.base.Endpoint.isRaw">
+<code class="descname">isRaw</code><a class="headerlink" href="#buildbot.data.base.Endpoint.isRaw" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">boolean</td>
+</tr>
+</tbody>
+</table>
+<p>If true, then this endpoint returns raw resource.</p>
+<p>Raw resources are used to get the data not encoded in JSON via the rest API.
+In the REST principles, this should be done via another endpoint, and not via a query parameter.
+The get() method from endpoint should return following data structure:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;raw&quot;</span><span class="p">:</span> <span class="s2">u&quot;raw data to be sent to the http client&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;mime-type&quot;</span><span class="p">:</span> <span class="s2">u&quot;&lt;mime-type&gt;&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="s2">u&quot;filename_to_be_used_in_content_disposition_attachement_header&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.data.base.Endpoint.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>options</em>, <em>resultSpec</em>, <em>kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.data.base.Endpoint.get" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>options</strong> (<em>dict</em>) -- model-specific options</li>
+<li><strong>resultSpec</strong> -- a <a class="reference internal" href="cls-resultspec.html#buildbot.data.resultspec.ResultSpec" title="buildbot.data.resultspec.ResultSpec"><code class="xref py py-class docutils literal"><span class="pre">ResultSpec</span></code></a> instance describing the desired results</li>
+<li><strong>kwargs</strong> (<em>dict</em>) -- fields extracted from the path</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">data via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Get data from the endpoint.
+This should return either a list of dictionaries (for list endpoints), a dictionary, or None (both for details endpoints).
+The endpoint is free to handle any part of the result spec.
+When doing so, it should remove the relevant configuration from the spec.
+See below.</p>
+<p>Any result spec configuration that remains on return will be applied automatically.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.data.base.Endpoint.control">
+<code class="descname">control</code><span class="sig-paren">(</span><em>action</em>, <em>args</em>, <em>kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.data.base.Endpoint.control" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>action</strong> -- a short string naming the action to perform</li>
+<li><strong>args</strong> -- dictionary containing arguments for the action</li>
+<li><strong>kwargs</strong> -- fields extracted from the path</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<p>Continuing the pub example, a simple endpoint would look like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">PubEndpoint</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">Endpoint</span><span class="p">):</span>
+    <span class="n">pathPattern</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;pub&#39;</span><span class="p">,</span> <span class="s1">&#39;i:pubid&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resultSpec</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">pubs</span><span class="o">.</span><span class="n">getPub</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;pubid&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Endpoint implementations must have unit tests.
+An endpoint's path should be documented in the <code class="docutils literal"><span class="pre">.rst</span></code> file for its resource type.</p>
+<p>The initial pass at implementing any endpoint should just ignore the <code class="docutils literal"><span class="pre">resultSpec</span></code> argument to <code class="docutils literal"><span class="pre">get</span></code>.
+After that initial pass, the argument can be used to optimize certain types of queries.
+For example, if the resource type has many resources, but most real-life queries use the result spec to filter out all but a few resources from that group, then it makes sense for the endpoint to examine the result spec and allow the underlying DB API to do that filtering.</p>
+<p>When an endpoint handles parts of the result spec, it must remove those parts from the spec before it returns.
+See the documentation for <a class="reference internal" href="cls-resultspec.html#buildbot.data.resultspec.ResultSpec" title="buildbot.data.resultspec.ResultSpec"><code class="xref py py-class docutils literal"><span class="pre">ResultSpec</span></code></a> for methods to do so.</p>
+<p>Note that endpoints must be careful not to alter the order of the filtering applied for a result spec.
+For example, if an endpoint implements pagination, then it must also completely implement filtering and ordering, since those operations precede pagination in the result spec application.</p>
+</div>
+<div class="section" id="adding-messages">
+<h3>Adding Messages<a class="headerlink" href="#adding-messages" title="Permalink to this headline">¶</a></h3>
+<p>Message types are defined in <a class="reference external" href="https://github.com/buildbot/buildbot/blob/master/master/buildbot/test/util/validation.py">https://github.com/buildbot/buildbot/blob/master/master/buildbot/test/util/validation.py</a>, via the <code class="docutils literal"><span class="pre">message</span></code> module-level value.
+This is a dictionary of <code class="docutils literal"><span class="pre">MessageValidator</span></code> objects, one for each message type.
+The message type is determined from the first atom of its routing key.
+The <code class="docutils literal"><span class="pre">events</span></code> dictionary lists the possible last atoms of the routing key.
+It should be identical to the attribute of the ResourceType with the same name.</p>
+</div>
+<div class="section" id="adding-update-methods">
+<h3>Adding Update Methods<a class="headerlink" href="#adding-update-methods" title="Permalink to this headline">¶</a></h3>
+<p>Update methods are for use by the Buildbot process code, and as such are generally designed to suit the needs of that code.
+They generally encapsulate logic common to multiple users (e.g., creating buildsets), and finish by performing modifications in the database and sending a corresponding message.
+In general, Buildbot does not depend on timing of either the database or message broker, so the order in which these operations are initiated is not important.</p>
+<p>Update methods are considered part of Buildbot's user-visible interface, and as such incompatible changes should be avoied wherever possible.
+Instead, either add a new method (and potentially re-implement existing methods in terms of the new method) or add new, optional parameters to an existing method.
+If an incompatible change is unavoidable, it should be described clearly in the release notes.</p>
+<p>Update methods are implemented as methods of <a class="reference internal" href="#buildbot.data.base.ResourceType" title="buildbot.data.base.ResourceType"><code class="xref py py-class docutils literal"><span class="pre">ResourceType</span></code></a> subclasses, decorated with <code class="docutils literal"><span class="pre">&#64;base.updateMethod</span></code>:</p>
+<dl class="function">
+<dt id="buildbot.data.base.updateMethod">
+<code class="descclassname">buildbot.data.base.</code><code class="descname">updateMethod</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.data.base.updateMethod" title="Permalink to this definition">¶</a></dt>
+<dd><p>A decorator for <a class="reference internal" href="#buildbot.data.base.ResourceType" title="buildbot.data.base.ResourceType"><code class="xref py py-class docutils literal"><span class="pre">ResourceType</span></code></a> subclass methods, indicating that the method should be copied to <code class="docutils literal"><span class="pre">master.data.updates</span></code>.</p>
+</dd></dl>
+
+<p>Returning to the pub example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">PubResourceType</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">ResourceType</span><span class="p">):</span>
+    <span class="c1"># ...</span>
+    <span class="nd">@base</span><span class="o">.</span><span class="n">updateMethod</span>
+    <span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+    <span class="k">def</span> <span class="nf">setPubTapList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pubid</span><span class="p">,</span> <span class="n">beers</span><span class="p">):</span>
+        <span class="n">pub</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">pubs</span><span class="o">.</span><span class="n">getPub</span><span class="p">(</span><span class="n">pubid</span><span class="p">)</span>
+        <span class="c1"># ...</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">produceMessage</span><span class="p">(</span><span class="n">pub</span><span class="p">,</span> <span class="s1">&#39;taps-updated&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Update methods should be documented in <a class="reference external" href="https://github.com/buildbot/buildbot/blob/master/master/docs/developer/data.rst">https://github.com/buildbot/buildbot/blob/master/master/docs/developer/data.rst</a>.
+They should be thoroughly tested with unit tests.
+They should have a fake implentation in <a class="reference external" href="https://github.com/buildbot/buildbot/blob/master/master/buildbot/test/fake/fakedata.py">https://github.com/buildbot/buildbot/blob/master/master/buildbot/test/fake/fakedata.py</a>.
+That fake implementation should be tested to match the real implementation in <a class="reference external" href="https://github.com/buildbot/buildbot/blob/master/master/buildbot/test/unit/test_data_connector.py">https://github.com/buildbot/buildbot/blob/master/master/buildbot/test/unit/test_data_connector.py</a>.</p>
+</div>
+<div class="section" id="module-buildbot.data.types">
+<span id="id3"></span><span id="adding-fields-to-resource-types"></span><h3>Adding Fields to Resource Types<a class="headerlink" href="#module-buildbot.data.types" title="Permalink to this headline">¶</a></h3>
+<p>The details of the fields of a resource type are rigorously enforced at several points in the Buildbot tests.
+The enforcement is performed by the <a class="reference internal" href="#module-buildbot.data.types" title="buildbot.data.types"><code class="xref py py-mod docutils literal"><span class="pre">buildbot.data.types</span></code></a> module.</p>
+<p>The module provides a number of type classes for basic and compound types.
+Each resource type class defines its entity type in its <a class="reference internal" href="#buildbot.data.base.ResourceType.entityType" title="buildbot.data.base.ResourceType.entityType"><code class="xref py py-attr docutils literal"><span class="pre">entityType</span></code></a> class attribute.
+Other resource types may refer to this class attribute if they embed an entity of that type.</p>
+<p>The types are used both for tests, and by the REST interface to properly decode user-supplied query parameters.</p>
+<div class="section" id="basic-types">
+<h4>Basic Types<a class="headerlink" href="#basic-types" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
+<dt id="buildbot.data.types.Integer">
+<em class="property">class </em><code class="descclassname">buildbot.data.types.</code><code class="descname">Integer</code><a class="headerlink" href="#buildbot.data.types.Integer" title="Permalink to this definition">¶</a></dt>
+<dd><p>An integer.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">myid</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">Integer</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.data.types.String">
+<em class="property">class </em><code class="descclassname">buildbot.data.types.</code><code class="descname">String</code><a class="headerlink" href="#buildbot.data.types.String" title="Permalink to this definition">¶</a></dt>
+<dd><p>A string.
+Strings must always be Unicode.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">name</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.data.types.Binary">
+<em class="property">class </em><code class="descclassname">buildbot.data.types.</code><code class="descname">Binary</code><a class="headerlink" href="#buildbot.data.types.Binary" title="Permalink to this definition">¶</a></dt>
+<dd><p>A binary bytestring.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">Binary</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.data.types.Boolean">
+<em class="property">class </em><code class="descclassname">buildbot.data.types.</code><code class="descname">Boolean</code><a class="headerlink" href="#buildbot.data.types.Boolean" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean value.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">complete</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">Boolean</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.data.types.Identifier">
+<em class="property">class </em><code class="descclassname">buildbot.data.types.</code><code class="descname">Identifier</code><span class="sig-paren">(</span><em>length</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.data.types.Identifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>An identifier; see <a class="reference internal" href="database.html#type-identifier"><span class="std std-ref">Identifier</span></a>.
+The constructor argument specifies the maximum length.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ident</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="mi">25</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="compound-types">
+<h4>Compound Types<a class="headerlink" href="#compound-types" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
+<dt id="buildbot.data.types.NoneOk">
+<em class="property">class </em><code class="descclassname">buildbot.data.types.</code><code class="descname">NoneOk</code><span class="sig-paren">(</span><em>nestedType</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.data.types.NoneOk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Either the nested type, or None.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">category</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">NoneOk</span><span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">String</span><span class="p">())</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.data.types.List">
+<em class="property">class </em><code class="descclassname">buildbot.data.types.</code><code class="descname">List</code><span class="sig-paren">(</span><em>of</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.data.types.List" title="Permalink to this definition">¶</a></dt>
+<dd><p>An list of objects.
+The named constructor argument <code class="docutils literal"><span class="pre">of</span></code> specifies the type of the list elements.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tags</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="n">types</span><span class="o">.</span><span class="n">String</span><span class="p">())</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.data.types.SourcedProperties">
+<em class="property">class </em><code class="descclassname">buildbot.data.types.</code><code class="descname">SourcedProperties</code><a class="headerlink" href="#buildbot.data.types.SourcedProperties" title="Permalink to this definition">¶</a></dt>
+<dd><p>A data structure representing properties with their sources, in the form <code class="docutils literal"><span class="pre">{name:</span> <span class="pre">(value,</span> <span class="pre">source)}</span></code>.
+The property name and source must be Unicode, and the value must be JSON-able.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">props</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">SourcedProperties</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="entity-type">
+<h4>Entity Type<a class="headerlink" href="#entity-type" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
+<dt id="buildbot.data.types.Entity">
+<em class="property">class </em><code class="descclassname">buildbot.data.types.</code><code class="descname">Entity</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.data.types.Entity" title="Permalink to this definition">¶</a></dt>
+<dd><p>A data resource is represented by a dictionary with well-known keys.
+To define those keys and their values, subclass the <a class="reference internal" href="#buildbot.data.types.Entity" title="buildbot.data.types.Entity"><code class="xref py py-class docutils literal"><span class="pre">Entity</span></code></a> class within your ResourceType class and include each field as an attribute:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyStuff</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">ResourceType</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;mystuff&quot;</span>
+    <span class="c1"># ...</span>
+    <span class="k">class</span> <span class="nc">EntityType</span><span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">Entity</span><span class="p">):</span>
+        <span class="n">myid</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">Integer</span><span class="p">()</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">Binary</span><span class="p">()</span>
+        <span class="n">complete</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">Boolean</span><span class="p">()</span>
+        <span class="n">ident</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="mi">25</span><span class="p">)</span>
+        <span class="n">category</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">NoneOk</span><span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">String</span><span class="p">())</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="n">types</span><span class="o">.</span><span class="n">String</span><span class="p">())</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">SourcedProperties</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Then instantiate the class with the resource type name:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">entityType</span> <span class="o">=</span> <span class="n">EntityType</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To embed another entity type, reference its entityType class attribute:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">EntityType</span><span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">Entity</span><span class="p">):</span>
+    <span class="c1"># ...</span>
+    <span class="n">master</span> <span class="o">=</span> <span class="n">masters</span><span class="o">.</span><span class="n">Master</span><span class="o">.</span><span class="n">entityType</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="section" id="id4">
+<h2>3.2.2.5. Data Model<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>The data api enforces a strong and well-defined model on Buildbot's data.
+This model is influenced by REST, in the sense that it defines resources, representations for resources, and identifiers for resources.
+For each resource type, the API specifies</p>
+<ul class="simple">
+<li>the attributes of the resource and their types (e.g., changes have a string specifying their project);</li>
+<li>the format of links to other resources (e.g., buildsets to sourcestamp sets);</li>
+<li>the paths relating to the resource type;</li>
+<li>the format of routing keys for messages relating to the resource type;</li>
+<li>the events that can occur on that resource (e.g., a buildrequest can be claimed); and</li>
+<li>options and filters for getting resources.</li>
+</ul>
+<p>Some resource type attributes only appear in certain formats, as noted in the documentation for the resource types.
+In general, messages do not include any optional attributes, nor links.</p>
+<p>Paths are given here separated by slashes, with key names prefixed by <code class="docutils literal"><span class="pre">:</span></code> and described below.
+Similarly, message routing keys given here are separated by dots, with key names prefixed by <code class="docutils literal"><span class="pre">$</span></code>.
+The translation to tuples and other formats should be obvious.</p>
+<p>All strings in the data model are unicode strings.</p>
+<table class="docutils footnote" frame="void" id="apiv1" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[1]</td><td>The JSON API defined by <code class="docutils literal"><span class="pre">status_json.py</span></code> in Buildbot-0.8.x is considered version 1, although its root path was <code class="docutils literal"><span class="pre">json</span></code>, not <code class="docutils literal"><span class="pre">api/v1</span></code>.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/header-text-transparent.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script><h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/index.html">2. Buildbot Manual</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">3. Buildbot Development</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="general.html">3.1. General Documents</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="apis.html">3.2. APIs</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="rest.html">3.2.1. REST API</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">3.2.2. Data API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="database.html">3.2.3. Database</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mq.html">3.2.4. Messaging and Queues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py3-compat.html">3.3. Python3 compatibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classes.html">3.4. Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">4. Release Notes for Buildbot <code class="docutils literal"><span class="pre">|version|</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../indices.html">5. Indices and Tables</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="rest.html"
+                        title="previous chapter">3.2.1. REST API</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="database.html"
+                        title="next chapter">3.2.3. Database</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/developer/data.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>
