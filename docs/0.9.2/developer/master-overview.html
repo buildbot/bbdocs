@@ -1,0 +1,218 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>3.1.1. Master Organization &#8212; Buildbot 0.9.2-1-g2f72eeb documentation</title>
+    
+    <link rel="stylesheet" href="../_static/qtile.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9.2-1-g2f72eeb',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/buildbot.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="3.1.2. Definitions" href="definitions.html" />
+    <link rel="prev" title="3.1. General Documents" href="general.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="definitions.html" title="3.1.2. Definitions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="general.html" title="3.1. General Documents"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Buildbot 0.9.2-1-g2f72eeb documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >3. Buildbot Development</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="general.html" accesskey="U">3.1. General Documents</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="master-organization">
+<span id="master-service-hierarchy"></span><h1>3.1.1. Master Organization<a class="headerlink" href="#master-organization" title="Permalink to this headline">¶</a></h1>
+<p>Buildbot makes heavy use of Twisted Python's support for services - software
+modules that can be started and stopped dynamically.  Buildbot adds the ability
+to reconfigure such services, too - see <a class="reference internal" href="config.html#developer-reconfiguration"><span class="std std-ref">Reconfiguration</span></a>.
+Twisted arranges services into trees; the following section describes the
+service tree on a running master.</p>
+<div class="section" id="buildmaster-object">
+<h2>3.1.1.1. BuildMaster Object<a class="headerlink" href="#buildmaster-object" title="Permalink to this headline">¶</a></h2>
+<p>The hierarchy begins with the master, a <code class="xref py py-class docutils literal"><span class="pre">buildbot.master.BuildMaster</span></code>
+instance.  Most other services contain a reference to this object in their
+<code class="docutils literal"><span class="pre">master</span></code> attribute, and in general the appropriate way to access other
+objects or services is to begin with <code class="docutils literal"><span class="pre">self.master</span></code> and navigate from there.</p>
+<p>The master has a number of useful attributes:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">master.metrics</span></code></dt>
+<dd>A <code class="xref py py-class docutils literal"><span class="pre">buildbot.process.metrics.MetricLogObserver</span></code> instance that
+handles tracking and reporting on master metrics.</dd>
+<dt><code class="docutils literal"><span class="pre">master.caches</span></code></dt>
+<dd>A <code class="xref py py-class docutils literal"><span class="pre">buildbot.process.caches.CacheManager</span></code> instance that provides
+access to object caches.</dd>
+<dt><code class="docutils literal"><span class="pre">master.pbmanager</span></code></dt>
+<dd>A <code class="xref py py-class docutils literal"><span class="pre">buildbot.pbmanager.PBManager</span></code> instance that handles incoming
+PB connections, potentially on multiple ports, and dispatching those
+connections to appropriate components based on the supplied username.</dd>
+<dt><code class="docutils literal"><span class="pre">master.workers</span></code></dt>
+<dd>A <a class="reference internal" href="cls-workermanager.html#buildbot.worker.manager.WorkerManager" title="buildbot.worker.manager.WorkerManager"><code class="xref py py-class docutils literal"><span class="pre">buildbot.worker.manager.WorkerManager</span></code></a> instance that
+provides wrapper around multiple master-worker protocols(e.g. PB) to unify
+calls for them from higher level code</dd>
+<dt><code class="docutils literal"><span class="pre">master.change_svc</span></code></dt>
+<dd>A <code class="xref py py-class docutils literal"><span class="pre">buildbot.changes.manager.ChangeManager</span></code> instance that manages
+the active change sources, as well as the stream of changes received from
+those sources.  All active change sources are child services of this instance.</dd>
+<dt><code class="docutils literal"><span class="pre">master.botmaster</span></code></dt>
+<dd><p class="first">A <code class="xref py py-class docutils literal"><span class="pre">buildbot.process.botmaster.BotMaster</span></code> instance that manages
+all of the workers and builders as child services.</p>
+<p class="last">The botmaster acts as the parent service for a
+<code class="xref py py-class docutils literal"><span class="pre">buildbot.process.botmaster.BuildRequestDistributor</span></code> instance (at
+<code class="docutils literal"><span class="pre">master.botmaster.brd</span></code>) as well as all active workers
+(<code class="xref py py-class docutils literal"><span class="pre">buildbot.worker.AbstractWorker</span></code> instances) and builders
+(<code class="xref py py-class docutils literal"><span class="pre">buildbot.process.builder.Builder</span></code> instances).</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">master.scheduler_manager</span></code></dt>
+<dd>A <code class="xref py py-class docutils literal"><span class="pre">buildbot.schedulers.manager.SchedulerManager</span></code> instance that
+manages the active schedulers.  All active schedulers are child services of
+this instance.</dd>
+<dt><code class="docutils literal"><span class="pre">master.user_manager</span></code></dt>
+<dd>A <code class="xref py py-class docutils literal"><span class="pre">buildbot.process.users.manager.UserManagerManager</span></code> instance
+that manages access to users.  All active user managers are child services
+of this instance.</dd>
+<dt><code class="docutils literal"><span class="pre">master.db</span></code></dt>
+<dd>A <a class="reference internal" href="database.html#buildbot.db.connector.DBConnector" title="buildbot.db.connector.DBConnector"><code class="xref py py-class docutils literal"><span class="pre">buildbot.db.connector.DBConnector</span></code></a> instance that manages
+access to the buildbot database.  See <a class="reference internal" href="database.html#developer-database"><span class="std std-ref">Database</span></a> for more
+information.</dd>
+<dt><code class="docutils literal"><span class="pre">master.debug</span></code></dt>
+<dd>A <code class="xref py py-class docutils literal"><span class="pre">buildbot.process.debug.DebugServices</span></code> instance that manages
+debugging-related access -- the manhole, in particular.</dd>
+<dt><code class="docutils literal"><span class="pre">master.status</span></code></dt>
+<dd>A <code class="xref py py-class docutils literal"><span class="pre">buildbot.status.master.Status</span></code> instance that provides access
+to all status data.  This instance is also the service parent for all
+status listeners.</dd>
+<dt><code class="docutils literal"><span class="pre">master.masterid</span></code></dt>
+<dd>This is the ID for this master, from the <code class="docutils literal"><span class="pre">masters</span></code> table.
+It is used in the database and messages to uniquely identify this master.</dd>
+</dl>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/header-text-transparent.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script><h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/index.html">2. Buildbot Manual</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">3. Buildbot Development</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="general.html">3.1. General Documents</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">3.1.1. Master Organization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="definitions.html">3.1.2. Definitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="style.html">3.1.3. Buildbot Coding Style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="coffeescript-style.html">3.1.4. CoffeeScript Coding Style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tests.html">3.1.5. Buildbot's Test Suite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html">3.1.6. Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#configuration-in-angularjs">3.1.7. Configuration in AngularJS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="schedulers.html">3.1.8. Writing Schedulers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html">3.1.9. Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="results.html">3.1.10. Build Result Codes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www-server.html">3.1.11. WWW Server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www-data-module.html">3.1.12. Javascript Data Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www-base-app.html">3.1.13. Base web application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www-md_base-app.html">3.1.14. Material design Base application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auth.html">3.1.15. Authentication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="authz.html">3.1.16. Authorization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="master-worker.html">3.1.17. Master-Worker API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="br-claiming.html">3.1.18. Claiming Build Requests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="encodings.html">3.1.19. String Encodings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metrics.html">3.1.20. Metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="stats-service.html">3.1.21. Statistics Service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plugins-publish.html">3.1.22. How to package Buildbot plugins</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="apis.html">3.2. APIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py3-compat.html">3.3. Python3 compatibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classes.html">3.4. Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../indices.html">6. Indices and Tables</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="general.html"
+                        title="previous chapter">3.1. General Documents</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="definitions.html"
+                        title="next chapter">3.1.2. Definitions</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/developer/master-overview.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>
