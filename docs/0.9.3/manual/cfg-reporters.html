@@ -1,0 +1,1306 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>2.4.11. Reporters &#8212; Buildbot 0.9.3 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/qtile.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/buildbot.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="2.4.12. Web Server" href="cfg-www.html" />
+    <link rel="prev" title="2.4.10. Interlocks" href="cfg-interlocks.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="cfg-www.html" title="2.4.12. Web Server"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cfg-interlocks.html" title="2.4.10. Interlocks"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Buildbot 0.9.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >2. Buildbot Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="configuration.html" accesskey="U">2.4. Configuration</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="reporters">
+<span id="cfg-reporter"></span><span id="id1"></span><h1>2.4.11. Reporters<a class="headerlink" href="#reporters" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#mailnotifier" id="id4">MailNotifier</a><ul>
+<li><a class="reference internal" href="#mailnotifier-arguments" id="id5">MailNotifier arguments</a></li>
+<li><a class="reference internal" href="#messageformatter-arguments" id="id6">MessageFormatter arguments</a></li>
+<li><a class="reference internal" href="#messageformattermissingworkers-arguments" id="id7">MessageFormatterMissingWorkers arguments</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#irc-bot" id="id8">IRC Bot</a></li>
+<li><a class="reference internal" href="#gerritstatuspush" id="id9">GerritStatusPush</a></li>
+<li><a class="reference internal" href="#httpstatuspush" id="id10">HttpStatusPush</a><ul>
+<li><a class="reference internal" href="#json-object-spec" id="id11">Json object spec</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#githubstatuspush" id="id12">GitHubStatusPush</a></li>
+<li><a class="reference internal" href="#stashstatuspush" id="id13">StashStatusPush</a></li>
+<li><a class="reference internal" href="#bitbucketstatuspush" id="id14">BitbucketStatusPush</a></li>
+<li><a class="reference internal" href="#gitlabstatuspush" id="id15">GitLabStatusPush</a></li>
+<li><a class="reference internal" href="#hipchatstatuspush" id="id16">HipchatStatusPush</a><ul>
+<li><a class="reference internal" href="#id2" id="id17">Json object spec</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#gerritverifystatuspush" id="id18">GerritVerifyStatusPush</a></li>
+</ul>
+</div>
+<p>The Buildmaster has a variety of ways to present build status to various users.
+Each such delivery method is a <cite>Reporter Target</cite> object in the configuration's <code class="docutils literal"><span class="pre">services</span></code> list.
+To add reporter targets, you just append more objects to this list:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;services&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="n">m</span> <span class="o">=</span> <span class="n">reporters</span><span class="o">.</span><span class="n">MailNotifier</span><span class="p">(</span><span class="n">fromaddr</span><span class="o">=</span><span class="s2">&quot;buildbot@localhost&quot;</span><span class="p">,</span>
+                           <span class="n">extraRecipients</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;builds@lists.example.com&quot;</span><span class="p">],</span>
+                           <span class="n">sendToInterestedUsers</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;services&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;services&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reporters</span><span class="o">.</span><span class="n">IRC</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s2">&quot;irc.example.com&quot;</span><span class="p">,</span> <span class="n">nick</span><span class="o">=</span><span class="s2">&quot;bb&quot;</span><span class="p">,</span>
+                                  <span class="n">channels</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;channel&quot;</span><span class="p">:</span> <span class="s2">&quot;#example1&quot;</span><span class="p">},</span>
+                                            <span class="p">{</span><span class="s2">&quot;channel&quot;</span><span class="p">:</span> <span class="s2">&quot;#example2&quot;</span><span class="p">,</span>
+                                             <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;somesecretpassword&quot;</span><span class="p">}]))</span>
+</pre></div>
+</div>
+<p>Most reporter objects take a <code class="docutils literal"><span class="pre">tags=</span></code> argument, which can contain a list of tag names: in this case, it will only show status for Builders that contains the named tags.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Implementation Note</p>
+<p class="last">Each of these objects should be a <code class="xref py py-class docutils literal"><span class="pre">service.BuildbotService</span></code> which will be attached to the BuildMaster object when the configuration is processed.</p>
+</div>
+<p>The remainder of this section describes each built-in reporters.
+A full list of reporters is available in the <a class="reference internal" href="../bb-reporter.html" title="Reporter Target Index"><em>Reporter Target Index</em></a>.</p>
+<span class="target" id="reporter-MailNotifier"></span><div class="section" id="mailnotifier">
+<span id="index-0"></span><h2><a class="toc-backref" href="#id4">2.4.11.1. MailNotifier</a><a class="headerlink" href="#mailnotifier" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.reporters.mail.MailNotifier">
+<em class="property">class </em><code class="descclassname">buildbot.reporters.mail.</code><code class="descname">MailNotifier</code><a class="headerlink" href="#buildbot.reporters.mail.MailNotifier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>The Buildbot can send email when builds finish.
+The most common use of this is to tell developers when their change has caused the build to fail.
+It is also quite common to send a message to a mailing list (usually named <cite>builds</cite> or similar) about every build.</p>
+<p>The <code class="xref py py-class docutils literal"><span class="pre">MailNotifier</span></code> reporter is used to accomplish this.
+You configure it by specifying who mail should be sent to, under what circumstances mail should be sent, and how to deliver the mail.
+It can be configured to only send out mail for certain builders, and only send messages when the build fails, or when the builder transitions from success to failure.
+It can also be configured to include various build logs in each message.</p>
+<p>If a proper lookup function is configured, the message will be sent to the &quot;interested users&quot; list (<a class="reference internal" href="concepts.html#doing-things-with-users"><span class="std std-ref">Doing Things With Users</span></a>), which includes all developers who made changes in the build.
+By default, however, Buildbot does not know how to construct an email addressed based on the information from the version control system.
+See the <code class="docutils literal"><span class="pre">lookup</span></code> argument, below, for more information.</p>
+<p>You can add additional, statically-configured, recipients with the <code class="docutils literal"><span class="pre">extraRecipients</span></code> argument.
+You can also add interested users by setting the <code class="docutils literal"><span class="pre">owners</span></code> build property to a list of users in the scheduler constructor (<a class="reference internal" href="cfg-schedulers.html#configuring-schedulers"><span class="std std-ref">Configuring Schedulers</span></a>).</p>
+<p>Each <code class="xref py py-class docutils literal"><span class="pre">MailNotifier</span></code> sends mail to a single set of recipients.
+To send different kinds of mail to different recipients, use multiple <code class="xref py py-class docutils literal"><span class="pre">MailNotifier</span></code>s.
+TODO: or subclass MailNotifier and override getRecipients()</p>
+<p>The following simple example will send an email upon the completion of each build, to just those developers whose <code class="xref py py-class docutils literal"><span class="pre">Change</span></code>s were included in the build.
+The email contains a description of the <code class="xref py py-class docutils literal"><span class="pre">Build</span></code>, its results, and URLs where more information can be obtained.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">reporters</span>
+<span class="n">mn</span> <span class="o">=</span> <span class="n">reporters</span><span class="o">.</span><span class="n">MailNotifier</span><span class="p">(</span><span class="n">fromaddr</span><span class="o">=</span><span class="s2">&quot;buildbot@example.org&quot;</span><span class="p">,</span>
+                            <span class="n">lookup</span><span class="o">=</span><span class="s2">&quot;example.org&quot;</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;services&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mn</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To get a simple one-message-per-build (say, for a mailing list), use the following form instead.
+This form does not send mail to individual developers (and thus does not need the <code class="docutils literal"><span class="pre">lookup=</span></code> argument, explained below), instead it only ever sends mail to the <cite>extra recipients</cite> named in the arguments:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mn</span> <span class="o">=</span> <span class="n">reporters</span><span class="o">.</span><span class="n">MailNotifier</span><span class="p">(</span><span class="n">fromaddr</span><span class="o">=</span><span class="s2">&quot;buildbot@example.org&quot;</span><span class="p">,</span>
+                            <span class="n">sendToInterestedUsers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="n">extraRecipients</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;listaddr@example.org&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>If your SMTP host requires authentication before it allows you to send emails, this can also be done by specifying <code class="docutils literal"><span class="pre">smtpUser</span></code> and <code class="docutils literal"><span class="pre">smtpPassword</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mn</span> <span class="o">=</span> <span class="n">reporters</span><span class="o">.</span><span class="n">MailNotifier</span><span class="p">(</span><span class="n">fromaddr</span><span class="o">=</span><span class="s2">&quot;myuser@example.com&quot;</span><span class="p">,</span>
+                            <span class="n">sendToInterestedUsers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="n">extraRecipients</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;listaddr@example.org&quot;</span><span class="p">],</span>
+                            <span class="n">relayhost</span><span class="o">=</span><span class="s2">&quot;smtp.example.com&quot;</span><span class="p">,</span> <span class="n">smtpPort</span><span class="o">=</span><span class="mi">587</span><span class="p">,</span>
+                            <span class="n">smtpUser</span><span class="o">=</span><span class="s2">&quot;myuser@example.com&quot;</span><span class="p">,</span>
+                            <span class="n">smtpPassword</span><span class="o">=</span><span class="s2">&quot;mypassword&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If for some reasons you are not able to send a notification with TLS enabled and specified user name and password, you might want to use <code class="file docutils literal"><span class="pre">contrib/check-smtp.py</span></code> to see if it works at all.</p>
+</div>
+<p>If you want to require Transport Layer Security (TLS), then you can also set <code class="docutils literal"><span class="pre">useTls</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mn</span> <span class="o">=</span> <span class="n">reporters</span><span class="o">.</span><span class="n">MailNotifier</span><span class="p">(</span><span class="n">fromaddr</span><span class="o">=</span><span class="s2">&quot;myuser@example.com&quot;</span><span class="p">,</span>
+                            <span class="n">sendToInterestedUsers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="n">extraRecipients</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;listaddr@example.org&quot;</span><span class="p">],</span>
+                            <span class="n">useTls</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">relayhost</span><span class="o">=</span><span class="s2">&quot;smtp.example.com&quot;</span><span class="p">,</span>
+                            <span class="n">smtpPort</span><span class="o">=</span><span class="mi">587</span><span class="p">,</span> <span class="n">smtpUser</span><span class="o">=</span><span class="s2">&quot;myuser@example.com&quot;</span><span class="p">,</span>
+                            <span class="n">smtpPassword</span><span class="o">=</span><span class="s2">&quot;mypassword&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you see <code class="docutils literal"><span class="pre">twisted.mail.smtp.TLSRequiredError</span></code> exceptions in the log while using TLS, this can be due <em>either</em> to the server not supporting TLS or to a missing <a class="reference external" href="http://pyopenssl.sourceforge.net/">PyOpenSSL</a> package on the BuildMaster system.</p>
+</div>
+<p>In some cases it is desirable to have different information then what is provided in a standard MailNotifier message.
+For this purpose MailNotifier provides the argument <code class="docutils literal"><span class="pre">messageFormatter</span></code> (an instance of <code class="docutils literal"><span class="pre">MessageFormatter</span></code>) which allows for the creation of messages with unique content.</p>
+<p>For example, if only short emails are desired (e.g., for delivery to phones):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">reporters</span>
+<span class="n">mn</span> <span class="o">=</span> <span class="n">reporters</span><span class="o">.</span><span class="n">MailNotifier</span><span class="p">(</span><span class="n">fromaddr</span><span class="o">=</span><span class="s2">&quot;buildbot@example.org&quot;</span><span class="p">,</span>
+                            <span class="n">sendToInterestedUsers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="n">mode</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;problem&#39;</span><span class="p">,),</span>
+                            <span class="n">extraRecipients</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;listaddr@example.org&#39;</span><span class="p">],</span>
+                            <span class="n">messageFormatter</span><span class="o">=</span><span class="n">reporters</span><span class="o">.</span><span class="n">MessageFormatter</span><span class="p">(</span><span class="n">template</span><span class="o">=</span><span class="s2">&quot;STATUS: {{ summary }}&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Another example of a function delivering a customized html email is given below:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">reporters</span>
+
+<span class="n">template</span><span class="o">=</span><span class="s1">u&#39;&#39;&#39;</span><span class="se">\</span>
+<span class="s1">&lt;h4&gt;Build status: {{ summary }}&lt;/h4&gt;</span>
+<span class="s1">&lt;p&gt; Worker used: {{ workername }}&lt;/p&gt;</span>
+<span class="s1">{</span><span class="si">% f</span><span class="s1">or step in build[&#39;steps&#39;] %}</span>
+<span class="s1">&lt;p&gt; {{ step[&#39;name&#39;] }}: {{ step[&#39;result&#39;] }}&lt;/p&gt;</span>
+<span class="s1">{</span><span class="si">% e</span><span class="s1">ndfor %}</span>
+<span class="s1">&lt;p&gt;&lt;b&gt; -- The Buildbot&lt;/b&gt;&lt;/p&gt;</span>
+<span class="s1">&#39;&#39;&#39;</span>
+
+<span class="n">mn</span> <span class="o">=</span> <span class="n">reporters</span><span class="o">.</span><span class="n">MailNotifier</span><span class="p">(</span><span class="n">fromaddr</span><span class="o">=</span><span class="s2">&quot;buildbot@example.org&quot;</span><span class="p">,</span>
+                            <span class="n">sendToInterestedUsers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="n">mode</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;failing&#39;</span><span class="p">,),</span>
+                            <span class="n">extraRecipients</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;listaddr@example.org&#39;</span><span class="p">],</span>
+                            <span class="n">messageFormatter</span><span class="o">=</span><span class="n">reporters</span><span class="o">.</span><span class="n">MessageFormatter</span><span class="p">(</span>
+                                <span class="n">template</span><span class="o">=</span><span class="n">template</span><span class="p">,</span> <span class="n">template_type</span><span class="o">=</span><span class="s1">&#39;html&#39;</span><span class="p">,</span>
+                                <span class="n">wantProperties</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">wantSteps</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="section" id="mailnotifier-arguments">
+<h3><a class="toc-backref" href="#id5">MailNotifier arguments</a><a class="headerlink" href="#mailnotifier-arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">fromaddr</span></code></dt>
+<dd>The email address to be used in the 'From' header.</dd>
+<dt><code class="docutils literal"><span class="pre">sendToInterestedUsers</span></code></dt>
+<dd>(boolean).
+If <code class="docutils literal"><span class="pre">True</span></code> (the default), send mail to all of the Interested Users.
+If <code class="docutils literal"><span class="pre">False</span></code>, only send mail to the <code class="docutils literal"><span class="pre">extraRecipients</span></code> list.</dd>
+<dt><code class="docutils literal"><span class="pre">extraRecipients</span></code></dt>
+<dd>(list of strings).
+A list of email addresses to which messages should be sent (in addition to the InterestedUsers list, which includes any developers who made <code class="xref py py-class docutils literal"><span class="pre">Change</span></code>s that went into this build).
+It is a good idea to create a small mailing list and deliver to that, then let subscribers come and go as they please.</dd>
+<dt><code class="docutils literal"><span class="pre">subject</span></code></dt>
+<dd>(string).
+A string to be used as the subject line of the message.
+<code class="docutils literal"><span class="pre">%(builder)s</span></code> will be replaced with the name of the builder which provoked the message.</dd>
+<dt><code class="docutils literal"><span class="pre">mode</span></code></dt>
+<dd><p class="first">Mode is a list of strings; however there are two strings which can be used as shortcuts instead of the full lists.
+The possible shortcuts are:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">all</span></code></dt>
+<dd>Always send mail about builds.
+Equivalent to (<code class="docutils literal"><span class="pre">change</span></code>, <code class="docutils literal"><span class="pre">failing</span></code>, <code class="docutils literal"><span class="pre">passing</span></code>, <code class="docutils literal"><span class="pre">problem</span></code>, <code class="docutils literal"><span class="pre">warnings</span></code>, <code class="docutils literal"><span class="pre">exception</span></code>).</dd>
+<dt><code class="docutils literal"><span class="pre">warnings</span></code></dt>
+<dd>Equivalent to (<code class="docutils literal"><span class="pre">warnings</span></code>, <code class="docutils literal"><span class="pre">failing</span></code>).</dd>
+</dl>
+<p>(list of strings).
+A combination of:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">cancelled</span></code></dt>
+<dd>Send mail about builds which were cancelled.</dd>
+<dt><code class="docutils literal"><span class="pre">change</span></code></dt>
+<dd>Send mail about builds which change status.</dd>
+<dt><code class="docutils literal"><span class="pre">failing</span></code></dt>
+<dd>Send mail about builds which fail.</dd>
+<dt><code class="docutils literal"><span class="pre">passing</span></code></dt>
+<dd>Send mail about builds which succeed.</dd>
+<dt><code class="docutils literal"><span class="pre">problem</span></code></dt>
+<dd>Send mail about a build which failed when the previous build has passed.</dd>
+<dt><code class="docutils literal"><span class="pre">warnings</span></code></dt>
+<dd>Send mail about builds which generate warnings.</dd>
+<dt><code class="docutils literal"><span class="pre">exception</span></code></dt>
+<dd>Send mail about builds which generate exceptions.</dd>
+</dl>
+<p class="last">Defaults to (<code class="docutils literal"><span class="pre">failing</span></code>, <code class="docutils literal"><span class="pre">passing</span></code>, <code class="docutils literal"><span class="pre">warnings</span></code>).</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">builders</span></code></dt>
+<dd>(list of strings).
+A list of builder names for which mail should be sent.
+Defaults to <code class="docutils literal"><span class="pre">None</span></code> (send mail for all builds).
+Use either builders or tags, but not both.</dd>
+<dt><code class="docutils literal"><span class="pre">tags</span></code></dt>
+<dd>(list of strings).
+A list of tag names to serve status information for.
+Defaults to <code class="docutils literal"><span class="pre">None</span></code> (all tags).
+Use either builders or tags, but not both.</dd>
+<dt><code class="docutils literal"><span class="pre">schedulers</span></code></dt>
+<dd>(list of strings).
+A list of scheduler names to serve status information for.
+Defaults to <code class="docutils literal"><span class="pre">None</span></code> (all schedulers).</dd>
+<dt><code class="docutils literal"><span class="pre">branches</span></code></dt>
+<dd>(list of strings).
+A list of branch names to serve status information for.
+Defaults to <code class="docutils literal"><span class="pre">None</span></code> (all branches).</dd>
+<dt><code class="docutils literal"><span class="pre">addLogs</span></code></dt>
+<dd>(boolean).
+If <code class="docutils literal"><span class="pre">True</span></code>, include all build logs as attachments to the messages.
+These can be quite large.
+This can also be set to a list of log names, to send a subset of the logs.
+Defaults to <code class="docutils literal"><span class="pre">False</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">addPatch</span></code></dt>
+<dd>(boolean).
+If <code class="docutils literal"><span class="pre">True</span></code>, include the patch content if a patch was present.
+Patches are usually used on a <code class="xref py py-class docutils literal"><span class="pre">Try</span></code> server.
+Defaults to <code class="docutils literal"><span class="pre">True</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">buildSetSummary</span></code></dt>
+<dd>(boolean).
+If <code class="docutils literal"><span class="pre">True</span></code>, send a single summary email consisting of the concatenation of all build completion messages rather than a completion message for each build.
+Defaults to <code class="docutils literal"><span class="pre">False</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">relayhost</span></code></dt>
+<dd>(string).
+The host to which the outbound SMTP connection should be made.
+Defaults to 'localhost'</dd>
+<dt><code class="docutils literal"><span class="pre">smtpPort</span></code></dt>
+<dd>(int).
+The port that will be used on outbound SMTP connections.
+Defaults to 25.</dd>
+<dt><code class="docutils literal"><span class="pre">useTls</span></code></dt>
+<dd>(boolean).
+When this argument is <code class="docutils literal"><span class="pre">True</span></code> (default is <code class="docutils literal"><span class="pre">False</span></code>) <code class="docutils literal"><span class="pre">MailNotifier</span></code> requires that STARTTLS encryption is used for the connection with the <code class="docutils literal"><span class="pre">relayhost</span></code>.
+Authentication is required for STARTTLS so the arguments <code class="docutils literal"><span class="pre">smtpUser</span></code> and <code class="docutils literal"><span class="pre">smtpPassword</span></code> must also be specified.</dd>
+<dt><code class="docutils literal"><span class="pre">useSmtps</span></code></dt>
+<dd>(boolean).
+When this argument is <code class="docutils literal"><span class="pre">True</span></code> (default is <code class="docutils literal"><span class="pre">False</span></code>) <code class="docutils literal"><span class="pre">MailNotifier</span></code> connects to <code class="docutils literal"><span class="pre">relayhost</span></code> over an encrypted SSL/TLS connection.
+This configuration is typically used over port 465.</dd>
+<dt><code class="docutils literal"><span class="pre">smtpUser</span></code></dt>
+<dd>(string).
+The user name to use when authenticating with the <code class="docutils literal"><span class="pre">relayhost</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">smtpPassword</span></code></dt>
+<dd>(string).
+The password that will be used when authenticating with the <code class="docutils literal"><span class="pre">relayhost</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">lookup</span></code></dt>
+<dd><p class="first">(implementor of <code class="xref py py-class docutils literal"><span class="pre">IEmailLookup</span></code>).
+Object which provides <code class="xref py py-class docutils literal"><span class="pre">IEmailLookup</span></code>, which is responsible for mapping User names (which come from the VC system) into valid email addresses.</p>
+<p>If the argument is not provided, the <code class="docutils literal"><span class="pre">MailNotifier</span></code> will attempt to build the <code class="docutils literal"><span class="pre">sendToInterestedUsers</span></code> from the authors of the Changes that led to the Build via <a class="reference internal" href="concepts.html#user-objects"><span class="std std-ref">User Objects</span></a>.
+If the author of one of the Build's Changes has an email address stored, it will added to the recipients list.
+With this method, <code class="docutils literal"><span class="pre">owners</span></code> are still added to the recipients.
+Note that, in the current implementation of user objects, email addresses are not stored; as a result, unless you have specifically added email addresses to the user database, this functionality is unlikely to actually send any emails.</p>
+<p>Most of the time you can use a simple Domain instance.
+As a shortcut, you can pass as string: this will be treated as if you had provided <code class="docutils literal"><span class="pre">Domain(str)</span></code>.
+For example, <code class="docutils literal"><span class="pre">lookup='example.com'</span></code> will allow mail to be sent to all developers whose SVN usernames match their <code class="docutils literal"><span class="pre">example.com</span></code> account names.
+See <code class="file docutils literal"><span class="pre">buildbot/reporters/mail.py</span></code> for more details.</p>
+<p class="last">Regardless of the setting of <code class="docutils literal"><span class="pre">lookup</span></code>, <code class="docutils literal"><span class="pre">MailNotifier</span></code> will also send mail to addresses in the <code class="docutils literal"><span class="pre">extraRecipients</span></code> list.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">messageFormatter</span></code></dt>
+<dd>This is an optional instance of the <code class="docutils literal"><span class="pre">reporters.MessageFormatter</span></code> class that can be used to generate a custom mail message.
+This class uses the <a class="reference external" href="http://jinja.pocoo.org/docs/dev/templates/">Jinja2</a> templating language to generate the body and optionally the subject of the mails.
+Templates can either be given inline (as string), or read from the filesystem.</dd>
+<dt><code class="docutils literal"><span class="pre">extraHeaders</span></code></dt>
+<dd>(dictionary).
+A dictionary containing key/value pairs of extra headers to add to sent e-mails.
+Both the keys and the values may be a <cite>Interpolate</cite> instance.</dd>
+<dt><code class="docutils literal"><span class="pre">messageFormatterMissingWorker</span></code></dt>
+<dd>This is an optional instance of the <code class="docutils literal"><span class="pre">reporters.messageFormatterMissingWorker</span></code> class that can be used to generate a custom mail message for missing workers.
+This class uses the <a class="reference external" href="http://jinja.pocoo.org/docs/dev/templates/">Jinja2</a> templating language to generate the body and optionally the subject of the mails.
+Templates can either be given inline (as string), or read from the filesystem.</dd>
+</dl>
+</div>
+<div class="section" id="messageformatter-arguments">
+<h3><a class="toc-backref" href="#id6">MessageFormatter arguments</a><a class="headerlink" href="#messageformatter-arguments" title="Permalink to this headline">¶</a></h3>
+<p>The easiest way to use the <code class="docutils literal"><span class="pre">messageFormatter</span></code> parameter is to create a new instance of the <code class="docutils literal"><span class="pre">reporters.MessageFormatter</span></code> class.
+The constructor to that class takes the following arguments:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">template_dir</span></code></dt>
+<dd>This is the directory that is used to look for the various templates.</dd>
+<dt><code class="docutils literal"><span class="pre">template_filename</span></code></dt>
+<dd>This is the name of the file in the <code class="docutils literal"><span class="pre">template_dir</span></code> directory that will be used to generate the body of the mail.
+It defaults to <code class="docutils literal"><span class="pre">default_mail.txt</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">template</span></code></dt>
+<dd>If this parameter is set, this parameter indicates the content of the template used to generate the body of the mail as string.</dd>
+<dt><code class="docutils literal"><span class="pre">template_type</span></code></dt>
+<dd>This indicates the type of the generated template.
+Use either 'plain' (the default) or 'html'.</dd>
+<dt><code class="docutils literal"><span class="pre">subject_filename</span></code></dt>
+<dd>This is the name of the file in the <code class="docutils literal"><span class="pre">template_dir</span></code> directory that contains the content of the subject of the mail.</dd>
+<dt><code class="docutils literal"><span class="pre">subject</span></code></dt>
+<dd>Alternatively, this is the content of the subject of the mail as string.</dd>
+<dt><code class="docutils literal"><span class="pre">ctx</span></code></dt>
+<dd><p class="first">This is an extension of the standard context that will be given to the templates.
+Use this to add content to the templates that is otherwise not available.</p>
+<p>Alternatively, you can subclass MessageFormatter and override the <a class="reference internal" href="#buildAdditionalContext" title="buildAdditionalContext"><code class="xref py py-meth docutils literal"><span class="pre">buildAdditionalContext</span></code></a> in order to grab more context from the data API.</p>
+<dl class="last method">
+<dt id="buildAdditionalContext">
+<code class="descname">buildAdditionalContext</code><span class="sig-paren">(</span><em>master</em>, <em>ctx</em><span class="sig-paren">)</span><a class="headerlink" href="#buildAdditionalContext" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>master</strong> -- the master object</li>
+<li><strong>ctx</strong> -- the context dictionary to enhance</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">optionally deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>default implementation will add <code class="docutils literal"><span class="pre">self.ctx</span></code> into the current template context</p>
+</dd></dl>
+
+</dd>
+<dt><code class="docutils literal"><span class="pre">wantProperties</span></code></dt>
+<dd>This parameter (defaults to True) will extend the content of the given <code class="docutils literal"><span class="pre">build</span></code> object with the Properties from the build.</dd>
+<dt><code class="docutils literal"><span class="pre">wantSteps</span></code></dt>
+<dd>This parameter (defaults to False) will extend the content of the given <code class="docutils literal"><span class="pre">build</span></code> object with information about the steps of the build.
+Use it only when necessary as this increases the overhead in term of CPU and memory on the master.</dd>
+<dt><code class="docutils literal"><span class="pre">wantLogs</span></code></dt>
+<dd>This parameter (defaults to False) will extend the content of the steps of the given <code class="docutils literal"><span class="pre">build</span></code> object with the full Logs of each steps from the build.
+This requires <code class="docutils literal"><span class="pre">wantSteps</span></code> to be True.
+Use it only when mandatory as this increases the overhead in term of CPU and memory on the master greatly.</dd>
+</dl>
+<p>As a help to those writing Jinja2 templates the following table describes how to get some useful pieces of information from the various data objects:</p>
+<dl class="docutils">
+<dt>Name of the builder that generated this event</dt>
+<dd><code class="docutils literal"><span class="pre">{{</span> <span class="pre">buildername</span> <span class="pre">}}</span></code></dd>
+<dt>Title of the BuildMaster</dt>
+<dd><code class="docutils literal"><span class="pre">{{</span> <span class="pre">projects</span> <span class="pre">}}</span></code></dd>
+<dt>MailNotifier mode</dt>
+<dd><code class="docutils literal"><span class="pre">{{</span> <span class="pre">mode</span> <span class="pre">}}</span></code> (a combination of <code class="docutils literal"><span class="pre">change</span></code>, <code class="docutils literal"><span class="pre">failing</span></code>, <code class="docutils literal"><span class="pre">passing</span></code>, <code class="docutils literal"><span class="pre">problem</span></code>, <code class="docutils literal"><span class="pre">warnings</span></code>, <code class="docutils literal"><span class="pre">exception</span></code>, <code class="docutils literal"><span class="pre">all</span></code>)</dd>
+<dt>URL to build page</dt>
+<dd><code class="docutils literal"><span class="pre">{{</span> <span class="pre">build_url</span> <span class="pre">}}</span></code></dd>
+<dt>URL to buildbot main page</dt>
+<dd><code class="docutils literal"><span class="pre">{{</span> <span class="pre">buildbot_url</span> <span class="pre">}}</span></code></dd>
+<dt>Status of the build as string.</dt>
+<dd><p class="first">This require extending the context of the Formatter via the <code class="docutils literal"><span class="pre">ctx</span></code> parameter with: <code class="docutils literal"><span class="pre">ctx=dict(statuses=util.Results)</span></code>.</p>
+<p class="last"><code class="docutils literal"><span class="pre">{{</span> <span class="pre">statuses[results]</span> <span class="pre">}}</span></code></p>
+</dd>
+<dt>Build text</dt>
+<dd><code class="docutils literal"><span class="pre">{{</span> <span class="pre">build['state_string']</span> <span class="pre">}}</span></code></dd>
+<dt>Mapping of property names to (values, source)</dt>
+<dd><code class="docutils literal"><span class="pre">{{</span> <span class="pre">build['properties']</span> <span class="pre">}}</span></code></dd>
+<dt>For instance the build reason (from a forced build)</dt>
+<dd><code class="docutils literal"><span class="pre">{{</span> <span class="pre">build['properties']['reason'][0]</span> <span class="pre">}}</span></code></dd>
+<dt>Worker name</dt>
+<dd><code class="docutils literal"><span class="pre">{{</span> <span class="pre">workername</span> <span class="pre">}}</span></code></dd>
+<dt>List of responsible users</dt>
+<dd><code class="docutils literal"><span class="pre">{{</span> <span class="pre">blamelist</span> <span class="pre">|</span> <span class="pre">join(',</span> <span class="pre">')</span> <span class="pre">}}</span></code></dd>
+</dl>
+</div>
+<div class="section" id="messageformattermissingworkers-arguments">
+<h3><a class="toc-backref" href="#id7">MessageFormatterMissingWorkers arguments</a><a class="headerlink" href="#messageformattermissingworkers-arguments" title="Permalink to this headline">¶</a></h3>
+<p>The easiest way to use the <code class="docutils literal"><span class="pre">messageFormatterMissingWorkers</span></code> parameter is to create a new instance of the <code class="docutils literal"><span class="pre">reporters.MessageFormatterMissingWorkers</span></code> class.</p>
+<p>The constructor to that class takes the same arguments as MessageFormatter, minus <code class="docutils literal"><span class="pre">wantLogs</span></code>, <code class="docutils literal"><span class="pre">wantProperties</span></code>, <code class="docutils literal"><span class="pre">wantSteps</span></code>.</p>
+<p>The default <code class="docutils literal"><span class="pre">ctx</span></code> for the missing worker email is made of:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">buildbot_title</span></code></dt>
+<dd>The buildbot title as per <code class="docutils literal"><span class="pre">c['title']</span></code> from the <code class="docutils literal"><span class="pre">master.cfg</span></code></dd>
+<dt><code class="docutils literal"><span class="pre">buildbot_url</span></code></dt>
+<dd>The buildbot title as per <code class="docutils literal"><span class="pre">c['title']</span></code> from the <code class="docutils literal"><span class="pre">master.cfg</span></code></dd>
+<dt><code class="docutils literal"><span class="pre">worker</span></code></dt>
+<dd><p class="first">The worker object as defined in the REST api plus two attributes:</p>
+<dl class="last docutils">
+<dt><code class="docutils literal"><span class="pre">notify</span></code></dt>
+<dd>List of emails to be notified for this worker.</dd>
+<dt><code class="docutils literal"><span class="pre">last_connection</span></code></dt>
+<dd>String describing the approximate the time of last connection for this worker.</dd>
+</dl>
+</dd>
+</dl>
+<span class="target" id="reporter-IRC"></span></div>
+</div>
+<div class="section" id="irc-bot">
+<span id="index-1"></span><h2><a class="toc-backref" href="#id8">2.4.11.2. IRC Bot</a><a class="headerlink" href="#irc-bot" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="#reporter-IRC" title="IRC"><code class="xref bb bb-reporter docutils literal"><span class="pre">IRC</span></code></a> reporter creates an IRC bot which will attach to certain channels and be available for status queries.
+It can also be asked to announce builds as they occur, or be told to shut up.</p>
+<p>The IRC Bot in buildbot nine, is mostly a rewrite, and not all functionality has been ported yet.
+Patches are very welcome for restoring the full functionality.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Security Note</p>
+<p class="last">Please note that any user having access to your irc channel or can PM the bot will be able to create or stop builds <a class="reference external" href="http://trac.buildbot.net/ticket/3377">bug #3377</a>.</p>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">reporters</span>
+<span class="n">irc</span> <span class="o">=</span> <span class="n">reporters</span><span class="o">.</span><span class="n">IRC</span><span class="p">(</span><span class="s2">&quot;irc.example.org&quot;</span><span class="p">,</span> <span class="s2">&quot;botnickname&quot;</span><span class="p">,</span>
+                 <span class="n">useColors</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">channels</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;channel&quot;</span><span class="p">:</span> <span class="s2">&quot;#example1&quot;</span><span class="p">},</span>
+                           <span class="p">{</span><span class="s2">&quot;channel&quot;</span><span class="p">:</span> <span class="s2">&quot;#example2&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;somesecretpassword&quot;</span><span class="p">}],</span>
+                 <span class="n">password</span><span class="o">=</span><span class="s2">&quot;mysecretnickservpassword&quot;</span><span class="p">,</span>
+                 <span class="n">notify_events</span><span class="o">=</span><span class="p">{</span>
+                   <span class="s1">&#39;exception&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                   <span class="s1">&#39;successToFailure&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                   <span class="s1">&#39;failureToSuccess&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                 <span class="p">})</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;services&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">irc</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The following parameters are accepted by this class:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">host</span></code></dt>
+<dd>(mandatory)
+The IRC server address to connect to.</dd>
+<dt><code class="docutils literal"><span class="pre">nick</span></code></dt>
+<dd>(mandatory)
+The name this bot will use on the IRC server.</dd>
+<dt><code class="docutils literal"><span class="pre">channels</span></code></dt>
+<dd>(mandatory)
+This is a list of channels to join on the IRC server.
+Each channel can be a string (e.g. <code class="docutils literal"><span class="pre">#buildbot</span></code>), or a dictionary <code class="docutils literal"><span class="pre">{'channel':</span> <span class="pre">'#buildbot',</span> <span class="pre">'password':</span> <span class="pre">'secret'}</span></code> if each channel requires a different password.
+A global password can be set with the <code class="docutils literal"><span class="pre">password</span></code> parameter.</dd>
+<dt><code class="docutils literal"><span class="pre">pm_to_nicks</span></code></dt>
+<dd>(optional)
+This is a list of person to contact on the IRC server.</dd>
+<dt><code class="docutils literal"><span class="pre">port</span></code></dt>
+<dd>(optional, default to 6667)
+The port to connect to on the IRC server.</dd>
+<dt><code class="docutils literal"><span class="pre">allowForce</span></code></dt>
+<dd>(optional, disabled by default)
+This allow user to force builds via this bot.</dd>
+<dt><code class="docutils literal"><span class="pre">tags</span></code></dt>
+<dd>(optional)
+When set, this bot will only communicate about builders containing those tags.
+(tags functionality is not yet ported)</dd>
+<dt><code class="docutils literal"><span class="pre">password</span></code></dt>
+<dd>(optional)
+The global password used to register the bot to the IRC server.
+If provided, it will be sent to Nickserv to claim the nickname: some IRC servers will not allow clients to send private messages until they have logged in with a password.</dd>
+<dt><code class="docutils literal"><span class="pre">notify_events</span></code></dt>
+<dd>(optional)
+A dictionary of events to be notified on the IRC channels.
+At the moment, irc bot can listen to build 'start' and 'finish' events.
+This parameter can be changed during run-time by sending the <code class="docutils literal"><span class="pre">notify</span></code> command to the bot.</dd>
+<dt><code class="docutils literal"><span class="pre">showBlameList</span></code></dt>
+<dd>(optional, disabled by default)
+Whether or not to display the blame list for failed builds.
+(blame list functionality is not ported yet)</dd>
+<dt><code class="docutils literal"><span class="pre">useRevisions</span></code></dt>
+<dd>(optional, disabled by default)
+Whether or not to display the revision leading to the build the messages are about.
+(useRevisions functionality is not ported yet)</dd>
+<dt><code class="docutils literal"><span class="pre">useSSL</span></code></dt>
+<dd>(optional, disabled by default)
+Whether or not to use SSL when connecting to the IRC server.
+Note that this option requires <a class="reference external" href="http://pyopenssl.sourceforge.net/">PyOpenSSL</a>.</dd>
+<dt><code class="docutils literal"><span class="pre">lostDelay</span></code></dt>
+<dd>(optional)
+Delay to wait before reconnecting to the server when the connection has been lost.</dd>
+<dt><code class="docutils literal"><span class="pre">failedDelay</span></code></dt>
+<dd>(optional)
+Delay to wait before reconnecting to the IRC server when the connection failed.</dd>
+<dt><code class="docutils literal"><span class="pre">useColors</span></code></dt>
+<dd>(optional, enabled by default)
+The bot can add color to some of its messages.
+You might turn it off by setting this parameter to <code class="docutils literal"><span class="pre">False</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">allowShutdown</span></code></dt>
+<dd>(optional, disabled by default)
+This allow users to shutdown the master.</dd>
+</dl>
+<p>To use the service, you address messages at the Buildbot, either normally (<code class="docutils literal"><span class="pre">botnickname:</span> <span class="pre">status</span></code>) or with private messages (<code class="docutils literal"><span class="pre">/msg</span> <span class="pre">botnickname</span> <span class="pre">status</span></code>).
+The Buildbot will respond in kind.</p>
+<p>If you issue a command that is currently not available, the Buildbot will respond with an error message.
+If the <code class="docutils literal"><span class="pre">noticeOnChannel=True</span></code> option was used, error messages will be sent as channel notices instead of messaging.</p>
+<p>Some of the commands currently available:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">list</span> <span class="pre">builders</span></code></dt>
+<dd>Emit a list of all configured builders</dd>
+<dt><code class="samp docutils literal"><span class="pre">status</span> <em><span class="pre">BUILDER</span></em></code></dt>
+<dd>Announce the status of a specific Builder: what it is doing right now.</dd>
+<dt><code class="docutils literal"><span class="pre">status</span> <span class="pre">all</span></code></dt>
+<dd>Announce the status of all Builders</dd>
+<dt><code class="samp docutils literal"><span class="pre">watch</span> <em><span class="pre">BUILDER</span></em></code></dt>
+<dd>If the given <code class="xref py py-class docutils literal"><span class="pre">Builder</span></code> is currently running, wait until the <code class="xref py py-class docutils literal"><span class="pre">Build</span></code> is finished and then announce the results.</dd>
+<dt><code class="samp docutils literal"><span class="pre">last</span> <em><span class="pre">BUILDER</span></em></code></dt>
+<dd>Return the results of the last build to run on the given <code class="xref py py-class docutils literal"><span class="pre">Builder</span></code>.</dd>
+<dt><code class="samp docutils literal"><span class="pre">join</span> <em><span class="pre">CHANNEL</span></em></code></dt>
+<dd>Join the given IRC channel</dd>
+<dt><code class="samp docutils literal"><span class="pre">leave</span> <em><span class="pre">CHANNEL</span></em></code></dt>
+<dd>Leave the given IRC channel</dd>
+<dt><code class="samp docutils literal"><span class="pre">notify</span> <span class="pre">on|off|list</span> <em><span class="pre">EVENT</span></em></code></dt>
+<dd><p class="first">Report events relating to builds.
+If the command is issued as a private message, then the report will be sent back as a private message to the user who issued the command.
+Otherwise, the report will be sent to the channel.
+Available events to be notified are:</p>
+<dl class="last docutils">
+<dt><code class="docutils literal"><span class="pre">started</span></code></dt>
+<dd>A build has started</dd>
+<dt><code class="docutils literal"><span class="pre">finished</span></code></dt>
+<dd>A build has finished</dd>
+<dt><code class="docutils literal"><span class="pre">success</span></code></dt>
+<dd>A build finished successfully</dd>
+<dt><code class="docutils literal"><span class="pre">failure</span></code></dt>
+<dd>A build failed</dd>
+<dt><code class="docutils literal"><span class="pre">exception</span></code></dt>
+<dd>A build generated and exception</dd>
+<dt><code class="docutils literal"><span class="pre">xToY</span></code></dt>
+<dd>The previous build was x, but this one is Y, where x and Y are each one of success, warnings, failure, exception (except Y is capitalized).
+For example: <code class="docutils literal"><span class="pre">successToFailure</span></code> will notify if the previous build was successful, but this one failed</dd>
+</dl>
+</dd>
+<dt><code class="samp docutils literal"><span class="pre">help</span> <em><span class="pre">COMMAND</span></em></code></dt>
+<dd>Describe a command.
+Use <strong class="command">help commands</strong> to get a list of known commands.</dd>
+<dt><code class="samp docutils literal"><span class="pre">shutdown</span> <em><span class="pre">ARG</span></em></code></dt>
+<dd><p class="first">Control the shutdown process of the Buildbot master.
+Available arguments are:</p>
+<dl class="last docutils">
+<dt><code class="docutils literal"><span class="pre">check</span></code></dt>
+<dd>Check if the Buildbot master is running or shutting down</dd>
+<dt><code class="docutils literal"><span class="pre">start</span></code></dt>
+<dd>Start clean shutdown</dd>
+<dt><code class="docutils literal"><span class="pre">stop</span></code></dt>
+<dd>Stop clean shutdown</dd>
+<dt><code class="docutils literal"><span class="pre">now</span></code></dt>
+<dd>Shutdown immediately without waiting for the builders to finish</dd>
+</dl>
+</dd>
+<dt><code class="docutils literal"><span class="pre">source</span></code></dt>
+<dd>Announce the URL of the Buildbot's home page.</dd>
+<dt><code class="docutils literal"><span class="pre">version</span></code></dt>
+<dd>Announce the version of this Buildbot.</dd>
+</dl>
+<p>Additionally, the config file may specify default notification options as shown in the example earlier.</p>
+<p>If the <code class="docutils literal"><span class="pre">allowForce=True</span></code> option was used, some additional commands will be available:</p>
+<dl class="docutils" id="index-2">
+<dt><code class="samp docutils literal"><span class="pre">force</span> <span class="pre">build</span> <span class="pre">[--codebase=</span><em><span class="pre">CODEBASE</span></em><span class="pre">]</span> <span class="pre">[--branch=</span><em><span class="pre">BRANCH</span></em><span class="pre">]</span> <span class="pre">[--revision=</span><em><span class="pre">REVISION</span></em><span class="pre">]</span> <span class="pre">[--props=PROP1=VAL1,PROP2=VAL2...]</span> <em><span class="pre">BUILDER</span></em> <em><span class="pre">REASON</span></em></code></dt>
+<dd>Tell the given <code class="xref py py-class docutils literal"><span class="pre">Builder</span></code> to start a build of the latest code.
+The user requesting the build and <em>REASON</em> are recorded in the <code class="xref py py-class docutils literal"><span class="pre">Build</span></code> status.
+The Buildbot will announce the build's status when it finishes.The user can specify a branch and/or revision with the optional parameters <code class="samp docutils literal"><span class="pre">--branch=</span><em><span class="pre">BRANCH</span></em></code> and <code class="samp docutils literal"><span class="pre">--revision=</span><em><span class="pre">REVISION</span></em></code>.
+The user can also give a list of properties with <code class="samp docutils literal"><span class="pre">--props=</span><em><span class="pre">PROP1=VAL1,PROP2=VAL2..</span></em></code>.</dd>
+<dt><code class="samp docutils literal"><span class="pre">stop</span> <span class="pre">build</span> <em><span class="pre">BUILDER</span></em> <em><span class="pre">REASON</span></em></code></dt>
+<dd>Terminate any running build in the given <code class="xref py py-class docutils literal"><span class="pre">Builder</span></code>.
+<em>REASON</em> will be added to the build status to explain why it was stopped.
+You might use this if you committed a bug, corrected it right away, and don't want to wait for the first build (which is destined to fail) to complete before starting the second (hopefully fixed) build.</dd>
+</dl>
+<p>If the <cite>tags</cite> is set (see the tags option in <a class="reference internal" href="cfg-builders.html#builder-configuration"><span class="std std-ref">Builder Configuration</span></a>) changes related to only builders belonging to those tags of builders will be sent to the channel.</p>
+<p>If the <cite>useRevisions</cite> option is set to <cite>True</cite>, the IRC bot will send status messages that replace the build number with a list of revisions that are contained in that build.
+So instead of seeing <cite>build #253 of ...</cite>, you would see something like <cite>build containing revisions [a87b2c4]</cite>.
+Revisions that are stored as hashes are shortened to 7 characters in length, as multiple revisions can be contained in one build and may exceed the IRC message length limit.</p>
+<p>Two additional arguments can be set to control how fast the IRC bot tries to reconnect when it encounters connection issues.
+<code class="docutils literal"><span class="pre">lostDelay</span></code> is the number of of seconds the bot will wait to reconnect when the connection is lost, where as <code class="docutils literal"><span class="pre">failedDelay</span></code> is the number of seconds until the bot tries to reconnect when the connection failed.
+<code class="docutils literal"><span class="pre">lostDelay</span></code> defaults to a random number between 1 and 5, while <code class="docutils literal"><span class="pre">failedDelay</span></code> defaults to a random one between 45 and 60.
+Setting random defaults like this means multiple IRC bots are less likely to deny each other by flooding the server.</p>
+</div>
+<div class="section" id="gerritstatuspush">
+<span id="reporter-GerritStatusPush"></span><h2><a class="toc-backref" href="#id9">2.4.11.3. GerritStatusPush</a><a class="headerlink" href="#gerritstatuspush" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.status.status_gerrit.GerritStatusPush">
+<em class="property">class </em><code class="descclassname">buildbot.status.status_gerrit.</code><code class="descname">GerritStatusPush</code><a class="headerlink" href="#buildbot.status.status_gerrit.GerritStatusPush" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><a class="reference internal" href="#GerritStatusPush" title="GerritStatusPush"><code class="xref py py-class docutils literal"><span class="pre">GerritStatusPush</span></code></a> sends review of the <code class="xref py py-class docutils literal"><span class="pre">Change</span></code> back to the Gerrit server, optionally also sending a message when a build is started.
+GerritStatusPush can send a separate review for each build that completes, or a single review summarizing the results for all of the builds.</p>
+<dl class="class">
+<dt id="GerritStatusPush">
+<em class="property">class </em><code class="descname">GerritStatusPush</code><span class="sig-paren">(</span><em>server</em>, <em>username</em>, <em>reviewCB</em>, <em>startCB</em>, <em>port</em>, <em>reviewArg</em>, <em>startArg</em>, <em>summaryCB</em>, <em>summaryArg</em>, <em>identity_file</em>, <em>builders</em>, <em>notify...</em><span class="sig-paren">)</span><a class="headerlink" href="#GerritStatusPush" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>server</strong> (<em>string</em>) -- Gerrit SSH server's address to use for push event notifications.</li>
+<li><strong>username</strong> (<em>string</em>) -- Gerrit SSH server's username.</li>
+<li><strong>identity_file</strong> -- (optional) Gerrit SSH identity file.</li>
+<li><strong>port</strong> (<em>int</em>) -- (optional) Gerrit SSH server's port (default: 29418)</li>
+<li><strong>reviewCB</strong> -- (optional) Called each time a build finishes. Build properties are available. Can be a deferred.</li>
+<li><strong>reviewArg</strong> -- <p>(optional) argument passed to the review callback.</p>
+<p>If <code class="xref py py-func docutils literal"><span class="pre">reviewCB</span></code> callback is specified, it must return a message and optionally labels. If no message is specified, nothing will be sent to Gerrit.
+It should return a dictionary:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="n">message</span><span class="p">,</span>
+ <span class="s1">&#39;labels&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">label</span><span class="o">-</span><span class="n">name</span><span class="p">:</span> <span class="n">label</span><span class="o">-</span><span class="n">score</span><span class="p">,</span>
+            <span class="o">...</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gerritReviewCB</span><span class="p">(</span><span class="n">builderName</span><span class="p">,</span> <span class="n">build</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">master</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="n">util</span><span class="o">.</span><span class="n">RETRY</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="n">message</span> <span class="o">=</span>  <span class="s2">&quot;Buildbot finished compiling your patchset</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="n">message</span> <span class="o">+=</span> <span class="s2">&quot;on configuration: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">builderName</span>
+    <span class="n">message</span> <span class="o">+=</span> <span class="s2">&quot;The result is: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">util</span><span class="o">.</span><span class="n">Results</span><span class="p">[</span><span class="n">result</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">arg</span><span class="p">:</span>
+        <span class="n">message</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">For more details visit:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">message</span> <span class="o">+=</span> <span class="n">build</span><span class="p">[</span><span class="s1">&#39;url&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+    <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="n">util</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
+        <span class="n">verified</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">verified</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;Verified&#39;</span><span class="p">:</span> <span class="n">verified</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Which require an extra import in the config:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">util</span>
+</pre></div>
+</div>
+</li>
+<li><strong>startCB</strong> -- (optional) Called each time a build is started. Build properties are available. Can be a deferred.</li>
+<li><strong>startArg</strong> -- <p>(optional) argument passed to the start callback.</p>
+<p>If <code class="xref py py-func docutils literal"><span class="pre">startCB</span></code> is specified, it must return a message and optionally labels. If no message is specified, nothing will be sent to Gerrit.
+It should return a dictionary:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="n">message</span><span class="p">,</span>
+ <span class="s1">&#39;labels&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">label</span><span class="o">-</span><span class="n">name</span><span class="p">:</span> <span class="n">label</span><span class="o">-</span><span class="n">score</span><span class="p">,</span>
+            <span class="o">...</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gerritStartCB</span><span class="p">(</span><span class="n">builderName</span><span class="p">,</span> <span class="n">build</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;Buildbot started compiling your patchset</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="n">message</span> <span class="o">+=</span> <span class="s2">&quot;on configuration: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">builderName</span>
+    <span class="n">message</span> <span class="o">+=</span> <span class="s2">&quot;See your build here: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">build</span><span class="p">[</span><span class="s1">&#39;url&#39;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><strong>summaryCB</strong> -- (optional) Called each time a buildset finishes. Each build in the buildset has properties available. Can be a deferred.</li>
+<li><strong>summaryArg</strong> -- <p>(optional) argument passed to the summary callback.</p>
+<p>If <code class="xref py py-func docutils literal"><span class="pre">summaryCB</span></code> callback is specified, it must return a message and optionally labels. If no message is specified, nothing will be sent to Gerrit.
+The message and labels should be a summary of all the builds within the buildset.
+It should return a dictionary:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="n">message</span><span class="p">,</span>
+ <span class="s1">&#39;labels&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">label</span><span class="o">-</span><span class="n">name</span><span class="p">:</span> <span class="n">label</span><span class="o">-</span><span class="n">score</span><span class="p">,</span>
+            <span class="o">...</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gerritSummaryCB</span><span class="p">(</span><span class="n">buildInfoList</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
+    <span class="n">success</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">failure</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="n">msgs</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">buildInfo</span> <span class="ow">in</span> <span class="n">buildInfoList</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Builder </span><span class="si">%(name)s</span><span class="s2"> </span><span class="si">%(resultText)s</span><span class="s2"> (</span><span class="si">%(text)s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">buildInfo</span>
+        <span class="n">link</span> <span class="o">=</span> <span class="n">buildInfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;url&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">link</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot; - &quot;</span> <span class="o">+</span> <span class="n">link</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;.&quot;</span>
+
+        <span class="n">msgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">buildInfo</span><span class="p">[</span><span class="s1">&#39;result&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">util</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
+            <span class="n">success</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">failure</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="k">if</span> <span class="n">success</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">failure</span><span class="p">:</span>
+        <span class="n">verified</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">verified</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">msgs</span><span class="p">),</span>
+                <span class="n">labels</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s1">&#39;Verified&#39;</span><span class="p">:</span> <span class="n">verified</span>
+                <span class="p">})</span>
+</pre></div>
+</div>
+</li>
+<li><strong>builders</strong> -- (optional) list of builders to send results for.
+This method allows to filter results for a specific set of builder.
+By default, or if builders is None, then no filtering is performed.</li>
+<li><strong>notify</strong> -- (optional) control who gets notified by Gerrit once the status is posted.
+The possible values for <cite>notify</cite> can be found in your version of the
+Gerrit documentation for the <cite>gerrit review</cite> command.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">By default, a single summary review is sent; that is, a default <code class="xref py py-func docutils literal"><span class="pre">summaryCB</span></code> is provided, but no <code class="xref py py-func docutils literal"><span class="pre">reviewCB</span></code> or <code class="xref py py-func docutils literal"><span class="pre">startCB</span></code>.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If <code class="xref py py-func docutils literal"><span class="pre">reviewCB</span></code> or <code class="xref py py-func docutils literal"><span class="pre">summaryCB</span></code> do not return any labels, only a message will be pushed to the Gerrit server.</p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><code class="file docutils literal"><span class="pre">master/docs/examples/git_gerrit.cfg</span></code> and <code class="file docutils literal"><span class="pre">master/docs/examples/repo_gerrit.cfg</span></code> in the Buildbot distribution provide a full example setup of Git+Gerrit or Repo+Gerrit of <a class="reference internal" href="#reporter-GerritStatusPush" title="GerritStatusPush"><code class="xref bb bb-reporter docutils literal"><span class="pre">GerritStatusPush</span></code></a>.</p>
+</div>
+</div>
+<div class="section" id="httpstatuspush">
+<span id="reporter-HttpStatusPush"></span><h2><a class="toc-backref" href="#id10">2.4.11.4. HttpStatusPush</a><a class="headerlink" href="#httpstatuspush" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">reporters</span>
+<span class="n">sp</span> <span class="o">=</span> <span class="n">reporters</span><span class="o">.</span><span class="n">HttpStatusPush</span><span class="p">(</span><span class="n">serverUrl</span><span class="o">=</span><span class="s2">&quot;http://example.com/submit&quot;</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;services&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#HttpStatusPush" title="HttpStatusPush"><code class="xref py py-class docutils literal"><span class="pre">HttpStatusPush</span></code></a> builds on <code class="xref py py-class docutils literal"><span class="pre">StatusPush</span></code> and sends HTTP requests to <code class="docutils literal"><span class="pre">serverUrl</span></code>, with all the items json-encoded.
+It is useful to create a status front end outside of Buildbot for better scalability.</p>
+<p>It requires either <a class="reference external" href="https://pypi.python.org/pypi/txrequests">txrequests</a> or <a class="reference external" href="https://pypi.python.org/pypi/treq">treq</a> to be installed to allow interaction with http server.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The json data object sent is completely different from the one that was generated by 0.8.x buildbot.
+It is indeed generated using data api.</p>
+</div>
+<dl class="class">
+<dt id="HttpStatusPush">
+<em class="property">class </em><code class="descname">HttpStatusPush</code><span class="sig-paren">(</span><em>serverUrl</em>, <em>user=None</em>, <em>password=None</em>, <em>auth=None</em>, <em>format_fn=None</em>, <em>builders=None</em>, <em>wantProperties=False</em>, <em>wantSteps=False</em>, <em>wantPreviousBuild=False</em>, <em>wantLogs=False</em><span class="sig-paren">)</span><a class="headerlink" href="#HttpStatusPush" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>serverUrl</strong> (<em>string</em>) -- the url where to do the http post</li>
+<li><strong>user</strong> (<em>string</em>) -- the BasicAuth user to post as</li>
+<li><strong>password</strong> (<em>string</em>) -- the BasicAuth user's password</li>
+<li><strong>auth</strong> -- the authentication method to use.
+Refer to the documentation of the requests library for more information.</li>
+<li><strong>format_fn</strong> (<em>function</em>) -- a function that takes the build as parameter and returns a dictionary to be pushed to the server (as json).</li>
+<li><strong>builders</strong> (<em>list</em>) -- only send update for specified builders</li>
+<li><strong>wantProperties</strong> (<em>boolean</em>) -- include 'properties' in the build dictionary</li>
+<li><strong>wantSteps</strong> (<em>boolean</em>) -- include 'steps' in the build dictionary</li>
+<li><strong>wantLogs</strong> (<em>boolean</em>) -- include 'logs' in the steps dictionaries.
+This needs wantSteps=True.
+This dumps the <em>full</em> content of logs and may consume lots of memory and CPU depending on the log size.</li>
+<li><strong>wantPreviousBuild</strong> (<em>boolean</em>) -- include 'prev_build' in the build dictionary</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<div class="section" id="json-object-spec">
+<h3><a class="toc-backref" href="#id11">Json object spec</a><a class="headerlink" href="#json-object-spec" title="Permalink to this headline">¶</a></h3>
+<p>The default json object sent is a build object augmented with some more data as follow.</p>
+<div class="highlight-json"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;http://yourbot/path/to/build&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;&lt;build data api values&gt;&quot;</span><span class="p">:</span> <span class="s2">&quot;[...]&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;buildset&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;buildset data api values&gt;&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;builder&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;builder data api values&gt;&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;buildrequest&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;buildrequest data api values&gt;&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>If you want another format, don't hesitate to use the <code class="docutils literal"><span class="pre">format_fn</span></code> parameter to customize the payload.
+The <code class="docutils literal"><span class="pre">build</span></code> parameter given to that function is of type <a class="reference internal" href="../developer/rest.html#rtype-build" title="build"><code class="xref bb bb-rtype docutils literal"><span class="pre">build</span></code></a>, optionally enhanced with properties, steps, and logs information.</p>
+</div>
+</div>
+<div class="section" id="githubstatuspush">
+<span id="reporter-GitHubStatusPush"></span><h2><a class="toc-backref" href="#id12">2.4.11.5. GitHubStatusPush</a><a class="headerlink" href="#githubstatuspush" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.reporters.github.GitHubStatusPush">
+<em class="property">class </em><code class="descclassname">buildbot.reporters.github.</code><code class="descname">GitHubStatusPush</code><a class="headerlink" href="#buildbot.reporters.github.GitHubStatusPush" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">reporters</span><span class="p">,</span> <span class="n">util</span>
+
+<span class="n">context</span> <span class="o">=</span> <span class="n">Interpolate</span><span class="p">(</span><span class="s2">&quot;buildbot/%(prop:buildername)s&quot;</span><span class="p">)</span>
+<span class="n">gs</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">GitHubStatusPush</span><span class="p">(</span><span class="n">token</span><span class="o">=</span><span class="s1">&#39;githubAPIToken&#39;</span><span class="p">,</span>
+                             <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span>
+                             <span class="n">startDescription</span><span class="o">=</span><span class="s1">&#39;Build started.&#39;</span><span class="p">,</span>
+                             <span class="n">endDescription</span><span class="o">=</span><span class="s1">&#39;Build done.&#39;</span><span class="p">)</span>
+<span class="n">factory</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">BuildFactory</span><span class="p">()</span>
+<span class="n">buildbot_bbtools</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">BuilderConfig</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;builder-name&#39;</span><span class="p">,</span>
+    <span class="n">workernames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;worker1&#39;</span><span class="p">],</span>
+    <span class="n">factory</span><span class="o">=</span><span class="n">factory</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;builders&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">buildbot_bbtools</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;services&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#GitHubStatusPush" title="GitHubStatusPush"><code class="xref py py-class docutils literal"><span class="pre">GitHubStatusPush</span></code></a> publishes a build status using <a class="reference external" href="http://developer.github.com/v3/repos/statuses">GitHub Status API</a>.</p>
+<p>It requires <a class="reference external" href="https://pypi.python.org/pypi/txrequests">txrequests</a> package to allow interaction with GitHub REST API.</p>
+<p>It is configured with at least a GitHub API token.</p>
+<p>You can create a token from you own <a class="reference external" href="https://github.com/settings/applications">GitHub - Profile - Applications - Register new application</a> or use an external tool to generate one.</p>
+<dl class="class">
+<dt id="GitHubStatusPush">
+<em class="property">class </em><code class="descname">GitHubStatusPush</code><span class="sig-paren">(</span><em>token</em>, <em>startDescription=None</em>, <em>endDescription=None</em>, <em>context=None</em>, <em>baseURL=None</em>, <em>verbose=False</em>, <em>builders=None</em><span class="sig-paren">)</span><a class="headerlink" href="#GitHubStatusPush" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>token</strong> (<em>string</em>) -- token used for authentication.</li>
+<li><strong>string startDescription</strong> (<em>rendereable</em>) -- Custom start message (default: 'Build started.')</li>
+<li><strong>string endDescription</strong> (<em>rendereable</em>) -- Custom end message (default: 'Build done.')</li>
+<li><strong>string context</strong> (<em>rendereable</em>) -- Passed to GitHub to differentiate between statuses.
+A static string can be passed or <code class="xref py py-class docutils literal"><span class="pre">Interpolate</span></code> for dynamic substitution.
+The default context is <cite>buildbot/%(prop:buildername)s</cite>.</li>
+<li><strong>baseURL</strong> (<em>string</em>) -- specify the github api endpoint if you work with GitHub Enterprise</li>
+<li><strong>verbose</strong> (<em>boolean</em>) -- if True, logs a message for each successful status push</li>
+<li><strong>builders</strong> (<em>list</em>) -- only send update for specified builders</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="stashstatuspush">
+<span id="reporter-StashStatusPush"></span><h2><a class="toc-backref" href="#id13">2.4.11.6. StashStatusPush</a><a class="headerlink" href="#stashstatuspush" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.reporters.stash.StashStatusPush">
+<em class="property">class </em><code class="descclassname">buildbot.reporters.stash.</code><code class="descname">StashStatusPush</code><a class="headerlink" href="#buildbot.reporters.stash.StashStatusPush" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">reporters</span>
+
+<span class="n">ss</span> <span class="o">=</span> <span class="n">reporters</span><span class="o">.</span><span class="n">StashStatusPush</span><span class="p">(</span><span class="s1">&#39;https://stash.example.com:8080/&#39;</span><span class="p">,</span>
+                               <span class="s1">&#39;stash_username&#39;</span><span class="p">,</span>
+                               <span class="s1">&#39;secret_password&#39;</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;services&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#StashStatusPush" title="StashStatusPush"><code class="xref py py-class docutils literal"><span class="pre">StashStatusPush</span></code></a> publishes build status using <a class="reference external" href="https://developer.atlassian.com/static/rest/stash/3.6.0/stash-build-integration-rest.html">Stash Build Integration REST API</a>.
+The build status is published to a specific commit SHA in Stash.
+It tracks the last build for each builderName for each commit built.</p>
+<p>Specifically, it follows the <a class="reference external" href="https://developer.atlassian.com/stash/docs/latest/how-tos/updating-build-status-for-commits.html">Updating build status for commits</a> document.</p>
+<p>It requires <a class="reference external" href="https://pypi.python.org/pypi/txrequests">txrequests</a> package to allow interaction with Stash REST API.</p>
+<p>It uses HTTP Basic AUTH.
+As a result, we recommend you use https in your base_url rather than http.</p>
+<dl class="class">
+<dt id="StashStatusPush">
+<em class="property">class </em><code class="descname">StashStatusPush</code><span class="sig-paren">(</span><em>base_url</em>, <em>user</em>, <em>password</em>, <em>key=None</em>, <em>statusName=None</em>, <em>startDescription=None</em>, <em>endDescription=None</em>, <em>verbose=False</em>, <em>builders=None</em><span class="sig-paren">)</span><a class="headerlink" href="#StashStatusPush" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>base_url</strong> (<em>string</em>) -- The base url of the Stash host, up to and optionally including the first <cite>/</cite> of the path.</li>
+<li><strong>user</strong> (<em>string</em>) -- The Stash user to post as.</li>
+<li><strong>password</strong> (<em>string</em>) -- The Stash user's password.</li>
+<li><strong>string key</strong> (<em>renderable</em>) -- Passed to Stash to differentiate between statuses.
+A static string can be passed or <code class="xref py py-class docutils literal"><span class="pre">Interpolate</span></code> for dynamic substitution.
+The default key is <cite>%(prop:buildername)s</cite>.</li>
+<li><strong>string statusName</strong> (<em>renderable</em>) -- The name that is displayed for this status.
+The default name is nothing, so Stash will use the <code class="docutils literal"><span class="pre">key</span></code> parameter.</li>
+<li><strong>string startDescription</strong> (<em>renderable</em>) -- Custom start message (default: 'Build started.')</li>
+<li><strong>string endDescription</strong> (<em>renderable</em>) -- Custom end message (default: 'Build done.')</li>
+<li><strong>verbose</strong> (<em>boolean</em>) -- If True, logs a message for each successful status push.</li>
+<li><strong>builders</strong> (<em>list</em>) -- Only send update for specified builders.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="bitbucketstatuspush">
+<span id="reporter-BitbucketStatusPush"></span><h2><a class="toc-backref" href="#id14">2.4.11.7. BitbucketStatusPush</a><a class="headerlink" href="#bitbucketstatuspush" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.reporters.bitbucket.BitbucketStatusPush">
+<em class="property">class </em><code class="descclassname">buildbot.reporters.bitbucket.</code><code class="descname">BitbucketStatusPush</code><a class="headerlink" href="#buildbot.reporters.bitbucket.BitbucketStatusPush" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">reporters</span>
+<span class="n">bs</span> <span class="o">=</span> <span class="n">reporters</span><span class="o">.</span><span class="n">BitbucketStatusPush</span><span class="p">(</span><span class="s1">&#39;oauth_key&#39;</span><span class="p">,</span> <span class="s1">&#39;oauth_secret&#39;</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;services&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#BitbucketStatusPush" title="BitbucketStatusPush"><code class="xref py py-class docutils literal"><span class="pre">BitbucketStatusPush</span></code></a> publishes build status using <a class="reference external" href="https://confluence.atlassian.com/bitbucket/buildstatus-resource-779295267.html">Bitbucket Build Status API</a>.
+The build status is published to a specific commit SHA in Bitbucket.
+It tracks the last build for each builderName for each commit built.</p>
+<p>It requires <a class="reference external" href="https://pypi.python.org/pypi/txrequests">txrequests</a> package to allow interaction with the Bitbucket REST and OAuth APIs.</p>
+<p>It uses OAuth 2.x to authenticate with Bitbucket.
+To enable this, you need to go to your Bitbucket Settings -&gt; OAuth page.
+Click &quot;Add consumer&quot;.
+Give the new consumer a name, eg 'buildbot', and put in any URL as the callback (this is needed for Oauth 2.x but is not used by this reporter, eg '<a class="reference external" href="https://localhost:8010/callback">https://localhost:8010/callback</a>').
+Give the consumer Repositories:Write access.
+After creating the consumer, you will then be able to see the OAuth key and secret.</p>
+<dl class="class">
+<dt id="BitbucketStatusPush">
+<em class="property">class </em><code class="descname">BitbucketStatusPush</code><span class="sig-paren">(</span><em>oauth_key</em>, <em>oauth_secret</em>, <em>base_url='https://api.bitbucket.org/2.0/repositories'</em>, <em>oauth_url='https://bitbucket.org/site/oauth2/access_token'</em>, <em>builders=None</em><span class="sig-paren">)</span><a class="headerlink" href="#BitbucketStatusPush" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>oauth_key</strong> (<em>string</em>) -- The OAuth consumer key</li>
+<li><strong>oauth_secret</strong> (<em>string</em>) -- The OAuth consumer secret</li>
+<li><strong>base_url</strong> (<em>string</em>) -- Bitbucket's Build Status API URL</li>
+<li><strong>oauth_url</strong> (<em>string</em>) -- Bitbucket's OAuth API URL</li>
+<li><strong>builders</strong> (<em>list</em>) -- only send update for specified builders</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="gitlabstatuspush">
+<span id="reporter-GitLabStatusPush"></span><h2><a class="toc-backref" href="#id15">2.4.11.8. GitLabStatusPush</a><a class="headerlink" href="#gitlabstatuspush" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.reporters.gitlab.GitLabStatusPush">
+<em class="property">class </em><code class="descclassname">buildbot.reporters.gitlab.</code><code class="descname">GitLabStatusPush</code><a class="headerlink" href="#buildbot.reporters.gitlab.GitLabStatusPush" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">reporters</span>
+
+<span class="n">gl</span> <span class="o">=</span> <span class="n">reporters</span><span class="o">.</span><span class="n">GitLabStatusPush</span><span class="p">(</span><span class="s1">&#39;private-token&#39;</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s1">&#39;continuous-integration/buildbot&#39;</span><span class="p">,</span> <span class="n">baseUrl</span><span class="o">=</span><span class="s1">&#39;https://git.yourcompany.com&#39;</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;services&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gl</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#GitLabStatusPush" title="GitLabStatusPush"><code class="xref py py-class docutils literal"><span class="pre">GitLabStatusPush</span></code></a> publishes build status using <a class="reference external" href="http://doc.gitlab.com/ce/api/commits.html#commit-status">GitLab Commit Status API</a>.
+The build status is published to a specific commit SHA in GitLab.</p>
+<p>It requires <a class="reference external" href="https://pypi.python.org/pypi/txrequests">txrequests</a> package to allow interaction with GitLab Commit Status API.</p>
+<p>It uses private token auth, and the token owner is required to have at least developer access to each repository. As a result, we recommend you use https in your base_url rather than http.</p>
+<dl class="class">
+<dt id="GitLabStatusPush">
+<em class="property">class </em><code class="descname">GitLabStatusPush</code><span class="sig-paren">(</span><em>token</em>, <em>startDescription=None</em>, <em>endDescription=None</em>, <em>context=None</em>, <em>baseURL=None</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#GitLabStatusPush" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>token</strong> (<em>string</em>) -- Private token of user permitted to update status for commits</li>
+<li><strong>startDescription</strong> (<em>string</em>) -- Description used when build starts</li>
+<li><strong>endDescription</strong> (<em>string</em>) -- Description used when build ends</li>
+<li><strong>context</strong> (<em>string</em>) -- Name of your build system, eg. continuous-integration/buildbot</li>
+<li><strong>baseURL</strong> (<em>string</em>) -- the base url of the GitLab host, up to and optionally including the first <cite>/</cite> of the path. Do not include /api/</li>
+<li><strong>verbose</strong> (<em>string</em>) -- Be more verbose</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="hipchatstatuspush">
+<span id="reporter-HipchatStatusPush"></span><h2><a class="toc-backref" href="#id16">2.4.11.9. HipchatStatusPush</a><a class="headerlink" href="#hipchatstatuspush" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.reporters.hipchat.HipchatStatusPush">
+<em class="property">class </em><code class="descclassname">buildbot.reporters.hipchat.</code><code class="descname">HipchatStatusPush</code><a class="headerlink" href="#buildbot.reporters.hipchat.HipchatStatusPush" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">reporters</span>
+
+<span class="n">hs</span> <span class="o">=</span> <span class="n">reporters</span><span class="o">.</span><span class="n">HipchatStatusPush</span><span class="p">(</span><span class="s1">&#39;private-token&#39;</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="s1">&#39;https://chat.yourcompany.com&#39;</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;services&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="xref py py-class docutils literal"><span class="pre">HipchatStatusPush</span></code> publishes a custom message using <a class="reference external" href="https://www.hipchat.com/docs/apiv2">Hipchat API v2</a>.
+The message is published to a user and/or room in Hipchat,</p>
+<p>It requires <a class="reference external" href="https://pypi.python.org/pypi/txrequests">txrequests</a> package to allow interaction with Hipchat API.</p>
+<p>It uses API token auth, and the token owner is required to have at least message/notification access to each destination.</p>
+<dl class="class">
+<dt>
+<code class="descname">HipchatStatusPush(auth_token, endpoint=&quot;https://api.hipchat.com&quot;,</code></dt>
+<dt>
+<code class="descname">builder_room_map=None, builder_user_map=None,</code></dt>
+<dt>
+<code class="descname">wantProperties=False, wantSteps=False, wantPreviousBuild=False, wantLogs=False)</code></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>auth_token</strong> (<em>string</em>) -- Private API token with access to the &quot;Send Message&quot; and &quot;Send Notification&quot; scopes.</li>
+<li><strong>endpoint</strong> (<em>string</em>) -- (optional) URL of your Hipchat server. Defaults to <a class="reference external" href="https://api.hipchat.com">https://api.hipchat.com</a></li>
+<li><strong>builder_room_map</strong> (<em>dictionary</em>) -- (optional) If specified, will forward events about a builder (based on name) to the corresponding room ID.</li>
+<li><strong>builder_user_map</strong> (<em>dictionary</em>) -- (optional) If specified, will forward events about a builder (based on name) to the corresponding user ID.</li>
+<li><strong>wantProperties</strong> (<em>boolean</em>) -- (optional) include 'properties' in the build dictionary</li>
+<li><strong>wantSteps</strong> (<em>boolean</em>) -- (optional) include 'steps' in the build dictionary</li>
+<li><strong>wantLogs</strong> (<em>boolean</em>) -- (optional) include 'logs' in the steps dictionaries.
+This needs wantSteps=True.
+This dumps the <em>full</em> content of logs.</li>
+<li><strong>wantPreviousBuild</strong> (<em>boolean</em>) -- (optional) include 'prev_build' in the build dictionary</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">No message will be sent if the message is empty or there is no destination found.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If a builder name appears in both the room and user map, the same message will be sent to both destinations.</p>
+</div>
+<div class="section" id="id2">
+<h3><a class="toc-backref" href="#id17">Json object spec</a><a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>The default json object contains the minimal required parameters to send a message to Hipchat.</p>
+<div class="highlight-json"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Buildbot started/finished build MyBuilderName (with result success) here: http://mybuildbot.com/#/builders/23&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;id_or_email&quot;</span><span class="p">:</span> <span class="s2">&quot;12&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>If you require different parameters, the Hipchat reporter utilizes the template design pattern and will call <a class="reference internal" href="#getRecipientList" title="getRecipientList"><code class="xref py py-func docutils literal"><span class="pre">getRecipientList</span></code></a> <a class="reference internal" href="#getMessage" title="getMessage"><code class="xref py py-func docutils literal"><span class="pre">getMessage</span></code></a> <a class="reference internal" href="#getExtraParams" title="getExtraParams"><code class="xref py py-func docutils literal"><span class="pre">getExtraParams</span></code></a>
+before sending a message. This allows you to easily override the default implementation for those methods. All of those methods can be deferred.</p>
+<p>Method signatures:</p>
+<dl class="method">
+<dt id="getRecipientList">
+<code class="descname">getRecipientList</code><span class="sig-paren">(</span><em>self</em>, <em>build</em>, <em>event_name</em><span class="sig-paren">)</span><a class="headerlink" href="#getRecipientList" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>build</strong> -- A <code class="xref py py-class docutils literal"><span class="pre">Build</span></code> object</li>
+<li><strong>event_name</strong> (<em>string</em>) -- the name of the event trigger for this invocation. either 'new' or 'finished'</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The deferred should return a dictionary containing the key(s) 'id_or_email' for a private user message and/or
+'room_id_or_name' for room notifications.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="getMessage">
+<code class="descname">getMessage</code><span class="sig-paren">(</span><em>self</em>, <em>build</em>, <em>event_name</em><span class="sig-paren">)</span><a class="headerlink" href="#getMessage" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>build</strong> -- A <code class="xref py py-class docutils literal"><span class="pre">Build</span></code> object</li>
+<li><strong>event_name</strong> (<em>string</em>) -- the name of the event trigger for this invocation. either 'new' or 'finished'</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The deferred should return a string to send to Hipchat.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="getExtraParams">
+<code class="descname">getExtraParams</code><span class="sig-paren">(</span><em>self</em>, <em>build</em>, <em>event_name</em><span class="sig-paren">)</span><a class="headerlink" href="#getExtraParams" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>build</strong> -- A <code class="xref py py-class docutils literal"><span class="pre">Build</span></code> object</li>
+<li><strong>event_name</strong> (<em>string</em>) -- the name of the event trigger for this invocation. either 'new' or 'finished'</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The deferred should return a dictionary containing any extra parameters you wish to include in your JSON POST
+request that the Hipchat API can consume.</p>
+</dd></dl>
+
+<p>Here's a complete example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyHipchatStatusPush</span><span class="p">(</span><span class="n">HipChatStatusPush</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;MyHipchatStatusPush&quot;</span>
+
+    <span class="c1"># send all messages to the same room</span>
+    <span class="k">def</span> <span class="nf">getRecipientList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">build</span><span class="p">,</span> <span class="n">event_name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;room_id_or_name&#39;</span><span class="p">:</span> <span class="s1">&#39;AllBuildNotifications&#39;</span>
+        <span class="p">}</span>
+
+    <span class="c1"># only send notifications on finished events</span>
+    <span class="k">def</span> <span class="nf">getMessage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">build</span><span class="p">,</span> <span class="n">event_name</span><span class="p">):</span>
+        <span class="n">event_messages</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;finished&#39;</span><span class="p">:</span> <span class="s1">&#39;Build finished.&#39;</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">event_messages</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event_name</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="c1"># color notifications based on the build result</span>
+    <span class="c1"># and alert room on build failure</span>
+    <span class="k">def</span> <span class="nf">getExtraParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">build</span><span class="p">,</span> <span class="n">event_name</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">event_name</span> <span class="o">==</span> <span class="s1">&#39;finished&#39;</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;green&#39;</span> <span class="k">if</span> <span class="n">build</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;red&#39;</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;notify&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">build</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="gerritverifystatuspush">
+<span id="reporter-GerritVerifyStatusPush"></span><h2><a class="toc-backref" href="#id18">2.4.11.10. GerritVerifyStatusPush</a><a class="headerlink" href="#gerritverifystatuspush" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="buildbot.status.status_gerrit_verify_status.GerritVerifyStatusPush">
+<em class="property">class </em><code class="descclassname">buildbot.status.status_gerrit_verify_status.</code><code class="descname">GerritVerifyStatusPush</code><a class="headerlink" href="#buildbot.status.status_gerrit_verify_status.GerritVerifyStatusPush" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><code class="xref py py-class docutils literal"><span class="pre">GerritVerifyStatusPush</span></code> sends a verify status to Gerrit using the <a class="reference external" href="https://gerrit.googlesource.com/plugins/verify-status">verify-status</a> Gerrit plugin.</p>
+<p>It is an alternate method to <a class="reference internal" href="#reporter-GerritStatusPush" title="GerritStatusPush"><code class="xref bb bb-reporter docutils literal"><span class="pre">GerritStatusPush</span></code></a>, which uses the SSH API to send reviews.</p>
+<p>The <a class="reference external" href="https://gerrit.googlesource.com/plugins/verify-status">verify-status</a> plugin allows several CI statuses to be sent for the same change, and display them separately in the Gerrit UI.</p>
+<p>Most parameters are <span class="target" id="index-3"></span>renderables</p>
+<dl class="class">
+<dt>
+<code class="descname">GerritVerifyStatusPush(</code></dt>
+<dt>
+<code class="descname">baseURL, auth,</code></dt>
+<dt>
+<code class="descname">startDescription=&quot;Build started.&quot;, endDescription=&quot;Build done.&quot;,</code></dt>
+<dt>
+<code class="descname">verification_name=Interpolate(&quot;%(prop:buildername)s&quot;), abstain=False, category=None, reporter=None,</code></dt>
+<dt>
+<code class="descname">verbose=False, **kwargs)</code></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>baseURL</strong> (<em>string</em>) -- Gerrit HTTP base URL</li>
+<li><strong>auth</strong> (<em>string</em>) -- a requests authentication configuration.
+if Gerrit is configured with <code class="docutils literal"><span class="pre">BasicAuth</span></code>, then it shall be <code class="docutils literal"><span class="pre">('login',</span> <span class="pre">'password')</span></code>
+if Gerrit is configured with <code class="docutils literal"><span class="pre">DigestAuth</span></code>, then it shall be <code class="docutils literal"><span class="pre">requests.auth.HTTPDigestAuth('login',</span> <span class="pre">'password')</span></code> from the requests module.</li>
+<li><strong>string startDescription</strong> (<em>renderable</em>) -- the comment sent when the build is starting.</li>
+<li><strong>string endDescription</strong> (<em>renderable</em>) -- the comment sent when the build is finishing.</li>
+<li><strong>string verification_name</strong> (<em>renderable</em>) -- the name of the job displayed in the Gerrit UI.</li>
+<li><strong>boolean abstain</strong> (<em>renderable</em>) -- whether this results should be counted as voting.</li>
+<li><strong>boolean category</strong> (<em>renderable</em>) -- Category of the build.</li>
+<li><strong>boolean reporter</strong> (<em>renderable</em>) -- The user that verified this build</li>
+<li><strong>verbose</strong> (<em>boolean</em>) -- Whether to log every requests.</li>
+<li><strong>builders</strong> (<em>list</em>) -- only send update for specified builders</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>This reporter is integrated with <code class="xref py py-class docutils literal"><span class="pre">GerritChangeSource</span></code>, and will update changes detected by this change source.</p>
+<p>This reporter can also send reports for changes triggered manually provided that there is a property in the build named <code class="docutils literal"><span class="pre">gerrit_changes</span></code>, containing the list of changes that were tested.
+This property must be a list of dictionaries, containing <code class="docutils literal"><span class="pre">change_id</span></code> and <code class="docutils literal"><span class="pre">revision_id</span></code> keys, as defined in the revision endpoints of the <a class="reference external" href="https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#revision-endpoints">Gerrit documentation</a></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/header-text-transparent.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script><h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="configuration.html">2.4. Configuration</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="cfg-intro.html">2.4.1. Configuring Buildbot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-global.html">2.4.2. Global Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-changesources.html">2.4.3. Change Sources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-schedulers.html">2.4.4. Schedulers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-workers.html">2.4.5. Workers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-builders.html">2.4.6. Builder Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-buildfactories.html">2.4.7. Build Factories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-properties.html">2.4.8. Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-buildsteps.html">2.4.9. Build Steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-interlocks.html">2.4.10. Interlocks</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">2.4.11. Reporters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-www.html">2.4.12. Web Server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-wwwhooks.html">2.4.13. Change Hooks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-services.html">2.4.14. Custom Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-dbconfig.html">2.4.15. DbConfig</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="worker-transition.html">2.5. Transition to &quot;worker&quot; terminology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="customization.html">2.6. Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="new-style-steps.html">2.7. New-Style Build Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmdline.html">2.8. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resources.html">2.9. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html">2.10. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins.html">2.11. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deploy.html">2.12. Deployment</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../indices.html">6. Indices and Tables</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="cfg-interlocks.html"
+                        title="previous chapter">2.4.10. Interlocks</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="cfg-www.html"
+                        title="next chapter">2.4.12. Web Server</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/manual/cfg-reporters.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>
