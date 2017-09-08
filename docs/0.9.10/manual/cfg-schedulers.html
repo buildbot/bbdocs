@@ -1,0 +1,1205 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>2.5.4. Schedulers &#8212; Buildbot 0.9.10 documentation</title>
+    <link rel="stylesheet" href="../_static/qtile.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/buildbot.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="2.5.5. Workers" href="cfg-workers.html" />
+    <link rel="prev" title="2.5.3. Change Sources" href="cfg-changesources.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="cfg-workers.html" title="2.5.5. Workers"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cfg-changesources.html" title="2.5.3. Change Sources"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Buildbot 0.9.10 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >2. Buildbot Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="configuration.html" accesskey="U">2.5. Configuration</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="schedulers">
+<span id="id1"></span><h1>2.5.4. Schedulers<a class="headerlink" href="#schedulers" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#configuring-schedulers" id="id11">Configuring Schedulers</a></li>
+<li><a class="reference internal" href="#scheduler-resiliency" id="id12">Scheduler Resiliency</a></li>
+<li><a class="reference internal" href="#change-filters" id="id13">Change Filters</a></li>
+<li><a class="reference internal" href="#scheduler-types" id="id14">Scheduler Types</a><ul>
+<li><a class="reference internal" href="#singlebranchscheduler" id="id15">SingleBranchScheduler</a></li>
+<li><a class="reference internal" href="#anybranchscheduler" id="id16">AnyBranchScheduler</a></li>
+<li><a class="reference internal" href="#dependent-scheduler" id="id17">Dependent Scheduler</a></li>
+<li><a class="reference internal" href="#periodic-scheduler" id="id18">Periodic Scheduler</a></li>
+<li><a class="reference internal" href="#nightly-scheduler" id="id19">Nightly Scheduler</a></li>
+<li><a class="reference internal" href="#try-schedulers" id="id20">Try Schedulers</a></li>
+<li><a class="reference internal" href="#triggerable-scheduler" id="id21">Triggerable Scheduler</a></li>
+<li><a class="reference internal" href="#nightlytriggerable-scheduler" id="id22">NightlyTriggerable Scheduler</a></li>
+<li><a class="reference internal" href="#forcescheduler-scheduler" id="id23">ForceScheduler Scheduler</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<p>Schedulers are responsible for initiating builds on builders.</p>
+<p>Some schedulers listen for changes from ChangeSources and generate build sets in response to these changes.
+Others generate build sets without changes, based on other events in the buildmaster.</p>
+<div class="section" id="configuring-schedulers">
+<span id="id2"></span><h2><a class="toc-backref" href="#id11">2.5.4.1. Configuring Schedulers</a><a class="headerlink" href="#configuring-schedulers" title="Permalink to this headline">¶</a></h2>
+<p id="cfg-schedulers">The <a class="reference internal" href="#cfg-schedulers" title="schedulers"><code class="xref bb bb-cfg docutils literal"><span class="pre">schedulers</span></code></a> configuration parameter gives a list of scheduler instances, each of which causes builds to be started on a particular set of Builders.
+The two basic scheduler classes you are likely to start with are <a class="reference internal" href="#sched-SingleBranchScheduler" title="SingleBranchScheduler"><code class="xref bb bb-sched docutils literal"><span class="pre">SingleBranchScheduler</span></code></a> and <a class="reference internal" href="#sched-Periodic" title="Periodic"><code class="xref bb bb-sched docutils literal"><span class="pre">Periodic</span></code></a>, but you can write a customized subclass to implement more complicated build scheduling.</p>
+<p>Scheduler arguments should always be specified by name (as keyword arguments), to allow for future expansion:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sched</span> <span class="o">=</span> <span class="n">SingleBranchScheduler</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;quick&quot;</span><span class="p">,</span> <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lin&#39;</span><span class="p">,</span> <span class="s1">&#39;win&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>There are several common arguments for schedulers, although not all are available with all schedulers.</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">name</span></code></dt>
+<dd>Each Scheduler must have a unique name.
+This is used in status displays, and is also available in the build property <code class="docutils literal"><span class="pre">scheduler</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">builderNames</span></code></dt>
+<dd>This is the set of builders which this scheduler should trigger, specified as a list of names (strings).</dd>
+</dl>
+<dl class="docutils" id="index-0">
+<dt><code class="docutils literal"><span class="pre">properties</span></code></dt>
+<dd><p class="first">This is a dictionary specifying properties that will be transmitted to all builds started by this scheduler.
+The <code class="docutils literal"><span class="pre">owner</span></code> property may be of particular interest, as its contents (as a list) will be added to the list of “interested users” (<a class="reference internal" href="concepts.html#doing-things-with-users"><span class="std std-ref">Doing Things With Users</span></a>) for each triggered build.
+For example</p>
+<div class="last highlight-python"><div class="highlight"><pre><span></span><span class="n">sched</span> <span class="o">=</span> <span class="n">Scheduler</span><span class="p">(</span><span class="o">...</span><span class="p">,</span>
+    <span class="n">properties</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;owner&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;zorro@example.com&#39;</span><span class="p">,</span> <span class="s1">&#39;silver@example.com&#39;</span><span class="p">]</span>
+    <span class="p">})</span>
+</pre></div>
+</div>
+</dd>
+<dt><code class="docutils literal"><span class="pre">fileIsImportant</span></code></dt>
+<dd>A callable which takes one argument, a Change instance, and returns <code class="docutils literal"><span class="pre">True</span></code> if the change is worth building, and <code class="docutils literal"><span class="pre">False</span></code> if it is not.
+Unimportant Changes are accumulated until the build is triggered by an important change.
+The default value of None means that all Changes are important.</dd>
+<dt><code class="docutils literal"><span class="pre">change_filter</span></code></dt>
+<dd>The change filter that will determine which changes are recognized by this scheduler; <a class="reference internal" href="#change-filters"><span class="std std-ref">Change Filters</span></a>.
+Note that this is different from <code class="docutils literal"><span class="pre">fileIsImportant</span></code>: if the change filter filters out a Change, then it is completely ignored by the scheduler.
+If a Change is allowed by the change filter, but is deemed unimportant, then it will not cause builds to start, but will be remembered and shown in status displays.</dd>
+<dt><code class="docutils literal"><span class="pre">codebases</span></code></dt>
+<dd><p class="first">When the scheduler processes data from more than one repository at the same time, a corresponding codebase definition should be passed for each repository.</p>
+<p>This parameter can be specified either as a list of strings (simplest form; use if no special
+overrides are needed) or as a dictionary of dictionaries (where each dict is a codebase definition
+as described next).</p>
+<p>Each codebase definition is a dictionary with any of the keys: <code class="docutils literal"><span class="pre">repository</span></code>, <code class="docutils literal"><span class="pre">branch</span></code>, <code class="docutils literal"><span class="pre">revision</span></code>.
+The codebase definitions are combined in a dictionary keyed by the name of the codebase.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">codebases</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;codebase1&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;repository&#39;</span><span class="p">:</span><span class="s1">&#39;....&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;branch&#39;</span><span class="p">:</span><span class="s1">&#39;default&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;revision&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">},</span>
+             <span class="s1">&#39;codebase2&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;repository&#39;</span><span class="p">:</span><span class="s1">&#39;....&#39;</span><span class="p">}</span> <span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">The <code class="docutils literal"><span class="pre">codebases</span></code> parameter is only used to fill in missing details about a codebases when scheduling a build.
+For example, when a change to codebase <code class="docutils literal"><span class="pre">A</span></code> occurs, a scheduler must invent a sourcestamp for codebase <code class="docutils literal"><span class="pre">B</span></code>.
+The parameter does not act as a filter on incoming changes – use a change filter for that purpose.</p>
+</div>
+<p class="last">Source steps can specify a codebase to which they will apply, and will use the sourcestamp for that codebase.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">onlyImportant</span></code></dt>
+<dd>A boolean that, when <code class="docutils literal"><span class="pre">True</span></code>, only adds important changes to the buildset as specified in the <code class="docutils literal"><span class="pre">fileIsImportant</span></code> callable.
+This means that unimportant changes are ignored the same way a <code class="docutils literal"><span class="pre">change_filter</span></code> filters changes.
+This defaults to <code class="docutils literal"><span class="pre">False</span></code> and only applies when <code class="docutils literal"><span class="pre">fileIsImportant</span></code> is given.</dd>
+<dt><code class="docutils literal"><span class="pre">reason</span></code></dt>
+<dd>A string that will be used as the reason for the triggered build.</dd>
+</dl>
+<p>The remaining subsections represent a catalog of the available scheduler types.
+All these schedulers are defined in modules under <code class="xref py py-mod docutils literal"><span class="pre">buildbot.schedulers</span></code>, and the docstrings there are the best source of documentation on the arguments taken by each one.</p>
+</div>
+<div class="section" id="scheduler-resiliency">
+<h2><a class="toc-backref" href="#id12">2.5.4.2. Scheduler Resiliency</a><a class="headerlink" href="#scheduler-resiliency" title="Permalink to this headline">¶</a></h2>
+<p>In a multi-master configuration, schedulers with the same name can be configured on multiple masters.
+Only one instance of the scheduler will be active.
+If that instance becomes inactive, due to its master being shut down or failing, then another instance will become active after a short delay.
+This provides resiliency in scheduler configurations, so that schedulers are not a single point of failure in a Buildbot infrastructure.</p>
+<p>The Data API and web UI display the master on which each scheduler is running.</p>
+<p>There is currently no mechanism to control which master’s scheduler instance becomes active.
+The behavior is nondeterministic, based on the timing of polling by inactive schedulers.
+The failover is non-revertive.</p>
+</div>
+<div class="section" id="change-filters">
+<span id="id3"></span><h2><a class="toc-backref" href="#id13">2.5.4.3. Change Filters</a><a class="headerlink" href="#change-filters" title="Permalink to this headline">¶</a></h2>
+<p>Several schedulers perform filtering on an incoming set of changes.
+The filter can most generically be specified as a <code class="xref py py-class docutils literal"><span class="pre">ChangeFilter</span></code>.
+Set up a <code class="xref py py-class docutils literal"><span class="pre">ChangeFilter</span></code> like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">util</span>
+<span class="n">my_filter</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">ChangeFilter</span><span class="p">(</span><span class="n">project_re</span><span class="o">=</span><span class="s2">&quot;^baseproduct/.*&quot;</span><span class="p">,</span> <span class="n">branch</span><span class="o">=</span><span class="s2">&quot;devel&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>and then add it to a scheduler with the <code class="docutils literal"><span class="pre">change_filter</span></code> parameter:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sch</span> <span class="o">=</span> <span class="n">SomeSchedulerClass</span><span class="p">(</span><span class="o">...</span><span class="p">,</span>
+    <span class="n">change_filter</span><span class="o">=</span><span class="n">my_filter</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>There are five attributes of changes on which you can filter:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">project</span></code></dt>
+<dd>the project string, as defined by the ChangeSource.</dd>
+<dt><code class="docutils literal"><span class="pre">repository</span></code></dt>
+<dd>the repository in which this change occurred.</dd>
+<dt><code class="docutils literal"><span class="pre">branch</span></code></dt>
+<dd>the branch on which this change occurred.
+Note that ‘trunk’ or ‘master’ is often denoted by <code class="docutils literal"><span class="pre">None</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">category</span></code></dt>
+<dd>the category, again as defined by the ChangeSource.</dd>
+<dt><code class="docutils literal"><span class="pre">codebase</span></code></dt>
+<dd>the change’s codebase.</dd>
+</dl>
+<p>For each attribute, the filter can look for a single, specific value:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">my_filter</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">ChangeFilter</span><span class="p">(</span><span class="n">project</span><span class="o">=</span><span class="s1">&#39;myproject&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>or accept any of a set of values:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">my_filter</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">ChangeFilter</span><span class="p">(</span><span class="n">project</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;myproject&#39;</span><span class="p">,</span> <span class="s1">&#39;jimsproject&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>or apply a regular expression, using the attribute name with a “<code class="docutils literal"><span class="pre">_re</span></code>” suffix:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">my_filter</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">ChangeFilter</span><span class="p">(</span><span class="n">category_re</span><span class="o">=</span><span class="s1">&#39;.*deve.*&#39;</span><span class="p">)</span>
+<span class="c1"># or, to use regular expression flags:</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="n">my_filter</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">ChangeFilter</span><span class="p">(</span><span class="n">category_re</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;.*deve.*&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">))</span>
+</pre></div>
+</div>
+<p><code class="xref py py-class docutils literal"><span class="pre">buildbot.status.web.hooks.github.GitHubEventHandler</span></code> has a special
+<code class="docutils literal"><span class="pre">github_distinct</span></code> property that can be used to filter whether or not
+non-distinct changes should be considered. For example, if a commit is pushed to
+a branch that is not being watched and then later pushed to a watched branch, by
+default, this will be recorded as two separate Changes. In order to record a
+change only the first time the commit appears, you can install a custom
+<code class="xref py py-class docutils literal"><span class="pre">ChangeFilter</span></code> like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ChangeFilter</span><span class="p">(</span><span class="n">filter_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s1">&#39;github_distinct&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For anything more complicated, define a Python function to recognize the strings you want:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">my_branch_fn</span><span class="p">(</span><span class="n">branch</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">branch</span> <span class="ow">in</span> <span class="n">branches_to_build</span> <span class="ow">and</span> <span class="n">branch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">branches_to_ignore</span>
+<span class="n">my_filter</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">ChangeFilter</span><span class="p">(</span><span class="n">branch_fn</span><span class="o">=</span><span class="n">my_branch_fn</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The special argument <code class="docutils literal"><span class="pre">filter_fn</span></code> can be used to specify a function that is given the entire Change object, and returns a boolean.</p>
+<p>The entire set of allowed arguments, then, is</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="29%" />
+<col width="36%" />
+<col width="36%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>project</td>
+<td>project_re</td>
+<td>project_fn</td>
+</tr>
+<tr class="row-even"><td>repository</td>
+<td>repository_re</td>
+<td>repository_fn</td>
+</tr>
+<tr class="row-odd"><td>branch</td>
+<td>branch_re</td>
+<td>branch_fn</td>
+</tr>
+<tr class="row-even"><td>category</td>
+<td>category_re</td>
+<td>category_fn</td>
+</tr>
+<tr class="row-odd"><td>codebase</td>
+<td>codebase_re</td>
+<td>codebase_fn</td>
+</tr>
+<tr class="row-even"><td colspan="3">filter_fn</td>
+</tr>
+</tbody>
+</table>
+<p>A Change passes the filter only if <em>all</em> arguments are satisfied.
+If no filter object is given to a scheduler, then all changes will be built (subject to any other restrictions the scheduler enforces).</p>
+</div>
+<div class="section" id="scheduler-types">
+<h2><a class="toc-backref" href="#id14">2.5.4.4. Scheduler Types</a><a class="headerlink" href="#scheduler-types" title="Permalink to this headline">¶</a></h2>
+<p>The remaining subsections represent a catalog of the available Scheduler types.
+All these Schedulers are defined in modules under <code class="xref py py-mod docutils literal"><span class="pre">buildbot.schedulers</span></code>, and the docstrings there are the best source of documentation on the arguments taken by each one.</p>
+<span class="target" id="sched-SingleBranchScheduler"></span><div class="section" id="singlebranchscheduler">
+<span id="scheduler-singlebranchscheduler"></span><span id="sched-Scheduler"></span><h3><a class="toc-backref" href="#id15">SingleBranchScheduler</a><a class="headerlink" href="#singlebranchscheduler" title="Permalink to this headline">¶</a></h3>
+<p>This is the original and still most popular scheduler class.
+It follows exactly one branch, and starts a configurable tree-stable-timer after each change on that branch.
+When the timer expires, it starts a build on some set of Builders.
+This scheduler accepts a <code class="xref py py-meth docutils literal"><span class="pre">fileIsImportant</span></code> function which can be used to ignore some Changes if they do not affect any <em>important</em> files.</p>
+<p>If <code class="docutils literal"><span class="pre">treeStableTimer</span></code> is not set, then this scheduler starts a build for every Change that matches its <code class="docutils literal"><span class="pre">change_filter</span></code> and statsfies <code class="xref py py-meth docutils literal"><span class="pre">fileIsImportant</span></code>.
+If <code class="docutils literal"><span class="pre">treeStableTimer</span></code> is set, then a build is triggered for each set of Changes which arrive within the configured time, and match the filters.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The behavior of this scheduler is undefined, if <code class="docutils literal"><span class="pre">treeStableTimer</span></code> is set, and changes from multiple branches, repositories or codebases are accepted by the filter.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <code class="docutils literal"><span class="pre">codebases</span></code> argument will filter out codebases not specified there, but <em>won’t</em> filter based on the branches specified there.</p>
+</div>
+<p>The arguments to this scheduler are:</p>
+<p><code class="docutils literal"><span class="pre">name</span></code></p>
+<p><code class="docutils literal"><span class="pre">builderNames</span></code></p>
+<p><code class="docutils literal"><span class="pre">properties</span></code></p>
+<p><code class="docutils literal"><span class="pre">fileIsImportant</span></code></p>
+<p><code class="docutils literal"><span class="pre">change_filter</span></code></p>
+<p><code class="docutils literal"><span class="pre">onlyImportant</span></code></p>
+<p><code class="docutils literal"><span class="pre">reason</span></code></p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">treeStableTimer</span></code></dt>
+<dd><p class="first">The scheduler will wait for this many seconds before starting the build.
+If new changes are made during this interval, the timer will be restarted, so really the build will be started after a change and then after this many seconds of inactivity.</p>
+<p class="last">If <code class="docutils literal"><span class="pre">treeStableTimer</span></code> is <code class="docutils literal"><span class="pre">None</span></code>, then a separate build is started immediately for each Change.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">fileIsImportant</span></code></dt>
+<dd>A callable which takes one argument, a Change instance, and returns <code class="docutils literal"><span class="pre">True</span></code> if the change is worth building, and <code class="docutils literal"><span class="pre">False</span></code> if it is not.
+Unimportant Changes are accumulated until the build is triggered by an important change.
+The default value of None means that all Changes are important.</dd>
+<dt><code class="docutils literal"><span class="pre">categories</span></code> (deprecated; use change_filter)</dt>
+<dd>A list of categories of changes that this scheduler will respond to.
+If this is specified, then any non-matching changes are ignored.</dd>
+<dt><code class="docutils literal"><span class="pre">branch</span></code> (deprecated; use change_filter)</dt>
+<dd><p class="first">The scheduler will pay attention to this branch, ignoring Changes that occur on other branches.
+Setting <code class="docutils literal"><span class="pre">branch</span></code> equal to the special value of <code class="docutils literal"><span class="pre">None</span></code> means it should only pay attention to the default branch.</p>
+<div class="last admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><code class="docutils literal"><span class="pre">None</span></code> is a keyword, not a string, so write <code class="docutils literal"><span class="pre">None</span></code> and not <code class="docutils literal"><span class="pre">&quot;None&quot;</span></code>.</p>
+</div>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">schedulers</span><span class="p">,</span> <span class="n">util</span>
+<span class="n">quick</span> <span class="o">=</span> <span class="n">schedulers</span><span class="o">.</span><span class="n">SingleBranchScheduler</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;quick&quot;</span><span class="p">,</span>
+            <span class="n">change_filter</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">ChangeFilter</span><span class="p">(</span><span class="n">branch</span><span class="o">=</span><span class="s1">&#39;master&#39;</span><span class="p">),</span>
+            <span class="n">treeStableTimer</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+            <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;quick-linux&quot;</span><span class="p">,</span> <span class="s2">&quot;quick-netbsd&quot;</span><span class="p">])</span>
+<span class="n">full</span> <span class="o">=</span> <span class="n">schedulers</span><span class="o">.</span><span class="n">SingleBranchScheduler</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;full&quot;</span><span class="p">,</span>
+            <span class="n">change_filter</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">ChangeFilter</span><span class="p">(</span><span class="n">branch</span><span class="o">=</span><span class="s1">&#39;master&#39;</span><span class="p">),</span>
+            <span class="n">treeStableTimer</span><span class="o">=</span><span class="mi">5</span><span class="o">*</span><span class="mi">60</span><span class="p">,</span>
+            <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;full-linux&quot;</span><span class="p">,</span> <span class="s2">&quot;full-netbsd&quot;</span><span class="p">,</span> <span class="s2">&quot;full-OSX&quot;</span><span class="p">])</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;schedulers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">quick</span><span class="p">,</span> <span class="n">full</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>In this example, the two <em>quick</em> builders are triggered 60 seconds after the tree has been changed.
+The <em>full</em> builds do not run quite so quickly (they wait 5 minutes), so hopefully if the quick builds fail due to a missing file or really simple typo, the developer can discover and fix the problem before the full builds are started.
+Both schedulers only pay attention to the default branch: any changes on other branches are ignored.
+Each scheduler triggers a different set of Builders, referenced by name.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The old names for this scheduler, <code class="docutils literal"><span class="pre">buildbot.scheduler.Scheduler</span></code> and <code class="docutils literal"><span class="pre">buildbot.schedulers.basic.Scheduler</span></code>, are deprecated in favor of using <code class="xref py py-mod docutils literal"><span class="pre">buildbot.plugins</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">schedulers</span>
+</pre></div>
+</div>
+<p class="last">However if you must use a fully qualified name, it is <code class="docutils literal"><span class="pre">buildbot.schedulers.basic.SingleBranchScheduler</span></code>.</p>
+</div>
+</div>
+<div class="section" id="anybranchscheduler">
+<span id="sched-AnyBranchScheduler"></span><span id="id4"></span><h3><a class="toc-backref" href="#id16">AnyBranchScheduler</a><a class="headerlink" href="#anybranchscheduler" title="Permalink to this headline">¶</a></h3>
+<p>This scheduler uses a tree-stable-timer like the default one, but uses a separate timer for each branch.</p>
+<p>If <code class="docutils literal"><span class="pre">treeStableTimer</span></code> is not set, then this scheduler is indistinguishable from <a class="reference internal" href="#sched-SingleBranchScheduler" title="SingleBranchScheduler"><code class="xref bb bb-sched docutils literal"><span class="pre">SingleBranchScheduler</span></code></a>.
+If <code class="docutils literal"><span class="pre">treeStableTimer</span></code> is set, then a build is triggered for each set of Changes which arrive within the configured time, and match the filters.</p>
+<p>The arguments to this scheduler are:</p>
+<p><code class="docutils literal"><span class="pre">name</span></code></p>
+<p><code class="docutils literal"><span class="pre">builderNames</span></code></p>
+<p><code class="docutils literal"><span class="pre">properties</span></code></p>
+<p><code class="docutils literal"><span class="pre">fileIsImportant</span></code></p>
+<p><code class="docutils literal"><span class="pre">change_filter</span></code></p>
+<p><code class="docutils literal"><span class="pre">onlyImportant</span></code></p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">reason</span></code></dt>
+<dd>See <a class="reference internal" href="#configuring-schedulers"><span class="std std-ref">Configuring Schedulers</span></a>.</dd>
+<dt><code class="docutils literal"><span class="pre">treeStableTimer</span></code></dt>
+<dd>The scheduler will wait for this many seconds before starting the build.
+If new changes are made <em>on the same branch</em> during this interval, the timer will be restarted.</dd>
+<dt><code class="docutils literal"><span class="pre">branches</span></code> (deprecated; use change_filter)</dt>
+<dd>Changes on branches not specified on this list will be ignored.</dd>
+<dt><code class="docutils literal"><span class="pre">categories</span></code> (deprecated; use change_filter)</dt>
+<dd>A list of categories of changes that this scheduler will respond to.
+If this is specified, then any non-matching changes are ignored.</dd>
+</dl>
+</div>
+<div class="section" id="dependent-scheduler">
+<span id="sched-Dependent"></span><span id="id5"></span><h3><a class="toc-backref" href="#id17">Dependent Scheduler</a><a class="headerlink" href="#dependent-scheduler" title="Permalink to this headline">¶</a></h3>
+<p>It is common to wind up with one kind of build which should only be performed if the same source code was successfully handled by some other kind of build first.
+An example might be a packaging step: you might only want to produce .deb or RPM packages from a tree that was known to compile successfully and pass all unit tests.
+You could put the packaging step in the same Build as the compile and testing steps, but there might be other reasons to not do this (in particular you might have several Builders worth of compiles/tests, but only wish to do the packaging once).
+Another example is if you want to skip the <em>full</em> builds after a failing <em>quick</em> build of the same source code.
+Or, if one Build creates a product (like a compiled library) that is used by some other Builder, you’d want to make sure the consuming Build is run <em>after</em> the producing one.</p>
+<p>You can use <em>dependencies</em> to express this relationship to the Buildbot.
+There is a special kind of scheduler named <a class="reference internal" href="#sched-Dependent" title="Dependent"><code class="xref bb bb-sched docutils literal"><span class="pre">Dependent</span></code></a> that will watch an <em>upstream</em> scheduler for builds to complete successfully (on all of its Builders).
+Each time that happens, the same source code (i.e. the same <code class="docutils literal"><span class="pre">SourceStamp</span></code>) will be used to start a new set of builds, on a different set of Builders.
+This <em>downstream</em> scheduler doesn’t pay attention to Changes at all.
+It only pays attention to the upstream scheduler.</p>
+<p>If the build fails on any of the Builders in the upstream set, the downstream builds will not fire.
+Note that, for SourceStamps generated by a <a class="reference internal" href="#sched-Dependent" title="Dependent"><code class="xref bb bb-sched docutils literal"><span class="pre">Dependent</span></code></a> scheduler, the <code class="docutils literal"><span class="pre">revision</span></code> is <code class="docutils literal"><span class="pre">None</span></code>, meaning HEAD.
+If any changes are committed between the time the upstream scheduler begins its build and the time the dependent scheduler begins its build, then those changes will be included in the downstream build.
+See the <a class="reference internal" href="#sched-Triggerable" title="Triggerable"><code class="xref bb bb-sched docutils literal"><span class="pre">Triggerable</span></code></a> scheduler for a more flexible dependency mechanism that can avoid this problem.</p>
+<p>The keyword arguments to this scheduler are:</p>
+<p><code class="docutils literal"><span class="pre">name</span></code></p>
+<p><code class="docutils literal"><span class="pre">builderNames</span></code></p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">properties</span></code></dt>
+<dd>See <a class="reference internal" href="#configuring-schedulers"><span class="std std-ref">Configuring Schedulers</span></a>.</dd>
+<dt><code class="docutils literal"><span class="pre">upstream</span></code></dt>
+<dd>The upstream scheduler to watch.
+Note that this is an <em>instance</em>, not the name of the scheduler.</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">schedulers</span>
+<span class="n">tests</span> <span class="o">=</span> <span class="n">schedulers</span><span class="o">.</span><span class="n">SingleBranchScheduler</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;just-tests&quot;</span><span class="p">,</span>
+                                         <span class="n">treeStableTimer</span><span class="o">=</span><span class="mi">5</span><span class="o">*</span><span class="mi">60</span><span class="p">,</span>
+                                         <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;full-linux&quot;</span><span class="p">,</span>
+                                                       <span class="s2">&quot;full-netbsd&quot;</span><span class="p">,</span>
+                                                       <span class="s2">&quot;full-OSX&quot;</span><span class="p">])</span>
+<span class="n">package</span> <span class="o">=</span> <span class="n">schedulers</span><span class="o">.</span><span class="n">Dependent</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;build-package&quot;</span><span class="p">,</span>
+                               <span class="n">upstream</span><span class="o">=</span><span class="n">tests</span><span class="p">,</span> <span class="c1"># &lt;- no quotes!</span>
+                               <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;make-tarball&quot;</span><span class="p">,</span> <span class="s2">&quot;make-deb&quot;</span><span class="p">,</span>
+                                             <span class="s2">&quot;make-rpm&quot;</span><span class="p">])</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;schedulers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">tests</span><span class="p">,</span> <span class="n">package</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="periodic-scheduler">
+<span id="sched-Periodic"></span><span id="id6"></span><h3><a class="toc-backref" href="#id18">Periodic Scheduler</a><a class="headerlink" href="#periodic-scheduler" title="Permalink to this headline">¶</a></h3>
+<p>This simple scheduler just triggers a build every <em>N</em> seconds.</p>
+<p>The arguments to this scheduler are:</p>
+<p><code class="docutils literal"><span class="pre">name</span></code></p>
+<p><code class="docutils literal"><span class="pre">builderNames</span></code></p>
+<p><code class="docutils literal"><span class="pre">properties</span></code></p>
+<p><code class="docutils literal"><span class="pre">onlyImportant</span></code></p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">createAbsoluteSourceStamps</span></code></dt>
+<dd>This option only has effect when using multiple codebases.
+When <code class="docutils literal"><span class="pre">True</span></code>, it uses the last seen revision for each codebase that does not have a change.
+When <code class="docutils literal"><span class="pre">False</span></code>, the default value, codebases without changes will use the revision from the <code class="docutils literal"><span class="pre">codebases</span></code> argument.</dd>
+<dt><code class="docutils literal"><span class="pre">onlyIfChanged</span></code></dt>
+<dd>If this is true, then builds will not be scheduled at the designated time
+<em>unless</em> the specified branch has seen an important change since
+the previous build.</dd>
+<dt><code class="docutils literal"><span class="pre">reason</span></code></dt>
+<dd>See <a class="reference internal" href="#configuring-schedulers"><span class="std std-ref">Configuring Schedulers</span></a>.</dd>
+<dt><code class="docutils literal"><span class="pre">periodicBuildTimer</span></code></dt>
+<dd>The time, in seconds, after which to start a build.</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">schedulers</span>
+<span class="n">nightly</span> <span class="o">=</span> <span class="n">schedulers</span><span class="o">.</span><span class="n">Periodic</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;daily&quot;</span><span class="p">,</span>
+                              <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;full-solaris&quot;</span><span class="p">],</span>
+                              <span class="n">periodicBuildTimer</span><span class="o">=</span><span class="mi">24</span><span class="o">*</span><span class="mi">60</span><span class="o">*</span><span class="mi">60</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;schedulers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">nightly</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The scheduler in this example just runs the full solaris build once per day.
+Note that this scheduler only lets you control the time between builds, not the absolute time-of-day of each Build, so this could easily wind up an <em>evening</em> or <em>every afternoon</em> scheduler depending upon when it was first activated.</p>
+</div>
+<div class="section" id="nightly-scheduler">
+<span id="sched-Nightly"></span><span id="id7"></span><h3><a class="toc-backref" href="#id19">Nightly Scheduler</a><a class="headerlink" href="#nightly-scheduler" title="Permalink to this headline">¶</a></h3>
+<p>This is highly configurable periodic build scheduler, which triggers a build at particular times of day, week, month, or year.
+The configuration syntax is very similar to the well-known <code class="docutils literal"><span class="pre">crontab</span></code> format, in which you provide values for minute, hour, day, and month (some of which can be wildcards), and a build is triggered whenever the current time matches the given constraints.
+This can run a build every night, every morning, every weekend, alternate Thursdays, on your boss’s birthday, etc.</p>
+<p>Pass some subset of <code class="docutils literal"><span class="pre">minute</span></code>, <code class="docutils literal"><span class="pre">hour</span></code>, <code class="docutils literal"><span class="pre">dayOfMonth</span></code>, <code class="docutils literal"><span class="pre">month</span></code>, and <code class="docutils literal"><span class="pre">dayOfWeek</span></code>; each may be a single number or a list of valid values.
+The builds will be triggered whenever the current time matches these values.
+Wildcards are represented by a ‘*’ string.
+All fields default to a wildcard except ‘minute’, so with no fields this defaults to a build every hour, on the hour.
+The full list of parameters is:</p>
+<p><code class="docutils literal"><span class="pre">name</span></code></p>
+<p><code class="docutils literal"><span class="pre">builderNames</span></code></p>
+<p><code class="docutils literal"><span class="pre">properties</span></code></p>
+<p><code class="docutils literal"><span class="pre">fileIsImportant</span></code></p>
+<p><code class="docutils literal"><span class="pre">change_filter</span></code></p>
+<p><code class="docutils literal"><span class="pre">onlyImportant</span></code></p>
+<p><code class="docutils literal"><span class="pre">reason</span></code></p>
+<p><code class="docutils literal"><span class="pre">codebases</span></code></p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">createAbsoluteSourceStamps</span></code></dt>
+<dd>This option only has effect when using multiple codebases.
+When <code class="docutils literal"><span class="pre">True</span></code>, it uses the last seen revision for each codebase that does not have a change.
+When <code class="docutils literal"><span class="pre">False</span></code>, the default value, codebases without changes will use the revision from the <code class="docutils literal"><span class="pre">codebases</span></code> argument.</dd>
+<dt><code class="docutils literal"><span class="pre">onlyIfChanged</span></code></dt>
+<dd>If this is true, then builds will not be scheduled at the designated time <em>unless</em> the change filter has accepted an important change since the previous build.</dd>
+<dt><code class="docutils literal"><span class="pre">branch</span></code></dt>
+<dd>(deprecated; use <code class="docutils literal"><span class="pre">change_filter</span></code> and <code class="docutils literal"><span class="pre">codebases</span></code>)
+The branch to build when the time comes, and the branch to filter for if <code class="docutils literal"><span class="pre">change_filter</span></code> is not specified.
+Remember that a value of <code class="docutils literal"><span class="pre">None</span></code> here means the default branch, and will not match other branches!</dd>
+<dt><code class="docutils literal"><span class="pre">minute</span></code></dt>
+<dd>The minute of the hour on which to start the build.
+This defaults to 0, meaning an hourly build.</dd>
+<dt><code class="docutils literal"><span class="pre">hour</span></code></dt>
+<dd>The hour of the day on which to start the build, in 24-hour notation.
+This defaults to *, meaning every hour.</dd>
+<dt><code class="docutils literal"><span class="pre">dayOfMonth</span></code></dt>
+<dd>The day of the month to start a build.
+This defaults to <code class="docutils literal"><span class="pre">*</span></code>, meaning every day.</dd>
+<dt><code class="docutils literal"><span class="pre">month</span></code></dt>
+<dd>The month in which to start the build, with January = 1.
+This defaults to <code class="docutils literal"><span class="pre">*</span></code>, meaning every month.</dd>
+<dt><code class="docutils literal"><span class="pre">dayOfWeek</span></code></dt>
+<dd>The day of the week to start a build, with Monday = 0.
+This defaults to <code class="docutils literal"><span class="pre">*</span></code>, meaning every day of the week.</dd>
+</dl>
+<p>For example, the following <code class="file docutils literal"><span class="pre">master.cfg</span></code> clause will cause a build to be started every night at 3:00am:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">schedulers</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;schedulers&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+    <span class="n">schedulers</span><span class="o">.</span><span class="n">Nightly</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;nightly&#39;</span><span class="p">,</span>
+                       <span class="n">branch</span><span class="o">=</span><span class="s1">&#39;master&#39;</span><span class="p">,</span>
+                       <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;builder1&#39;</span><span class="p">,</span> <span class="s1">&#39;builder2&#39;</span><span class="p">],</span>
+                       <span class="n">hour</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">minute</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>This scheduler will perform a build each Monday morning at 6:23am and again at 8:23am, but only if someone has committed code in the interim:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>c[&#39;schedulers&#39;].append(
+    schedulers.Nightly(name=&#39;BeforeWork&#39;,
+                       branch=`default`,
+                       builderNames=[&#39;builder1&#39;],
+                       dayOfWeek=0, hour=[6,8], minute=23,
+                       onlyIfChanged=True))
+</pre></div>
+</div>
+<p>The following runs a build every two hours, using Python’s <code class="xref py py-func docutils literal"><span class="pre">range</span></code> function:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">schedulers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+    <span class="n">timed</span><span class="o">.</span><span class="n">Nightly</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;every2hours&#39;</span><span class="p">,</span>
+        <span class="n">branch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1"># default branch</span>
+        <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;builder1&#39;</span><span class="p">],</span>
+        <span class="n">hour</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="mi">2</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>Finally, this example will run only on December 24th:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;schedulers&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+    <span class="n">timed</span><span class="o">.</span><span class="n">Nightly</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;SleighPreflightCheck&#39;</span><span class="p">,</span>
+        <span class="n">branch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1"># default branch</span>
+        <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;flying_circuits&#39;</span><span class="p">,</span> <span class="s1">&#39;radar&#39;</span><span class="p">],</span>
+        <span class="n">month</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
+        <span class="n">dayOfMonth</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span>
+        <span class="n">hour</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
+        <span class="n">minute</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+</pre></div>
+</div>
+<span class="target" id="sched-Try_Jobdir"></span></div>
+<div class="section" id="try-schedulers">
+<span id="sched-Try_Userpass"></span><span id="id8"></span><h3><a class="toc-backref" href="#id20">Try Schedulers</a><a class="headerlink" href="#try-schedulers" title="Permalink to this headline">¶</a></h3>
+<p>This scheduler allows developers to use the <strong class="command">buildbot try</strong> command to trigger builds of code they have not yet committed.
+See <a class="reference internal" href="cmdline.html#cmdline-try" title="try"><code class="xref bb bb-cmdline docutils literal"><span class="pre">try</span></code></a> for complete details.</p>
+<p>Two implementations are available: <a class="reference internal" href="#sched-Try_Jobdir" title="Try_Jobdir"><code class="xref bb bb-sched docutils literal"><span class="pre">Try_Jobdir</span></code></a> and <a class="reference internal" href="#sched-Try_Userpass" title="Try_Userpass"><code class="xref bb bb-sched docutils literal"><span class="pre">Try_Userpass</span></code></a>.
+The former monitors a job directory, specified by the <code class="docutils literal"><span class="pre">jobdir</span></code> parameter, while the latter listens for PB connections on a specific <code class="docutils literal"><span class="pre">port</span></code>, and authenticates against <code class="docutils literal"><span class="pre">userport</span></code>.</p>
+<p>The buildmaster must have a scheduler instance in the config file’s <a class="reference internal" href="#cfg-schedulers" title="schedulers"><code class="xref bb bb-cfg docutils literal"><span class="pre">schedulers</span></code></a> list to receive try requests.
+This lets the administrator control who may initiate these <cite>trial</cite> builds, which branches are eligible for trial builds, and which Builders should be used for them.</p>
+<p>The scheduler has various means to accept build requests.
+All of them enforce more security than the usual buildmaster ports do.
+Any source code being built can be used to compromise the worker accounts, but in general that code must be checked out from the VC repository first, so only people with commit privileges can get control of the workers.
+The usual force-build control channels can waste worker time but do not allow arbitrary commands to be executed by people who don’t have those commit privileges.
+However, the source code patch that is provided with the trial build does not have to go through the VC system first, so it is important to make sure these builds cannot be abused by a non-committer to acquire as much control over the workers as a committer has.
+Ideally, only developers who have commit access to the VC repository would be able to start trial builds, but unfortunately the buildmaster does not, in general, have access to VC system’s user list.</p>
+<p>As a result, the try scheduler requires a bit more configuration.
+There are currently two ways to set this up:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">jobdir</span></code> (ssh)</dt>
+<dd><p class="first">This approach creates a command queue directory, called the <code class="file docutils literal"><span class="pre">jobdir</span></code>, in the buildmaster’s working directory.
+The buildmaster admin sets the ownership and permissions of this directory to only grant write access to the desired set of developers, all of whom must have accounts on the machine.
+The <strong class="command">buildbot try</strong> command creates a special file containing the source stamp information and drops it in the jobdir, just like a standard maildir.
+When the buildmaster notices the new file, it unpacks the information inside and starts the builds.</p>
+<p>The config file entries used by ‘buildbot try’ either specify a local queuedir (for which write and mv are used) or a remote one (using scp and ssh).</p>
+<p>The advantage of this scheme is that it is quite secure, the disadvantage is that it requires fiddling outside the buildmaster config (to set the permissions on the jobdir correctly).
+If the buildmaster machine happens to also house the VC repository, then it can be fairly easy to keep the VC userlist in sync with the trial-build userlist.
+If they are on different machines, this will be much more of a hassle.
+It may also involve granting developer accounts on a machine that would not otherwise require them.</p>
+<p class="last">To implement this, the worker invokes <code class="samp docutils literal"><span class="pre">ssh</span> <span class="pre">-l</span> <em><span class="pre">username</span></em> <em><span class="pre">host</span></em> <span class="pre">buildbot</span> <span class="pre">tryserver</span> <em><span class="pre">ARGS</span></em></code>, passing the patch contents over stdin.
+The arguments must include the inlet directory and the revision information.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">user+password</span></code> (PB)</dt>
+<dd><p class="first">In this approach, each developer gets a username/password pair, which are all listed in the buildmaster’s configuration file.
+When the developer runs <strong class="command">buildbot try</strong>, their machine connects to the buildmaster via PB and authenticates themselves using that username and password, then sends a PB command to start the trial build.</p>
+<p class="last">The advantage of this scheme is that the entire configuration is performed inside the buildmaster’s config file.
+The disadvantages are that it is less secure (while the <cite>cred</cite> authentication system does not expose the password in plaintext over the wire, it does not offer most of the other security properties that SSH does).
+In addition, the buildmaster admin is responsible for maintaining the username/password list, adding and deleting entries as developers come and go.</p>
+</dd>
+</dl>
+<p>For example, to set up the <cite>jobdir</cite> style of trial build, using a command queue directory of <code class="file docutils literal"><em><span class="pre">MASTERDIR</span></em><span class="pre">/jobdir</span></code> (and assuming that all your project developers were members of the <code class="docutils literal"><span class="pre">developers</span></code> unix group), you would first set up that directory:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>mkdir -p MASTERDIR/jobdir MASTERDIR/jobdir/new MASTERDIR/jobdir/cur MASTERDIR/jobdir/tmp
+chgrp developers MASTERDIR/jobdir MASTERDIR/jobdir/*
+chmod g+rwx,o-rwx MASTERDIR/jobdir MASTERDIR/jobdir/*
+</pre></div>
+</div>
+<p>and then use the following scheduler in the buildmaster’s config file:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">schedulers</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">schedulers</span><span class="o">.</span><span class="n">Try_Jobdir</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;try1&quot;</span><span class="p">,</span>
+                          <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;full-linux&quot;</span><span class="p">,</span> <span class="s2">&quot;full-netbsd&quot;</span><span class="p">,</span>
+                                        <span class="s2">&quot;full-OSX&quot;</span><span class="p">],</span>
+                          <span class="n">jobdir</span><span class="o">=</span><span class="s2">&quot;jobdir&quot;</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;schedulers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Note that you must create the jobdir before telling the buildmaster to use this configuration, otherwise you will get an error.
+Also remember that the buildmaster must be able to read and write to the jobdir as well.
+Be sure to watch the <code class="file docutils literal"><span class="pre">twistd.log</span></code> file (<a class="reference internal" href="installation/misc.html#logfiles"><span class="std std-ref">Logfiles</span></a>) as you start using the jobdir, to make sure the buildmaster is happy with it.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Patches in the jobdir are encoded using netstrings, which place an arbitrary upper limit on patch size of 99999 bytes.
+If your submitted try jobs are rejected with <cite>BadJobfile</cite>, try increasing this limit with a snippet like this in your <cite>master.cfg</cite>:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">twisted.protocols.basic</span> <span class="k">import</span> <span class="n">NetstringReceiver</span>
+<span class="n">NetstringReceiver</span><span class="o">.</span><span class="n">MAX_LENGTH</span> <span class="o">=</span> <span class="mi">1000000</span>
+</pre></div>
+</div>
+</div>
+<p>To use the username/password form of authentication, create a <code class="xref py py-class docutils literal"><span class="pre">Try_Userpass</span></code> instance instead.
+It takes the same <code class="docutils literal"><span class="pre">builderNames</span></code> argument as the <code class="xref py py-class docutils literal"><span class="pre">Try_Jobdir</span></code> form, but accepts an additional <code class="docutils literal"><span class="pre">port</span></code> argument (to specify the TCP port to listen on) and a <code class="docutils literal"><span class="pre">userpass</span></code> list of username/password pairs to accept.
+Remember to use good passwords for this: the security of the worker accounts depends upon it:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">schedulers</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">schedulers</span><span class="o">.</span><span class="n">Try_Userpass</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;try2&quot;</span><span class="p">,</span>
+                            <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;full-linux&quot;</span><span class="p">,</span> <span class="s2">&quot;full-netbsd&quot;</span><span class="p">,</span>
+                                          <span class="s2">&quot;full-OSX&quot;</span><span class="p">],</span>
+                            <span class="n">port</span><span class="o">=</span><span class="mi">8031</span><span class="p">,</span>
+                            <span class="n">userpass</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span><span class="s2">&quot;pw1&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;bob&quot;</span><span class="p">,</span> <span class="s2">&quot;pw2&quot;</span><span class="p">)])</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;schedulers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Like most places in the buildbot, the <code class="docutils literal"><span class="pre">port</span></code> argument takes a <cite>strports</cite> specification.
+See <code class="xref py py-mod docutils literal"><span class="pre">twisted.application.strports</span></code> for details.</p>
+<span class="target" id="sched-Triggerable"></span></div>
+<div class="section" id="triggerable-scheduler">
+<span id="index-1"></span><span id="id9"></span><h3><a class="toc-backref" href="#id21">Triggerable Scheduler</a><a class="headerlink" href="#triggerable-scheduler" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="#sched-Triggerable" title="Triggerable"><code class="xref bb bb-sched docutils literal"><span class="pre">Triggerable</span></code></a> scheduler waits to be triggered by a <a class="reference internal" href="cfg-buildsteps.html#step-Trigger" title="Trigger"><code class="xref bb bb-step docutils literal"><span class="pre">Trigger</span></code></a> step (see <a class="reference internal" href="cfg-buildsteps.html#triggering-schedulers"><span class="std std-ref">Triggering Schedulers</span></a>) in another build.
+That step can optionally wait for the scheduler’s builds to complete.
+This provides two advantages over <a class="reference internal" href="#sched-Dependent" title="Dependent"><code class="xref bb bb-sched docutils literal"><span class="pre">Dependent</span></code></a> schedulers.
+First, the same scheduler can be triggered from multiple builds.
+Second, the ability to wait for <a class="reference internal" href="#sched-Triggerable" title="Triggerable"><code class="xref bb bb-sched docutils literal"><span class="pre">Triggerable</span></code></a>’s builds to complete provides a form of “subroutine call”, where one or more builds can “call” a scheduler to perform some work for them, perhaps on other workers.
+The <a class="reference internal" href="#sched-Triggerable" title="Triggerable"><code class="xref bb bb-sched docutils literal"><span class="pre">Triggerable</span></code></a> scheduler supports multiple codebases.
+The scheduler filters out all codebases from <a class="reference internal" href="cfg-buildsteps.html#step-Trigger" title="Trigger"><code class="xref bb bb-step docutils literal"><span class="pre">Trigger</span></code></a> steps that are not configured in the scheduler.</p>
+<p>The parameters are just the basics:</p>
+<p><code class="docutils literal"><span class="pre">name</span></code></p>
+<p><code class="docutils literal"><span class="pre">builderNames</span></code></p>
+<p><code class="docutils literal"><span class="pre">properties</span></code></p>
+<p><code class="docutils literal"><span class="pre">reason</span></code></p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">codebases</span></code></dt>
+<dd>See <a class="reference internal" href="#configuring-schedulers"><span class="std std-ref">Configuring Schedulers</span></a>.</dd>
+</dl>
+<p>This class is only useful in conjunction with the <a class="reference internal" href="cfg-buildsteps.html#step-Trigger" title="Trigger"><code class="xref bb bb-step docutils literal"><span class="pre">Trigger</span></code></a> step.
+Here is a fully-worked example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">schedulers</span><span class="p">,</span> <span class="n">util</span><span class="p">,</span> <span class="n">steps</span>
+
+<span class="n">checkin</span> <span class="o">=</span> <span class="n">schedulers</span><span class="o">.</span><span class="n">SingleBranchScheduler</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;checkin&quot;</span><span class="p">,</span>
+                                           <span class="n">branch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                           <span class="n">treeStableTimer</span><span class="o">=</span><span class="mi">5</span><span class="o">*</span><span class="mi">60</span><span class="p">,</span>
+                                           <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;checkin&quot;</span><span class="p">])</span>
+<span class="n">nightly</span> <span class="o">=</span> <span class="n">schedulers</span><span class="o">.</span><span class="n">Nightly</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;nightly&#39;</span><span class="p">,</span>
+                             <span class="n">branch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                             <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nightly&#39;</span><span class="p">],</span>
+                             <span class="n">hour</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">minute</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="n">mktarball</span> <span class="o">=</span> <span class="n">schedulers</span><span class="o">.</span><span class="n">Triggerable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;mktarball&quot;</span><span class="p">,</span> <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mktarball&quot;</span><span class="p">])</span>
+<span class="n">build</span> <span class="o">=</span> <span class="n">schedulers</span><span class="o">.</span><span class="n">Triggerable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;build-all-platforms&quot;</span><span class="p">,</span>
+                               <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;build-all-platforms&quot;</span><span class="p">])</span>
+<span class="n">test</span> <span class="o">=</span> <span class="n">schedulers</span><span class="o">.</span><span class="n">Triggerable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;distributed-test&quot;</span><span class="p">,</span>
+                              <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;distributed-test&quot;</span><span class="p">])</span>
+<span class="n">package</span> <span class="o">=</span> <span class="n">schedulers</span><span class="o">.</span><span class="n">Triggerable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;package-all-platforms&quot;</span><span class="p">,</span>
+                                 <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;package-all-platforms&quot;</span><span class="p">])</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;schedulers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">mktarball</span><span class="p">,</span> <span class="n">checkin</span><span class="p">,</span> <span class="n">nightly</span><span class="p">,</span> <span class="n">build</span><span class="p">,</span> <span class="n">test</span><span class="p">,</span> <span class="n">package</span><span class="p">]</span>
+
+<span class="c1"># on checkin, make a tarball, build it, and test it</span>
+<span class="n">checkin_factory</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">BuildFactory</span><span class="p">()</span>
+<span class="n">checkin_factory</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">steps</span><span class="o">.</span><span class="n">Trigger</span><span class="p">(</span><span class="n">schedulerNames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;mktarball&#39;</span><span class="p">],</span>
+                                      <span class="n">waitForFinish</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="n">checkin_factory</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">steps</span><span class="o">.</span><span class="n">Trigger</span><span class="p">(</span><span class="n">schedulerNames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;build-all-platforms&#39;</span><span class="p">],</span>
+                                      <span class="n">waitForFinish</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="n">checkin_factory</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">steps</span><span class="o">.</span><span class="n">Trigger</span><span class="p">(</span><span class="n">schedulerNames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;distributed-test&#39;</span><span class="p">],</span>
+                                      <span class="n">waitForFinish</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+<span class="c1"># and every night, make a tarball, build it, and package it</span>
+<span class="n">nightly_factory</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">BuildFactory</span><span class="p">()</span>
+<span class="n">nightly_factory</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">steps</span><span class="o">.</span><span class="n">Trigger</span><span class="p">(</span><span class="n">schedulerNames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;mktarball&#39;</span><span class="p">],</span>
+                                      <span class="n">waitForFinish</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="n">nightly_factory</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">steps</span><span class="o">.</span><span class="n">Trigger</span><span class="p">(</span><span class="n">schedulerNames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;build-all-platforms&#39;</span><span class="p">],</span>
+                                      <span class="n">waitForFinish</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="n">nightly_factory</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">steps</span><span class="o">.</span><span class="n">Trigger</span><span class="p">(</span><span class="n">schedulerNames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;package-all-platforms&#39;</span><span class="p">],</span>
+                                      <span class="n">waitForFinish</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="nightlytriggerable-scheduler">
+<span id="sched-NightlyTriggerable"></span><h3><a class="toc-backref" href="#id22">NightlyTriggerable Scheduler</a><a class="headerlink" href="#nightlytriggerable-scheduler" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="buildbot.schedulers.timed.NightlyTriggerable">
+<em class="property">class </em><code class="descclassname">buildbot.schedulers.timed.</code><code class="descname">NightlyTriggerable</code><a class="headerlink" href="#buildbot.schedulers.timed.NightlyTriggerable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>The <a class="reference internal" href="#sched-NightlyTriggerable" title="NightlyTriggerable"><code class="xref bb bb-sched docutils literal"><span class="pre">NightlyTriggerable</span></code></a> scheduler is a mix of the <a class="reference internal" href="#sched-Nightly" title="Nightly"><code class="xref bb bb-sched docutils literal"><span class="pre">Nightly</span></code></a> and <a class="reference internal" href="#sched-Triggerable" title="Triggerable"><code class="xref bb bb-sched docutils literal"><span class="pre">Triggerable</span></code></a> schedulers.
+This scheduler triggers builds at a particular time of day, week, or year, exactly as the <a class="reference internal" href="#sched-Nightly" title="Nightly"><code class="xref bb bb-sched docutils literal"><span class="pre">Nightly</span></code></a> scheduler.
+However, the source stamp set that is used that provided by the last <a class="reference internal" href="cfg-buildsteps.html#step-Trigger" title="Trigger"><code class="xref bb bb-step docutils literal"><span class="pre">Trigger</span></code></a> step that targeted this scheduler.</p>
+<p>The parameters are just the basics:</p>
+<p><code class="docutils literal"><span class="pre">name</span></code></p>
+<p><code class="docutils literal"><span class="pre">builderNames</span></code></p>
+<p><code class="docutils literal"><span class="pre">properties</span></code></p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">codebases</span></code></dt>
+<dd>See <a class="reference internal" href="#configuring-schedulers"><span class="std std-ref">Configuring Schedulers</span></a>.</dd>
+</dl>
+<p><code class="docutils literal"><span class="pre">minute</span></code></p>
+<p><code class="docutils literal"><span class="pre">hour</span></code></p>
+<p><code class="docutils literal"><span class="pre">dayOfMonth</span></code></p>
+<p><code class="docutils literal"><span class="pre">month</span></code></p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">dayOfWeek</span></code></dt>
+<dd>See <a class="reference internal" href="#sched-Nightly" title="Nightly"><code class="xref bb bb-sched docutils literal"><span class="pre">Nightly</span></code></a>.</dd>
+</dl>
+<p>This class is only useful in conjunction with the <a class="reference internal" href="cfg-buildsteps.html#step-Trigger" title="Trigger"><code class="xref bb bb-step docutils literal"><span class="pre">Trigger</span></code></a> step.
+Note that <code class="docutils literal"><span class="pre">waitForFinish</span></code> is ignored by <a class="reference internal" href="cfg-buildsteps.html#step-Trigger" title="Trigger"><code class="xref bb bb-step docutils literal"><span class="pre">Trigger</span></code></a> steps targeting this scheduler.</p>
+<p>Here is a fully-worked example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">schedulers</span><span class="p">,</span> <span class="n">util</span><span class="p">,</span> <span class="n">steps</span>
+
+<span class="n">checkin</span> <span class="o">=</span> <span class="n">schedulers</span><span class="o">.</span><span class="n">SingleBranchScheduler</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;checkin&quot;</span><span class="p">,</span>
+                                           <span class="n">branch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                           <span class="n">treeStableTimer</span><span class="o">=</span><span class="mi">5</span><span class="o">*</span><span class="mi">60</span><span class="p">,</span>
+                                           <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;checkin&quot;</span><span class="p">])</span>
+<span class="n">nightly</span> <span class="o">=</span> <span class="n">schedulers</span><span class="o">.</span><span class="n">NightlyTriggerable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;nightly&#39;</span><span class="p">,</span>
+                                        <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nightly&#39;</span><span class="p">],</span>
+                                        <span class="n">hour</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">minute</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;schedulers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">checkin</span><span class="p">,</span> <span class="n">nightly</span><span class="p">]</span>
+
+<span class="c1"># on checkin, run tests</span>
+<span class="n">checkin_factory</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">BuildFactory</span><span class="p">([</span>
+    <span class="n">steps</span><span class="o">.</span><span class="n">Test</span><span class="p">(),</span>
+    <span class="n">steps</span><span class="o">.</span><span class="n">Trigger</span><span class="p">(</span><span class="n">schedulerNames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nightly&#39;</span><span class="p">])</span>
+<span class="p">])</span>
+
+<span class="c1"># and every night, package the latest successful build</span>
+<span class="n">nightly_factory</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">BuildFactory</span><span class="p">([</span>
+    <span class="n">steps</span><span class="o">.</span><span class="n">ShellCommand</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;make&#39;</span><span class="p">,</span> <span class="s1">&#39;package&#39;</span><span class="p">])</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+<span class="target" id="sched-ForceScheduler"></span></div>
+<div class="section" id="forcescheduler-scheduler">
+<span id="index-2"></span><h3><a class="toc-backref" href="#id23">ForceScheduler Scheduler</a><a class="headerlink" href="#forcescheduler-scheduler" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="#sched-ForceScheduler" title="ForceScheduler"><code class="xref bb bb-sched docutils literal"><span class="pre">ForceScheduler</span></code></a> scheduler is the way you can configure a force build form in the web UI.</p>
+<p>In the <code class="docutils literal"><span class="pre">/#/builders/:builderid</span></code> web page, you will see, on the top right of the page, one button for each <a class="reference internal" href="#sched-ForceScheduler" title="ForceScheduler"><code class="xref bb bb-sched docutils literal"><span class="pre">ForceScheduler</span></code></a> scheduler that was configured for this builder.
+If you click on that button, a dialog will let you choose various parameters for requesting a new build.</p>
+<p>The Buildbot framework allows you to customize exactly how the build form looks, which builders have a force build form (it might not make sense to force build every builder), and who is allowed to force builds on which builders.</p>
+<p>How you do so is by configuring a <a class="reference internal" href="#sched-ForceScheduler" title="ForceScheduler"><code class="xref bb bb-sched docutils literal"><span class="pre">ForceScheduler</span></code></a>, and add it into the list <a class="reference internal" href="#cfg-schedulers" title="schedulers"><code class="xref bb bb-cfg docutils literal"><span class="pre">schedulers</span></code></a>.</p>
+<p>The scheduler takes the following parameters:</p>
+<p><code class="docutils literal"><span class="pre">name</span></code></p>
+<blockquote>
+<div>Name of the scheduler (should be an <a class="reference internal" href="../developer/database.html#type-identifier"><span class="std std-ref">Identifier</span></a>).</div></blockquote>
+<p><code class="docutils literal"><span class="pre">builderNames</span></code></p>
+<blockquote>
+<div>List of builders where the force button should appear.
+See <a class="reference internal" href="#configuring-schedulers"><span class="std std-ref">Configuring Schedulers</span></a>.</div></blockquote>
+<p><code class="docutils literal"><span class="pre">reason</span></code></p>
+<blockquote>
+<div>A <a class="reference internal" href="#forcescheduler-parameters"><span class="std std-ref">parameter</span></a> allowing the user to specify the reason for the build.
+The default value is a string parameter with a default value “force build”.</div></blockquote>
+<p><code class="docutils literal"><span class="pre">reasonString</span></code></p>
+<blockquote>
+<div>A string that will be used to create the build reason for the forced build.
+This string can contain the placeholders <code class="docutils literal"><span class="pre">%(owner)s</span></code> and <code class="docutils literal"><span class="pre">%(reason)s</span></code>, which represents the value typed into the reason field.</div></blockquote>
+<p><code class="docutils literal"><span class="pre">username</span></code></p>
+<blockquote>
+<div>A <a class="reference internal" href="#forcescheduler-parameters"><span class="std std-ref">parameter</span></a> specifying the username associated with the build (aka owner).
+The default value is a username parameter.</div></blockquote>
+<p><code class="docutils literal"><span class="pre">codebases</span></code></p>
+<blockquote>
+<div>A list of strings or <a class="reference internal" href="#forcescheduler-parameters"><span class="std std-ref">CodebaseParameter</span></a> specifying the codebases that should be presented.
+The default is a single codebase with no name (i.e. <cite>codebases=[‘’]</cite>).</div></blockquote>
+<p><code class="docutils literal"><span class="pre">properties</span></code></p>
+<blockquote>
+<div>A list of <a class="reference internal" href="#forcescheduler-parameters"><span class="std std-ref">parameters</span></a>, one for each property.
+These can be arbitrary parameters, where the parameter’s name is taken as the property name, or <code class="docutils literal"><span class="pre">AnyPropertyParameter</span></code>, which allows the web user to specify the property name.
+The default value is an empty list.</div></blockquote>
+<p><code class="docutils literal"><span class="pre">buttonName</span></code></p>
+<blockquote>
+<div>The name of the “submit” button on the resulting force-build form.
+This defaults to the name of scheduler.</div></blockquote>
+<p>An example may be better than long explanation.
+What you need in your config file is something like:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">schedulers</span><span class="p">,</span> <span class="n">util</span>
+
+<span class="n">sch</span> <span class="o">=</span> <span class="n">schedulers</span><span class="o">.</span><span class="n">ForceScheduler</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;force&quot;</span><span class="p">,</span>
+    <span class="n">buttonName</span><span class="o">=</span><span class="s2">&quot;pushMe!&quot;</span><span class="p">,</span>
+    <span class="n">label</span><span class="o">=</span><span class="s2">&quot;My nice Force form&quot;</span><span class="p">,</span>
+    <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;my-builder&quot;</span><span class="p">],</span>
+
+    <span class="n">codebases</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">util</span><span class="o">.</span><span class="n">CodebaseParameter</span><span class="p">(</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Main repository&quot;</span><span class="p">,</span>
+            <span class="c1"># will generate a combo box</span>
+            <span class="n">branch</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">ChoiceStringParameter</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;branch&quot;</span><span class="p">,</span>
+                <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;master&quot;</span><span class="p">,</span> <span class="s2">&quot;hest&quot;</span><span class="p">],</span>
+                <span class="n">default</span><span class="o">=</span><span class="s2">&quot;master&quot;</span><span class="p">),</span>
+
+            <span class="c1"># will generate nothing in the form, but revision, repository,</span>
+            <span class="c1"># and project are needed by buildbot scheduling system so we</span>
+            <span class="c1"># need to pass a value (&quot;&quot;)</span>
+            <span class="n">revision</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;revision&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">),</span>
+            <span class="n">repository</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;repository&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">),</span>
+            <span class="n">project</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">),</span>
+        <span class="p">),</span>
+    <span class="p">],</span>
+
+    <span class="c1"># will generate a text input</span>
+    <span class="n">reason</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">StringParameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;reason&quot;</span><span class="p">,</span>
+                                <span class="n">label</span><span class="o">=</span><span class="s2">&quot;reason:&quot;</span><span class="p">,</span>
+                                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">80</span><span class="p">),</span>
+
+    <span class="c1"># in case you don&#39;t require authentication this will display</span>
+    <span class="c1"># input for user to type his name</span>
+    <span class="n">username</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">UserNameParameter</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;your name:&quot;</span><span class="p">,</span>
+                                    <span class="n">size</span><span class="o">=</span><span class="mi">80</span><span class="p">),</span>
+    <span class="c1"># A completely customized property list.  The name of the</span>
+    <span class="c1"># property is the name of the parameter</span>
+    <span class="n">properties</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">util</span><span class="o">.</span><span class="n">NestedParameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;options&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Build Options&quot;</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="s2">&quot;vertical&quot;</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">util</span><span class="o">.</span><span class="n">StringParameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;pull_url&quot;</span><span class="p">,</span>
+                                 <span class="n">label</span><span class="o">=</span><span class="s2">&quot;optionally give a public Git pull url:&quot;</span><span class="p">,</span>
+                                 <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">80</span><span class="p">),</span>
+            <span class="n">util</span><span class="o">.</span><span class="n">BooleanParameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;force_build_clean&quot;</span><span class="p">,</span>
+                                  <span class="n">label</span><span class="o">=</span><span class="s2">&quot;force a make clean&quot;</span><span class="p">,</span>
+                                  <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="p">])</span>
+    <span class="p">])</span>
+</pre></div>
+</div>
+<p>This will result in the following UI:</p>
+<img alt="Force Form Result" src="../_images/forcedialog1.png" />
+<div class="section" id="authorization">
+<h4>Authorization<a class="headerlink" href="#authorization" title="Permalink to this headline">¶</a></h4>
+<p>The force scheduler uses the web interface’s authorization framework to determine which user has the right to force which build.
+Here is an example of code on how you can define which user has which right:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">user_mapping</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;project1-builder&quot;</span><span class="p">):</span> <span class="p">[</span><span class="s2">&quot;project1-maintainer&quot;</span><span class="p">,</span> <span class="s2">&quot;john&quot;</span><span class="p">]</span> <span class="p">,</span>
+    <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;project2-builder&quot;</span><span class="p">):</span> <span class="p">[</span><span class="s2">&quot;project2-maintainer&quot;</span><span class="p">,</span> <span class="s2">&quot;jack&quot;</span><span class="p">],</span>
+    <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;.*&quot;</span><span class="p">):</span> <span class="p">[</span><span class="s2">&quot;root&quot;</span><span class="p">]</span>
+<span class="p">}</span>
+<span class="k">def</span> <span class="nf">force_auth</span><span class="p">(</span><span class="n">user</span><span class="p">,</span>  <span class="n">status</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">user_mapping</span>
+    <span class="k">for</span> <span class="n">r</span><span class="p">,</span><span class="n">users</span> <span class="ow">in</span> <span class="n">user_mapping</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span>
+
+<span class="c1"># use authz_cfg in your WebStatus setup</span>
+<span class="n">authz_cfg</span><span class="o">=</span><span class="n">authz</span><span class="o">.</span><span class="n">Authz</span><span class="p">(</span>
+    <span class="n">auth</span><span class="o">=</span><span class="n">my_auth</span><span class="p">,</span>
+    <span class="n">forceBuild</span> <span class="o">=</span> <span class="n">force_auth</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="forcescheduler-parameters">
+<span id="id10"></span><h4>ForceScheduler Parameters<a class="headerlink" href="#forcescheduler-parameters" title="Permalink to this headline">¶</a></h4>
+<p>Most of the arguments to <a class="reference internal" href="#sched-ForceScheduler" title="ForceScheduler"><code class="xref bb bb-sched docutils literal"><span class="pre">ForceScheduler</span></code></a> are “parameters”.
+Several classes of parameters are available, each describing a different kind of input from a force-build form.</p>
+<p>All parameter types have a few common arguments:</p>
+<p><code class="docutils literal"><span class="pre">name</span></code> (required)</p>
+<blockquote>
+<div>The name of the parameter.
+For properties, this will correspond to the name of the property that your parameter will set.
+The name is also used internally as the identifier for in the HTML form.</div></blockquote>
+<p><code class="docutils literal"><span class="pre">label</span></code> (optional; default is same as name)</p>
+<blockquote>
+<div>The label of the parameter.
+This is what is displayed to the user.</div></blockquote>
+<p><code class="docutils literal"><span class="pre">tablabel</span></code> (optional; default is same as label)</p>
+<blockquote>
+<div>The label of the tab if this parameter is included into a tab layout NestedParameter.
+This is what is displayed to the user.</div></blockquote>
+<p><code class="docutils literal"><span class="pre">default</span></code> (optional; default: “”)</p>
+<blockquote>
+<div>The default value for the parameter, that is used if there is no user input.</div></blockquote>
+<p><code class="docutils literal"><span class="pre">required</span></code> (optional; default: False)</p>
+<blockquote>
+<div>If this is true, then an error will be shown to user if there is no input in this field</div></blockquote>
+<p>The parameter types are:</p>
+<div class="section" id="nestedparameter">
+<h5>NestedParameter<a class="headerlink" href="#nestedparameter" title="Permalink to this headline">¶</a></h5>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">NestedParameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;options&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Build options&quot;</span> <span class="n">layout</span><span class="o">=</span><span class="s2">&quot;vertical&quot;</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">]),</span>
+</pre></div>
+</div>
+<p>This parameter type is a special parameter which contains other parameters.
+This can be used to group a set of parameters together, and define the layout of your form.
+You can recursively include NestedParameter into NestedParameter, to build very complex UI.</p>
+<p>It adds the following arguments:</p>
+<p><code class="docutils literal"><span class="pre">layout</span></code> (optional, default: “vertical”)</p>
+<blockquote>
+<div><p>The layout defines how the fields are placed in the form.</p>
+<p>The layouts implemented in the standard web application are:</p>
+<ul>
+<li><dl class="first docutils">
+<dt><code class="docutils literal"><span class="pre">simple</span></code>: fields are displayed one by one without alignment.</dt>
+<dd><p class="first last">They take the horizontal space that they need.</p>
+</dd>
+</dl>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">vertical</span></code>: all fields are displayed vertically, aligned in columns (as per the <code class="docutils literal"><span class="pre">column</span></code> attribute of the NestedParameter)</p>
+</li>
+<li><dl class="first docutils">
+<dt><code class="docutils literal"><span class="pre">tabs</span></code>: Each field gets its own <a class="reference external" href="http://getbootstrap.com/components/#nav-tabs">tab</a>.</dt>
+<dd><p class="first last">This can be used to declare complex build forms which won’t fit into one screen.
+The children fields are usually other NestedParameters with vertical layout.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<p><code class="docutils literal"><span class="pre">columns</span></code> (optional, accepted values are 1,2,3,4)</p>
+<blockquote>
+<div>The number of columns to use for a <cite>vertical</cite> layout.
+If omitted, it is set to 1 unless there are more than 3 visible child fields in which case it is set to 2.</div></blockquote>
+</div>
+<div class="section" id="fixedparameter">
+<h5>FixedParameter<a class="headerlink" href="#fixedparameter" title="Permalink to this headline">¶</a></h5>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">FixedParameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;branch&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;trunk&quot;</span><span class="p">),</span>
+</pre></div>
+</div>
+<p>This parameter type will not be shown on the web form, and always generate a property with its default value.</p>
+</div>
+<div class="section" id="stringparameter">
+<h5>StringParameter<a class="headerlink" href="#stringparameter" title="Permalink to this headline">¶</a></h5>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">StringParameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;pull_url&quot;</span><span class="p">,</span>
+    <span class="n">label</span><span class="o">=</span><span class="s2">&quot;optionally give a public Git pull url:&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">80</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This parameter type will show a single-line text-entry box, and allow the user to enter an arbitrary string.
+It adds the following arguments:</p>
+<p><code class="docutils literal"><span class="pre">regex</span></code> (optional)</p>
+<blockquote>
+<div>A string that will be compiled as a regex, and used to validate the input of this parameter.</div></blockquote>
+<p><code class="docutils literal"><span class="pre">size</span></code> (optional; default: 10)</p>
+<blockquote>
+<div>The width of the input field (in characters).</div></blockquote>
+</div>
+<div class="section" id="textparameter">
+<h5>TextParameter<a class="headerlink" href="#textparameter" title="Permalink to this headline">¶</a></h5>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">StringParameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;comments&quot;</span><span class="p">,</span>
+    <span class="n">label</span><span class="o">=</span><span class="s2">&quot;comments to be displayed to the user of the built binary&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="s2">&quot;This is a development build&quot;</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This parameter type is similar to StringParameter, except that it is represented in the HTML form as a <code class="docutils literal"><span class="pre">textarea</span></code>, allowing multi-line input.
+It adds the StringParameter arguments, this type allows:</p>
+<p><code class="docutils literal"><span class="pre">cols</span></code> (optional; default: 80)</p>
+<blockquote>
+<div>The number of columns the <code class="docutils literal"><span class="pre">textarea</span></code> will have.</div></blockquote>
+<p><code class="docutils literal"><span class="pre">rows</span></code> (optional; default: 20)</p>
+<blockquote>
+<div>The number of rows the <code class="docutils literal"><span class="pre">textarea</span></code> will have</div></blockquote>
+<p>This class could be subclassed in order to have more customization e.g.</p>
+<ul class="simple">
+<li>developer could send a list of Git branches to pull from</li>
+<li>developer could send a list of Gerrit changes to cherry-pick,</li>
+<li>developer could send a shell script to amend the build.</li>
+</ul>
+<p>Beware of security issues anyway.</p>
+</div>
+<div class="section" id="intparameter">
+<h5>IntParameter<a class="headerlink" href="#intparameter" title="Permalink to this headline">¶</a></h5>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">IntParameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;debug_level&quot;</span><span class="p">,</span>
+    <span class="n">label</span><span class="o">=</span><span class="s2">&quot;debug level (1-10)&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This parameter type accepts an integer value using a text-entry box.</p>
+</div>
+<div class="section" id="booleanparameter">
+<h5>BooleanParameter<a class="headerlink" href="#booleanparameter" title="Permalink to this headline">¶</a></h5>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">BooleanParameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;force_build_clean&quot;</span><span class="p">,</span>
+    <span class="n">label</span><span class="o">=</span><span class="s2">&quot;force a make clean&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This type represents a boolean value.
+It will be presented as a checkbox.</p>
+</div>
+<div class="section" id="usernameparameter">
+<h5>UserNameParameter<a class="headerlink" href="#usernameparameter" title="Permalink to this headline">¶</a></h5>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">UserNameParameter</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;your name:&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">80</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This parameter type accepts a username.
+If authentication is active, it will use the authenticated user instead of displaying a text-entry box.</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">size</span></code> (optional; default: 10)</dt>
+<dd>The width of the input field (in characters).</dd>
+<dt><code class="docutils literal"><span class="pre">need_email</span></code> (optional; default True)</dt>
+<dd>If true, require a full email address rather than arbitrary text.</dd>
+</dl>
+</div>
+<div class="section" id="choicestringparameter">
+<span id="sched-ChoiceStringParameter"></span><h5>ChoiceStringParameter<a class="headerlink" href="#choicestringparameter" title="Permalink to this headline">¶</a></h5>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ChoiceStringParameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;branch&quot;</span><span class="p">,</span>
+    <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;main&quot;</span><span class="p">,</span><span class="s2">&quot;devel&quot;</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;main&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This parameter type lets the user choose between several choices (e.g the list of branches you are supporting, or the test campaign to run).
+If <code class="docutils literal"><span class="pre">multiple</span></code> is false, then its result is a string - one of the choices.
+If <code class="docutils literal"><span class="pre">multiple</span></code> is true, then the result is a list of strings from the choices.</p>
+<p>Note that for some use cases, the choices need to be generated dynamically.
+This can be done via subclassing and overriding the ‘getChoices’ member function.
+An example of this is provided by the source for the <code class="xref py py-class docutils literal"><span class="pre">InheritBuildParameter</span></code> class.</p>
+<p>Its arguments, in addition to the common options, are:</p>
+<p><code class="docutils literal"><span class="pre">choices</span></code></p>
+<blockquote>
+<div>The list of available choices.</div></blockquote>
+<p><code class="docutils literal"><span class="pre">strict</span></code> (optional; default: True)</p>
+<blockquote>
+<div>If true, verify that the user’s input is from the list.
+Note that this only affects the validation of the form request; even if this argument is False, there is no HTML form component available to enter an arbitrary value.</div></blockquote>
+<p><code class="docutils literal"><span class="pre">multiple</span></code></p>
+<blockquote>
+<div>If true, then the user may select multiple choices.</div></blockquote>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ChoiceStringParameter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;forced_tests&quot;</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;smoke test campaign to run&quot;</span><span class="p">,</span>
+                      <span class="n">default</span><span class="o">=</span><span class="n">default_tests</span><span class="p">,</span>
+                      <span class="n">multiple</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;test_builder1&quot;</span><span class="p">,</span> <span class="s2">&quot;test_builder2&quot;</span><span class="p">,</span>
+                               <span class="s2">&quot;test_builder3&quot;</span><span class="p">])</span>
+
+<span class="c1"># .. and later base the schedulers to trigger off this property:</span>
+
+<span class="c1"># triggers the tests depending on the property forced_test</span>
+<span class="n">builder1</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">Trigger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Trigger tests&quot;</span><span class="p">,</span>
+                                <span class="n">schedulerNames</span><span class="o">=</span><span class="n">Property</span><span class="p">(</span><span class="s2">&quot;forced_tests&quot;</span><span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="codebaseparameter">
+<h5>CodebaseParameter<a class="headerlink" href="#codebaseparameter" title="Permalink to this headline">¶</a></h5>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">CodebaseParameter</span><span class="p">(</span><span class="n">codebase</span><span class="o">=</span><span class="s2">&quot;myrepo&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This is a parameter group to specify a sourcestamp for a given codebase.</p>
+<p><code class="docutils literal"><span class="pre">codebase</span></code></p>
+<blockquote>
+<div>The name of the codebase.</div></blockquote>
+<p><code class="docutils literal"><span class="pre">branch</span></code> (optional; default: StringParameter)</p>
+<blockquote>
+<div>A <a class="reference internal" href="#forcescheduler-parameters"><span class="std std-ref">parameter</span></a> specifying the branch to build.
+The default value is a string parameter.</div></blockquote>
+<p><code class="docutils literal"><span class="pre">revision</span></code> (optional; default: StringParameter)</p>
+<blockquote>
+<div>A <a class="reference internal" href="#forcescheduler-parameters"><span class="std std-ref">parameter</span></a> specifying the revision to build.
+The default value is a string parameter.</div></blockquote>
+<p><code class="docutils literal"><span class="pre">repository</span></code> (optional; default: StringParameter)</p>
+<blockquote>
+<div>A <a class="reference internal" href="#forcescheduler-parameters"><span class="std std-ref">parameter</span></a> specifying the repository for the build.
+The default value is a string parameter.</div></blockquote>
+<p><code class="docutils literal"><span class="pre">project</span></code> (optional; default: StringParameter)</p>
+<blockquote>
+<div>A <a class="reference internal" href="#forcescheduler-parameters"><span class="std std-ref">parameter</span></a> specifying the project for the build.
+The default value is a string parameter.</div></blockquote>
+</div>
+<div class="section" id="inheritbuildparameter">
+<span id="sched-InheritBuildParameter"></span><h5>InheritBuildParameter<a class="headerlink" href="#inheritbuildparameter" title="Permalink to this headline">¶</a></h5>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">InheritBuildParameter is not yet ported to data API, and cannot be used with buildbot nine yet(<a class="reference external" href="http://trac.buildbot.net/ticket/3521">bug #3521</a>).</p>
+</div>
+<p>This is a special parameter for inheriting force build properties from another build.
+The user is presented with a list of compatible builds from which to choose, and all forced-build parameters from the selected build are copied into the new build.
+The new parameter is:</p>
+<p><code class="docutils literal"><span class="pre">compatible_builds</span></code></p>
+<blockquote>
+<div>A function to find compatible builds in the build history.
+This function is given the master <code class="xref py py-class docutils literal"><span class="pre">Status</span></code> instance as first argument, and the current builder name as second argument, or None when forcing all builds.</div></blockquote>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_compatible_builds</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">builder</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">builder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># this is the case for force_build_all</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;cannot generate build list here&quot;</span><span class="p">]</span>
+    <span class="c1"># find all successful builds in builder1 and builder2</span>
+    <span class="n">builds</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">builder</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;builder1&quot;</span><span class="p">,</span><span class="s2">&quot;builder2&quot;</span><span class="p">]:</span>
+        <span class="n">builder_status</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">getBuilder</span><span class="p">(</span><span class="n">builder</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">40</span><span class="p">):</span> <span class="c1"># 40 last builds</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">builder_status</span><span class="o">.</span><span class="n">getBuild</span><span class="p">(</span><span class="o">-</span><span class="n">num</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">b</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">b</span><span class="o">.</span><span class="n">getResults</span><span class="p">()</span> <span class="o">==</span> <span class="n">FAILURE</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">builds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">builder</span><span class="o">+</span><span class="s2">&quot;/&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">getNumber</span><span class="p">()))</span>
+    <span class="k">return</span> <span class="n">builds</span>
+
+<span class="c1"># ...</span>
+
+<span class="n">sched</span> <span class="o">=</span> <span class="n">Scheduler</span><span class="p">(</span><span class="o">...</span><span class="p">,</span>
+    <span class="n">properties</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">InheritBuildParameter</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;inherit&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;promote a build for merge&quot;</span><span class="p">,</span>
+            <span class="n">compatible_builds</span><span class="o">=</span><span class="n">get_compatible_builds</span><span class="p">,</span>
+            <span class="n">required</span> <span class="o">=</span> <span class="kc">True</span><span class="p">),</span>
+            <span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="workerchoiceparameter">
+<span id="sched-WorkerChoiceParameter"></span><h5>WorkerChoiceParameter<a class="headerlink" href="#workerchoiceparameter" title="Permalink to this headline">¶</a></h5>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">WorkerChoiceParameter is not yet ported to data API, and cannot be used with buildbot nine yet(<a class="reference external" href="http://trac.buildbot.net/ticket/3521">bug #3521</a>).</p>
+</div>
+<p>This parameter allows a scheduler to require that a build is assigned to the chosen worker.
+The choice is assigned to the <cite>workername</cite> property for the build.
+The <code class="xref py py-class docutils literal"><span class="pre">enforceChosenWorker</span></code> functor must be assigned to the <code class="docutils literal"><span class="pre">canStartBuild</span></code> parameter for the <code class="docutils literal"><span class="pre">Builder</span></code>.</p>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">util</span>
+
+<span class="c1"># schedulers:</span>
+<span class="n">ForceScheduler</span><span class="p">(</span>
+    <span class="c1"># ...</span>
+    <span class="n">properties</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">WorkerChoiceParameter</span><span class="p">(),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># builders:</span>
+<span class="n">BuilderConfig</span><span class="p">(</span>
+    <span class="c1"># ...</span>
+    <span class="n">canStartBuild</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">enforceChosenWorker</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="anypropertyparameter">
+<h5>AnyPropertyParameter<a class="headerlink" href="#anypropertyparameter" title="Permalink to this headline">¶</a></h5>
+<p>This parameter type can only be used in <code class="docutils literal"><span class="pre">properties</span></code>, and allows the user to specify both the property name and value in the web form.</p>
+<p>This Parameter is here to reimplement old Buildbot behavior, and should be avoided.
+Stricter parameter name and type should be preferred.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/header-text-transparent.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script><h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="secretsmanagement.html">2.4. Secret Management</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="configuration.html">2.5. Configuration</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="cfg-intro.html">2.5.1. Configuring Buildbot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-global.html">2.5.2. Global Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-changesources.html">2.5.3. Change Sources</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">2.5.4. Schedulers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-workers.html">2.5.5. Workers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-builders.html">2.5.6. Builder Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-buildfactories.html">2.5.7. Build Factories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-properties.html">2.5.8. Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-buildsteps.html">2.5.9. Build Steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-interlocks.html">2.5.10. Interlocks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-reporters.html">2.5.11. Reporters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-www.html">2.5.12. Web Server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-wwwhooks.html">2.5.13. Change Hooks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-services.html">2.5.14. Custom Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-dbconfig.html">2.5.15. DbConfig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-configurators.html">2.5.16. Configurators</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="worker-transition.html">2.6. Transition to “worker” terminology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="customization.html">2.7. Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="new-style-steps.html">2.8. New-Style Build Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmdline.html">2.9. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resources.html">2.10. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html">2.11. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins.html">2.12. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deploy.html">2.13. Deployment</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../indices.html">6. Indices and Tables</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="cfg-changesources.html"
+                        title="previous chapter">2.5.3. Change Sources</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="cfg-workers.html"
+                        title="next chapter">2.5.5. Workers</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/manual/cfg-schedulers.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>
