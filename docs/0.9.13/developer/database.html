@@ -1,0 +1,2896 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>3.2.3. Database &#8212; Buildbot 0.9.13 documentation</title>
+    <link rel="stylesheet" href="../_static/qtile.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9.13',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/buildbot.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="3.2.4. Messaging and Queues" href="mq.html" />
+    <link rel="prev" title="3.2.2. Data API" href="data.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mq.html" title="3.2.4. Messaging and Queues"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="data.html" title="3.2.2. Data API"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Buildbot 0.9.13 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >3. Buildbot Development</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="apis.html" accesskey="U">3.2. APIs</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="database">
+<span id="developer-database"></span><h1>3.2.3. Database<a class="headerlink" href="#database" title="Permalink to this headline">¶</a></h1>
+<p>As of version 0.8.0, Buildbot has used a database as part of its storage
+backend.  This section describes the database connector classes, which allow
+other parts of Buildbot to access the database.  It also describes how to
+modify the database schema and the connector classes themselves.</p>
+<div class="section" id="database-overview">
+<h2>3.2.3.1. Database Overview<a class="headerlink" href="#database-overview" title="Permalink to this headline">¶</a></h2>
+<p>All access to the Buildbot database is mediated by database connector classes.
+These classes provide a functional, asynchronous interface to other parts of
+Buildbot, and encapsulate the database-specific details in a single location in
+the codebase.</p>
+<p>The connector API, defined below, is a stable API in Buildbot, and can be
+called from any other component.  Given a master <code class="docutils literal"><span class="pre">master</span></code>, the root of the
+database connectors is available at <code class="docutils literal"><span class="pre">master.db</span></code>, so, for example, the state
+connector’s <code class="docutils literal"><span class="pre">getState</span></code> method is <code class="docutils literal"><span class="pre">master.db.state.getState</span></code>.</p>
+<p>The connectors all use <a class="reference external" href="http://www.sqlalchemy.org/docs/index.html">SQLAlchemy Core</a> to achieve (almost)
+database-independent operation.  Note that the SQLAlchemy ORM is not used in
+Buildbot.  Database queries are carried out in threads, and report their
+results back to the main thread via Twisted Deferreds.</p>
+</div>
+<div class="section" id="schema">
+<h2>3.2.3.2. Schema<a class="headerlink" href="#schema" title="Permalink to this headline">¶</a></h2>
+<p>The database schema is maintained with <a class="reference external" href="https://github.com/openstack/sqlalchemy-migrate">SQLAlchemy-Migrate</a>.  This package handles the
+details of upgrading users between different schema versions.</p>
+<p>The schema itself is considered an implementation detail, and may change
+significantly from version to version.  Users should rely on the API (below),
+rather than performing queries against the database itself.</p>
+</div>
+<div class="section" id="api">
+<h2>3.2.3.3. API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="types">
+<h3>types<a class="headerlink" href="#types" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="identifier">
+<h4>Identifier<a class="headerlink" href="#identifier" title="Permalink to this headline">¶</a></h4>
+<p id="type-identifier">An “identifier” is a nonempty unicode string of limited length, containing only ASCII alphanumeric characters along with <code class="docutils literal"><span class="pre">-</span></code> (dash) and <code class="docutils literal"><span class="pre">_</span></code> (underscore), and not beginning with a digit
+Wherever an identifier is used, the documentation will give the maximum length in characters.
+The function <a class="reference internal" href="utils.html#buildbot.util.identifiers.isIdentifier" title="buildbot.util.identifiers.isIdentifier"><code class="xref py py-func docutils literal"><span class="pre">buildbot.util.identifiers.isIdentifier</span></code></a> is useful to verify a well-formed identifier.</p>
+</div>
+</div>
+<div class="section" id="module-buildbot.db.buildrequests">
+<span id="buildrequests"></span><h3>buildrequests<a class="headerlink" href="#module-buildbot.db.buildrequests" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="index-0"></span><dl class="exception">
+<dt id="buildbot.db.buildrequests.AlreadyClaimedError">
+<em class="property">exception </em><code class="descclassname">buildbot.db.buildrequests.</code><code class="descname">AlreadyClaimedError</code><a class="headerlink" href="#buildbot.db.buildrequests.AlreadyClaimedError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised when a build request is already claimed, usually by another master.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="buildbot.db.buildrequests.NotClaimedError">
+<em class="property">exception </em><code class="descclassname">buildbot.db.buildrequests.</code><code class="descname">NotClaimedError</code><a class="headerlink" href="#buildbot.db.buildrequests.NotClaimedError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised when a build request is not claimed by this master.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.db.buildrequests.BuildRequestsConnectorComponent">
+<em class="property">class </em><code class="descclassname">buildbot.db.buildrequests.</code><code class="descname">BuildRequestsConnectorComponent</code><a class="headerlink" href="#buildbot.db.buildrequests.BuildRequestsConnectorComponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class handles the complex process of claiming and unclaiming build
+requests, based on a polling model: callers poll for unclaimed requests with
+<a class="reference internal" href="#buildbot.db.buildrequests.BuildRequestsConnectorComponent.getBuildRequests" title="buildbot.db.buildrequests.BuildRequestsConnectorComponent.getBuildRequests"><code class="xref py py-meth docutils literal"><span class="pre">getBuildRequests</span></code></a>, then attempt to claim the requests with
+<a class="reference internal" href="#buildbot.db.buildrequests.BuildRequestsConnectorComponent.claimBuildRequests" title="buildbot.db.buildrequests.BuildRequestsConnectorComponent.claimBuildRequests"><code class="xref py py-meth docutils literal"><span class="pre">claimBuildRequests</span></code></a>.  The claim can fail if another master has claimed
+the request in the interim.</p>
+<p>An instance of this class is available at <code class="docutils literal"><span class="pre">master.db.buildrequests</span></code>.</p>
+<p id="index-1">Build requests are indexed by an ID referred to as a <em>brid</em>.  The contents
+of a request are represented as build request dictionaries (brdicts) with
+keys</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">buildrequestid</span></code></li>
+<li><code class="docutils literal"><span class="pre">buildsetid</span></code></li>
+<li><code class="docutils literal"><span class="pre">builderid</span></code></li>
+<li><code class="docutils literal"><span class="pre">buildername</span></code></li>
+<li><code class="docutils literal"><span class="pre">priority</span></code></li>
+<li><code class="docutils literal"><span class="pre">claimed</span></code> (boolean, true if the request is claimed)</li>
+<li><code class="docutils literal"><span class="pre">claimed_at</span></code> (datetime object, time this request was last claimed)</li>
+<li><code class="docutils literal"><span class="pre">claimed_by_masterid</span></code> (integer, the id of the master that claimed this buildrequest)</li>
+<li><code class="docutils literal"><span class="pre">complete</span></code> (boolean, true if the request is complete)</li>
+<li><code class="docutils literal"><span class="pre">complete_at</span></code> (datetime object, time this request was completed)</li>
+<li><code class="docutils literal"><span class="pre">submitted_at</span></code> (datetime object, time this request was completed)</li>
+<li><code class="docutils literal"><span class="pre">results</span></code> (integer result code)</li>
+<li><code class="docutils literal"><span class="pre">waited_for</span></code> (boolean)</li>
+</ul>
+<dl class="method">
+<dt id="buildbot.db.buildrequests.BuildRequestsConnectorComponent.getBuildRequest">
+<code class="descname">getBuildRequest</code><span class="sig-paren">(</span><em>brid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.buildrequests.BuildRequestsConnectorComponent.getBuildRequest" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>brid</strong> – build request id to look up</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">brdict or <code class="docutils literal"><span class="pre">None</span></code>, via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get a single BuildRequest, in the format described above.  This method
+returns <code class="docutils literal"><span class="pre">None</span></code> if there is no such buildrequest.  Note that build
+requests are not cached, as the values in the database are not fixed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.buildrequests.BuildRequestsConnectorComponent.getBuildRequests">
+<code class="descname">getBuildRequests</code><span class="sig-paren">(</span><em>buildername=None</em>, <em>complete=None</em>, <em>claimed=None</em>, <em>bsid=None</em>, <em>branch=None</em>, <em>repository=None</em>, <em>resultSpec=None</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.buildrequests.BuildRequestsConnectorComponent.getBuildRequests" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>buildername</strong> (<em>string</em>) – limit results to buildrequests for this builder</li>
+<li><strong>complete</strong> – if true, limit to completed buildrequests; if false,
+limit to incomplete buildrequests; if <code class="docutils literal"><span class="pre">None</span></code>, do not limit based on
+completion.</li>
+<li><strong>claimed</strong> – see below</li>
+<li><strong>bsid</strong> – see below</li>
+<li><strong>repository</strong> – the repository associated with the sourcestamps originating the requests</li>
+<li><strong>branch</strong> – the branch associated with the sourcestamps originating the requests</li>
+<li><strong>resultSpec</strong> – resultSpec containing filters sorting and paging request from data/REST API.
+If possible, the db layer can optimize the SQL query using this information.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of brdicts, via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Get a list of build requests matching the given characteristics.</p>
+<p>Pass all parameters as keyword parameters to allow future expansion.</p>
+<p>The <code class="docutils literal"><span class="pre">claimed</span></code> parameter can be <code class="docutils literal"><span class="pre">None</span></code> (the default) to ignore the
+claimed status of requests; <code class="docutils literal"><span class="pre">True</span></code> to return only claimed builds,
+<code class="docutils literal"><span class="pre">False</span></code> to return only unclaimed builds, or a <code class="docutils literal"><span class="pre">master</span> <span class="pre">ID</span></code> to return only
+builds claimed by a particular master instance.  A request is considered
+unclaimed if its <code class="docutils literal"><span class="pre">claimed_at</span></code> column is either NULL or 0, and it is
+not complete.  If <code class="docutils literal"><span class="pre">bsid</span></code> is specified, then only build requests for
+that buildset will be returned.</p>
+<p>A build is considered completed if its <code class="docutils literal"><span class="pre">complete</span></code> column is 1; the
+<code class="docutils literal"><span class="pre">complete_at</span></code> column is not consulted.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.buildrequests.BuildRequestsConnectorComponent.claimBuildRequests">
+<code class="descname">claimBuildRequests</code><span class="sig-paren">(</span><em>brids</em><span class="optional">[</span>, <em>claimed_at=XX</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.buildrequests.BuildRequestsConnectorComponent.claimBuildRequests" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>brids</strong> (<em>list</em>) – ids of buildrequests to claim</li>
+<li><strong>claimed_at</strong> (<em>datetime</em>) – time at which the builds are claimed</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Deferred</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#buildbot.db.buildrequests.AlreadyClaimedError" title="buildbot.db.buildrequests.AlreadyClaimedError"><code class="xref py py-exc docutils literal"><span class="pre">AlreadyClaimedError</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Try to “claim” the indicated build requests for this buildmaster
+instance.  The resulting deferred will fire normally on success, or
+fail with <a class="reference internal" href="#buildbot.db.buildrequests.AlreadyClaimedError" title="buildbot.db.buildrequests.AlreadyClaimedError"><code class="xref py py-exc docutils literal"><span class="pre">AlreadyClaimedError</span></code></a> if <em>any</em> of the build
+requests are already claimed by another master instance.  In this case,
+none of the claims will take effect.</p>
+<p>If <code class="docutils literal"><span class="pre">claimed_at</span></code> is not given, then the current time will be used.</p>
+<span class="target" id="index-2"></span><div class="admonition note" id="index-3">
+<p class="first admonition-title">Note</p>
+<p class="last">On database backends that do not enforce referential integrity
+(e.g., SQLite), this method will not prevent claims for nonexistent
+build requests.  On database backends that do not support
+transactions (MySQL), this method will not properly roll back any
+partial claims made before an <a class="reference internal" href="#buildbot.db.buildrequests.AlreadyClaimedError" title="buildbot.db.buildrequests.AlreadyClaimedError"><code class="xref py py-exc docutils literal"><span class="pre">AlreadyClaimedError</span></code></a> is
+generated.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.buildrequests.BuildRequestsConnectorComponent.unclaimBuildRequests">
+<code class="descname">unclaimBuildRequests</code><span class="sig-paren">(</span><em>brids</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.buildrequests.BuildRequestsConnectorComponent.unclaimBuildRequests" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>brids</strong> (<em>list</em>) – ids of buildrequests to unclaim</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Release this master’s claim on all of the given build requests.  This
+will not unclaim requests that are claimed by another master, but will
+not fail in this case.  The method does not check whether a request is
+completed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.buildrequests.BuildRequestsConnectorComponent.completeBuildRequests">
+<code class="descname">completeBuildRequests</code><span class="sig-paren">(</span><em>brids</em>, <em>results</em><span class="optional">[</span>, <em>complete_at=XX</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.buildrequests.BuildRequestsConnectorComponent.completeBuildRequests" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>brids</strong> (<em>integer</em>) – build request IDs to complete</li>
+<li><strong>results</strong> (<em>integer</em>) – integer result code</li>
+<li><strong>complete_at</strong> (<em>datetime</em>) – time at which the buildset was completed</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Deferred</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#buildbot.db.buildrequests.NotClaimedError" title="buildbot.db.buildrequests.NotClaimedError"><code class="xref py py-exc docutils literal"><span class="pre">NotClaimedError</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Complete a set of build requests, all of which are owned by this master
+instance.  This will fail with <a class="reference internal" href="#buildbot.db.buildrequests.NotClaimedError" title="buildbot.db.buildrequests.NotClaimedError"><code class="xref py py-exc docutils literal"><span class="pre">NotClaimedError</span></code></a> if the build
+request is already completed or does not exist.  If <code class="docutils literal"><span class="pre">complete_at</span></code> is
+not given, the current time will be used.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-buildbot.db.builds">
+<span id="builds"></span><h3>builds<a class="headerlink" href="#module-buildbot.db.builds" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="index-4"></span><dl class="class">
+<dt id="buildbot.db.builds.BuildsConnectorComponent">
+<em class="property">class </em><code class="descclassname">buildbot.db.builds.</code><code class="descname">BuildsConnectorComponent</code><a class="headerlink" href="#buildbot.db.builds.BuildsConnectorComponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class handles builds.
+One build record is created for each build performed by a master.
+This record contains information on the status of the build, as well as links to the resources used in the build: builder, master, worker, etc.</p>
+<p>An instance of this class is available at <code class="docutils literal"><span class="pre">master.db.builds</span></code>.</p>
+<p id="index-5">Builds are indexed by <em>buildid</em> and their contents represented as <em>builddicts</em> (build dictionaries), with the following keys:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">id</span></code> (the build ID, globally unique)</li>
+<li><code class="docutils literal"><span class="pre">number</span></code> (the build number, unique only within the builder)</li>
+<li><code class="docutils literal"><span class="pre">builderid</span></code> (the ID of the builder that performed this build)</li>
+<li><code class="docutils literal"><span class="pre">buildrequestid</span></code> (the ID of the build request that caused this build)</li>
+<li><code class="docutils literal"><span class="pre">workerid</span></code> (the ID of the worker on which this build was performed)</li>
+<li><code class="docutils literal"><span class="pre">masterid</span></code> (the ID of the master on which this build was performed)</li>
+<li><code class="docutils literal"><span class="pre">started_at</span></code> (datetime at which this build began)</li>
+<li><code class="docutils literal"><span class="pre">complete_at</span></code> (datetime at which this build finished, or None if it is ongoing)</li>
+<li><code class="docutils literal"><span class="pre">state_string</span></code> (short string describing the build’s state)</li>
+<li><code class="docutils literal"><span class="pre">results</span></code> (results of this build; see <a class="reference internal" href="results.html#build-result-codes"><span class="std std-ref">Build Result Codes</span></a>)</li>
+</ul>
+<dl class="method">
+<dt id="buildbot.db.builds.BuildsConnectorComponent.getBuild">
+<code class="descname">getBuild</code><span class="sig-paren">(</span><em>buildid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.builds.BuildsConnectorComponent.getBuild" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>buildid</strong> (<em>integer</em>) – build id</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Build dictionary as above or <code class="docutils literal"><span class="pre">None</span></code>, via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get a single build, in the format described above.
+Returns <code class="docutils literal"><span class="pre">None</span></code> if there is no such build.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.builds.BuildsConnectorComponent.getBuildByNumber">
+<code class="descname">getBuildByNumber</code><span class="sig-paren">(</span><em>builderid</em>, <em>number</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.builds.BuildsConnectorComponent.getBuildByNumber" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>builder</strong> (<em>integer</em>) – builder id</li>
+<li><strong>number</strong> (<em>integer</em>) – build number within that builder</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Build dictionary as above or <code class="docutils literal"><span class="pre">None</span></code>, via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Get a single build, in the format described above, specified by builder and number, rather than build id.
+Returns <code class="docutils literal"><span class="pre">None</span></code> if there is no such build.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.builds.BuildsConnectorComponent.getPrevSuccessfulBuild">
+<code class="descname">getPrevSuccessfulBuild</code><span class="sig-paren">(</span><em>builderid</em>, <em>number</em>, <em>ssBuild</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.builds.BuildsConnectorComponent.getPrevSuccessfulBuild" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>builderid</strong> (<em>integer</em>) – builder to get builds for</li>
+<li><strong>number</strong> (<em>integer</em>) – the current build number. Previous build will be taken from this number</li>
+<li><strong>ssBuild</strong> (<em>list</em>) – the list of sourcestamps for the current build number</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None or a build dictionary</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns the last successful build from the current build number with the same repository/repository/codebase</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.builds.BuildsConnectorComponent.getBuilds">
+<code class="descname">getBuilds</code><span class="sig-paren">(</span><em>builderid=None</em>, <em>buildrequestid=None</em>, <em>complete=None</em>, <em>resultSpec=None</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.builds.BuildsConnectorComponent.getBuilds" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>builderid</strong> (<em>integer</em>) – builder to get builds for</li>
+<li><strong>buildrequestid</strong> (<em>integer</em>) – buildrequest to get builds for</li>
+<li><strong>complete</strong> (<em>boolean</em>) – if not None, filters results based on completeness</li>
+<li><strong>resultSpec</strong> – resultSpec containing filters sorting and paging request from data/REST API.
+If possible, the db layer can optimize the SQL query using this information.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of build dictionaries as above, via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Get a list of builds, in the format described above.
+Each of the parameters limit the resulting set of builds.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.builds.BuildsConnectorComponent.addBuild">
+<code class="descname">addBuild</code><span class="sig-paren">(</span><em>builderid</em>, <em>buildrequestid</em>, <em>workerid</em>, <em>masterid</em>, <em>state_string</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.builds.BuildsConnectorComponent.addBuild" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>builderid</strong> (<em>integer</em>) – builder to get builds for</li>
+<li><strong>buildrequestid</strong> (<em>integer</em>) – build request id</li>
+<li><strong>workerid</strong> (<em>integer</em>) – worker performing the build</li>
+<li><strong>masterid</strong> (<em>integer</em>) – master performing the build</li>
+<li><strong>state_string</strong> (<em>unicode</em>) – initial state of the build</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">tuple of build ID and build number, via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Add a new build to the db, recorded as having started at the current time.
+This will invent a new number for the build, unique within the context of the builder.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">setBuildStateString(buildid, state_string):</code></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>buildid</strong> (<em>integer</em>) – build id</li>
+<li><strong>state_string</strong> (<em>unicode</em>) – updated state of the build</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Update the state strings for the given build.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.builds.BuildsConnectorComponent.finishBuild">
+<code class="descname">finishBuild</code><span class="sig-paren">(</span><em>buildid</em>, <em>results</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.builds.BuildsConnectorComponent.finishBuild" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>buildid</strong> (<em>integer</em>) – build id</li>
+<li><strong>results</strong> (<em>integer</em>) – build result</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Mark the given build as finished, with <code class="docutils literal"><span class="pre">complete_at</span></code> set to the current time.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This update is done unconditionally, even if the build is already finished.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.builds.BuildsConnectorComponent.getBuildProperties">
+<code class="descname">getBuildProperties</code><span class="sig-paren">(</span><em>buildid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.builds.BuildsConnectorComponent.getBuildProperties" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>buildid</strong> – build ID</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary mapping property name to <code class="docutils literal"><span class="pre">value,</span> <span class="pre">source</span></code>, via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Return the properties for a build, in the same format they were given to <a class="reference internal" href="#buildbot.db.builds.BuildsConnectorComponent.addBuild" title="buildbot.db.builds.BuildsConnectorComponent.addBuild"><code class="xref py py-meth docutils literal"><span class="pre">addBuild</span></code></a>.</p>
+<p>Note that this method does not distinguish a non-existent build from a build with no properties, and returns <code class="docutils literal"><span class="pre">{}</span></code> in either case.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.builds.BuildsConnectorComponent.setBuildProperty">
+<code class="descname">setBuildProperty</code><span class="sig-paren">(</span><em>buildid</em>, <em>name</em>, <em>value</em>, <em>source</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.builds.BuildsConnectorComponent.setBuildProperty" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>buildid</strong> (<em>integer</em>) – build ID</li>
+<li><strong>name</strong> (<em>string</em>) – Name of the property to set</li>
+<li><strong>value</strong> – Value of the property</li>
+<li><strong>source</strong> (<em>string</em>) – Source of the Property to set</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Set a build property.
+If no property with that name existed in that build, a new property will be created.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-buildbot.db.steps">
+<span id="steps"></span><h3>steps<a class="headerlink" href="#module-buildbot.db.steps" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="index-6"></span><dl class="class">
+<dt id="buildbot.db.steps.StepsConnectorComponent">
+<em class="property">class </em><code class="descclassname">buildbot.db.steps.</code><code class="descname">StepsConnectorComponent</code><a class="headerlink" href="#buildbot.db.steps.StepsConnectorComponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class handles the steps performed within the context of a build.
+Within a build, each step has a unique name and a unique, 0-based number.</p>
+<p>An instance of this class is available at <code class="docutils literal"><span class="pre">master.db.steps</span></code>.</p>
+<p id="index-7">Builds are indexed by <em>stepid</em> and their contents represented as <em>stepdicts</em> (step dictionaries), with the following keys:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">id</span></code> (the step ID, globally unique)</li>
+<li><code class="docutils literal"><span class="pre">number</span></code> (the step number, unique only within the build)</li>
+<li><code class="docutils literal"><span class="pre">name</span></code> (the step name, an 50-character <a class="reference internal" href="#type-identifier"><span class="std std-ref">identifier</span></a> unique only within the build)</li>
+<li><code class="docutils literal"><span class="pre">buildid</span></code> (the ID of the build containing this step)</li>
+<li><code class="docutils literal"><span class="pre">started_at</span></code> (datetime at which this step began)</li>
+<li><code class="docutils literal"><span class="pre">complete_at</span></code> (datetime at which this step finished, or None if it is ongoing)</li>
+<li><code class="docutils literal"><span class="pre">state_string</span></code> (short string describing the step’s state)</li>
+<li><code class="docutils literal"><span class="pre">results</span></code> (results of this step; see <a class="reference internal" href="results.html#build-result-codes"><span class="std std-ref">Build Result Codes</span></a>)</li>
+<li><code class="docutils literal"><span class="pre">urls</span></code> (list of URLs produced by this step. Each urls is stored as a dictionary with keys <cite>name</cite> and <cite>url</cite>)</li>
+<li><code class="docutils literal"><span class="pre">hidden</span></code> (true if the step should be hidden in status displays)</li>
+</ul>
+<dl class="method">
+<dt id="buildbot.db.steps.StepsConnectorComponent.getStep">
+<code class="descname">getStep</code><span class="sig-paren">(</span><em>stepid=None</em>, <em>buildid=None</em>, <em>number=None</em>, <em>name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.steps.StepsConnectorComponent.getStep" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>stepid</strong> (<em>integer</em>) – the step id to retrieve</li>
+<li><strong>buildid</strong> (<em>integer</em>) – the build from which to get the step</li>
+<li><strong>number</strong> (<em>integer</em>) – the step number</li>
+<li><strong>name</strong> (50-character <a class="reference internal" href="#type-identifier"><span class="std std-ref">identifier</span></a>) – the step name</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">stepdict via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Get a single step.
+The step can be specified by</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">stepid</span></code> alone;</li>
+<li><code class="docutils literal"><span class="pre">buildid</span></code> and <code class="docutils literal"><span class="pre">number</span></code>, the step number within that build; or</li>
+<li><code class="docutils literal"><span class="pre">buildid</span></code> and <code class="docutils literal"><span class="pre">name</span></code>, the unique step name within that build.</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.steps.StepsConnectorComponent.getSteps">
+<code class="descname">getSteps</code><span class="sig-paren">(</span><em>buildid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.steps.StepsConnectorComponent.getSteps" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>buildid</strong> (<em>integer</em>) – the build from which to get the step</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of stepdicts, sorted by number, via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get all steps in the given build, in order by number.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.steps.StepsConnectorComponent.addStep">
+<code class="descname">addStep</code><span class="sig-paren">(</span><em>self</em>, <em>buildid</em>, <em>name</em>, <em>state_string</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.steps.StepsConnectorComponent.addStep" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>buildid</strong> (<em>integer</em>) – the build to which to add the step</li>
+<li><strong>name</strong> (50-character <a class="reference internal" href="#type-identifier"><span class="std std-ref">identifier</span></a>) – the step name</li>
+<li><strong>state_string</strong> (<em>unicode</em>) – the initial state of the step</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">tuple of step ID, step number, and step name, via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Add a new step to a build.
+The given name will be used if it is unique; otherwise, a unique numerical suffix will be appended.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">setStepStateString(stepid, state_string):</code></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>stepid</strong> (<em>integer</em>) – step ID</li>
+<li><strong>state_string</strong> (<em>unicode</em>) – updated state of the step</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Update the state string for the given step.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.steps.StepsConnectorComponent.finishStep">
+<code class="descname">finishStep</code><span class="sig-paren">(</span><em>stepid</em>, <em>results</em>, <em>hidden</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.steps.StepsConnectorComponent.finishStep" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>stepid</strong> (<em>integer</em>) – step ID</li>
+<li><strong>results</strong> (<em>integer</em>) – step result</li>
+<li><strong>hidden</strong> (<em>bool</em>) – true if the step should be hidden</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Mark the given step as finished, with <code class="docutils literal"><span class="pre">complete_at</span></code> set to the current time.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This update is done unconditionally, even if the steps are already finished.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.steps.StepsConnectorComponent.addURL">
+<code class="descname">addURL</code><span class="sig-paren">(</span><em>self</em>, <em>stepid</em>, <em>name</em>, <em>url</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.steps.StepsConnectorComponent.addURL" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>stepid</strong> (<em>integer</em>) – the stepid to add the url.</li>
+<li><strong>name</strong> (<em>string</em>) – the url name</li>
+<li><strong>url</strong> (<em>string</em>) – the actual url</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None via deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Add a new url to a step.
+The new url is added to the list of urls.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-buildbot.db.logs">
+<span id="logs"></span><h3>logs<a class="headerlink" href="#module-buildbot.db.logs" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="index-8"></span><dl class="class">
+<dt id="buildbot.db.logs.LogsConnectorComponent">
+<em class="property">class </em><code class="descclassname">buildbot.db.logs.</code><code class="descname">LogsConnectorComponent</code><a class="headerlink" href="#buildbot.db.logs.LogsConnectorComponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class handles log data.
+Build steps can have zero or more logs.
+Logs are uniquely identified by name within a step.</p>
+<p>Information about a log, apart from its contents, is represented as a dictionary with the following keys, referred to as a <em>logdict</em>:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">id</span></code> (log ID, globally unique)</li>
+<li><code class="docutils literal"><span class="pre">stepid</span></code> (step ID, indicating the containing step)</li>
+<li><code class="docutils literal"><span class="pre">name</span></code> free-form name of this log</li>
+<li><code class="docutils literal"><span class="pre">slug</span></code> (50-identifier for the log, unique within the step)</li>
+<li><code class="docutils literal"><span class="pre">complete</span></code> (true if the log is complete and will not receive more lines)</li>
+<li><code class="docutils literal"><span class="pre">num_lines</span></code> (number of lines in the log)</li>
+<li><code class="docutils literal"><span class="pre">type</span></code> (log type; see below)</li>
+</ul>
+<p>Each log has a type that describes how to interpret its contents.
+See the <a class="reference internal" href="rest.html#rtype-logchunk" title="logchunk"><code class="xref bb bb-rtype docutils literal"><span class="pre">logchunk</span></code></a> resource type for details.</p>
+<p>A log is contains a sequence of newline-separated lines of unicode.
+Log line numbering is zero-based.</p>
+<p>Each line must be less than 64k when encoded in UTF-8.
+Longer lines will be truncated, and a warning logged.</p>
+<p>Lines are stored internally in “chunks”, and optionally compressed, but the implementation hides these details from callers.</p>
+<dl class="method">
+<dt id="buildbot.db.logs.LogsConnectorComponent.getLog">
+<code class="descname">getLog</code><span class="sig-paren">(</span><em>logid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.logs.LogsConnectorComponent.getLog" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>logid</strong> (<em>integer</em>) – ID of the requested log</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">logdict via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get a log, identified by logid.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.logs.LogsConnectorComponent.getLogBySlug">
+<code class="descname">getLogBySlug</code><span class="sig-paren">(</span><em>stepid</em>, <em>slug</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.logs.LogsConnectorComponent.getLogBySlug" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>stepid</strong> (<em>integer</em>) – ID of the step containing this log</li>
+<li><strong>slug</strong> – slug of the logfile to retrieve</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">logdict via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Get a log, identified by name within the given step.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.logs.LogsConnectorComponent.getLogs">
+<code class="descname">getLogs</code><span class="sig-paren">(</span><em>stepid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.logs.LogsConnectorComponent.getLogs" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>stepid</strong> (<em>integer</em>) – ID of the step containing the desired logs</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of logdicts via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get all logs within the given step.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.logs.LogsConnectorComponent.getLogLines">
+<code class="descname">getLogLines</code><span class="sig-paren">(</span><em>logid</em>, <em>first_line</em>, <em>last_line</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.logs.LogsConnectorComponent.getLogLines" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>logid</strong> (<em>integer</em>) – ID of the log</li>
+<li><strong>first_line</strong> – first line to return</li>
+<li><strong>last_line</strong> – last line to return</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">see below</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Get a subset of lines for a logfile.</p>
+<p>The return value, via Deferred, is a concatenation of newline-terminated strings.
+If the requested last line is beyond the end of the logfile, only existing lines will be included.
+If the log does not exist, or has no associated lines, this method returns an empty string.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.logs.LogsConnectorComponent.addLog">
+<code class="descname">addLog</code><span class="sig-paren">(</span><em>stepid</em>, <em>name</em>, <em>type</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.logs.LogsConnectorComponent.addLog" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>stepid</strong> (<em>integer</em>) – ID of the step containing this log</li>
+<li><strong>name</strong> (<em>string</em>) – name of the logfile</li>
+<li><strong>slug</strong> (<em>50-character identifier</em>) – slug (unique identifier) of the logfile</li>
+<li><strong>type</strong> (<em>string</em>) – log type (see above)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>KeyError</strong> – if a log with the given slug already exists in the step</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">ID of the new log, via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Add a new log file to the given step.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.logs.LogsConnectorComponent.appendLog">
+<code class="descname">appendLog</code><span class="sig-paren">(</span><em>logid</em>, <em>content</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.logs.LogsConnectorComponent.appendLog" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>logid</strong> (<em>integer</em>) – ID of the requested log</li>
+<li><strong>content</strong> (<em>string</em>) – new content to be appended to the log</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">tuple of first and last line numbers in the new chunk, via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Append content to an existing log.
+The content must end with a newline.
+If the given log does not exist, the method will silently do nothing.</p>
+<p>It is not safe to call this method more than once simultaneously for the same <code class="docutils literal"><span class="pre">logid</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.logs.LogsConnectorComponent.finishLog">
+<code class="descname">finishLog</code><span class="sig-paren">(</span><em>logid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.logs.LogsConnectorComponent.finishLog" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>logid</strong> (<em>integer</em>) – ID of the log to mark complete</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Mark a log as complete.</p>
+<p>Note that no checking for completeness is performed when appending to a log.
+It is up to the caller to avoid further calls to <code class="docutils literal"><span class="pre">appendLog</span></code> after <code class="docutils literal"><span class="pre">finishLog</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.logs.LogsConnectorComponent.compressLog">
+<code class="descname">compressLog</code><span class="sig-paren">(</span><em>logid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.logs.LogsConnectorComponent.compressLog" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>logid</strong> (<em>integer</em>) – ID of the log to compress</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Compress the given log.
+This method performs internal optimizations of a log’s chunks to reduce the space used and make read operations more efficient.
+It should only be called for finished logs.
+This method may take some time to complete.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.logs.LogsConnectorComponent.deleteOldLogChunks">
+<code class="descname">deleteOldLogChunks</code><span class="sig-paren">(</span><em>older_than_timestamp</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.logs.LogsConnectorComponent.deleteOldLogChunks" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>older_than_timestamp</strong> (<em>integer</em>) – the logs whose step’s <code class="docutils literal"><span class="pre">started_at</span></code> is older than <code class="docutils literal"><span class="pre">older_than_timestamp</span></code> will be deleted.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Delete old logchunks (helper for the <code class="docutils literal"><span class="pre">logHorizon</span></code> policy).
+Old logs have their logchunks deleted from the database, but they keep their <code class="docutils literal"><span class="pre">num_lines</span></code> metadata.
+They have their types changed to ‘d’, so that the UI can display something meaningful.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-buildbot.db.buildsets">
+<span id="buildsets"></span><h3>buildsets<a class="headerlink" href="#module-buildbot.db.buildsets" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="index-9"></span><dl class="class">
+<dt id="buildbot.db.buildsets.BuildsetsConnectorComponent">
+<em class="property">class </em><code class="descclassname">buildbot.db.buildsets.</code><code class="descname">BuildsetsConnectorComponent</code><a class="headerlink" href="#buildbot.db.buildsets.BuildsetsConnectorComponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class handles getting buildsets into and out of the database.
+Buildsets combine multiple build requests that were triggered together.</p>
+<p>An instance of this class is available at <code class="docutils literal"><span class="pre">master.db.buildsets</span></code>.</p>
+<p id="index-10">Buildsets are indexed by <em>bsid</em> and their contents represented as <em>bsdicts</em>
+(buildset dictionaries), with keys</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">bsid</span></code></li>
+<li><code class="docutils literal"><span class="pre">external_idstring</span></code> (arbitrary string for mapping builds externally)</li>
+<li><code class="docutils literal"><span class="pre">reason</span></code> (string; reason these builds were triggered)</li>
+<li><code class="docutils literal"><span class="pre">sourcestamps</span></code> (list of sourcestamps for this buildset, by ID)</li>
+<li><code class="docutils literal"><span class="pre">submitted_at</span></code> (datetime object; time this buildset was created)</li>
+<li><code class="docutils literal"><span class="pre">complete</span></code> (boolean; true if all of the builds for this buildset are complete)</li>
+<li><code class="docutils literal"><span class="pre">complete_at</span></code> (datetime object; time this buildset was completed)</li>
+<li><code class="docutils literal"><span class="pre">results</span></code> (aggregate result of this buildset; see <a class="reference internal" href="results.html#build-result-codes"><span class="std std-ref">Build Result Codes</span></a>)</li>
+</ul>
+<dl class="method">
+<dt id="buildbot.db.buildsets.BuildsetsConnectorComponent.addBuildset">
+<code class="descname">addBuildset</code><span class="sig-paren">(</span><em>sourcestamps</em>, <em>reason</em>, <em>properties</em>, <em>builderids</em>, <em>external_idstring=None</em>, <em>parent_buildid=None</em>, <em>parent_relationship=None</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.buildsets.BuildsetsConnectorComponent.addBuildset" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sourcestamps</strong> (<em>list</em>) – sourcestamps for the new buildset; see below</li>
+<li><strong>reason</strong> (<em>short unicode string</em>) – reason for this buildset</li>
+<li><strong>properties</strong> (<em>dictionary</em><em>, </em><em>where values are tuples of</em><em> (</em><em>value</em><em>, </em><a class="reference internal" href="../manual/cfg-buildsteps.html#module-buildbot.steps.source" title="buildbot.steps.source"><em>source</em></a><em>)</em>) – properties for this buildset</li>
+<li><strong>builderids</strong> (<em>list of int</em>) – builderids specified by this buildset</li>
+<li><strong>external_idstring</strong> (<em>unicode string</em>) – external key to identify this buildset; defaults to None</li>
+<li><strong>submitted_at</strong> (<em>datetime</em>) – time this buildset was created; defaults to the current time</li>
+<li><strong>parent_buildid</strong> (<em>int</em>) – optional build id that is the parent for this buildset</li>
+<li><strong>parent_relationship</strong> (<em>unicode</em>) – relationship identifier for the parent, this is is configured relationship between the parent build, and the childs buildsets</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">buildset ID and buildrequest IDs, via a Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Add a new Buildset to the database, along with BuildRequests for each builder, returning the resulting bsid via a Deferred.
+Arguments should be specified by keyword.</p>
+<p>Each sourcestamp in the list of sourcestamps can be given either as an integer, assumed to be a sourcestamp ID, or a dictionary of keyword arguments to be passed to <code class="xref py py-meth docutils literal"><span class="pre">findSourceStampId</span></code>.</p>
+<p>The return value is a tuple <code class="docutils literal"><span class="pre">(bsid,</span> <span class="pre">brids)</span></code> where <code class="docutils literal"><span class="pre">bsid</span></code> is the inserted buildset ID and <code class="docutils literal"><span class="pre">brids</span></code> is a dictionary mapping builderids to build request IDs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.buildsets.BuildsetsConnectorComponent.completeBuildset">
+<code class="descname">completeBuildset</code><span class="sig-paren">(</span><em>bsid</em>, <em>results</em><span class="optional">[</span>, <em>complete_at=XX</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.buildsets.BuildsetsConnectorComponent.completeBuildset" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>bsid</strong> (<em>integer</em>) – buildset ID to complete</li>
+<li><strong>results</strong> (<em>integer</em>) – integer result code</li>
+<li><strong>complete_at</strong> (<em>datetime</em>) – time the buildset was completed</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Deferred</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">KeyError</span></code> if the buildset does not exist or is
+already complete</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Complete a buildset, marking it with the given <code class="docutils literal"><span class="pre">results</span></code> and setting
+its <code class="docutils literal"><span class="pre">completed_at</span></code> to the current time, if the <code class="docutils literal"><span class="pre">complete_at</span></code>
+argument is omitted.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.buildsets.BuildsetsConnectorComponent.getBuildset">
+<code class="descname">getBuildset</code><span class="sig-paren">(</span><em>bsid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.buildsets.BuildsetsConnectorComponent.getBuildset" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>bsid</strong> – buildset ID</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">bsdict, or <code class="docutils literal"><span class="pre">None</span></code>, via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get a bsdict representing the given buildset, or <code class="docutils literal"><span class="pre">None</span></code> if no such
+buildset exists.</p>
+<p>Note that buildsets are not cached, as the values in the database are
+not fixed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.buildsets.BuildsetsConnectorComponent.getBuildsets">
+<code class="descname">getBuildsets</code><span class="sig-paren">(</span><em>complete=None</em>, <em>resultSpec=None</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.buildsets.BuildsetsConnectorComponent.getBuildsets" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>complete</strong> – if true, return only complete buildsets; if false,
+return only incomplete buildsets; if <code class="docutils literal"><span class="pre">None</span></code> or omitted, return all
+buildsets</li>
+<li><strong>resultSpec</strong> – resultSpec containing filters sorting and paging request from data/REST API.
+If possible, the db layer can optimize the SQL query using this information.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of bsdicts, via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Get a list of bsdicts matching the given criteria.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">getRecentBuildsets(count=None, branch=None, repository=None,</code></dt>
+<dt>
+<code class="descname">complete=None):</code></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>count</strong> (<em>integer</em>) – maximum number of buildsets to retrieve (required).</li>
+<li><strong>branch</strong> (<em>string</em>) – optional branch name. If specified, only buildsets
+affecting such branch will be returned.</li>
+<li><strong>repository</strong> (<em>string</em>) – optional repository name. If specified, only
+buildsets affecting such repository will be returned.</li>
+<li><strong>complete</strong> (<a class="reference internal" href="data.html#buildbot.data.types.Boolean" title="buildbot.data.types.Boolean"><em>Boolean</em></a>) – if true, return only complete buildsets; if false,
+return only incomplete buildsets; if <code class="docutils literal"><span class="pre">None</span></code> or omitted, return all
+buildsets</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of bsdicts, via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Get “recent” buildsets, as defined by their <code class="docutils literal"><span class="pre">submitted_at</span></code> times.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.buildsets.BuildsetsConnectorComponent.getBuildsetProperties">
+<code class="descname">getBuildsetProperties</code><span class="sig-paren">(</span><em>buildsetid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.buildsets.BuildsetsConnectorComponent.getBuildsetProperties" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>bsid</strong> – buildset ID</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary mapping property name to <code class="docutils literal"><span class="pre">value,</span> <span class="pre">source</span></code>, via
+Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Return the properties for a buildset, in the same format they were
+given to <a class="reference internal" href="#buildbot.db.buildsets.BuildsetsConnectorComponent.addBuildset" title="buildbot.db.buildsets.BuildsetsConnectorComponent.addBuildset"><code class="xref py py-meth docutils literal"><span class="pre">addBuildset</span></code></a>.</p>
+<p>Note that this method does not distinguish a nonexistent buildset from
+a buildset with no properties, and returns <code class="docutils literal"><span class="pre">{}</span></code> in either case.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-buildbot.db.workers">
+<span id="workers"></span><h3>workers<a class="headerlink" href="#module-buildbot.db.workers" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="index-11"></span><dl class="class">
+<dt id="buildbot.db.workers.WorkersConnectorComponent">
+<em class="property">class </em><code class="descclassname">buildbot.db.workers.</code><code class="descname">WorkersConnectorComponent</code><a class="headerlink" href="#buildbot.db.workers.WorkersConnectorComponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class handles Buildbot’s notion of workers.
+The worker information is returned as a dictionary:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">id</span></code></li>
+<li><code class="docutils literal"><span class="pre">name</span></code> - the name of the worker</li>
+<li><code class="docutils literal"><span class="pre">workerinfo</span></code> - worker information as dictionary</li>
+<li><code class="docutils literal"><span class="pre">connected_to</span></code> - a list of masters, by ID, to which this worker is currently connected.
+This list will typically contain only one master, but in unusual circumstances the same worker may appear to be connected to multiple masters simultaneously.</li>
+<li><code class="docutils literal"><span class="pre">configured_on</span></code> - a list of master-builder pairs, on which this worker is configured.
+Each pair is represented by a dictionary with keys <code class="docutils literal"><span class="pre">buliderid</span></code> and <code class="docutils literal"><span class="pre">masterid</span></code>.</li>
+</ul>
+<p>The worker information can be any JSON-able object.
+See <a class="reference internal" href="rest.html#rtype-worker" title="worker"><code class="xref bb bb-rtype docutils literal"><span class="pre">worker</span></code></a> for more detail.</p>
+<dl class="method">
+<dt id="buildbot.db.workers.WorkersConnectorComponent.findWorkerId">
+<code class="descname">findWorkerId</code><span class="sig-paren">(</span><em>name=name</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.workers.WorkersConnectorComponent.findWorkerId" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>50-character identifier</em>) – worker name</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">worker ID via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get the ID for a worker, adding a new worker to the database if necessary.
+The worker information for a new worker is initialized to an empty dictionary.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.workers.WorkersConnectorComponent.getWorkers">
+<code class="descname">getWorkers</code><span class="sig-paren">(</span><em>masterid=None</em>, <em>builderid=None</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.workers.WorkersConnectorComponent.getWorkers" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>masterid</strong> (<em>integer</em>) – limit to workers configured on this master</li>
+<li><strong>builderid</strong> (<em>integer</em>) – limit to workers configured on this builder</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of worker dictionaries, via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Get a list of workers.
+If either or both of the filtering parameters either specified, then the result is limited to workers configured to run on that master or builder.
+The <code class="docutils literal"><span class="pre">configured_on</span></code> results are limited by the filtering parameters as well.
+The <code class="docutils literal"><span class="pre">connected_to</span></code> results are limited by the <code class="docutils literal"><span class="pre">masterid</span></code> parameter.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.workers.WorkersConnectorComponent.getWorker">
+<code class="descname">getWorker</code><span class="sig-paren">(</span><em>workerid=None</em>, <em>name=None</em>, <em>masterid=None</em>, <em>builderid=None</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.workers.WorkersConnectorComponent.getWorker" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> (<em>string</em>) – the name of the worker to retrieve</li>
+<li><strong>workerid</strong> (<em>integer</em>) – the ID of the worker to retrieve</li>
+<li><strong>masterid</strong> (<em>integer</em>) – limit to workers configured on this master</li>
+<li><strong>builderid</strong> (<em>integer</em>) – limit to workers configured on this builder</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">info dictionary or None, via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Looks up the worker with the given name or ID, returning <code class="docutils literal"><span class="pre">None</span></code> if no matching worker is found.
+The <code class="docutils literal"><span class="pre">masterid</span></code> and <code class="docutils literal"><span class="pre">builderid</span></code> arguments function as they do for <a class="reference internal" href="#buildbot.db.workers.WorkersConnectorComponent.getWorkers" title="buildbot.db.workers.WorkersConnectorComponent.getWorkers"><code class="xref py py-meth docutils literal"><span class="pre">getWorkers</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.workers.WorkersConnectorComponent.workerConnected">
+<code class="descname">workerConnected</code><span class="sig-paren">(</span><em>workerid</em>, <em>masterid</em>, <em>workerinfo</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.workers.WorkersConnectorComponent.workerConnected" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>workerid</strong> (<em>integer</em>) – the ID of the worker</li>
+<li><strong>masterid</strong> (<em>integer</em>) – the ID of the master to which it connected</li>
+<li><strong>workerinfo</strong> (<em>dict</em>) – the new worker information dictionary</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Record the given worker as attached to the given master, and update its cached worker information.
+The supplied information completely replaces any existing information.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.workers.WorkersConnectorComponent.workerDisconnected">
+<code class="descname">workerDisconnected</code><span class="sig-paren">(</span><em>workerid</em>, <em>masterid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.workers.WorkersConnectorComponent.workerDisconnected" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>workerid</strong> (<em>integer</em>) – the ID of the worker</li>
+<li><strong>masterid</strong> (<em>integer</em>) – the ID of the master to which it connected</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Record the given worker as no longer attached to the given master.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.workers.WorkersConnectorComponent.workerConfigured">
+<code class="descname">workerConfigured</code><span class="sig-paren">(</span><em>workerid</em>, <em>masterid</em>, <em>builderids</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.workers.WorkersConnectorComponent.workerConfigured" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>workerid</strong> (<em>integer</em>) – the ID of the worker</li>
+<li><strong>masterid</strong> (<em>integer</em>) – the ID of the master to which it configured</li>
+<li><strong>of integer builderids</strong> (<em>list</em>) – the ID of the builders to which it is configured</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Record the given worker as being configured on the given master and for given builders.
+This method will also remove any other builder that were configured previously for same (worker, master) combination.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.workers.WorkersConnectorComponent.deconfigureAllWorkersForMaster">
+<code class="descname">deconfigureAllWorkersForMaster</code><span class="sig-paren">(</span><em>masterid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.workers.WorkersConnectorComponent.deconfigureAllWorkersForMaster" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>masterid</strong> (<em>integer</em>) – the ID of the master to which it configured</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Unregister all the workers configured to a master for given builders.
+This shall happen when master disabled or before reconfiguration</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-buildbot.db.changes">
+<span id="changes"></span><h3>changes<a class="headerlink" href="#module-buildbot.db.changes" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="index-12"></span><dl class="class">
+<dt id="buildbot.db.changes.ChangesConnectorComponent">
+<em class="property">class </em><code class="descclassname">buildbot.db.changes.</code><code class="descname">ChangesConnectorComponent</code><a class="headerlink" href="#buildbot.db.changes.ChangesConnectorComponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class handles changes in the buildbot database, including pulling
+information from the changes sub-tables.</p>
+<p>An instance of this class is available at <code class="docutils literal"><span class="pre">master.db.changes</span></code>.</p>
+<p id="index-13">Changes are indexed by <em>changeid</em>, and are represented by a <em>chdict</em>, which
+has the following keys:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">changeid</span></code> (the ID of this change)</li>
+<li><code class="docutils literal"><span class="pre">parent_changeids</span></code> (list of ID; change’s parents)</li>
+<li><code class="docutils literal"><span class="pre">author</span></code> (unicode; the author of the change)</li>
+<li><code class="docutils literal"><span class="pre">files</span></code> (list of unicode; source-code filenames changed)</li>
+<li><code class="docutils literal"><span class="pre">comments</span></code> (unicode; user comments)</li>
+<li><code class="docutils literal"><span class="pre">is_dir</span></code> (deprecated)</li>
+<li><code class="docutils literal"><span class="pre">links</span></code> (list of unicode; links for this change, e.g., to web views,
+review)</li>
+<li><code class="docutils literal"><span class="pre">revision</span></code> (unicode string; revision for this change, or <code class="docutils literal"><span class="pre">None</span></code> if
+unknown)</li>
+<li><code class="docutils literal"><span class="pre">when_timestamp</span></code> (datetime instance; time of the change)</li>
+<li><code class="docutils literal"><span class="pre">branch</span></code> (unicode string; branch on which the change took place, or
+<code class="docutils literal"><span class="pre">None</span></code> for the “default branch”, whatever that might mean)</li>
+<li><code class="docutils literal"><span class="pre">category</span></code> (unicode string; user-defined category of this change, or
+<code class="docutils literal"><span class="pre">None</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">revlink</span></code> (unicode string; link to a web view of this change)</li>
+<li><code class="docutils literal"><span class="pre">properties</span></code> (user-specified properties for this change, represented as
+a dictionary mapping keys to (value, source))</li>
+<li><code class="docutils literal"><span class="pre">repository</span></code> (unicode string; repository where this change occurred)</li>
+<li><code class="docutils literal"><span class="pre">project</span></code> (unicode string; user-defined project to which this change
+corresponds)</li>
+</ul>
+<dl class="method">
+<dt id="buildbot.db.changes.ChangesConnectorComponent.getParentChangeIds">
+<code class="descname">getParentChangeIds</code><span class="sig-paren">(</span><em>branch</em>, <em>repository</em>, <em>project</em>, <em>codebase</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.changes.ChangesConnectorComponent.getParentChangeIds" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>branch</strong> (<em>unicode string</em>) – the branch of the change</li>
+<li><strong>repository</strong> (<em>unicode string</em>) – the repository in which this change took place</li>
+<li><strong>project</strong> (<em>unicode string</em>) – the project this change is a part of</li>
+<li><strong>codebase</strong> (<em>unicode string</em>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>return the last changeID which matches the repository/project/codebase</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.changes.ChangesConnectorComponent.addChange">
+<code class="descname">addChange</code><span class="sig-paren">(</span><em>author=None</em>, <em>files=None</em>, <em>comments=None</em>, <em>is_dir=0</em>, <em>links=None</em>, <em>revision=None</em>, <em>when_timestamp=None</em>, <em>branch=None</em>, <em>category=None</em>, <em>revlink=''</em>, <em>properties={}</em>, <em>repository=''</em>, <em>project=''</em>, <em>uid=None</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.changes.ChangesConnectorComponent.addChange" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>author</strong> (<em>unicode string</em>) – the author of this change</li>
+<li><strong>files</strong> – a list of filenames that were changed</li>
+<li><strong>comments</strong> – user comments on the change</li>
+<li><strong>is_dir</strong> – deprecated</li>
+<li><strong>links</strong> (<em>list of unicode strings</em>) – a list of links related to this change, e.g., to web
+viewers or review pages</li>
+<li><strong>revision</strong> (<em>unicode string</em>) – the revision identifier for this change</li>
+<li><strong>when_timestamp</strong> (<em>datetime instance</em><em> or </em><em>None</em>) – when this change occurred, or the current time
+if None</li>
+<li><strong>branch</strong> (<em>unicode string</em>) – the branch on which this change took place</li>
+<li><strong>category</strong> (<em>unicode string</em>) – category for this change (arbitrary use by Buildbot
+users)</li>
+<li><strong>revlink</strong> (<em>unicode string</em>) – link to a web view of this revision</li>
+<li><strong>properties</strong> (<em>dictionary</em>) – properties to set on this change, where values are
+tuples of (value, source).  At the moment, the source must be
+<code class="docutils literal"><span class="pre">'Change'</span></code>, although this may be relaxed in later versions.</li>
+<li><strong>repository</strong> (<em>unicode string</em>) – the repository in which this change took place</li>
+<li><strong>project</strong> (<em>unicode string</em>) – the project this change is a part of</li>
+<li><strong>uid</strong> (<em>integer</em>) – uid generated for the change author</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">new change’s ID via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Add a Change with the given attributes to the database, returning the
+changeid via a Deferred.  All arguments should be given as keyword
+arguments.</p>
+<p>The <code class="docutils literal"><span class="pre">project</span></code> and <code class="docutils literal"><span class="pre">repository</span></code> arguments must be strings; <code class="docutils literal"><span class="pre">None</span></code>
+is not allowed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.changes.ChangesConnectorComponent.getChange">
+<code class="descname">getChange</code><span class="sig-paren">(</span><em>changeid</em>, <em>no_cache=False</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.changes.ChangesConnectorComponent.getChange" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>changeid</strong> – the id of the change instance to fetch</li>
+<li><strong>no_cache</strong> (<em>boolean</em>) – bypass cache and always fetch from database</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">chdict via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Get a change dictionary for the given changeid, or <code class="docutils literal"><span class="pre">None</span></code> if no such
+change exists.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.changes.ChangesConnectorComponent.getChangeUids">
+<code class="descname">getChangeUids</code><span class="sig-paren">(</span><em>changeid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.changes.ChangesConnectorComponent.getChangeUids" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>changeid</strong> – the id of the change instance to fetch</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of uids via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get the userids associated with the given changeid.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.changes.ChangesConnectorComponent.getRecentChanges">
+<code class="descname">getRecentChanges</code><span class="sig-paren">(</span><em>count</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.changes.ChangesConnectorComponent.getRecentChanges" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>count</strong> – maximum number of instances to return</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of dictionaries via Deferred, ordered by changeid</td>
+</tr>
+</tbody>
+</table>
+<p>Get a list of the <code class="docutils literal"><span class="pre">count</span></code> most recent changes, represented as
+dictionaries; returns fewer if that many do not exist.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For this function, “recent” is determined by the order of the
+changeids, not by <code class="docutils literal"><span class="pre">when_timestamp</span></code>.  This is most apparent in
+DVCS’s, where the timestamp of a change may be significantly
+earlier than the time at which it is merged into a repository
+monitored by Buildbot.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.changes.ChangesConnectorComponent.getChanges">
+<code class="descname">getChanges</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.changes.ChangesConnectorComponent.getChanges" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of dictionaries via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get a list of the changes, represented as
+dictionaries; changes are sorted, and paged using generic data query options</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.changes.ChangesConnectorComponent.getChangesCount">
+<code class="descname">getChangesCount</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.changes.ChangesConnectorComponent.getChangesCount" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of dictionaries via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get the number changes, that the query option would return if no
+paging option where set</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.changes.ChangesConnectorComponent.getLatestChangeid">
+<code class="descname">getLatestChangeid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.changes.ChangesConnectorComponent.getLatestChangeid" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">changeid via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get the most-recently-assigned changeid, or <code class="docutils literal"><span class="pre">None</span></code> if there are no
+changes at all.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.changes.ChangesConnectorComponent.getChangesForBuild">
+<code class="descname">getChangesForBuild</code><span class="sig-paren">(</span><em>buildid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.changes.ChangesConnectorComponent.getChangesForBuild" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>buildid</strong> – ID of the build</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of dictionaries via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get the “blame” list of changes for a build.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.changes.ChangesConnectorComponent.getChangeFromSSid">
+<code class="descname">getChangeFromSSid</code><span class="sig-paren">(</span><em>sourcestampid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.changes.ChangesConnectorComponent.getChangeFromSSid" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sourcestampid</strong> – ID of the sourcestampid</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">chdict via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>returns the change dictionary related to the sourcestamp ID.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-buildbot.db.changesources">
+<span id="changesources"></span><h3>changesources<a class="headerlink" href="#module-buildbot.db.changesources" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="index-14"></span><dl class="exception">
+<dt id="buildbot.db.changesources.ChangeSourceAlreadyClaimedError">
+<em class="property">exception </em><code class="descclassname">buildbot.db.changesources.</code><code class="descname">ChangeSourceAlreadyClaimedError</code><a class="headerlink" href="#buildbot.db.changesources.ChangeSourceAlreadyClaimedError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised when a changesource request is already claimed by another master.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.db.changesources.ChangeSourcesConnectorComponent">
+<em class="property">class </em><code class="descclassname">buildbot.db.changesources.</code><code class="descname">ChangeSourcesConnectorComponent</code><a class="headerlink" href="#buildbot.db.changesources.ChangeSourcesConnectorComponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class manages the state of the Buildbot changesources.</p>
+<p>An instance of this class is available at <code class="docutils literal"><span class="pre">master.db.changesources</span></code>.</p>
+<p>Changesources are identified by their changesourceid, which can be objtained from <a class="reference internal" href="#buildbot.db.changesources.ChangeSourcesConnectorComponent.findChangeSourceId" title="buildbot.db.changesources.ChangeSourcesConnectorComponent.findChangeSourceId"><code class="xref py py-meth docutils literal"><span class="pre">findChangeSourceId</span></code></a>.</p>
+<p>Changesources are represented by dictionaries with the following keys:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">id</span></code> - changesource’s ID</li>
+<li><code class="docutils literal"><span class="pre">name</span></code> - changesource’s name</li>
+<li><code class="docutils literal"><span class="pre">masterid</span></code> - ID of the master currently running this changesource, or None if it is inactive</li>
+</ul>
+</div></blockquote>
+<p>Note that this class is conservative in determining what changesources are inactive: a changesource linked to an inactive master is still considered active.
+This situation should never occur, however; links to a master should be deleted when it is marked inactive.</p>
+<dl class="method">
+<dt id="buildbot.db.changesources.ChangeSourcesConnectorComponent.findChangeSourceId">
+<code class="descname">findChangeSourceId</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.changesources.ChangeSourcesConnectorComponent.findChangeSourceId" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> – changesource name</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">changesource ID via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Return the changesource ID for the changesource with this name.
+If such a changesource is already in the database, this returns the ID.
+If not, the changesource is added to the database and its ID returned.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.changesources.ChangeSourcesConnectorComponent.setChangeSourceMaster">
+<code class="descname">setChangeSourceMaster</code><span class="sig-paren">(</span><em>changesourceid</em>, <em>masterid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.changesources.ChangeSourcesConnectorComponent.setChangeSourceMaster" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>changesourceid</strong> – changesource to set the master for</li>
+<li><strong>masterid</strong> – new master for this changesource, or None</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Set, or unset if <code class="docutils literal"><span class="pre">masterid</span></code> is None, the active master for this changesource.
+If no master is currently set, or the current master is not active, this method will complete without error.
+If the current master is active, this method will raise <code class="xref py py-exc docutils literal"><span class="pre">ChangeSourceAlreadyClaimedError</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.changesources.ChangeSourcesConnectorComponent.getChangeSource">
+<code class="descname">getChangeSource</code><span class="sig-paren">(</span><em>changesourceid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.changesources.ChangeSourcesConnectorComponent.getChangeSource" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>changesourceid</strong> – changesource ID</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">changesource dictionary or None, via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get the changesource dictionary for the given changesource.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.changesources.ChangeSourcesConnectorComponent.getChangeSources">
+<code class="descname">getChangeSources</code><span class="sig-paren">(</span><em>active=None</em>, <em>masterid=None</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.changesources.ChangeSourcesConnectorComponent.getChangeSources" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>active</strong> (<em>boolean</em>) – if specified, filter for active or inactive changesources</li>
+<li><strong>masterid</strong> (<em>integer</em>) – if specified, only return changesources attached associated with this master</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of changesource dictionaries in unspecified order</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Get a list of changesources.</p>
+<p>If <code class="docutils literal"><span class="pre">active</span></code> is given, changesources are filtered according to whether they are active (true) or inactive (false).
+An active changesource is one that is claimed by an active master.</p>
+<p>If <code class="docutils literal"><span class="pre">masterid</span></code> is given, the list is restricted to schedulers associated with that master.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-buildbot.db.schedulers">
+<span id="schedulers"></span><h3>schedulers<a class="headerlink" href="#module-buildbot.db.schedulers" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="index-15"></span><dl class="exception">
+<dt id="buildbot.db.schedulers.SchedulerAlreadyClaimedError">
+<em class="property">exception </em><code class="descclassname">buildbot.db.schedulers.</code><code class="descname">SchedulerAlreadyClaimedError</code><a class="headerlink" href="#buildbot.db.schedulers.SchedulerAlreadyClaimedError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised when a scheduler request is already claimed by another master.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.db.schedulers.SchedulersConnectorComponent">
+<em class="property">class </em><code class="descclassname">buildbot.db.schedulers.</code><code class="descname">SchedulersConnectorComponent</code><a class="headerlink" href="#buildbot.db.schedulers.SchedulersConnectorComponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class manages the state of the Buildbot schedulers.  This state includes
+classifications of as-yet un-built changes.</p>
+<p>An instance of this class is available at <code class="docutils literal"><span class="pre">master.db.schedulers</span></code>.</p>
+<p>Schedulers are identified by their schedulerid, which can be objtained from <a class="reference internal" href="rest.html#findSchedulerId" title="findSchedulerId"><code class="xref py py-meth docutils literal"><span class="pre">findSchedulerId</span></code></a>.</p>
+<p>Schedulers are represented by dictionaries with the following keys:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">id</span></code> - scheduler’s ID</li>
+<li><code class="docutils literal"><span class="pre">name</span></code> - scheduler’s name</li>
+<li><code class="docutils literal"><span class="pre">masterid</span></code> - ID of the master currently running this scheduler, or None if it is inactive</li>
+</ul>
+</div></blockquote>
+<p>Note that this class is conservative in determining what schedulers are inactive: a scheduler linked to an inactive master is still considered active.
+This situation should never occur, however; links to a master should be deleted when it is marked inactive.</p>
+<dl class="method">
+<dt id="buildbot.db.schedulers.SchedulersConnectorComponent.classifyChanges">
+<code class="descname">classifyChanges</code><span class="sig-paren">(</span><em>objectid</em>, <em>classifications</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.schedulers.SchedulersConnectorComponent.classifyChanges" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>schedulerid</strong> – ID of the scheduler classifying the changes</li>
+<li><strong>classifications</strong> (<em>dictionary</em>) – mapping of changeid to boolean, where the boolean
+is true if the change is important, and false if it is unimportant</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Record the given classifications.  This method allows a scheduler to
+record which changes were important and which were not immediately,
+even if the build based on those changes will not occur for some time
+(e.g., a tree stable timer).  Schedulers should be careful to flush
+classifications once they are no longer needed, using
+<a class="reference internal" href="#buildbot.db.schedulers.SchedulersConnectorComponent.flushChangeClassifications" title="buildbot.db.schedulers.SchedulersConnectorComponent.flushChangeClassifications"><code class="xref py py-meth docutils literal"><span class="pre">flushChangeClassifications</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.schedulers.SchedulersConnectorComponent.flushChangeClassifications">
+<code class="descname">flushChangeClassifications</code><span class="sig-paren">(</span><em>objectid</em>, <em>less_than=None</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.schedulers.SchedulersConnectorComponent.flushChangeClassifications" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>schedulerid</strong> – ID of the scheduler owning the flushed changes</li>
+<li><strong>less_than</strong> – (optional) lowest changeid that should <em>not</em> be flushed</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Flush all scheduler_changes for the given scheduler, limiting to those
+with changeid less than <code class="docutils literal"><span class="pre">less_than</span></code> if the parameter is supplied.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.schedulers.SchedulersConnectorComponent.getChangeClassifications">
+<code class="descname">getChangeClassifications</code><span class="sig-paren">(</span><em>objectid</em><span class="optional">[</span>, <em>branch</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.schedulers.SchedulersConnectorComponent.getChangeClassifications" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>schedulerid</strong> (<em>integer</em>) – ID of scheduler to look up changes for</li>
+<li><strong>branch</strong> (<em>string</em><em> or </em><em>None</em><em> (</em><em>for default branch</em><em>)</em>) – (optional) limit to changes with this branch</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">dictionary via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Return the classifications made by this scheduler, in the form of a
+dictionary mapping changeid to a boolean, just as supplied to
+<a class="reference internal" href="#buildbot.db.schedulers.SchedulersConnectorComponent.classifyChanges" title="buildbot.db.schedulers.SchedulersConnectorComponent.classifyChanges"><code class="xref py py-meth docutils literal"><span class="pre">classifyChanges</span></code></a>.</p>
+<p>If <code class="docutils literal"><span class="pre">branch</span></code> is specified, then only changes on that branch will be
+given.  Note that specifying <code class="docutils literal"><span class="pre">branch=None</span></code> requests changes for the
+default branch, and is not the same as omitting the <code class="docutils literal"><span class="pre">branch</span></code> argument
+altogether.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.schedulers.SchedulersConnectorComponent.findSchedulerId">
+<code class="descname">findSchedulerId</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.schedulers.SchedulersConnectorComponent.findSchedulerId" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> – scheduler name</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">scheduler ID via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Return the scheduler ID for the scheduler with this name.
+If such a scheduler is already in the database, this returns the ID.
+If not, the scheduler is added to the database and its ID returned.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.schedulers.SchedulersConnectorComponent.setSchedulerMaster">
+<code class="descname">setSchedulerMaster</code><span class="sig-paren">(</span><em>schedulerid</em>, <em>masterid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.schedulers.SchedulersConnectorComponent.setSchedulerMaster" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>schedulerid</strong> – scheduler to set the master for</li>
+<li><strong>masterid</strong> – new master for this scheduler, or None</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Set, or unset if <code class="docutils literal"><span class="pre">masterid</span></code> is None, the active master for this scheduler.
+If no master is currently set, or the current master is not active, this method will complete without error.
+If the current master is active, this method will raise <code class="xref py py-exc docutils literal"><span class="pre">SchedulerAlreadyClaimedError</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.schedulers.SchedulersConnectorComponent.getScheduler">
+<code class="descname">getScheduler</code><span class="sig-paren">(</span><em>schedulerid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.schedulers.SchedulersConnectorComponent.getScheduler" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>schedulerid</strong> – scheduler ID</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">scheduler dictionary or None via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get the scheduler dictionary for the given scheduler.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.schedulers.SchedulersConnectorComponent.getSchedulers">
+<code class="descname">getSchedulers</code><span class="sig-paren">(</span><em>active=None</em>, <em>masterid=None</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.schedulers.SchedulersConnectorComponent.getSchedulers" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>active</strong> (<em>boolean</em>) – if specified, filter for active or inactive schedulers</li>
+<li><strong>masterid</strong> (<em>integer</em>) – if specified, only return schedulers attached associated with this master</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of scheduler dictionaries in unspecified order</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Get a list of schedulers.</p>
+<p>If <code class="docutils literal"><span class="pre">active</span></code> is given, schedulers are filtered according to whether they are active (true) or inactive (false).
+An active scheduler is one that is claimed by an active master.</p>
+<p>If <code class="docutils literal"><span class="pre">masterid</span></code> is given, the list is restricted to schedulers associated with that master.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-buildbot.db.sourcestamps">
+<span id="sourcestamps"></span><h3>sourcestamps<a class="headerlink" href="#module-buildbot.db.sourcestamps" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="index-16"></span><dl class="class">
+<dt id="buildbot.db.sourcestamps.SourceStampsConnectorComponent">
+<em class="property">class </em><code class="descclassname">buildbot.db.sourcestamps.</code><code class="descname">SourceStampsConnectorComponent</code><a class="headerlink" href="#buildbot.db.sourcestamps.SourceStampsConnectorComponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class manages source stamps, as stored in the database.
+A source stamp uniquely identifies a particular version a single codebase.
+Source stamps are identified by their ID.
+It is safe to use sourcestamp ID equality as a proxy for source stamp equality.
+For example, all builds of a particular version of a codebase will share the same sourcestamp ID.
+This equality does not extend to patches: two sourcestamps generated with exactly the same patch will have different IDs.</p>
+<p>Relative source stamps have a <code class="docutils literal"><span class="pre">revision</span></code> of None, meaning “whatever the latest is when this sourcestamp is interpreted”.
+While such source stamps may correspond to a wide array of revisions over the lifetime of a buildbot install, they will only ever have one ID.</p>
+<p>An instance of this class is available at <code class="docutils literal"><span class="pre">master.db.sourcestamps</span></code>.</p>
+<ul class="simple" id="index-17">
+<li><code class="docutils literal"><span class="pre">ssid</span></code></li>
+<li><code class="docutils literal"><span class="pre">branch</span></code> (branch, or <code class="docutils literal"><span class="pre">None</span></code> for default branch)</li>
+<li><code class="docutils literal"><span class="pre">revision</span></code> (revision, or <code class="docutils literal"><span class="pre">None</span></code> to indicate the latest revision, in
+which case this is a relative source stamp)</li>
+<li><code class="docutils literal"><span class="pre">patchid</span></code> (ID of the patch)</li>
+<li><code class="docutils literal"><span class="pre">patch_body</span></code> (body of the patch, or <code class="docutils literal"><span class="pre">None</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">patch_level</span></code> (directory stripping level of the patch, or <code class="docutils literal"><span class="pre">None</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">patch_subdir</span></code> (subdirectory in which to apply the patch, or <code class="docutils literal"><span class="pre">None</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">patch_author</span></code> (author of the patch, or <code class="docutils literal"><span class="pre">None</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">patch_comment</span></code> (comment for the patch, or <code class="docutils literal"><span class="pre">None</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">repository</span></code> (repository containing the source; never <code class="docutils literal"><span class="pre">None</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">project</span></code> (project this source is for; never <code class="docutils literal"><span class="pre">None</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">codebase</span></code> (codebase this stamp is in; never <code class="docutils literal"><span class="pre">None</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">created_at</span></code> (timestamp when this stamp was first created)</li>
+</ul>
+<p>Note that the patch body is a bytestring, not a unicode string.</p>
+<dl class="method">
+<dt>
+<code class="descname">findSourceStampId(branch=None, revision=Node,</code></dt>
+<dt>
+<code class="descname">repository=None, project=None, patch_body=None,</code></dt>
+<dt>
+<code class="descname">patch_level=None, patch_author=None, patch_comment=None,</code></dt>
+<dt>
+<code class="descname">patch_subdir=None):</code></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>branch</strong> (<em>unicode string</em><em> or </em><em>None</em>) – </li>
+<li><strong>revision</strong> (<em>unicode string</em><em> or </em><em>None</em>) – </li>
+<li><strong>repository</strong> (<em>unicode string</em><em> or </em><em>None</em>) – </li>
+<li><strong>project</strong> (<em>unicode string</em><em> or </em><em>None</em>) – </li>
+<li><strong>codebase</strong> (<em>unicode string</em><em> (</em><a class="reference internal" href="cls-forcesched.html#buildbot.schedulers.forceshed.BaseParameter.required" title="buildbot.schedulers.forceshed.BaseParameter.required"><em>required</em></a><em>)</em>) – </li>
+<li><strong>patch_body</strong> (<em>unicode string</em><em> or </em><em>None</em>) – patch body</li>
+<li><strong>patch_level</strong> (<em>integer</em><em> or </em><em>None</em>) – patch level</li>
+<li><strong>patch_author</strong> (<em>unicode string</em><em> or </em><em>None</em>) – patch author</li>
+<li><strong>patch_comment</strong> (<em>unicode string</em><em> or </em><em>None</em>) – patch comment</li>
+<li><strong>patch_subdir</strong> (<em>unicode string</em><em> or </em><em>None</em>) – patch subdir</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">ssid, via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Create a new SourceStamp instance with the given attributes, or find an existing one.
+In either case, return its ssid.
+The arguments all have the same meaning as in an ssdict.</p>
+<p>If a new SourceStamp is created, its <code class="docutils literal"><span class="pre">created_at</span></code> is set to the current time.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.sourcestamps.SourceStampsConnectorComponent.getSourceStamp">
+<code class="descname">getSourceStamp</code><span class="sig-paren">(</span><em>ssid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.sourcestamps.SourceStampsConnectorComponent.getSourceStamp" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ssid</strong> – sourcestamp to get</li>
+<li><strong>no_cache</strong> (<em>boolean</em>) – bypass cache and always fetch from database</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">ssdict, or <code class="docutils literal"><span class="pre">None</span></code>, via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Get an ssdict representing the given source stamp, or <code class="docutils literal"><span class="pre">None</span></code> if no
+such source stamp exists.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.sourcestamps.SourceStampsConnectorComponent.getSourceStamps">
+<code class="descname">getSourceStamps</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.sourcestamps.SourceStampsConnectorComponent.getSourceStamps" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of ssdict, via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get all sourcestamps in the database.
+You probably don’t want to do this!
+This method will be extended to allow appropriate filtering.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.sourcestamps.SourceStampsConnectorComponent.getSourceStampsForBuild">
+<code class="descname">getSourceStampsForBuild</code><span class="sig-paren">(</span><em>buildid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.sourcestamps.SourceStampsConnectorComponent.getSourceStampsForBuild" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>buildid</strong> – build ID</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of ssdict, via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get sourcestamps related to a build.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-buildbot.db.state">
+<span id="state"></span><h3>state<a class="headerlink" href="#module-buildbot.db.state" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="index-18"></span><dl class="class">
+<dt id="buildbot.db.state.StateConnectorComponent">
+<em class="property">class </em><code class="descclassname">buildbot.db.state.</code><code class="descname">StateConnectorComponent</code><a class="headerlink" href="#buildbot.db.state.StateConnectorComponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class handles maintaining arbitrary key/value state for Buildbot
+objects.  Each object can store arbitrary key/value pairs, where the values
+are any JSON-encodable value.  Each pair can be set and retrieved
+atomically.</p>
+<p>Objects are identified by their (user-visible) name and their
+class.  This allows, for example, a <code class="docutils literal"><span class="pre">nightly_smoketest</span></code> object of class
+<code class="docutils literal"><span class="pre">NightlyScheduler</span></code> to maintain its state even if it moves between
+masters, but avoids cross-contaminating state between different classes
+of objects with the same name.</p>
+<p>Note that “class” is not interpreted literally, and can be any string that
+will uniquely identify the class for the object; if classes are renamed,
+they can continue to use the old names.</p>
+<p>An instance of this class is available at <code class="docutils literal"><span class="pre">master.db.state</span></code>.</p>
+<p id="index-19">Objects are identified by <em>objectid</em>.</p>
+<dl class="method">
+<dt id="buildbot.db.state.StateConnectorComponent.getObjectId">
+<code class="descname">getObjectId</code><span class="sig-paren">(</span><em>name</em>, <em>class_name</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.state.StateConnectorComponent.getObjectId" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> – name of the object</li>
+<li><strong>class_name</strong> – object class name</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the objectid, via a Deferred.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Get the object ID for this combination of a name and a class.  This
+will add a row to the ‘objects’ table if none exists already.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.state.StateConnectorComponent.getState">
+<code class="descname">getState</code><span class="sig-paren">(</span><em>objectid</em>, <em>name</em><span class="optional">[</span>, <em>default</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.state.StateConnectorComponent.getState" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>objectid</strong> – objectid on which the state should be checked</li>
+<li><strong>name</strong> – name of the value to retrieve</li>
+<li><strong>default</strong> – (optional) value to return if <code class="docutils literal"><span class="pre">name</span></code> is not present</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">state value via a Deferred</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>KeyError</strong> – if <code class="docutils literal"><span class="pre">name</span></code> is not present and no default is given</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">TypeError if JSON parsing fails</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Get the state value for key <code class="docutils literal"><span class="pre">name</span></code> for the object with id
+<code class="docutils literal"><span class="pre">objectid</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.state.StateConnectorComponent.setState">
+<code class="descname">setState</code><span class="sig-paren">(</span><em>objectid</em>, <em>name</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.state.StateConnectorComponent.setState" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>objectid</strong> – the objectid for which the state should be changed</li>
+<li><strong>name</strong> – the name of the value to change</li>
+<li><strong>value</strong> (<em>JSON-able value</em>) – the value to set</li>
+<li><strong>returns</strong> – value actually written via Deferred</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">TypeError if JSONification fails</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Set the state value for <code class="docutils literal"><span class="pre">name</span></code> for the object with id <code class="docutils literal"><span class="pre">objectid</span></code>,
+overwriting any existing value.
+In case of two racing writes, the first (as per db rule) one wins, the seconds returns the value from the first.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.state.StateConnectorComponent.atomicCreateState">
+<code class="descname">atomicCreateState</code><span class="sig-paren">(</span><em>objectid</em>, <em>name</em>, <em>thd_create_callback</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.state.StateConnectorComponent.atomicCreateState" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>objectid</strong> – the objectid for which the state should be created</li>
+<li><strong>name</strong> – the name of the value to create</li>
+<li><strong>thd_create_callback</strong> – the function to call from thread to create the value if non-existent. (returns JSON-able value)</li>
+<li><strong>returns</strong> – Deferred</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">TypeError if JSONification fails</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Atomically creates the state value for <code class="docutils literal"><span class="pre">name</span></code> for the object with id <code class="docutils literal"><span class="pre">objectid</span></code>,
+If there is an existing value, returns that instead.
+This implementation ensures the state is created only once for the whole cluster.</p>
+</dd></dl>
+
+<p>Those 3 methods have their threaded equivalent, <code class="docutils literal"><span class="pre">thdGetObjectId</span></code>, <code class="docutils literal"><span class="pre">thdGetState</span></code>, <code class="docutils literal"><span class="pre">thdSetState</span></code> that are intended to run in synchronous code, (e.g master.cfg environment)</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-buildbot.db.users">
+<span id="users"></span><h3>users<a class="headerlink" href="#module-buildbot.db.users" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="index-20"></span><dl class="class">
+<dt id="buildbot.db.users.UsersConnectorComponent">
+<em class="property">class </em><code class="descclassname">buildbot.db.users.</code><code class="descname">UsersConnectorComponent</code><a class="headerlink" href="#buildbot.db.users.UsersConnectorComponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class handles Buildbot’s notion of users.  Buildbot tracks the usual
+information about users – username and password, plus a display name.</p>
+<p>The more complicated task is to recognize each user across multiple
+interfaces with Buildbot.  For example, a user may be identified as
+‘djmitche’ in Subversion, <a class="reference external" href="mailto:'dustin&#37;&#52;&#48;v&#46;igoro&#46;us">‘dustin<span>&#64;</span>v<span>&#46;</span>igoro<span>&#46;</span>us</a>’ in Git, and ‘dustin’ on IRC.
+To support this functionality, each user as a set of attributes, keyed by
+type.  The <a class="reference internal" href="#buildbot.db.users.UsersConnectorComponent.findUserByAttr" title="buildbot.db.users.UsersConnectorComponent.findUserByAttr"><code class="xref py py-meth docutils literal"><span class="pre">findUserByAttr</span></code></a> method uses these attributes to match users,
+adding a new user if no matching user is found.</p>
+<p>Users are identified canonically by <em>uid</em>, and are represented by <em>usdicts</em> (user
+dictionaries) with keys</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">uid</span></code></li>
+<li><code class="docutils literal"><span class="pre">identifier</span></code> (display name for the user)</li>
+<li><code class="docutils literal"><span class="pre">bb_username</span></code> (buildbot login username)</li>
+<li><code class="docutils literal"><span class="pre">bb_password</span></code> (hashed login password)</li>
+</ul>
+<p>All attributes are also included in the dictionary, keyed by type.  Types
+colliding with the keys above are ignored.</p>
+<dl class="method">
+<dt id="buildbot.db.users.UsersConnectorComponent.findUserByAttr">
+<code class="descname">findUserByAttr</code><span class="sig-paren">(</span><em>identifier</em>, <em>attr_type</em>, <em>attr_data</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.users.UsersConnectorComponent.findUserByAttr" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>identifier</strong> – identifier to use for a new user</li>
+<li><strong>attr_type</strong> – attribute type to search for and/or add</li>
+<li><strong>attr_data</strong> – attribute data to add</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">userid via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Get an existing user, or add a new one, based on the given attribute.</p>
+<p>This method is intended for use by other components of Buildbot to
+search for a user with the given attributes.</p>
+<p>Note that <code class="docutils literal"><span class="pre">identifier</span></code> is <em>not</em> used in the search for an existing
+user.  It is only used when creating a new user.  The identifier should
+be based deterministically on the attributes supplied, in some fashion
+that will seem natural to users.</p>
+<p>For future compatibility, always use keyword parameters to call this
+method.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.users.UsersConnectorComponent.getUser">
+<code class="descname">getUser</code><span class="sig-paren">(</span><em>uid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.users.UsersConnectorComponent.getUser" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>uid</strong> – user id to look up</li>
+<li><strong>no_cache</strong> (<em>boolean</em>) – bypass cache and always fetch from database</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">usdict via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Get a usdict for the given user, or <code class="docutils literal"><span class="pre">None</span></code> if no matching user is
+found.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.users.UsersConnectorComponent.getUserByUsername">
+<code class="descname">getUserByUsername</code><span class="sig-paren">(</span><em>username</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.users.UsersConnectorComponent.getUserByUsername" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>username</strong> (<em>string</em>) – username portion of user credentials</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">usdict or None via deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Looks up the user with the bb_username, returning the usdict or
+<code class="docutils literal"><span class="pre">None</span></code> if no matching user is found.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.users.UsersConnectorComponent.getUsers">
+<code class="descname">getUsers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.users.UsersConnectorComponent.getUsers" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of partial usdicts via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get the entire list of users.  User attributes are not included, so the
+results are not full userdicts.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.users.UsersConnectorComponent.updateUser">
+<code class="descname">updateUser</code><span class="sig-paren">(</span><em>uid=None</em>, <em>identifier=None</em>, <em>bb_username=None</em>, <em>bb_password=None</em>, <em>attr_type=None</em>, <em>attr_data=None</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.users.UsersConnectorComponent.updateUser" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>uid</strong> (<em>int</em>) – the user to change</li>
+<li><strong>identifier</strong> (<em>string</em>) – (optional) new identifier for this user</li>
+<li><strong>bb_username</strong> (<em>string</em>) – (optional) new buildbot username</li>
+<li><strong>bb_password</strong> (<em>string</em>) – (optional) new hashed buildbot password</li>
+<li><strong>attr_type</strong> (<em>string</em>) – (optional) attribute type to update</li>
+<li><strong>attr_data</strong> (<em>string</em>) – (optional) value for <code class="docutils literal"><span class="pre">attr_type</span></code></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Update information about the given user.  Only the specified attributes
+are updated.  If no user with the given uid exists, the method will
+return silently.</p>
+<p>Note that <code class="docutils literal"><span class="pre">bb_password</span></code> must be given if <code class="docutils literal"><span class="pre">bb_username</span></code> appears;
+similarly, <code class="docutils literal"><span class="pre">attr_type</span></code> requires <code class="docutils literal"><span class="pre">attr_data</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.users.UsersConnectorComponent.removeUser">
+<code class="descname">removeUser</code><span class="sig-paren">(</span><em>uid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.users.UsersConnectorComponent.removeUser" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>uid</strong> (<em>int</em>) – the user to remove</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Remove the user with the given uid from the database.  This will remove
+the user from any associated tables as well.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.users.UsersConnectorComponent.identifierToUid">
+<code class="descname">identifierToUid</code><span class="sig-paren">(</span><em>identifier</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.users.UsersConnectorComponent.identifierToUid" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>identifier</strong> (<em>string</em>) – identifier to search for</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">uid or <code class="docutils literal"><span class="pre">None</span></code>, via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Fetch a uid for the given identifier, if one exists.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-buildbot.db.masters">
+<span id="masters"></span><h3>masters<a class="headerlink" href="#module-buildbot.db.masters" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="index-21"></span><dl class="class">
+<dt id="buildbot.db.masters.MastersConnectorComponent">
+<em class="property">class </em><code class="descclassname">buildbot.db.masters.</code><code class="descname">MastersConnectorComponent</code><a class="headerlink" href="#buildbot.db.masters.MastersConnectorComponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class handles tracking the buildmasters in a multi-master configuration.
+Masters “check in” periodically.
+Other masters monitor the last activity times, and mark masters that have not recently checked in as inactive.</p>
+<p>Masters are represented by master dictionaries with the following keys:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">id</span></code> – the ID of this master</li>
+<li><code class="docutils literal"><span class="pre">name</span></code> – the name of the master (generally of the form <code class="docutils literal"><span class="pre">hostname:basedir</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">active</span></code> – true if this master is running</li>
+<li><code class="docutils literal"><span class="pre">last_active</span></code> – time that this master last checked in (a datetime object)</li>
+</ul>
+<dl class="method">
+<dt id="buildbot.db.masters.MastersConnectorComponent.findMasterId">
+<code class="descname">findMasterId</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.masters.MastersConnectorComponent.findMasterId" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>unicode</em>) – name of this master</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">master id via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Return the master ID for the master with this master name (generally <code class="docutils literal"><span class="pre">hostname:basedir</span></code>).
+If such a master is already in the database, this returns the ID.
+If not, the master is added to the database, with <code class="docutils literal"><span class="pre">active=False</span></code>, and its ID returned.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.masters.MastersConnectorComponent.setMasterState">
+<code class="descname">setMasterState</code><span class="sig-paren">(</span><em>masterid</em>, <em>active</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.masters.MastersConnectorComponent.setMasterState" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>masterid</strong> (<em>integer</em>) – the master to check in</li>
+<li><strong>active</strong> (<em>boolean</em>) – whether to mark this master as active or inactive</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">boolean via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Mark the given master as active or inactive, returning true if the state actually changed.
+If <code class="docutils literal"><span class="pre">active</span></code> is true, the <code class="docutils literal"><span class="pre">last_active</span></code> time is updated to the current time.
+If <code class="docutils literal"><span class="pre">active</span></code> is false, then any links to this master, such as schedulers, will be deleted.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.masters.MastersConnectorComponent.getMaster">
+<code class="descname">getMaster</code><span class="sig-paren">(</span><em>masterid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.masters.MastersConnectorComponent.getMaster" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>masterid</strong> (<em>integer</em>) – the master to check in</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Master dict or None via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get the indicated master.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.masters.MastersConnectorComponent.getMasters">
+<code class="descname">getMasters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.masters.MastersConnectorComponent.getMasters" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of Master dicts via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get a list of the masters, represented as dictionaries; masters are sorted
+and paged using generic data query options</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.masters.MastersConnectorComponent.setAllMastersActiveLongTimeAgo">
+<code class="descname">setAllMastersActiveLongTimeAgo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.masters.MastersConnectorComponent.setAllMastersActiveLongTimeAgo" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>This method is intended to be call by upgrade-master, and will effectively force housekeeping on all masters at next startup.
+This method is not intended to be called outside of housekeeping scripts.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-buildbot.db.builders">
+<span id="builders"></span><h3>builders<a class="headerlink" href="#module-buildbot.db.builders" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="index-22"></span><dl class="class">
+<dt id="buildbot.db.builders.BuildersConnectorComponent">
+<em class="property">class </em><code class="descclassname">buildbot.db.builders.</code><code class="descname">BuildersConnectorComponent</code><a class="headerlink" href="#buildbot.db.builders.BuildersConnectorComponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class handles the relationship between builder names and their IDs, as well as tracking which masters are configured for this builder.</p>
+<p>Builders are represented by master dictionaries with the following keys:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">id</span></code> – the ID of this builder</li>
+<li><code class="docutils literal"><span class="pre">name</span></code>  – the builder name, a 20-character <a class="reference internal" href="#type-identifier"><span class="std std-ref">identifier</span></a></li>
+<li><code class="docutils literal"><span class="pre">masterids</span></code> – the IDs of the masters where this builder is configured (sorted by id)</li>
+</ul>
+<dl class="method">
+<dt id="buildbot.db.builders.BuildersConnectorComponent.findBuilderId">
+<code class="descname">findBuilderId</code><span class="sig-paren">(</span><em>name</em>, <em>autoCreate=True</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.builders.BuildersConnectorComponent.findBuilderId" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> (20-character <a class="reference internal" href="#type-identifier"><span class="std std-ref">identifier</span></a>) – name of this builder</li>
+<li><strong>autoCreate</strong> (<em>bool</em>) – automatically create the builder if name not found</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">builder id via Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Return the builder ID for the builder with this builder name.
+If such a builder is already in the database, this returns the ID.
+If not and <code class="docutils literal"><span class="pre">autoCreate</span></code> is True, the builder is added to the database.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.builders.BuildersConnectorComponent.addBuilderMaster">
+<code class="descname">addBuilderMaster</code><span class="sig-paren">(</span><em>builderid=None</em>, <em>masterid=None</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.builders.BuildersConnectorComponent.addBuilderMaster" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>builderid</strong> (<em>integer</em>) – the builder</li>
+<li><strong>masterid</strong> (<em>integer</em>) – the master</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Add the given master to the list of masters on which the builder is configured.
+This will do nothing if the master and builder are already associated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.builders.BuildersConnectorComponent.removeBuilderMaster">
+<code class="descname">removeBuilderMaster</code><span class="sig-paren">(</span><em>builderid=None</em>, <em>masterid=None</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.builders.BuildersConnectorComponent.removeBuilderMaster" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>builderid</strong> (<em>integer</em>) – the builder</li>
+<li><strong>masterid</strong> (<em>integer</em>) – the master</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Deferred</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Remove the given master from the list of masters on which the builder is configured.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.builders.BuildersConnectorComponent.getBuilder">
+<code class="descname">getBuilder</code><span class="sig-paren">(</span><em>builderid</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.builders.BuildersConnectorComponent.getBuilder" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>builderid</strong> (<em>integer</em>) – the builder to check in</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Builder dict or None via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get the indicated builder.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.builders.BuildersConnectorComponent.getBuilders">
+<code class="descname">getBuilders</code><span class="sig-paren">(</span><em>masterid=None</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.builders.BuildersConnectorComponent.getBuilders" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>masterid</strong> (<em>integer</em>) – ID of the master to which the results should be limited</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of Builder dicts via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Get all builders (in unspecified order).
+If <code class="docutils literal"><span class="pre">masterid</span></code> is given, then only builders configured on that master are returned.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="writing-database-connector-methods">
+<h2>3.2.3.4. Writing Database Connector Methods<a class="headerlink" href="#writing-database-connector-methods" title="Permalink to this headline">¶</a></h2>
+<p>The information above is intended for developers working on the rest of
+Buildbot, and treating the database layer as an abstraction.  The remainder of
+this section describes the internals of the database implementation, and is
+intended for developers modifying the schema or adding new methods to the
+database layer.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">It’s difficult to change the database schema significantly after it has
+been released, and very disruptive to users to change the database API.
+Consider very carefully the future-proofing of any changes here!</p>
+</div>
+<div class="section" id="module-buildbot.db.connector">
+<span id="the-db-connector-and-components"></span><h3>The DB Connector and Components<a class="headerlink" href="#module-buildbot.db.connector" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="buildbot.db.connector.DBConnector">
+<em class="property">class </em><code class="descclassname">buildbot.db.connector.</code><code class="descname">DBConnector</code><a class="headerlink" href="#buildbot.db.connector.DBConnector" title="Permalink to this definition">¶</a></dt>
+<dd><p>The root of the database connectors, <code class="docutils literal"><span class="pre">master.db</span></code>, is a
+<a class="reference internal" href="#buildbot.db.connector.DBConnector" title="buildbot.db.connector.DBConnector"><code class="xref py py-class docutils literal"><span class="pre">DBConnector</span></code></a> instance.  Its main purpose is
+to hold reference to each of the connector components, but it also handles
+timed cleanup tasks.</p>
+<p>If you are adding a new connector component, import its module and create
+an instance of it in this class’s constructor.</p>
+</dd></dl>
+
+<span class="target" id="module-buildbot.db.base"></span><dl class="class">
+<dt id="buildbot.db.base.DBConnectorComponent">
+<em class="property">class </em><code class="descclassname">buildbot.db.base.</code><code class="descname">DBConnectorComponent</code><a class="headerlink" href="#buildbot.db.base.DBConnectorComponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the base class for connector components.</p>
+<p>There should be no need to override the constructor defined by this base
+class.</p>
+<dl class="attribute">
+<dt id="buildbot.db.base.DBConnectorComponent.db">
+<code class="descname">db</code><a class="headerlink" href="#buildbot.db.base.DBConnectorComponent.db" title="Permalink to this definition">¶</a></dt>
+<dd><p>A reference to the <a class="reference internal" href="#buildbot.db.connector.DBConnector" title="buildbot.db.connector.DBConnector"><code class="xref py py-class docutils literal"><span class="pre">DBConnector</span></code></a>, so that
+connector components can use e.g., <code class="docutils literal"><span class="pre">self.db.pool</span></code> or
+<code class="docutils literal"><span class="pre">self.db.model</span></code>.  In the unusual case that a connector component
+needs access to the master, the easiest path is <code class="docutils literal"><span class="pre">self.db.master</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.base.DBConnectorComponent.checkLength">
+<code class="descname">checkLength</code><span class="sig-paren">(</span><em>col</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.base.DBConnectorComponent.checkLength" title="Permalink to this definition">¶</a></dt>
+<dd><p>For use by subclasses to check that ‘value’ will fit in ‘col’, where ‘col’ is a table column from the model.
+Ignore this check for database engines that either provide this error themselves (postgres) or that do not enforce maximum-length restrictions (sqlite)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.base.DBConnectorComponent.findSomethingId">
+<code class="descname">findSomethingId</code><span class="sig-paren">(</span><em>self</em>, <em>tbl</em>, <em>whereclause</em>, <em>insert_values</em>, <em>_race_hook=None</em>, <em>autoCreate=True</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.base.DBConnectorComponent.findSomethingId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find (using <code class="docutils literal"><span class="pre">whereclause</span></code>) or add (using <code class="docutils literal"><span class="pre">insert_values</span></code>) a row to
+<code class="docutils literal"><span class="pre">table</span></code>, and return the resulting ID. If <code class="docutils literal"><span class="pre">autoCreate</span></code> == False, we will not automatically insert the row.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.base.DBConnectorComponent.hashColumns">
+<code class="descname">hashColumns</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.base.DBConnectorComponent.hashColumns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hash the given values in a consistent manner: None is represented as xf5, an invalid unicode byte; strings are converted to utf8; and integers are represented by their decimal expansion.
+The values are then joined by ‘0’ and hashed with sha1.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.base.DBConnectorComponent.doBatch">
+<code class="descname">doBatch</code><span class="sig-paren">(</span><em>batch</em>, <em>batch_n=500</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.base.DBConnectorComponent.doBatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns an Iterator that batches stuff in order to not push to many thing in a single request.
+Especially sqlite has 999 limit on argument it can take in a requests.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-buildbot.db.pool">
+<span id="direct-database-access"></span><h3>Direct Database Access<a class="headerlink" href="#module-buildbot.db.pool" title="Permalink to this headline">¶</a></h3>
+<p>The connectors all use <a class="reference external" href="http://www.sqlalchemy.org/docs/index.html">SQLAlchemy Core</a> as a wrapper around database
+client drivers.  Unfortunately, SQLAlchemy is a synchronous library, so some
+extra work is required to use it in an asynchronous context like Buildbot.
+This is accomplished by deferring all database operations to threads, and
+returning a Deferred.  The <code class="xref py py-class docutils literal"><span class="pre">Pool</span></code> class takes care of
+the details.</p>
+<p>A connector method should look like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">myMethod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">thd</span><span class="p">(</span><span class="n">conn</span><span class="p">):</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="o">...</span> <span class="c1"># construct a query</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
+            <span class="o">...</span> <span class="c1"># do something with the results</span>
+        <span class="k">return</span> <span class="o">...</span> <span class="c1"># return an interesting value</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">do</span><span class="p">(</span><span class="n">thd</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Picking that apart, the body of the method defines a function named <code class="docutils literal"><span class="pre">thd</span></code>
+taking one argument, a <code class="xref py py-class docutils literal"><span class="pre">Connection</span></code> object.  It then calls
+<code class="docutils literal"><span class="pre">self.db.pool.do</span></code>, passing the <code class="docutils literal"><span class="pre">thd</span></code> function.  This function is called in
+a thread, and can make blocking calls to SQLAlchemy as desired.  The <code class="docutils literal"><span class="pre">do</span></code>
+method will return a Deferred that will fire with the return value of <code class="docutils literal"><span class="pre">thd</span></code>,
+or with a failure representing any exceptions raised by <code class="docutils literal"><span class="pre">thd</span></code>.</p>
+<p>The return value of <code class="docutils literal"><span class="pre">thd</span></code> must not be an SQLAlchemy object - in particular,
+any <code class="xref py py-class docutils literal"><span class="pre">ResultProxy</span></code>
+objects must be parsed into lists or other data structures before they are
+returned.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">As the name <code class="docutils literal"><span class="pre">thd</span></code> indicates, the function runs in a thread.  It should
+not interact with any other part of Buildbot, nor with any of the Twisted
+components that expect to be accessed from the main thread – the reactor,
+Deferreds, etc.</p>
+</div>
+<p>Queries can be constructed using any of the SQLAlchemy core methods, using
+tables from <a class="reference internal" href="#buildbot.db.model.Model" title="buildbot.db.model.Model"><code class="xref py py-class docutils literal"><span class="pre">Model</span></code></a>, and executed with the connection
+object, <code class="docutils literal"><span class="pre">conn</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">SQLAlchemy requires the use of a syntax that is forbidden by pep8.
+If in where clauses you need to select rows where a value is NULL,
+you need to write (<cite>tbl.c.value == None</cite>). This form is forbidden by pep8
+which requires the use of <cite>is None</cite> instead of <cite>== None</cite>. As sqlalchemy is using operator
+overloading to implement pythonic SQL statements, and <cite>is</cite> operator is not overloadable,
+we need to keep the <cite>==</cite> operators. In order to solve this issue, buildbot
+uses <cite>buildbot.db.NULL</cite> constant, which is <cite>None</cite>.
+So instead of writting <cite>tbl.c.value == None</cite>, please write <cite>tbl.c.value == NULL</cite>)</p>
+</div>
+<dl class="class">
+<dt id="buildbot.db.pool.DBThreadPool">
+<em class="property">class </em><code class="descclassname">buildbot.db.pool.</code><code class="descname">DBThreadPool</code><a class="headerlink" href="#buildbot.db.pool.DBThreadPool" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="buildbot.db.pool.DBThreadPool.do">
+<code class="descname">do</code><span class="sig-paren">(</span><em>callable</em>, <em>...</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.pool.DBThreadPool.do" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Call <code class="docutils literal"><span class="pre">callable</span></code> in a thread, with a <code class="xref py py-class docutils literal"><span class="pre">Connection</span></code> object as first
+argument.  Returns a deferred that will fire with the results of the
+callable, or with a failure representing any exception raised during
+its execution.</p>
+<p>Any additional positional or keyword arguments are passed to
+<code class="docutils literal"><span class="pre">callable</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.pool.DBThreadPool.do_with_engine">
+<code class="descname">do_with_engine</code><span class="sig-paren">(</span><em>callable</em>, <em>...</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.pool.DBThreadPool.do_with_engine" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Similar to <a class="reference internal" href="#buildbot.db.pool.DBThreadPool.do" title="buildbot.db.pool.DBThreadPool.do"><code class="xref py py-meth docutils literal"><span class="pre">do</span></code></a>, call <code class="docutils literal"><span class="pre">callable</span></code> in a thread, but with an
+<code class="xref py py-class docutils literal"><span class="pre">Engine</span></code> object as
+first argument.</p>
+<p>This method is only used for schema manipulation, and should not be
+used in a running master.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-buildbot.db.model">
+<span id="database-schema"></span><h3>Database Schema<a class="headerlink" href="#module-buildbot.db.model" title="Permalink to this headline">¶</a></h3>
+<p>Database connector methods access the database through SQLAlchemy, which
+requires access to Python objects representing the database tables.  That is
+handled through the model.</p>
+<dl class="class">
+<dt id="buildbot.db.model.Model">
+<em class="property">class </em><code class="descclassname">buildbot.db.model.</code><code class="descname">Model</code><a class="headerlink" href="#buildbot.db.model.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class contains the canonical description of the buildbot schema, It is
+presented in the form of SQLAlchemy <code class="xref py py-class docutils literal"><span class="pre">Table</span></code> instances, as class variables.  At
+runtime, the model is available at <code class="docutils literal"><span class="pre">master.db.model</span></code>, so for example the
+<code class="docutils literal"><span class="pre">buildrequests</span></code> table can be referred to as
+<code class="docutils literal"><span class="pre">master.db.model.buildrequests</span></code>, and columns are available in its <code class="docutils literal"><span class="pre">c</span></code>
+attribute.</p>
+<p>The source file, <a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/db/model.py">master/buildbot/db/model.py</a>, contains comments describing each table; that information is not replicated in this documentation.</p>
+<p>Note that the model is not used for new installations or upgrades of the
+Buildbot database.  See <a class="reference internal" href="#modifying-the-database-schema"><span class="std std-ref">Modifying the Database Schema</span></a> for more
+information.</p>
+<dl class="attribute">
+<dt id="buildbot.db.model.Model.metadata">
+<code class="descname">metadata</code><a class="headerlink" href="#buildbot.db.model.Model.metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>The model object also has a <code class="docutils literal"><span class="pre">metadata</span></code> attribute containing a
+<code class="xref py py-class docutils literal"><span class="pre">MetaData</span></code> instance.
+Connector methods should not need to access this object.  The metadata
+is not bound to an engine.</p>
+</dd></dl>
+
+<p>The <a class="reference internal" href="#buildbot.db.model.Model" title="buildbot.db.model.Model"><code class="xref py py-class docutils literal"><span class="pre">Model</span></code></a> class also defines some migration-related methods:</p>
+<dl class="method">
+<dt id="buildbot.db.model.Model.is_current">
+<code class="descname">is_current</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.model.Model.is_current" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">boolean via Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Returns true if the current database’s version is current.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="buildbot.db.model.Model.upgrade">
+<code class="descname">upgrade</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.model.Model.upgrade" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Deferred</td>
+</tr>
+</tbody>
+</table>
+<p>Upgrades the database to the most recent schema version.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="caching">
+<h3>Caching<a class="headerlink" href="#caching" title="Permalink to this headline">¶</a></h3>
+<p>Connector component methods that get an object based on an ID are good
+candidates for caching.  The <a class="reference internal" href="#buildbot.db.base.cached" title="buildbot.db.base.cached"><code class="xref py py-func docutils literal"><span class="pre">cached</span></code></a> decorator
+makes this automatic:</p>
+<dl class="function">
+<dt id="buildbot.db.base.cached">
+<code class="descclassname">buildbot.db.base.</code><code class="descname">cached</code><span class="sig-paren">(</span><em>cachename</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.base.cached" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_name</strong> – name of the cache to use</td>
+</tr>
+</tbody>
+</table>
+<p>A decorator for “getter” functions that fetch an object from the database
+based on a single key.  The wrapped method will only be called if the named
+cache does not contain the key.</p>
+<p>The wrapped function must take one argument (the key); the wrapper will
+take a key plus an optional <code class="docutils literal"><span class="pre">no_cache</span></code> argument which, if true, will
+cause it to invoke the underlying method even if the key is in the cache.</p>
+<p>The resulting method will have a <code class="docutils literal"><span class="pre">cache</span></code> attribute which can be used to
+access the underlying cache.</p>
+</dd></dl>
+
+<p>In most cases, getter methods return a well-defined dictionary.  Unfortunately,
+Python does not handle weak references to bare dictionaries, so components must
+instantiate a subclass of <code class="docutils literal"><span class="pre">dict</span></code>.  The whole assembly looks something like
+this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ThDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span> <span class="nc">ThingConnectorComponent</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">DBConnectorComponent</span><span class="p">):</span>
+
+    <span class="nd">@base</span><span class="o">.</span><span class="n">cached</span><span class="p">(</span><span class="s1">&#39;thdicts&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">getThing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">thid</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">thd</span><span class="p">(</span><span class="n">conn</span><span class="p">):</span>
+            <span class="o">...</span>
+            <span class="n">thdict</span> <span class="o">=</span> <span class="n">ThDict</span><span class="p">(</span><span class="n">thid</span><span class="o">=</span><span class="n">thid</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">attr</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">thdict</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">do</span><span class="p">(</span><span class="n">thd</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="tests">
+<h3>Tests<a class="headerlink" href="#tests" title="Permalink to this headline">¶</a></h3>
+<p>It goes without saying that any new connector methods must be fully tested!</p>
+<p>You will also want to add an in-memory implementation of the methods to the
+fake classes in <code class="docutils literal"><span class="pre">master/buildbot/test/fake/fakedb.py</span></code>.  Non-DB Buildbot code
+is tested using these fake implementations in order to isolate that code from
+the database code, and to speed-up tests.</p>
+<p>The keys and types used in the return value from a connector’s <code class="docutils literal"><span class="pre">get</span></code> methods are described in <a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/test/util/validation.py">master/buildbot/test/util/validation.py</a>, via the <code class="docutils literal"><span class="pre">dbdict</span></code> module-level value.
+This is a dictionary of <code class="docutils literal"><span class="pre">DictValidator</span></code> objects, one for each return value.</p>
+<p>These values are used within test methods like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">rv</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">masters</span><span class="o">.</span><span class="n">getMaster</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+<span class="n">validation</span><span class="o">.</span><span class="n">verifyDbDict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;masterdict&#39;</span><span class="p">,</span> <span class="n">rv</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="modifying-the-database-schema">
+<span id="id2"></span><h2>3.2.3.5. Modifying the Database Schema<a class="headerlink" href="#modifying-the-database-schema" title="Permalink to this headline">¶</a></h2>
+<p>Changes to the schema are accomplished through migration scripts, supported by
+<a class="reference external" href="https://github.com/openstack/sqlalchemy-migrate">SQLAlchemy-Migrate</a>.  In fact,
+even new databases are created with the migration scripts – a new database is
+a migrated version of an empty database.</p>
+<p>The schema is tracked by a version number, stored in the <code class="docutils literal"><span class="pre">migrate_version</span></code>
+table.  This number is incremented for each change to the schema, and used to
+determine whether the database must be upgraded.  The master will refuse to run
+with an out-of-date database.</p>
+<p>To make a change to the schema, first consider how to handle any existing data.
+When adding new columns, this may not be necessary, but table refactorings can
+be complex and require caution so as not to lose information.</p>
+<p>Create a new script in <a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/db/migrate/versions">master/buildbot/db/migrate/versions</a>, following the numbering scheme already present.
+The script should have an <code class="docutils literal"><span class="pre">update</span></code> method, which takes an engine as a parameter, and upgrades the database, both changing the schema and performing any required data migrations.
+The engine passed to this parameter is “enhanced” by SQLAlchemy-Migrate, with methods to handle adding, altering, and dropping columns.
+See the SQLAlchemy-Migrate documentation for details.</p>
+<p>Next, modify <a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/db/model.py">master/buildbot/db/model.py</a> to represent the updated schema.
+Buildbot’s automated tests perform a rudimentary comparison of an upgraded database with the model, but it is important to check the details - key length, nullability, and so on can sometimes be missed by the checks.
+If the schema and the upgrade scripts get out of sync, bizarre behavior can result.</p>
+<p>Also, adjust the fake database table definitions in <a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/test/fake/fakedb.py">master/buildbot/test/fake/fakedb.py</a> according to your changes.</p>
+<p>Your upgrade script should have unit tests.  The classes in <a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/test/util/migration.py">master/buildbot/test/util/migration.py</a> make this straightforward.
+Unit test scripts should be named e.g., <code class="file docutils literal"><span class="pre">test_db_migrate_versions_015_remove_bad_master_objectid.py</span></code>.</p>
+<p>The <a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/test/integration/test_upgrade.py">master/buildbot/test/integration/test_upgrade.py</a> also tests
+upgrades, and will confirm that the resulting database matches the model.  If
+you encounter implicit indexes on MySQL, that do not appear on SQLite or
+Postgres, add them to <code class="docutils literal"><span class="pre">implied_indexes</span></code> in
+<code class="file docutils literal"><span class="pre">master/buidlbot/db/model.py</span></code>.</p>
+</div>
+<div class="section" id="foreign-key-checking">
+<h2>3.2.3.6. Foreign key checking<a class="headerlink" href="#foreign-key-checking" title="Permalink to this headline">¶</a></h2>
+<p>PostgreSQL and SQlite db backends are checking the foreign keys consistency.
+<a class="reference external" href="http://trac.buildbot.net/ticket/2248">bug #2248</a> needs to be fixed so that we can support foreign key checking for MySQL.</p>
+<p>To maintain consistency with real db, fakedb can check the foreign key consistency of your test data. For this, just enable it with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">fakedb</span><span class="o">.</span><span class="n">FakeDBConnector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">checkForeignKeys</span> <span class="o">=</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<p>Note that tests that only use fakedb do not really need foreign key consistency, even if this is a good practice to enable it in new code.</p>
+</div>
+<div class="section" id="database-compatibility-notes">
+<h2>3.2.3.7. Database Compatibility Notes<a class="headerlink" href="#database-compatibility-notes" title="Permalink to this headline">¶</a></h2>
+<p>Or: “If you thought any database worked right, think again”</p>
+<p>Because Buildbot works over a wide range of databases, it is generally limited
+to database features present in all supported backends.  This section
+highlights a few things to watch out for.</p>
+<p>In general, Buildbot should be functional on all supported database backends.
+If use of a backend adds minor usage restrictions, or cannot implement some
+kinds of error checking, that is acceptable if the restrictions are
+well-documented in the manual.</p>
+<p>The metabuildbot tests Buildbot against all supported databases, so most
+compatibility errors will be caught before a release.</p>
+<div class="section" id="index-length-in-mysql">
+<h3>Index Length in MySQL<a class="headerlink" href="#index-length-in-mysql" title="Permalink to this headline">¶</a></h3>
+<p id="index-23">MySQL only supports about 330-character indexes. The actual index length is
+1000 bytes, but MySQL uses 3-byte encoding for UTF8 strings.  This is a
+longstanding bug in MySQL - see <a class="reference external" href="http://bugs.mysql.com/bug.php?id=4541">“Specified key was too long; max key
+length is 1000 bytes” with utf8</a>.
+While this makes sense for indexes used for record lookup, it limits the
+ability to use unique indexes to prevent duplicate rows.</p>
+<p>InnoDB only supports indexes up to 255 unicode characters, which is why
+all indexed columns are limited to 255 characters in Buildbot.</p>
+</div>
+<div class="section" id="transactions-in-mysql">
+<h3>Transactions in MySQL<a class="headerlink" href="#transactions-in-mysql" title="Permalink to this headline">¶</a></h3>
+<p id="index-24">Unfortunately, use of the MyISAM storage engine precludes real transactions in
+MySQL.  <code class="docutils literal"><span class="pre">transaction.commit()</span></code> and <code class="docutils literal"><span class="pre">transaction.rollback()</span></code> are essentially
+no-ops: modifications to data in the database are visible to other users
+immediately, and are not reverted in a rollback.</p>
+</div>
+<div class="section" id="referential-integrity-in-sqlite-and-mysql">
+<h3>Referential Integrity in SQLite and MySQL<a class="headerlink" href="#referential-integrity-in-sqlite-and-mysql" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="index-25"></span><p id="index-26">Neither MySQL nor SQLite enforce referential integrity based on foreign keys.
+Postgres does enforce, however.  If possible, test your changes on Postgres
+before committing, to check that tables are added and removed in the proper
+order.</p>
+</div>
+<div class="section" id="subqueries-in-mysql">
+<h3>Subqueries in MySQL<a class="headerlink" href="#subqueries-in-mysql" title="Permalink to this headline">¶</a></h3>
+<p id="index-27">MySQL’s query planner is easily confused by subqueries.  For example, a DELETE
+query specifying id’s that are IN a subquery will not work.  The workaround is
+to run the subquery directly, and then execute a DELETE query for each returned
+id.</p>
+<p>If this weakness has a significant performance impact, it would be acceptable to
+conditionalize use of the subquery on the database dialect.</p>
+</div>
+<div class="section" id="too-many-variables-in-sqlite">
+<h3>Too Many Variables in SQLite<a class="headerlink" href="#too-many-variables-in-sqlite" title="Permalink to this headline">¶</a></h3>
+<p id="index-28">Sqlite has a limitation on the number of variables it can use.
+This limitation is usually <a class="reference external" href="http://www.sqlite.org/c3ref/c_limit_attached.html#sqlitelimitvariablenumber">SQLITE_LIMIT_VARIABLE_NUMBER=999</a>.
+There is currently no way with pysqlite to query the value of this limit.
+The C-api <code class="docutils literal"><span class="pre">sqlite_limit</span></code> is just not bound to the python.</p>
+<p>When you hit this problem, you will get error like the following:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>sqlalchemy.exc.OperationalError: (OperationalError) too many SQL variables
+u&#39;DELETE FROM scheduler_changes WHERE scheduler_changes.changeid IN (?, ?, ?, ......tons of ?? and IDs .... 9363, 9362, 9361)
+</pre></div>
+</div>
+<p>You can use the method <code class="xref py py-meth docutils literal"><span class="pre">doBatch</span></code> in order to write batching code in a consistent manner.</p>
+</div>
+</div>
+<div class="section" id="testing-migrations-with-real-databases">
+<h2>3.2.3.8. Testing migrations with real databases<a class="headerlink" href="#testing-migrations-with-real-databases" title="Permalink to this headline">¶</a></h2>
+<p>By default Buildbot test suite uses SQLite database for testings database
+migrations.
+To use other database set <code class="docutils literal"><span class="pre">BUILDBOT_TEST_DB_URL</span></code> environment variable to
+value in <a class="reference external" href="http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls">SQLAlchemy database URL specification</a>.</p>
+<p>For example, to run tests with file-based SQLite database you can start
+tests in the following way:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nv">BUILDBOT_TEST_DB_URL</span><span class="o">=</span>sqlite:////tmp/test_db.sqlite trial buildbot.test
+</pre></div>
+</div>
+<div class="section" id="run-databases-in-docker">
+<h3>Run databases in Docker<a class="headerlink" href="#run-databases-in-docker" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference external" href="https://www.docker.com/">Docker</a> allows to easily install and configure
+different databases locally in containers.</p>
+<p>To run tests with PostgreSQL:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="c1"># Install psycopg.</span>
+pip install psycopg2
+<span class="c1"># Start container with PostgreSQL 9.5.</span>
+<span class="c1"># It will listen on port 15432 on localhost.</span>
+sudo docker run --name bb-test-postgres -e <span class="nv">POSTGRES_PASSWORD</span><span class="o">=</span>password <span class="se">\</span>
+    -p <span class="m">127</span>.0.0.1:15432:5432 -d postgres:9.5
+<span class="c1"># Start interesting tests</span>
+<span class="nv">BUILDBOT_TEST_DB_URL</span><span class="o">=</span>postgresql://postgres:password@localhost:15432/postgres <span class="se">\</span>
+    trial buildbot.test
+</pre></div>
+</div>
+<p>To run tests with MySQL:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="c1"># Install mysqlclient</span>
+pip install mysqlclient
+<span class="c1"># Start container with MySQL 5.5.</span>
+<span class="c1"># It will listen on port 13306 on localhost.</span>
+sudo docker run --name bb-test-mysql -e <span class="nv">MYSQL_ROOT_PASSWORD</span><span class="o">=</span>password <span class="se">\</span>
+    -p <span class="m">127</span>.0.0.1:13306:3306 -d mysql:5.5
+<span class="c1"># Start interesting tests</span>
+<span class="nv">BUILDBOT_TEST_DB_URL</span><span class="o">=</span>mysql+mysqldb://root:password@127.0.0.1:13306/mysql <span class="se">\</span>
+    trial buildbot.test
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/header-text-transparent.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script><h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/index.html">2. Buildbot Manual</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">3. Buildbot Development</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="general.html">3.1. General Documents</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="apis.html">3.2. APIs</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="rest.html">3.2.1. REST API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.html">3.2.2. Data API</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">3.2.3. Database</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mq.html">3.2.4. Messaging and Queues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="py3-compat.html">3.3. Python3 compatibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classes.html">3.4. Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../indices.html">6. Indices and Tables</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="data.html"
+                        title="previous chapter">3.2.2. Data API</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="mq.html"
+                        title="next chapter">3.2.4. Messaging and Queues</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/developer/database.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>
