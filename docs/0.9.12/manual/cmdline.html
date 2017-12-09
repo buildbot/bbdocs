@@ -1,0 +1,706 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>2.9. Command-line Tool &#8212; Buildbot 0.9.12 documentation</title>
+    <link rel="stylesheet" href="../_static/qtile.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9.12',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/buildbot.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="2.10. Resources" href="resources.html" />
+    <link rel="prev" title="2.8. New-Style Build Steps" href="new-style-steps.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="resources.html" title="2.10. Resources"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="new-style-steps.html" title="2.8. New-Style Build Steps"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Buildbot 0.9.12 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">2. Buildbot Manual</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="command-line-tool">
+<span id="id1"></span><h1>2.9. Command-line Tool<a class="headerlink" href="#command-line-tool" title="Permalink to this headline">¶</a></h1>
+<p>This section describes command-line tools available after buildbot installation.
+Since version 0.8 the one-for-all <strong class="command">buildbot</strong> command-line tool was divided into two parts namely <strong class="command">buildbot</strong> and <strong class="command">buildslave</strong>, starting from version 0.9 <strong class="command">buildslave</strong> command was replaced with <strong class="command">buildbot-worker</strong> command.
+The last one was separated from main command-line tool to minimize dependencies required for running a worker while leaving all other functions to <strong class="command">buildbot</strong> tool.</p>
+<p>Every command-line tool has a list of global options and a set of commands which have their own options.
+One can run these tools in the following way:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>buildbot [global options] command [command options]
+buildbot-worker [global options] command [command options]
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">buildbot</span></code> command is used on the master, while <code class="docutils literal"><span class="pre">buildbot-worker</span></code> is used on the worker.
+Global options are the same for both tools which perform the following actions:</p>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">--help</span></kbd></td>
+<td>Print general help about available commands and global options and exit.
+All subsequent arguments are ignored.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--verbose</span></kbd></td>
+<td>Set verbose output.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--version</span></kbd></td>
+<td>Print current buildbot version and exit. All subsequent arguments are
+ignored.</td></tr>
+</tbody>
+</table>
+<p>You can get help on any command by specifying <code class="docutils literal"><span class="pre">--help</span></code> as a command option:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>buildbot command --help
+</pre></div>
+</div>
+<p>You can also use manual pages for <strong class="command">buildbot</strong> and <strong class="command">buildbot-worker</strong> for quick reference on command-line options.</p>
+<p>The remainder of this section describes each buildbot command.
+See <a class="reference internal" href="../bb-cmdline.html" title="Command Line Index"><em>Command Line Index</em></a> for a full list.</p>
+<div class="section" id="buildbot">
+<h2>2.9.1. buildbot<a class="headerlink" href="#buildbot" title="Permalink to this headline">¶</a></h2>
+<p>The <strong class="command">buildbot</strong> command-line tool can be used to start or stop a buildmaster or buildbot, and to interact with a running buildmaster.
+Some of its subcommands are intended for buildmaster admins, while some are for developers who are editing the code that the buildbot is monitoring.</p>
+<div class="section" id="administrator-tools">
+<h3>2.9.1.1. Administrator Tools<a class="headerlink" href="#administrator-tools" title="Permalink to this headline">¶</a></h3>
+<p>The following <strong class="command">buildbot</strong> sub-commands are intended for buildmaster administrators:</p>
+<div class="section" id="create-master">
+<span id="cmdline-create-master"></span><h4>create-master<a class="headerlink" href="#create-master" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-none"><div class="highlight"><pre><span></span>buildbot create-master -r {BASEDIR}
+</pre></div>
+</div>
+<p>This creates a new directory and populates it with files that allow it to be used as a buildmaster’s base directory.</p>
+<p>You will usually want to use the option <cite>-r</cite> option to create a relocatable <code class="file docutils literal"><span class="pre">buildbot.tac</span></code>.
+This allows you to move the master directory without editing this file.</p>
+</div>
+<div class="section" id="upgrade-master">
+<span id="cmdline-upgrade-master"></span><h4>upgrade-master<a class="headerlink" href="#upgrade-master" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-none"><div class="highlight"><pre><span></span>buildbot upgrade-master {BASEDIR}
+</pre></div>
+</div>
+<p>This upgrades a previously created buildmaster’s base directory for a new version of buildbot master source code.
+This will copy the web server static files, and potencially upgrade the db.</p>
+</div>
+<div class="section" id="start">
+<span id="cmdline-start (buildbot)"></span><h4>start<a class="headerlink" href="#start" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-none"><div class="highlight"><pre><span></span>buildbot start [--nodaemon] {BASEDIR}
+</pre></div>
+</div>
+<p>This starts a buildmaster which was already created in the given base directory.
+The daemon is launched in the background, with events logged to a file named <code class="file docutils literal"><span class="pre">twistd.log</span></code>.</p>
+<p>The option <cite>–nodaemon</cite> option instructs Buildbot to skip daemonizing.
+The process will start in the foreground.
+It will only return to the command-line when it is stopped.</p>
+</div>
+<div class="section" id="restart">
+<span id="cmdline-restart (buildbot)"></span><h4>restart<a class="headerlink" href="#restart" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-none"><div class="highlight"><pre><span></span>buildbot restart [--nodaemon] {BASEDIR}
+</pre></div>
+</div>
+<p>Restart the buildmaster.
+This is equivalent to <code class="docutils literal"><span class="pre">stop</span></code> followed by <code class="docutils literal"><span class="pre">start</span></code>
+The option <cite>–nodaemon</cite> option has the same meaning as for <code class="docutils literal"><span class="pre">start</span></code>.</p>
+</div>
+<div class="section" id="stop">
+<span id="cmdline-stop (buildbot)"></span><h4>stop<a class="headerlink" href="#stop" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-none"><div class="highlight"><pre><span></span>buildbot stop {BASEDIR}
+</pre></div>
+</div>
+<p>This terminates the daemon (either buildmaster or worker) running in the given directory.
+The <code class="docutils literal"><span class="pre">--clean</span></code> option shuts down the buildmaster cleanly.
+With <code class="docutils literal"><span class="pre">--no-wait</span></code> option <code class="docutils literal"><span class="pre">buildbot</span> <span class="pre">stop</span></code> command will send buildmaster shutdown signal and will immediately exit, not waiting for complete buildmaster shutdown.</p>
+</div>
+<div class="section" id="sighup">
+<span id="cmdline-sighup"></span><h4>sighup<a class="headerlink" href="#sighup" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-none"><div class="highlight"><pre><span></span>buildbot sighup {BASEDIR}
+</pre></div>
+</div>
+<p>This sends a SIGHUP to the buildmaster running in the given directory, which causes it to re-read its <code class="file docutils literal"><span class="pre">master.cfg</span></code> file.</p>
+</div>
+<div class="section" id="checkconfig">
+<span id="cmdline-checkconfig"></span><h4>checkconfig<a class="headerlink" href="#checkconfig" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-none"><div class="highlight"><pre><span></span>buildbot checkconfig {BASEDIR|CONFIG_FILE}
+</pre></div>
+</div>
+<p>This checks if the buildmaster configuration is well-formed and contains no deprecated or invalid elements.
+If no arguments are used or the base directory is passed as the argument the config file specified in <code class="file docutils literal"><span class="pre">buildbot.tac</span></code> is checked.
+If the argument is the path to a config file then it will be checked without using the <code class="file docutils literal"><span class="pre">buildbot.tac</span></code> file.</p>
+</div>
+<div class="section" id="cleanupdb">
+<span id="cmdline-cleanupdb"></span><h4>cleanupdb<a class="headerlink" href="#cleanupdb" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-none"><div class="highlight"><pre><span></span>buildbot cleanupdb {BASEDIR|CONFIG_FILE} [-q]
+</pre></div>
+</div>
+<p>This command is frontend for various database maintainance jobs:</p>
+<ul class="simple">
+<li>optimiselogs: This optimization groups logs into bigger chunks
+to apply higher level of compression.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="developer-tools">
+<h3>2.9.1.2. Developer Tools<a class="headerlink" href="#developer-tools" title="Permalink to this headline">¶</a></h3>
+<p>These tools are provided for use by the developers who are working on
+the code that the buildbot is monitoring.</p>
+<div class="section" id="try">
+<span id="cmdline-try"></span><h4>try<a class="headerlink" href="#try" title="Permalink to this headline">¶</a></h4>
+<p>This lets a developer to ask the question <code class="docutils literal"><span class="pre">What</span> <span class="pre">would</span> <span class="pre">happen</span> <span class="pre">if</span> <span class="pre">I</span> <span class="pre">committed</span> <span class="pre">this</span> <span class="pre">patch</span> <span class="pre">right</span> <span class="pre">now?</span></code>.
+It runs the unit test suite (across multiple build platforms) on the developer’s current code, allowing them to make sure they will not break the tree when they finally commit their changes.</p>
+<p>The <code class="docutils literal"><span class="pre">buildbot</span> <span class="pre">try</span></code> command is meant to be run from within a developer’s local tree, and starts by figuring out the base revision of that tree (what revision was current the last time the tree was updated), and a patch that can be applied to that revision of the tree to make it match the developer’s copy.
+This <code class="docutils literal"><span class="pre">(revision,</span> <span class="pre">patch)</span></code> pair is then sent to the buildmaster, which runs a build with that <code class="xref py py-class docutils literal"><span class="pre">SourceStamp</span></code>.
+If you want, the tool will emit status messages as the builds run, and will not terminate until the first failure has been detected (or the last success).</p>
+<p>There is an alternate form which accepts a pre-made patch file (typically the output of a command like <strong class="command">svn diff</strong>).
+This <code class="docutils literal"><span class="pre">--diff</span></code> form does not require a local tree to run from.
+See <a class="reference internal" href="#try-diff"><span class="std std-ref">try –diff</span></a> concerning the <code class="docutils literal"><span class="pre">--diff</span></code> command option.</p>
+<p>For this command to work, several pieces must be in place: the <a class="reference internal" href="cfg-schedulers.html#sched-Try_Jobdir" title="Try_Jobdir"><code class="xref bb bb-sched docutils literal"><span class="pre">Try_Jobdir</span></code></a> or :<a class="reference internal" href="cfg-schedulers.html#sched-Try_Userpass" title="Try_Userpass"><code class="xref bb bb-sched docutils literal"><span class="pre">Try_Userpass</span></code></a>, as well as some client-side configuration.</p>
+<div class="section" id="locating-the-master">
+<h5>Locating the master<a class="headerlink" href="#locating-the-master" title="Permalink to this headline">¶</a></h5>
+<p>The <strong class="command">try</strong> command needs to be told how to connect to the try scheduler, and must know which of the authentication approaches described above is in use by the buildmaster.
+You specify the approach by using <code class="docutils literal"><span class="pre">--connect=ssh</span></code> or <code class="docutils literal"><span class="pre">--connect=pb</span></code> (or <code class="docutils literal"><span class="pre">try_connect</span> <span class="pre">=</span> <span class="pre">'ssh'</span></code> or <code class="docutils literal"><span class="pre">try_connect</span> <span class="pre">=</span> <span class="pre">'pb'</span></code> in <code class="file docutils literal"><span class="pre">.buildbot/options</span></code>).</p>
+<p>For the PB approach, the command must be given a option <cite>–master</cite> argument (in the form <code class="samp docutils literal"><em><span class="pre">HOST</span></em><span class="pre">:</span><em><span class="pre">PORT</span></em></code>) that points to TCP port that you picked in the <code class="xref py py-class docutils literal"><span class="pre">Try_Userpass</span></code> scheduler.
+It also takes a option <cite>–username</cite> and option <cite>–passwd</cite> pair of arguments that match one of the entries in the buildmaster’s <code class="docutils literal"><span class="pre">userpass</span></code> list.
+These arguments can also be provided as <code class="docutils literal"><span class="pre">try_master</span></code>, <code class="docutils literal"><span class="pre">try_username</span></code>, and <code class="docutils literal"><span class="pre">try_password</span></code> entries in the <code class="file docutils literal"><span class="pre">.buildbot/options</span></code> file.</p>
+<p>For the SSH approach, the command must be given option <cite>–host</cite> and option <cite>–username</cite>, to get to the buildmaster host.
+It must also be given option <cite>–jobdir</cite>, which points to the inlet directory configured above.
+The jobdir can be relative to the user’s home directory, but most of the time you will use an explicit path like <code class="file docutils literal"><span class="pre">~buildbot/project/trydir</span></code>.
+These arguments can be provided in <code class="file docutils literal"><span class="pre">.buildbot/options</span></code> as <code class="docutils literal"><span class="pre">try_host</span></code>, <code class="docutils literal"><span class="pre">try_username</span></code>, <code class="docutils literal"><span class="pre">try_password</span></code>, and <code class="docutils literal"><span class="pre">try_jobdir</span></code>.</p>
+<p>If you need to use something different from the default <code class="docutils literal"><span class="pre">ssh</span></code> command for
+connecting to the remote system, you can use <cite>–ssh</cite> command line option or
+<code class="docutils literal"><span class="pre">try_ssh</span></code> in the configuration file.</p>
+<p>The SSH approach also provides a option <cite>–buildbotbin</cite> argument to allow specification of the buildbot binary to run on the buildmaster.
+This is useful in the case where buildbot is installed in a <a class="reference internal" href="installation/installation.html#installation-in-a-virtualenv"><span class="std std-ref">virtualenv</span></a> on the buildmaster host, or in other circumstances where the buildbot command is not on the path of the user given by option <cite>–username</cite>.
+The option <cite>–buildbotbin</cite> argument can be provided in <code class="file docutils literal"><span class="pre">.buildbot/options</span></code> as <code class="docutils literal"><span class="pre">try_buildbotbin</span></code></p>
+<p>The following command line arguments are deprecated, but retained for backward compatibility:</p>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">--tryhost</span></kbd></td>
+<td>is replaced by option <cite>–host</cite></td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--trydir</span></kbd></td>
+<td>is replaced by option <cite>–jobdir</cite></td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--master</span></kbd></td>
+<td>is replaced by option <cite>–masterstatus</cite></td></tr>
+</tbody>
+</table>
+<p>Likewise, the following <code class="file docutils literal"><span class="pre">.buildbot/options</span></code> file entries are deprecated, but retained for backward compatibility:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">try_dir</span></code> is replaced by <code class="docutils literal"><span class="pre">try_jobdir</span></code></li>
+<li><code class="docutils literal"><span class="pre">masterstatus</span></code> is replaced by <code class="docutils literal"><span class="pre">try_masterstatus</span></code></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="waiting-for-results">
+<h5>Waiting for results<a class="headerlink" href="#waiting-for-results" title="Permalink to this headline">¶</a></h5>
+<p>If you provide the option <cite>–wait</cite> option (or <code class="docutils literal"><span class="pre">try_wait</span> <span class="pre">=</span> <span class="pre">True</span></code> in <code class="file docutils literal"><span class="pre">.buildbot/options</span></code>), the <code class="docutils literal"><span class="pre">buildbot</span> <span class="pre">try</span></code> command will wait until your changes have either been proven good or bad before exiting.
+Unless you use the option <cite>–quiet</cite> option (or <code class="docutils literal"><span class="pre">try_quiet=True</span></code>), it will emit a progress message every 60 seconds until the builds have completed.</p>
+<p>The SSH connection method does not support waiting for results.</p>
+</div>
+<div class="section" id="choosing-the-builders">
+<h5>Choosing the Builders<a class="headerlink" href="#choosing-the-builders" title="Permalink to this headline">¶</a></h5>
+<p>A trial build is performed on multiple Builders at the same time, and the developer gets to choose which Builders are used (limited to a set selected by the buildmaster admin with the <code class="xref py py-class docutils literal"><span class="pre">TryScheduler</span></code>’s <code class="docutils literal"><span class="pre">builderNames=</span></code> argument).
+The set you choose will depend upon what your goals are: if you are concerned about cross-platform compatibility, you should use multiple Builders, one from each platform of interest.
+You might use just one builder if that platform has libraries or other facilities that allow better test coverage than what you can accomplish on your own machine, or faster test runs.</p>
+<p>The set of Builders to use can be specified with multiple option <cite>–builder</cite> arguments on the command line.
+It can also be specified with a single <code class="docutils literal"><span class="pre">try_builders</span></code> option in <code class="file docutils literal"><span class="pre">.buildbot/options</span></code> that uses a list of strings to specify all the Builder names:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">try_builders</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;full-OSX&quot;</span><span class="p">,</span> <span class="s2">&quot;full-win32&quot;</span><span class="p">,</span> <span class="s2">&quot;full-linux&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>If you are using the PB approach, you can get the names of the builders that are configured for the try scheduler using the <code class="docutils literal"><span class="pre">get-builder-names</span></code> argument:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>buildbot try --get-builder-names --connect<span class="o">=</span>pb --master<span class="o">=</span>... --username<span class="o">=</span>... --passwd<span class="o">=</span>...
+</pre></div>
+</div>
+</div>
+<div class="section" id="specifying-the-vc-system">
+<h5>Specifying the VC system<a class="headerlink" href="#specifying-the-vc-system" title="Permalink to this headline">¶</a></h5>
+<p>The <strong class="command">try</strong> command also needs to know how to take the developer’s current tree and extract the (revision, patch) source-stamp pair.
+Each VC system uses a different process, so you start by telling the <strong class="command">try</strong> command which VC system you are using, with an argument like option <cite>–vc=cvs</cite> or option <cite>–vc=git</cite>.
+This can also be provided as <code class="docutils literal"><span class="pre">try_vc</span></code> in <code class="file docutils literal"><span class="pre">.buildbot/options</span></code>.</p>
+<p>The following names are recognized: <code class="docutils literal"><span class="pre">bzr</span></code> <code class="docutils literal"><span class="pre">cvs</span></code> <code class="docutils literal"><span class="pre">darcs</span></code> <code class="docutils literal"><span class="pre">hg</span></code> <code class="docutils literal"><span class="pre">git</span></code> <code class="docutils literal"><span class="pre">mtn</span></code> <code class="docutils literal"><span class="pre">p4</span></code> <code class="docutils literal"><span class="pre">svn</span></code></p>
+</div>
+<div class="section" id="finding-the-top-of-the-tree">
+<h5>Finding the top of the tree<a class="headerlink" href="#finding-the-top-of-the-tree" title="Permalink to this headline">¶</a></h5>
+<p>Some VC systems (notably CVS and SVN) track each directory more-or-less independently, which means the <strong class="command">try</strong> command needs to move up to the top of the project tree before it will be able to construct a proper full-tree patch.
+To accomplish this, the <strong class="command">try</strong> command will crawl up through the parent directories until it finds a marker file.
+The default name for this marker file is <code class="file docutils literal"><span class="pre">.buildbot-top</span></code>, so when you are using CVS or SVN you should <code class="docutils literal"><span class="pre">touch</span> <span class="pre">.buildbot-top</span></code> from the top of your tree before running <strong class="command">buildbot try</strong>.
+Alternatively, you can use a filename like <code class="file docutils literal"><span class="pre">ChangeLog</span></code> or <code class="file docutils literal"><span class="pre">README</span></code>, since many projects put one of these files in their top-most directory (and nowhere else).
+To set this filename, use <code class="docutils literal"><span class="pre">--topfile=ChangeLog</span></code>, or set it in the options file with <code class="docutils literal"><span class="pre">try_topfile</span> <span class="pre">=</span> <span class="pre">'ChangeLog'</span></code>.</p>
+<p>You can also manually set the top of the tree with <code class="docutils literal"><span class="pre">--topdir=~/trees/mytree</span></code>, or <code class="docutils literal"><span class="pre">try_topdir</span> <span class="pre">=</span> <span class="pre">'~/trees/mytree'</span></code>.
+If you use <code class="docutils literal"><span class="pre">try_topdir</span></code>, in a <code class="file docutils literal"><span class="pre">.buildbot/options</span></code> file, you will need a separate options file for each tree you use, so it may be more convenient to use the <code class="docutils literal"><span class="pre">try_topfile</span></code> approach instead.</p>
+<p>Other VC systems which work on full projects instead of individual directories (Darcs, Mercurial, Git, Monotone) do not require <strong class="command">try</strong> to know the top directory, so the option <cite>–try-topfile</cite> and option <cite>–try-topdir</cite> arguments will be ignored.</p>
+<p>If the <strong class="command">try</strong> command cannot find the top directory, it will abort with an error message.</p>
+<p>The following command line arguments are deprecated, but retained for backward compatibility:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">--try-topdir</span></code> is replaced by option <cite>–topdir</cite></li>
+<li><code class="docutils literal"><span class="pre">--try-topfile</span></code> is replaced by option <cite>–topfile</cite></li>
+</ul>
+</div>
+<div class="section" id="determining-the-branch-name">
+<h5>Determining the branch name<a class="headerlink" href="#determining-the-branch-name" title="Permalink to this headline">¶</a></h5>
+<p>Some VC systems record the branch information in a way that <code class="docutils literal"><span class="pre">try</span></code> can locate it.
+For the others, if you are using something other than the default branch, you will have to tell the buildbot which branch your tree is using.
+You can do this with either the option <cite>–branch</cite> argument, or a <code class="docutils literal"><span class="pre">try_branch</span></code> entry in the <code class="file docutils literal"><span class="pre">.buildbot/options</span></code> file.</p>
+</div>
+<div class="section" id="determining-the-revision-and-patch">
+<h5>Determining the revision and patch<a class="headerlink" href="#determining-the-revision-and-patch" title="Permalink to this headline">¶</a></h5>
+<p>Each VC system has a separate approach for determining the tree’s base revision and computing a patch.</p>
+<dl class="docutils">
+<dt>CVS</dt>
+<dd><strong class="command">try</strong> pretends that the tree is up to date.
+It converts the current time into a option <cite>-D</cite> time specification, uses it as the base revision, and computes the diff between the upstream tree as of that point in time versus the current contents.
+This works, more or less, but requires that the local clock be in reasonably good sync with the repository.</dd>
+<dt>SVN</dt>
+<dd><strong class="command">try</strong> does a <strong class="command">svn status -u</strong> to find the latest repository revision number (emitted on the last line in the <code class="samp docutils literal"><span class="pre">Status</span> <span class="pre">against</span> <span class="pre">revision:</span> <em><span class="pre">NN</span></em></code> message).
+It then performs an <code class="samp docutils literal"><span class="pre">svn</span> <span class="pre">diff</span> <span class="pre">-r</span><em><span class="pre">NN</span></em></code> to find out how your tree differs from the repository version, and sends the resulting patch to the buildmaster.
+If your tree is not up to date, this will result in the <code class="docutils literal"><span class="pre">try</span></code> tree being created with the latest revision, then <em>backwards</em> patches applied to bring it <code class="docutils literal"><span class="pre">back</span></code> to the version you actually checked out (plus your actual code changes), but this will still result in the correct tree being used for the build.</dd>
+<dt>bzr</dt>
+<dd><strong class="command">try</strong> does a <code class="docutils literal"><span class="pre">bzr</span> <span class="pre">revision-info</span></code> to find the base revision, then a <code class="docutils literal"><span class="pre">bzr</span> <span class="pre">diff</span> <span class="pre">-r$base..</span></code> to obtain the patch.</dd>
+<dt>Mercurial</dt>
+<dd><code class="docutils literal"><span class="pre">hg</span> <span class="pre">parents</span> <span class="pre">--template</span> <span class="pre">'{node}\n'</span></code> emits the full revision id (as opposed to the common 12-char truncated) which is a SHA1 hash of the current revision’s contents.
+This is used as the base revision.
+<code class="docutils literal"><span class="pre">hg</span> <span class="pre">diff</span></code> then provides the patch relative to that revision.
+For <strong class="command">try</strong> to work, your working directory must only have patches that are available from the same remotely-available repository that the build process’ <code class="docutils literal"><span class="pre">source.Mercurial</span></code> will use.</dd>
+<dt>Perforce</dt>
+<dd><strong class="command">try</strong> does a <code class="docutils literal"><span class="pre">p4</span> <span class="pre">changes</span> <span class="pre">-m1</span> <span class="pre">...</span></code> to determine the latest changelist and implicitly assumes that the local tree is synced to this revision.
+This is followed by a <code class="docutils literal"><span class="pre">p4</span> <span class="pre">diff</span> <span class="pre">-du</span></code> to obtain the patch.
+A p4 patch differs slightly from a normal diff.
+It contains full depot paths and must be converted to paths relative to the branch top.
+To convert the following restriction is imposed.
+The p4base (see <a class="reference internal" href="cfg-changesources.html#chsrc-P4Source" title="P4Source"><code class="xref bb bb-chsrc docutils literal"><span class="pre">P4Source</span></code></a>) is assumed to be <code class="docutils literal"><span class="pre">//depot</span></code></dd>
+<dt>Darcs</dt>
+<dd><strong class="command">try</strong> does a <code class="docutils literal"><span class="pre">darcs</span> <span class="pre">changes</span> <span class="pre">--context</span></code> to find the list of all patches back to and including the last tag that was made.
+This text file (plus the location of a repository that contains all these patches) is sufficient to re-create the tree.
+Therefore the contents of this <code class="docutils literal"><span class="pre">context</span></code> file <em>are</em> the revision stamp for a Darcs-controlled source tree.
+It then does a <code class="docutils literal"><span class="pre">darcs</span> <span class="pre">diff</span> <span class="pre">-u</span></code> to compute the patch relative to that revision.</dd>
+<dt>Git</dt>
+<dd><code class="docutils literal"><span class="pre">git</span> <span class="pre">branch</span> <span class="pre">-v</span></code> lists all the branches available in the local repository along with the revision ID it points to and a short summary of the last commit.
+The line containing the currently checked out branch begins with “*&nbsp;” (star and space) while all the others start with “&nbsp;&nbsp;” (two spaces).
+<strong class="command">try</strong> scans for this line and extracts the branch name and revision from it.
+Then it generates a diff against the base revision.</dd>
+</dl>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">I’m not sure if this actually works the way it’s intended since the extracted base revision might not actually exist in the upstream repository.
+Perhaps we need to add a –remote option to specify the remote tracking branch to generate a diff against.</p>
+</div>
+<dl class="docutils">
+<dt>Monotone</dt>
+<dd><strong class="command">mtn automate get_base_revision_id</strong> emits the full revision id which is a SHA1 hash of the current revision’s contents.
+This is used as the base revision.
+<strong class="command">mtn diff</strong> then provides the patch relative to that revision.
+For <strong class="command">try</strong> to work, your working directory must only have patches that are available from the same remotely-available repository that the build process’ <code class="xref py py-class docutils literal"><span class="pre">source.Monotone</span></code> will use.</dd>
+</dl>
+</div>
+<div class="section" id="patch-information">
+<h5>patch information<a class="headerlink" href="#patch-information" title="Permalink to this headline">¶</a></h5>
+<p>You can provide the option <cite>–who=dev</cite> to designate who is running the try build.
+This will add the <code class="docutils literal"><span class="pre">dev</span></code> to the Reason field on the try build’s status web page.
+You can also set <code class="docutils literal"><span class="pre">try_who</span> <span class="pre">=</span> <span class="pre">dev</span></code> in the <code class="file docutils literal"><span class="pre">.buildbot/options</span></code> file.
+Note that option <cite>–who=dev</cite> will not work on version 0.8.3 or earlier masters.</p>
+<p>Similarly, option <cite>–comment=COMMENT</cite> will specify the comment for the patch, which is also displayed in the patch information.
+The corresponding config-file option is <code class="docutils literal"><span class="pre">try_comment</span></code>.</p>
+</div>
+<div class="section" id="sending-properties">
+<h5>Sending properties<a class="headerlink" href="#sending-properties" title="Permalink to this headline">¶</a></h5>
+<p>You can set properties to send with your change using either the option <cite>–property=key=value</cite> option, which sets a single property, or the option <cite>–properties=key1=value1,key2=value2…</cite> option, which sets multiple comma-separated properties.
+Either of these can be sepcified multiple times.
+Note that the option <cite>–properties</cite> option uses commas to split on properties, so if your property value itself contains a comma, you’ll need to use the option <cite>–property</cite> option to set it.</p>
+</div>
+</div>
+<div class="section" id="try-diff">
+<span id="id2"></span><h4>try –diff<a class="headerlink" href="#try-diff" title="Permalink to this headline">¶</a></h4>
+<p>Sometimes you might have a patch from someone else that you want to submit to the buildbot.
+For example, a user may have created a patch to fix some specific bug and sent it to you by email.
+You’ve inspected the patch and suspect that it might do the job (and have at least confirmed that it doesn’t do anything evil).
+Now you want to test it out.</p>
+<p>One approach would be to check out a new local tree, apply the patch, run your local tests, then use <code class="docutils literal"><span class="pre">buildbot</span> <span class="pre">try</span></code> to run the tests on other platforms.
+An alternate approach is to use the <code class="docutils literal"><span class="pre">buildbot</span> <span class="pre">try</span> <span class="pre">--diff</span></code> form to have the buildbot test the patch without using a local tree.</p>
+<p>This form takes a option <cite>–diff</cite> argument which points to a file that contains the patch you want to apply.
+By default this patch will be applied to the TRUNK revision, but if you give the optional option <cite>–baserev</cite> argument, a tree of the given revision will be used as a starting point instead of TRUNK.</p>
+<p>You can also use <code class="docutils literal"><span class="pre">buildbot</span> <span class="pre">try</span> <span class="pre">--diff=-</span></code> to read the patch from <code class="file docutils literal"><span class="pre">stdin</span></code>.</p>
+<p>Each patch has a <code class="docutils literal"><span class="pre">patchlevel</span></code> associated with it.
+This indicates the number of slashes (and preceding pathnames) that should be stripped before applying the diff.
+This exactly corresponds to the option <cite>-p</cite> or option <cite>–strip</cite> argument to the <strong class="command">patch</strong> utility.
+By default <code class="docutils literal"><span class="pre">buildbot</span> <span class="pre">try</span> <span class="pre">--diff</span></code> uses a patchlevel of 0, but you can override this with the option <cite>-p</cite> argument.</p>
+<p>When you use option <cite>–diff</cite>, you do not need to use any of the other options that relate to a local tree, specifically option <cite>–vc</cite>, option <cite>–try-topfile</cite>, or option <cite>–try-topdir</cite>.
+These options will be ignored.
+Of course you must still specify how to get to the buildmaster (with option <cite>–connect</cite>, option <cite>–tryhost</cite>, etc).</p>
+</div>
+</div>
+<div class="section" id="other-tools">
+<h3>2.9.1.3. Other Tools<a class="headerlink" href="#other-tools" title="Permalink to this headline">¶</a></h3>
+<p>These tools are generally used by buildmaster administrators.</p>
+<div class="section" id="sendchange">
+<span id="cmdline-sendchange"></span><h4>sendchange<a class="headerlink" href="#sendchange" title="Permalink to this headline">¶</a></h4>
+<p>This command is used to tell the buildmaster about source changes.
+It is intended to be used from within a commit script, installed on the VC server.
+It requires that you have a <code class="xref py py-class docutils literal"><span class="pre">PBChangeSource</span></code> (<a class="reference internal" href="cfg-changesources.html#chsrc-PBChangeSource" title="PBChangeSource"><code class="xref bb bb-chsrc docutils literal"><span class="pre">PBChangeSource</span></code></a>) running in the buildmaster (by being set in <code class="docutils literal"><span class="pre">c['change_source']</span></code>).</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>buildbot sendchange --master {MASTERHOST}:{PORT} --auth {USER}:{PASS}
+        --who {USER} {FILENAMES..}
+</pre></div>
+</div>
+<p>The option <cite>–auth</cite> option specifies the credentials to use to connect to the master, in the form <code class="docutils literal"><span class="pre">user:pass</span></code>.
+If the password is omitted, then sendchange will prompt for it.
+If both are omitted, the old default (username “change” and password “changepw”) will be used.
+Note that this password is well-known, and should not be used on an internet-accessible port.</p>
+<p>The option <cite>–master</cite> and option <cite>–username</cite> arguments can also be given in the options file (see <a class="reference internal" href="#buildbot-config-directory"><span class="std std-ref">.buildbot config directory</span></a>).
+There are other (optional) arguments which can influence the <code class="docutils literal"><span class="pre">Change</span></code> that gets submitted:</p>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">--branch</span></kbd></td>
+<td>(or option <code class="docutils literal"><span class="pre">branch</span></code>) This provides the (string) branch specifier.
+If omitted, it defaults to <code class="docutils literal"><span class="pre">None</span></code>, indicating the <code class="docutils literal"><span class="pre">default</span> <span class="pre">branch</span></code>.
+All files included in this Change must be on the same branch.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--category</span></kbd></td>
+<td>(or option <code class="docutils literal"><span class="pre">category</span></code>) This provides the (string) category specifier.
+If omitted, it defaults to <code class="docutils literal"><span class="pre">None</span></code>, indicating <code class="docutils literal"><span class="pre">no</span> <span class="pre">category</span></code>.
+The category property can be used by schedulers to filter what changes they listen to.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--project</span></kbd></td>
+<td>(or option <code class="docutils literal"><span class="pre">project</span></code>) This provides the (string) project to which this change applies, and defaults to ‘’.
+The project can be used by schedulers to decide which builders should respond to a particular change.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--repository</span></kbd></td>
+<td>(or option <code class="docutils literal"><span class="pre">repository</span></code>) This provides the repository from which this change came, and defaults to <code class="docutils literal"><span class="pre">''</span></code>.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--revision</span></kbd></td>
+<td>This provides a revision specifier, appropriate to the VC system in use.</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">--revision_file</span></kbd></td>
+</tr>
+<tr><td>&#160;</td><td>This provides a filename which will be opened and the contents used as the revision specifier.
+This is specifically for Darcs, which uses the output of <code class="docutils literal"><span class="pre">darcs</span> <span class="pre">changes</span> <span class="pre">--context</span></code> as a revision specifier.
+This context file can be a couple of kilobytes long, spanning a couple lines per patch, and would be a hassle to pass as a command-line argument.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--property</span></kbd></td>
+<td>This parameter is used to set a property on the <code class="xref py py-class docutils literal"><span class="pre">Change</span></code> generated by <code class="docutils literal"><span class="pre">sendchange</span></code>.
+Properties are specified as a <code class="samp docutils literal"><em><span class="pre">name</span></em><span class="pre">:</span><em><span class="pre">value</span></em></code> pair, separated by a colon.
+You may specify many properties by passing this parameter multiple times.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--comments</span></kbd></td>
+<td>This provides the change comments as a single argument.
+You may want to use option <cite>–logfile</cite> instead.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--logfile</span></kbd></td>
+<td>This instructs the tool to read the change comments from the given file.
+If you use <code class="docutils literal"><span class="pre">-</span></code> as the filename, the tool will read the change comments from stdin.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--encoding</span></kbd></td>
+<td>Specifies the character encoding for all other parameters, defaulting to <code class="docutils literal"><span class="pre">'utf8'</span></code>.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--vc</span></kbd></td>
+<td>Specifies which VC system the Change is coming from, one of: <code class="docutils literal"><span class="pre">cvs</span></code>, <code class="docutils literal"><span class="pre">svn</span></code>, <code class="docutils literal"><span class="pre">darcs</span></code>, <code class="docutils literal"><span class="pre">hg</span></code>, <code class="docutils literal"><span class="pre">bzr</span></code>, <code class="docutils literal"><span class="pre">git</span></code>, <code class="docutils literal"><span class="pre">mtn</span></code>, or <code class="docutils literal"><span class="pre">p4</span></code>.
+Defaults to <code class="docutils literal"><span class="pre">None</span></code>.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="user">
+<span id="cmdline-user"></span><h4>user<a class="headerlink" href="#user" title="Permalink to this headline">¶</a></h4>
+<p>Note that in order to use this command, you need to configure a <cite>CommandlineUserManager</cite> instance in your <cite>master.cfg</cite> file, which is explained in <a class="reference internal" href="cfg-global.html#users-options"><span class="std std-ref">Users Options</span></a>.</p>
+<p>This command allows you to manage users in buildbot’s database.
+No extra requirements are needed to use this command, aside from the Buildmaster running.
+For details on how Buildbot manages users, see <a class="reference internal" href="concepts.html#concepts-users"><span class="std std-ref">Users</span></a>.</p>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">--master</span></kbd></td>
+<td>The <strong class="command">user</strong> command can be run virtually anywhere provided a location of the running buildmaster.
+The option <cite>–master</cite> argument is of the form <code class="samp docutils literal"><em><span class="pre">MASTERHOST</span></em><span class="pre">:</span><em><span class="pre">PORT</span></em></code>.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--username</span></kbd></td>
+<td>PB connection authentication that should match the arguments to <cite>CommandlineUserManager</cite>.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--passwd</span></kbd></td>
+<td>PB connection authentication that should match the arguments to <cite>CommandlineUserManager</cite>.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--op</span></kbd></td>
+<td>There are four supported values for the option <cite>–op</cite> argument: <code class="docutils literal"><span class="pre">add</span></code>, <code class="docutils literal"><span class="pre">update</span></code>, <code class="docutils literal"><span class="pre">remove</span></code>, and <code class="docutils literal"><span class="pre">get</span></code>.
+Each are described in full in the following sections.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--bb_username</span></kbd></td>
+<td>Used with the option <cite>–op=update</cite> option, this sets the user’s username for web authentication in the database.
+It requires option <cite>–bb_password</cite> to be set along with it.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--bb_password</span></kbd></td>
+<td>Also used with the option <cite>–op=update</cite> option, this sets the password portion of a user’s web authentication credentials into the database.
+The password is first encrypted prior to storage for security reasons.</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--ids</span></kbd></td>
+<td><p class="first">When working with users, you need to be able to refer to them by unique identifiers to find particular users in the database.
+The option <cite>–ids</cite> option lets you specify a comma separated list of these identifiers for use with the <strong class="command">user</strong> command.</p>
+<p class="last">The option <cite>–ids</cite> option is used only when using option <cite>–op=remove</cite> or option <cite>–op=get</cite>.</p>
+</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--info</span></kbd></td>
+<td><p class="first">Users are known in buildbot as a collection of attributes tied together by some unique identifier (see <a class="reference internal" href="concepts.html#concepts-users"><span class="std std-ref">Users</span></a>).
+These attributes are specified in the form <code class="docutils literal"><span class="pre">{TYPE}={VALUE}</span></code> when using the option <cite>–info</cite> option.
+These <code class="docutils literal"><span class="pre">{TYPE}={VALUE}</span></code> pairs are specified in a comma separated list, so for example:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>--info=svn=jdoe,git=&#39;John Doe &lt;joe@example.com&gt;&#39;
+</pre></div>
+</div>
+<p>The option <cite>–info</cite> option can be specified multiple times in the <strong class="command">user</strong> command, as each specified option will be interpreted as a new user.
+Note that option <cite>–info</cite> is only used with option <cite>–op=add</cite> or with option <cite>–op=update</cite>, and whenever you use option <cite>–op=update</cite> you need to specify the identifier of the user you want to update.
+This is done by prepending the option <cite>–info</cite> arguments with <code class="docutils literal"><span class="pre">{ID:}</span></code>.
+If we were to update <code class="docutils literal"><span class="pre">'jschmo'</span></code> from the previous example, it would look like this:</p>
+<div class="last highlight-none"><div class="highlight"><pre><span></span>--info=jdoe:git=&#39;Joe Doe &lt;joe@example.com&gt;&#39;
+</pre></div>
+</div>
+</td></tr>
+</tbody>
+</table>
+<p>Note that option <cite>–master</cite>, option <cite>–username</cite>, option <cite>–passwd</cite>, and option <cite>–op</cite> are always required to issue the <strong class="command">user</strong> command.</p>
+<p>The option <cite>–master</cite>, option <cite>–username</cite>, and option <cite>–passwd</cite> options can be specified in the option file with keywords <code class="docutils literal"><span class="pre">user_master</span></code>, <code class="docutils literal"><span class="pre">user_username</span></code>, and <code class="docutils literal"><span class="pre">user_passwd</span></code>, respectively.
+If <code class="docutils literal"><span class="pre">user_master</span></code> is not specified, then option <cite>–master</cite> from the options file will be used instead.</p>
+<p>Below are examples of how each command should look.
+Whenever a <strong class="command">user</strong> command is successful, results will be shown to whoever issued the command.</p>
+<p>For option <cite>–op=add</cite>:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>buildbot user --master={MASTERHOST} --op=add \
+        --username={USER} --passwd={USERPW} \
+        --info={TYPE}={VALUE},...
+</pre></div>
+</div>
+<p>For option <cite>–op=update</cite>:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>buildbot user --master={MASTERHOST} --op=update \
+        --username={USER} --passwd={USERPW} \
+        --info={ID}:{TYPE}={VALUE},...
+</pre></div>
+</div>
+<p>For option <cite>–op=remove</cite>:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>buildbot user --master={MASTERHOST} --op=remove \
+        --username={USER} --passwd={USERPW} \
+        --ids={ID1},{ID2},...
+</pre></div>
+</div>
+<p>For option <cite>–op=get</cite>:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>buildbot user --master={MASTERHOST} --op=get \
+        --username={USER} --passwd={USERPW} \
+        --ids={ID1},{ID2},...
+</pre></div>
+</div>
+<p>A note on option <cite>–op=update</cite>: when updating the option <cite>–bb_username</cite> and option <cite>–bb_password</cite>, the option <cite>–info</cite> doesn’t need to have additional <code class="docutils literal"><span class="pre">{TYPE}={VALUE}</span></code> pairs to update and can just take the <code class="docutils literal"><span class="pre">{ID}</span></code> portion.</p>
+</div>
+</div>
+<div class="section" id="buildbot-config-directory">
+<span id="id3"></span><h3>2.9.1.4. <code class="file docutils literal"><span class="pre">.buildbot</span></code> config directory<a class="headerlink" href="#buildbot-config-directory" title="Permalink to this headline">¶</a></h3>
+<p>Many of the <strong class="command">buildbot</strong> tools must be told how to contact the buildmaster that they interact with.
+This specification can be provided as a command-line argument, but most of the time it will be easier to set them in an <code class="docutils literal"><span class="pre">options</span></code> file.
+The <strong class="command">buildbot</strong> command will look for a special directory named <code class="file docutils literal"><span class="pre">.buildbot</span></code>, starting from the current directory (where the command was run) and crawling upwards, eventually looking in the user’s home directory.
+It will look for a file named <code class="file docutils literal"><span class="pre">options</span></code> in this directory, and will evaluate it as a Python script, looking for certain names to be set.
+You can just put simple <code class="docutils literal"><span class="pre">name</span> <span class="pre">=</span> <span class="pre">'value'</span></code> pairs in this file to set the options.</p>
+<p>For a description of the names used in this file, please see the documentation for the individual <strong class="command">buildbot</strong> sub-commands.
+The following is a brief sample of what this file’s contents could be.</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span># for status-reading tools
+masterstatus = &#39;buildbot.example.org:12345&#39;
+# for &#39;sendchange&#39; or the debug port
+master = &#39;buildbot.example.org:18990&#39;
+</pre></div>
+</div>
+<p>Note carefully that the names in the <code class="file docutils literal"><span class="pre">options</span></code> file usually do not match the command-line option name.</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">master</span></code></dt>
+<dd>Equivalent to option <cite>–master</cite> for <a class="reference internal" href="#cmdline-sendchange" title="sendchange"><code class="xref bb bb-cmdline docutils literal"><span class="pre">sendchange</span></code></a>.
+It is the location of the <code class="xref py py-class docutils literal"><span class="pre">pb.PBChangeSource</span></code> for <code class="docutils literal"><span class="pre">`sendchange</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">username</span></code></dt>
+<dd>Equivalent to option <cite>–username</cite> for the <a class="reference internal" href="#cmdline-sendchange" title="sendchange"><code class="xref bb bb-cmdline docutils literal"><span class="pre">sendchange</span></code></a> command.</dd>
+<dt><code class="docutils literal"><span class="pre">branch</span></code></dt>
+<dd>Equivalent to option <cite>–branch</cite> for the <a class="reference internal" href="#cmdline-sendchange" title="sendchange"><code class="xref bb bb-cmdline docutils literal"><span class="pre">sendchange</span></code></a> command.</dd>
+<dt><code class="docutils literal"><span class="pre">category</span></code></dt>
+<dd>Equivalent to option <cite>–category</cite> for the <a class="reference internal" href="#cmdline-sendchange" title="sendchange"><code class="xref bb bb-cmdline docutils literal"><span class="pre">sendchange</span></code></a> command.</dd>
+<dt><code class="docutils literal"><span class="pre">try_connect</span></code></dt>
+<dd>Equivalent to option <cite>–connect</cite>, this specifies how the <a class="reference internal" href="#cmdline-try" title="try"><code class="xref bb bb-cmdline docutils literal"><span class="pre">try</span></code></a> command should deliver its request to the buildmaster.
+The currently accepted values are <code class="docutils literal"><span class="pre">ssh</span></code> and <code class="docutils literal"><span class="pre">pb</span></code>.</dd>
+<dt><code class="docutils literal"><span class="pre">try_builders</span></code></dt>
+<dd>Equivalent to option <cite>–builders</cite>, specifies which builders should be used for the <a class="reference internal" href="#cmdline-try" title="try"><code class="xref bb bb-cmdline docutils literal"><span class="pre">try</span></code></a> build.</dd>
+<dt><code class="docutils literal"><span class="pre">try_vc</span></code></dt>
+<dd>Equivalent to option <cite>–vc</cite> for <a class="reference internal" href="#cmdline-try" title="try"><code class="xref bb bb-cmdline docutils literal"><span class="pre">try</span></code></a>, this specifies the version control system being used.</dd>
+<dt><code class="docutils literal"><span class="pre">try_branch</span></code></dt>
+<dd>Equivalent to option <cite>–branch</cite>, this indicates that the current tree is on a non-trunk branch.</dd>
+</dl>
+<p><code class="docutils literal"><span class="pre">try_topdir</span></code></p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">try_topfile</span></code></dt>
+<dd>Use <code class="docutils literal"><span class="pre">try_topdir</span></code>, equivalent to option <cite>–try-topdir</cite>, to explicitly indicate the top of your working tree, or <code class="docutils literal"><span class="pre">try_topfile</span></code>, equivalent to option <cite>–try-topfile</cite> to name a file that will only be found in that top-most directory.</dd>
+</dl>
+<p><code class="docutils literal"><span class="pre">try_host</span></code></p>
+<p><code class="docutils literal"><span class="pre">try_username</span></code></p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">try_dir</span></code></dt>
+<dd>When <code class="docutils literal"><span class="pre">try_connect</span></code> is <code class="docutils literal"><span class="pre">ssh</span></code>, the command will use <code class="docutils literal"><span class="pre">try_host</span></code> for option <cite>–tryhost</cite>, <code class="docutils literal"><span class="pre">try_username</span></code> for option <cite>–username</cite>, and <code class="docutils literal"><span class="pre">try_dir</span></code> for option <cite>–trydir</cite>.
+Apologies for the confusing presence and absence of ‘try’.</dd>
+</dl>
+<p><code class="docutils literal"><span class="pre">try_username</span></code></p>
+<p><code class="docutils literal"><span class="pre">try_password</span></code></p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">try_master</span></code></dt>
+<dd>Similarly, when <code class="docutils literal"><span class="pre">try_connect</span></code> is <code class="docutils literal"><span class="pre">pb</span></code>, the command will pay attention to <code class="docutils literal"><span class="pre">try_username</span></code> for option <cite>–username</cite>, <code class="docutils literal"><span class="pre">try_password</span></code> for option <cite>–passwd</cite>, and <code class="docutils literal"><span class="pre">try_master</span></code> for option <cite>–master</cite>.</dd>
+</dl>
+<p><code class="docutils literal"><span class="pre">try_wait</span></code></p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">masterstatus</span></code></dt>
+<dd><code class="docutils literal"><span class="pre">try_wait</span></code> and <code class="docutils literal"><span class="pre">masterstatus</span></code> (equivalent to option <cite>–wait</cite> and <code class="docutils literal"><span class="pre">master</span></code>, respectively) are used to ask the <a class="reference internal" href="#cmdline-try" title="try"><code class="xref bb bb-cmdline docutils literal"><span class="pre">try</span></code></a> command to wait for the requested build to complete.</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="worker">
+<h2>2.9.2. worker<a class="headerlink" href="#worker" title="Permalink to this headline">¶</a></h2>
+<p><strong class="command">buildbot-worker</strong> command-line tool is used for worker management only and does not provide any additional functionality.
+One can create, start, stop and restart the worker.</p>
+<div class="section" id="create-worker">
+<span id="cmdline-create-worker"></span><h3>2.9.2.1. create-worker<a class="headerlink" href="#create-worker" title="Permalink to this headline">¶</a></h3>
+<p>This creates a new directory and populates it with files that let it be used as a worker’s base directory.
+You must provide several arguments, which are used to create the initial <code class="file docutils literal"><span class="pre">buildbot.tac</span></code> file.</p>
+<p>The option <cite>-r</cite> option is advisable here, just like for <code class="docutils literal"><span class="pre">create-master</span></code>.</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>buildbot-worker create-worker -r {BASEDIR} {MASTERHOST}:{PORT} {WORKERNAME} {PASSWORD}
+</pre></div>
+</div>
+<p>The create-worker options are described in <a class="reference internal" href="installation/worker.html#worker-options"><span class="std std-ref">Worker Options</span></a>.</p>
+</div>
+<div class="section" id="cmdline-start (worker)">
+<span id="id4"></span><h3>2.9.2.2. start<a class="headerlink" href="#cmdline-start (worker)" title="Permalink to this headline">¶</a></h3>
+<p>This starts a worker which was already created in the given base directory.
+The daemon is launched in the background, with events logged to a file named <code class="file docutils literal"><span class="pre">twistd.log</span></code>.</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>buildbot-worker start [--nodaemon] BASEDIR
+</pre></div>
+</div>
+<p>The option <cite>–nodaemon</cite> option instructs Buildbot to skip daemonizing.
+The process will start in the foreground.
+It will only return to the command-line when it is stopped.</p>
+</div>
+<div class="section" id="cmdline-restart (worker)">
+<span id="id5"></span><h3>2.9.2.3. restart<a class="headerlink" href="#cmdline-restart (worker)" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-none"><div class="highlight"><pre><span></span>buildbot-worker restart [--nodaemon] BASEDIR
+</pre></div>
+</div>
+<p>This restarts a worker which is already running.
+It is equivalent to a <code class="docutils literal"><span class="pre">stop</span></code> followed by a <code class="docutils literal"><span class="pre">start</span></code>.</p>
+<p>The option <cite>–nodaemon</cite> option has the same meaning as for <code class="docutils literal"><span class="pre">start</span></code>.</p>
+</div>
+<div class="section" id="cmdline-stop (worker)">
+<span id="id6"></span><h3>2.9.2.4. stop<a class="headerlink" href="#cmdline-stop (worker)" title="Permalink to this headline">¶</a></h3>
+<p>This terminates the daemon worker running in the given directory.</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>buildbot stop BASEDIR
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/header-text-transparent.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script><h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="secretsmanagement.html">2.4. Secret Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">2.5. Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="worker-transition.html">2.6. Transition to “worker” terminology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="customization.html">2.7. Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="new-style-steps.html">2.8. New-Style Build Steps</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">2.9. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resources.html">2.10. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html">2.11. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins.html">2.12. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deploy.html">2.13. Deployment</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../indices.html">6. Indices and Tables</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="new-style-steps.html"
+                        title="previous chapter">2.8. New-Style Build Steps</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="resources.html"
+                        title="next chapter">2.10. Resources</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/manual/cmdline.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>
