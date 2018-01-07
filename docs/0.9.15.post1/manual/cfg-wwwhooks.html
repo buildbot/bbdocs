@@ -1,0 +1,469 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>2.5.13. Change Hooks &#8212; Buildbot 0.9.15.post1 documentation</title>
+    <link rel="stylesheet" href="../_static/qtile.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9.15.post1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/icon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="2.5.14. Custom Services" href="cfg-services.html" />
+    <link rel="prev" title="2.5.12. Web Server" href="cfg-www.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="cfg-services.html" title="2.5.14. Custom Services"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cfg-www.html" title="2.5.12. Web Server"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Buildbot 0.9.15.post1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >2. Buildbot Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="configuration.html" accesskey="U">2.5. Configuration</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="change-hooks">
+<span id="id1"></span><h1>2.5.13. Change Hooks<a class="headerlink" href="#change-hooks" title="Permalink to this headline">¶</a></h1>
+<p>The <code class="docutils literal"><span class="pre">/change_hook</span></code> url is a magic URL which will accept HTTP requests and translate them into changes for buildbot.
+Implementations (such as a trivial json-based endpoint and a GitHub implementation) can be found in <a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/www/hooks">master/buildbot/www/hooks</a>.
+The format of the url is <code class="samp docutils literal"><span class="pre">/change_hook/</span><em><span class="pre">DIALECT</span></em></code> where DIALECT is a package within the hooks directory.
+Change_hook is disabled by default and each DIALECT has to be enabled separately, for security reasons</p>
+<p>An example www configuration line which enables change_hook and two DIALECTS:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span>
+                          <span class="s1">&#39;base&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                          <span class="s1">&#39;somehook&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;option1&#39;</span><span class="p">:</span><span class="bp">True</span><span class="p">,</span>
+                                       <span class="s1">&#39;option2&#39;</span><span class="p">:</span><span class="bp">False</span><span class="p">},</span>
+    <span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Within the <code class="docutils literal"><span class="pre">www</span></code> config dictionary arguments, the <code class="docutils literal"><span class="pre">change_hook</span></code> key enables/disables the module and <code class="docutils literal"><span class="pre">change_hook_dialects</span></code> whitelists DIALECTs where the keys are the module names and the values are optional arguments which will be passed to the hooks.</p>
+<p>The <a class="reference external" href="https://github.com/buildbot/buildbot-contrib/tree/master/master/contrib/post_build_request.py">master/contrib/post_build_request.py</a> script allows for the submission of an arbitrary change request.
+Run <strong class="command">post_build_request.py --help</strong> for more information.
+The <code class="docutils literal"><span class="pre">base</span></code> dialect must be enabled for this to work.</p>
+<div class="section" id="change-hooks-auth">
+<span id="id2"></span><h2>2.5.13.1. Change Hooks Auth<a class="headerlink" href="#change-hooks-auth" title="Permalink to this headline">¶</a></h2>
+<p>By default change hook URL is not protected.
+Some hooks implement their own authentication method.
+Other requires the generic method to be secured.</p>
+<p>To protect URL against unauthorized access you you may use <code class="docutils literal"><span class="pre">change_hook_auth</span></code> option.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This method uses <code class="docutils literal"><span class="pre">HTTP</span> <span class="pre">BasicAuth</span></code>, it implies the use of SSL via <a class="reference internal" href="cfg-www.html#reverse-proxy-config"><span class="std std-ref">Reverse Proxy Configuration</span></a> in order to be fully secured.</p>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">twisted.cred</span> <span class="kn">import</span> <span class="n">strcred</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="o">...</span><span class="p">,</span>
+      <span class="n">change_hook_auth</span><span class="o">=</span><span class="p">[</span><span class="n">strcred</span><span class="o">.</span><span class="n">makeChecker</span><span class="p">(</span><span class="s2">&quot;file:changehook.passwd&quot;</span><span class="p">)],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>create a file <code class="docutils literal"><span class="pre">changehook.passwd</span></code> with content:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>user:password
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">change_hook_auth</span></code> should be a list of <code class="xref py py-class docutils literal"><span class="pre">ICredentialsChecker</span></code>.
+See the details of available options in <a class="reference external" href="https://twistedmatrix.com/documents/current/core/howto/cred.html">Twisted documentation</a>.</p>
+</div>
+<div class="section" id="mercurial-hook">
+<span id="chsrc-Mercurial"></span><h2>2.5.13.2. Mercurial hook<a class="headerlink" href="#mercurial-hook" title="Permalink to this headline">¶</a></h2>
+<p>The Mercurial hook uses the base dialect:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="o">...</span><span class="p">,</span>
+    <span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;base&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Once this is configured on your buildmaster add the following hook on your server-side Mercurial repository’s <code class="docutils literal"><span class="pre">hgrc</span></code>:</p>
+<div class="highlight-ini"><div class="highlight"><pre><span></span><span class="k">[hooks]</span>
+<span class="na">changegroup.buildbot</span> <span class="o">=</span> <span class="s">python:/path/to/hgbuildbot.py:hook</span>
+</pre></div>
+</div>
+<p>You’ll find <a class="reference external" href="https://github.com/buildbot/buildbot-contrib/tree/master/master/contrib/hgbuildbot.py">master/contrib/hgbuildbot.py</a>, and its inline documentation, in the <a class="reference external" href="https://github.com/buildbot/buildbot-contrib/tree/master/../../">buildbot-contrib</a> repository.</p>
+</div>
+<div class="section" id="github-hook">
+<span id="chsrc-GitHub"></span><h2>2.5.13.3. GitHub hook<a class="headerlink" href="#github-hook" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">There is a standalone HTTP server available for receiving GitHub notifications as well: <a class="reference external" href="https://github.com/buildbot/buildbot-contrib/tree/master/master/contrib/github_buildbot.py">master/contrib/github_buildbot.py</a>.
+This script may be useful in cases where you cannot expose the WebStatus for public consumption. Alternatively, you can setup a reverse proxy <a class="reference internal" href="cfg-www.html#reverse-proxy-config"><span class="std std-ref">Reverse Proxy Configuration</span></a></p>
+</div>
+<p>The GitHub hook has the following parameters:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">secret</span></code> (default <cite>None</cite>)</dt>
+<dd>Secret token to use to validate payloads.</dd>
+<dt><code class="docutils literal"><span class="pre">strict</span></code> (default <cite>False</cite>)</dt>
+<dd>If the hook must be strict regarding valid payloads.
+If the value is <cite>False</cite> (default), the signature will only be checked if a secret is specified and a signature was supplied with the payload.
+If the value is <cite>True</cite>, a secret must be provided, and payloads without signature will be ignored.</dd>
+<dt><code class="docutils literal"><span class="pre">codebase</span></code> (default <cite>None</cite>)</dt>
+<dd>The codebase value to include with created changes.
+If the value is a function (or any other callable), it will be called with the GitHub event payload as argument and the function must return the codebase value to use for the event.</dd>
+<dt><code class="docutils literal"><span class="pre">class</span></code> (default <cite>None</cite>)</dt>
+<dd><p class="first">A class to be used for processing incoming payloads.
+If the value is <cite>None</cite> (default), the default class – <code class="xref py py-class docutils literal"><span class="pre">buildbot.www.hooks.github.GitHubEventHandler</span></code> – will be used.
+The default class handles <cite>ping</cite>, <cite>push</cite> and <cite>pull_request</cite> events only.
+If you’d like to handle other events (see <a class="reference external" href="https://developer.github.com/v3/activity/events/types/">Event Types &amp; Payloads</a> for more information), you’d need to subclass <code class="docutils literal"><span class="pre">GitHubEventHandler</span></code> and add handler methods for the corresponding events.
+For example, if you’d like to handle <cite>blah</cite> events, your code should look something like this:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.www.hooks.github</span> <span class="k">import</span> <span class="n">GitHubEventHandler</span>
+
+<span class="k">class</span> <span class="nc">MyBlahHandler</span><span class="p">(</span><span class="n">GitHubEventHandler</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">handle_blah</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+        <span class="c1"># Do some magic here</span>
+        <span class="k">return</span> <span class="p">[],</span> <span class="s1">&#39;git&#39;</span>
+</pre></div>
+</div>
+</dd>
+<dt><code class="docutils literal"><span class="pre">skips</span></code> (default <code class="docutils literal"><span class="pre">[r'\[</span> <span class="pre">*skip</span> <span class="pre">*ci</span> <span class="pre">*\]',</span> <span class="pre">r'\[</span> <span class="pre">*ci</span> <span class="pre">*skip</span> <span class="pre">*\]']</span></code>)</dt>
+<dd><p class="first">A list of regex pattern makes buildbot ignore the push event.
+For instance, if user push 3 commits and the commit message of branch head
+contains a key string <code class="docutils literal"><span class="pre">[ci</span> <span class="pre">skip]</span></code>, buildbot will ignore this push event.</p>
+<p class="last">If you want to disable the skip checking, please set it to <code class="docutils literal"><span class="pre">[]</span></code>.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">github_api_endpoint</span></code> (default <code class="docutils literal"><span class="pre">https://api.github.com</span></code>)</dt>
+<dd>If you have a self-host GitHub Enterprise installation, please set
+this url properly.</dd>
+<dt><code class="docutils literal"><span class="pre">token</span></code></dt>
+<dd>If your GitHub or GitHub Enterprise instance does not allow anonymous communication, you need to provide an access token.  Instructions can be found here &lt;<a class="reference external" href="https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/">https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/</a>&gt;</dd>
+</dl>
+<p>The simplest way to use GitHub hook is as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;github&#39;</span><span class="p">:</span> <span class="p">{}},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Having added this line, you should add a webhook for your GitHub project (see <a class="reference external" href="https://developer.github.com/webhooks/creating/">Creating Webhooks page at GitHub</a>).
+The parameters are:</p>
+<dl class="docutils">
+<dt><span class="guilabel">Payload URL</span></dt>
+<dd>This URL should point to <code class="docutils literal"><span class="pre">/change_hook/github</span></code> relative to the root of the web status.
+For example, if the base URL is <code class="docutils literal"><span class="pre">http://builds.example.com/buildbot</span></code>, then point GitHub to <code class="docutils literal"><span class="pre">http://builds.example.com/buildbot/change_hook/github</span></code>.
+To specify a project associated to the repository, append <code class="docutils literal"><span class="pre">?project=name</span></code> to the URL.</dd>
+<dt><span class="guilabel">Content Type</span></dt>
+<dd>Specify <code class="docutils literal"><span class="pre">application/x-www-form-urlencoded</span></code> or <code class="docutils literal"><span class="pre">application/json</span></code>.</dd>
+<dt><span class="guilabel">Secret</span></dt>
+<dd><p class="first">Any value.
+If you provide a non-empty value (recommended), make sure that your hook is configured to use it:</p>
+<div class="last highlight-python"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="o">...</span><span class="p">,</span>
+    <span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;github&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;secret&#39;</span><span class="p">:</span> <span class="s1">&#39;MY-SECRET&#39;</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt><span class="guilabel">Which events would you like to trigger this webhook?</span></dt>
+<dd>Leave the default – <code class="docutils literal"><span class="pre">Just</span> <span class="pre">the</span> <span class="pre">push</span> <span class="pre">[tag]</span>&#160; <span class="pre">events</span></code> – other kind of events are not currently supported.</dd>
+</dl>
+<p>And then press the <code class="docutils literal"><span class="pre">Add</span> <span class="pre">Webhook</span></code> button.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The incoming HTTP requests for this hook are not authenticated by default.
+Anyone who can access the web server can “fake” a request from GitHub, potentially causing the buildmaster to run arbitrary code.</p>
+</div>
+<p>To protect URL against unauthorized access you should use <a class="reference internal" href="#change-hooks-auth"><span class="std std-ref">Change Hooks Auth</span></a> option.
+Then change the the <code class="docutils literal"><span class="pre">Payload</span> <span class="pre">URL</span></code> of your GitHub webhook to <code class="docutils literal"><span class="pre">https://user:password&#64;builds.example.com/bbot/change_hook/github</span></code>.</p>
+<p>Patches are welcome to implement: <a class="reference external" href="https://developer.github.com/webhooks/securing/">https://developer.github.com/webhooks/securing/</a></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When using a <a class="reference internal" href="cfg-schedulers.html#change-filters"><span class="std std-ref">ChangeFilter</span></a> with a GitHub webhook ensure that your filter matches all desired requests as fields such as <code class="docutils literal"><span class="pre">repository</span></code> and <code class="docutils literal"><span class="pre">project</span></code> may differ in different events.</p>
+</div>
+</div>
+<div class="section" id="bitbucket-hook">
+<span id="chsrc-BitBucket"></span><h2>2.5.13.4. BitBucket hook<a class="headerlink" href="#bitbucket-hook" title="Permalink to this headline">¶</a></h2>
+<p>The BitBucket hook is as simple as GitHub one and it takes no options.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="o">...</span><span class="p">,</span>
+    <span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;bitbucket&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>When this is setup you should add a <cite>POST</cite> service pointing to <code class="docutils literal"><span class="pre">/change_hook/bitbucket</span></code> relative to the root of the web status.
+For example, it the grid URL is <code class="docutils literal"><span class="pre">http://builds.example.com/bbot/grid</span></code>, then point BitBucket to <code class="docutils literal"><span class="pre">http://builds.example.com/change_hook/bitbucket</span></code>.
+To specify a project associated to the repository, append <code class="docutils literal"><span class="pre">?project=name</span></code> to the URL.</p>
+<p>Note that there is a standalone HTTP server available for receiving BitBucket notifications, as well: <a class="reference external" href="https://github.com/buildbot/buildbot-contrib/tree/master/master/contrib/bitbucket_buildbot.py">master/contrib/bitbucket_buildbot.py</a>.
+This script may be useful in cases where you cannot expose the WebStatus for public consumption.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">As in the previous case, the incoming HTTP requests for this hook are not authenticated by default.
+Anyone who can access the web status can “fake” a request from BitBucket, potentially causing the buildmaster to run arbitrary code.</p>
+</div>
+<p>To protect URL against unauthorized access you should use <a class="reference internal" href="#change-hooks-auth"><span class="std std-ref">Change Hooks Auth</span></a> option.
+Then, create a BitBucket service hook (see <a class="reference external" href="https://confluence.atlassian.com/display/BITBUCKET/POST+Service+Management">https://confluence.atlassian.com/display/BITBUCKET/POST+Service+Management</a>) with a WebHook URL like <code class="docutils literal"><span class="pre">https://user:password&#64;builds.example.com/bbot/change_hook/bitbucket</span></code>.</p>
+<p>Note that as before, not using <code class="docutils literal"><span class="pre">change_hook_auth</span></code> can expose you to security risks.</p>
+</div>
+<div class="section" id="bitbucket-server-hook">
+<h2>2.5.13.5. Bitbucket Server hook<a class="headerlink" href="#bitbucket-server-hook" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="o">...</span><span class="p">,</span>
+    <span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;bitbucketserver&#39;</span><span class="p">:</span> <span class="p">{}},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>When this is setup you should add a webhook pointing to <code class="docutils literal"><span class="pre">/change_hook/bitbucketserver</span></code> relative to the root of the web status.</p>
+<p>According to the type of the event, the change category is set to <code class="docutils literal"><span class="pre">push</span></code>, <code class="docutils literal"><span class="pre">pull-created</span></code>, <code class="docutils literal"><span class="pre">pull-rejected</span></code>, <code class="docutils literal"><span class="pre">pull-updated</span></code>, <code class="docutils literal"><span class="pre">pull-fulfilled</span></code> or <code class="docutils literal"><span class="pre">ref-deleted</span></code>.</p>
+<p>The Bitbucket Server hook may have the following optional parameters:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">codebase</span></code> (default <cite>None</cite>)</dt>
+<dd>The codebase value to include with changes or a callable object that will be passed the payload in order to get it.</dd>
+</dl>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The incoming HTTP requests for this hook are not authenticated by default.
+Anyone who can access the web server can “fake” a request from Bitbucket Server, potentially causing the buildmaster to run arbitrary code</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This hook requires the <cite>bitbucket-webhooks</cite> plugin (see <a class="reference external" href="https://marketplace.atlassian.com/plugins/nl.topicus.bitbucket.bitbucket-webhooks/server/overview">https://marketplace.atlassian.com/plugins/nl.topicus.bitbucket.bitbucket-webhooks/server/overview</a>).</p>
+</div>
+</div>
+<div class="section" id="poller-hook">
+<h2>2.5.13.6. Poller hook<a class="headerlink" href="#poller-hook" title="Permalink to this headline">¶</a></h2>
+<p>The poller hook allows you to use GET or POST requests to trigger polling.
+One advantage of this is your buildbot instance can poll at launch (using the pollAtLaunch flag) to get changes that happened while it was down, but then you can still use a commit hook to get fast notification of new changes.</p>
+<p>Suppose you have a poller configured like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SVNPoller</span><span class="p">(</span>
+    <span class="n">repourl</span><span class="o">=</span><span class="s2">&quot;https://amanda.svn.sourceforge.net/svnroot/amanda/amanda&quot;</span><span class="p">,</span>
+    <span class="n">split_file</span><span class="o">=</span><span class="n">split_file_branches</span><span class="p">,</span>
+    <span class="n">pollInterval</span><span class="o">=</span><span class="mi">24</span><span class="o">*</span><span class="mi">60</span><span class="o">*</span><span class="mi">60</span><span class="p">,</span>
+    <span class="n">pollAtLaunch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>And you configure your WebStatus to enable this hook:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="o">...</span><span class="p">,</span>
+    <span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;poller&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Then you will be able to trigger a poll of the SVN repository by poking the <code class="docutils literal"><span class="pre">/change_hook/poller</span></code> URL from a commit hook like this:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>curl -s -F <span class="nv">poller</span><span class="o">=</span>https://amanda.svn.sourceforge.net/svnroot/amanda/amanda <span class="se">\</span>
+    http://yourbuildbot/change_hook/poller
+</pre></div>
+</div>
+<p>If no <code class="docutils literal"><span class="pre">poller</span></code> argument is provided then the hook will trigger polling of all polling change sources.</p>
+<p>You can restrict which pollers the webhook has access to using the <code class="docutils literal"><span class="pre">allowed</span></code> option:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="o">...</span><span class="p">,</span>
+    <span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;poller&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;allowed&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;https://amanda.svn.sourceforge.net/svnroot/amanda/amanda&#39;</span><span class="p">]}}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="gitlab-hook">
+<span id="chsrc-GitLab"></span><h2>2.5.13.7. GitLab hook<a class="headerlink" href="#gitlab-hook" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="o">...</span><span class="p">,</span>
+    <span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;gitlab&#39;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;secret&#39;</span><span class="p">:</span> <span class="s1">&#39;...&#39;</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The GitLab hook has the following parameters:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">secret</span></code> (default <cite>None</cite>)</dt>
+<dd>Secret token to use to validate payloads.</dd>
+</dl>
+<p>When this is setup you should add a <cite>POST</cite> service pointing to <code class="docutils literal"><span class="pre">/change_hook/gitlab</span></code> relative to the root of the web status.
+For example, it the grid URL is <code class="docutils literal"><span class="pre">http://builds.example.com/bbot/grid</span></code>, then point GitLab to <code class="docutils literal"><span class="pre">http://builds.example.com/change_hook/gitlab</span></code>.
+The project and/or codebase can also be passed in the URL by appending <code class="docutils literal"><span class="pre">?project=name</span></code> or <code class="docutils literal"><span class="pre">?codebase=foo</span></code> to the URL.
+These parameters will be passed along to the scheduler.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Your Git step must be configured with a git&#64; repourl, not a https: one, else the change from the webhook will not trigger a build.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">As in the previous case, the incoming HTTP requests for this hook are not authenticated by default.
+Anyone who can access the web status can “fake” a request from your GitLab server, potentially causing the buildmaster to run arbitrary code.</p>
+</div>
+<p>To protect URL against unauthorized access you should either</p>
+<blockquote>
+<div><ul class="simple">
+<li>set secret token in the configuration above, then set it in the GitLab service hook declaration, or</li>
+<li>use the <a class="reference internal" href="#change-hooks-auth"><span class="std std-ref">Change Hooks Auth</span></a> option. Then, create a GitLab service hook (see <code class="docutils literal"><span class="pre">https://your.gitlab.server/help/web_hooks</span></code>) with a WebHook URL like <code class="docutils literal"><span class="pre">https://user:password&#64;builds.example.com/bbot/change_hook/gitlab</span></code>.</li>
+</ul>
+</div></blockquote>
+<p>Note that as before, not using <code class="docutils literal"><span class="pre">change_hook_auth</span></code> can expose you to security risks.</p>
+</div>
+<div class="section" id="gitorious-hook">
+<span id="chsrc-Gitorious"></span><h2>2.5.13.8. Gitorious Hook<a class="headerlink" href="#gitorious-hook" title="Permalink to this headline">¶</a></h2>
+<p>The Gitorious hook is as simple as GitHub one and it also takes no options.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="o">...</span><span class="p">,</span>
+    <span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;gitorious&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>When this is setup you should add a <cite>POST</cite> service pointing to <code class="docutils literal"><span class="pre">/change_hook/gitorious</span></code> relative to the root of the web status.
+For example, it the grid URL is <code class="docutils literal"><span class="pre">http://builds.example.com/bbot/grid</span></code>, then point Gitorious to <code class="docutils literal"><span class="pre">http://builds.example.com/change_hook/gitorious</span></code>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">As in the previous case, the incoming HTTP requests for this hook are not authenticated by default.
+Anyone who can access the web status can “fake” a request from your Gitorious server, potentially causing the buildmaster to run arbitrary code.</p>
+</div>
+<p>To protect URL against unauthorized access you should use <a class="reference internal" href="#change-hooks-auth"><span class="std std-ref">Change Hooks Auth</span></a> option.
+Then, create a Gitorious web hook with a WebHook URL like <code class="docutils literal"><span class="pre">https://user:password&#64;builds.example.com/bbot/change_hook/gitorious</span></code>.</p>
+<p>Note that as before, not using <code class="docutils literal"><span class="pre">change_hook_auth</span></code> can expose you to security risks.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Web hooks are only available for local Gitorious installations, since this feature is not offered as part of Gitorious.org yet.</p>
+</div>
+</div>
+<div class="section" id="custom-hooks">
+<h2>2.5.13.9. Custom Hooks<a class="headerlink" href="#custom-hooks" title="Permalink to this headline">¶</a></h2>
+<p>Custom hooks are supported via the <a class="reference internal" href="plugins.html#plugins"><span class="std std-ref">Plugin Infrastructure in Buildbot</span></a> mechanism.
+You can subclass any of the available hook handler class available in <code class="xref py py-mod docutils literal"><span class="pre">buildbot.www.hooks</span></code> and register it in the plugin system, via a custom python module.
+For convenience, you ca also use the generic option <code class="docutils literal"><span class="pre">custom_class</span></code> e.g:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">webhooks</span>
+<span class="k">class</span> <span class="nc">CustomBase</span><span class="p">(</span><span class="n">webhooks</span><span class="o">.</span><span class="n">base</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">getChanges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span>
+        <span class="n">chdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                      <span class="n">revision</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;revision&#39;</span><span class="p">),</span>
+                      <span class="n">repository</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;repository&#39;</span><span class="p">),</span>
+                      <span class="n">project</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;project&#39;</span><span class="p">),</span>
+                      <span class="n">codebase</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;codebase&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">([</span><span class="n">chdict</span><span class="p">],</span> <span class="bp">None</span><span class="p">)</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="o">...</span><span class="p">,</span>
+    <span class="n">change_hook_dialects</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;base&#39;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;custom_class&#39;</span><span class="p">:</span> <span class="n">CustomBase</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/full_logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script><h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="secretsmanagement.html">2.4. Secret Management</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="configuration.html">2.5. Configuration</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="cfg-intro.html">2.5.1. Configuring Buildbot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-global.html">2.5.2. Global Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-changesources.html">2.5.3. Change Sources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-schedulers.html">2.5.4. Schedulers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-workers.html">2.5.5. Workers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-builders.html">2.5.6. Builder Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-buildfactories.html">2.5.7. Build Factories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-properties.html">2.5.8. Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-buildsteps.html">2.5.9. Build Steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-interlocks.html">2.5.10. Interlocks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-reporters.html">2.5.11. Reporters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-www.html">2.5.12. Web Server</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">2.5.13. Change Hooks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-services.html">2.5.14. Custom Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-dbconfig.html">2.5.15. DbConfig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-configurators.html">2.5.16. Configurators</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="worker-transition.html">2.6. Transition to “worker” terminology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="customization.html">2.7. Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="new-style-steps.html">2.8. New-Style Build Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmdline.html">2.9. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resources.html">2.10. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html">2.11. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins.html">2.12. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deploy.html">2.13. Deployment</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../indices.html">6. Indices and Tables</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="cfg-www.html"
+                        title="previous chapter">2.5.12. Web Server</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="cfg-services.html"
+                        title="next chapter">2.5.14. Custom Services</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/manual/cfg-wwwhooks.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>
