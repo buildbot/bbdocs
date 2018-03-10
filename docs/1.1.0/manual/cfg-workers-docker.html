@@ -1,0 +1,498 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Docker latent worker &#8212; Buildbot 1.1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/qtile.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/icon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="2.5.6. Builder Configuration" href="cfg-builders.html" />
+    <link rel="prev" title="OpenStack" href="cfg-workers-openstack.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="cfg-builders.html" title="2.5.6. Builder Configuration"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="cfg-workers-openstack.html" title="OpenStack"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Buildbot 1.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >2. Buildbot Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="configuration.html" >2.5. Configuration</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="cfg-workers.html" accesskey="U">2.5.5. Workers</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="index-0"></span><div class="section" id="docker-latent-worker">
+<span id="worker-DockerLatentWorker"></span><h1>Docker latent worker<a class="headerlink" href="#docker-latent-worker" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="buildbot.worker.docker.DockerLatentWorker">
+<em class="property">class </em><code class="descclassname">buildbot.worker.docker.</code><code class="descname">DockerLatentWorker</code><a class="headerlink" href="#buildbot.worker.docker.DockerLatentWorker" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="buildbot.plugins.worker.DockerLatentWorker">
+<em class="property">class </em><code class="descclassname">buildbot.plugins.worker.</code><code class="descname">DockerLatentWorker</code><a class="headerlink" href="#buildbot.plugins.worker.DockerLatentWorker" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><a class="reference external" href="https://docker.com">Docker</a> is an open-source project that automates the deployment of applications inside software containers.
+The <code class="xref py py-class docutils literal"><span class="pre">DockerLatentWorker</span></code> attempts to instantiate a fresh image for each build to assure consistency of the environment between builds.
+Each image will be discarded once the worker finished processing the build queue (i.e. becomes <code class="docutils literal"><span class="pre">idle</span></code>).
+See <a class="reference internal" href="cfg-workers.html#common-latent-workers-options"><span class="std std-ref">build_wait_timeout</span></a> to change this behavior.</p>
+<p>This document will guide you through the setup of such workers.</p>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#docker-installation" id="id4">Docker Installation</a></li>
+<li><a class="reference internal" href="#image-creation" id="id5">Image Creation</a></li>
+<li><a class="reference internal" href="#reuse-same-image-for-different-workers" id="id6">Reuse same image for different workers</a></li>
+<li><a class="reference internal" href="#master-setup" id="id7">Master Setup</a></li>
+</ul>
+</div>
+<div class="section" id="docker-installation">
+<h2><a class="toc-backref" href="#id4">Docker Installation</a><a class="headerlink" href="#docker-installation" title="Permalink to this headline">¶</a></h2>
+<p>An easy way to try Docker is through installation of dedicated Virtual machines.
+Two of them stands out:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://coreos.com/">CoreOS</a></li>
+<li><a class="reference external" href="http://boot2docker.io/">boot2docker</a></li>
+</ul>
+<p>Beside, it is always possible to install Docker next to the buildmaster.
+Beware that in this case, overall performance will depend on how many builds the computer where you have your buildmaster can handle as everything will happen on the same one.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It is not necessary to install Docker in the same environment as your master as we will make use to the Docker API through <a class="reference external" href="https://pypi.python.org/pypi/docker-py">docker-py</a>.
+More in <a class="reference internal" href="#master-setup">master setup</a>.</p>
+</div>
+<div class="section" id="id1">
+<h3>CoreOS<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>CoreOS is targeted at building infrastructure and distributed systems.
+In order to get the latent worker working with CoreOS, it is necessary to <a class="reference external" href="https://coreos.com/docs/launching-containers/building/customizing-docker/">expose the docker socket</a> outside of the Virtual Machine.
+If you installed it via <a class="reference external" href="https://coreos.com/docs/running-coreos/platforms/vagrant/">Vagrant</a>, it is also necessary to uncomment the following line in your <code class="file docutils literal"><span class="pre">config.rb</span></code> file:</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span></span><span class="vg">$expose_docker_tcp</span><span class="o">=</span><span class="mi">2375</span>
+</pre></div>
+</div>
+<p>The following command should allow you to confirm that your Docker socket is now available via the network:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>docker -H tcp://127.0.0.1:2375 ps
+</pre></div>
+</div>
+</div>
+<div class="section" id="id2">
+<h3>boot2docker<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>boot2docker is one of the fastest ways to boot to Docker.
+As it is meant to be used from outside of the Virtual Machine, the socket is already exposed.
+Please follow the installation instructions on how to find the address of your socket.</p>
+</div>
+</div>
+<div class="section" id="image-creation">
+<h2><a class="toc-backref" href="#id5">Image Creation</a><a class="headerlink" href="#image-creation" title="Permalink to this headline">¶</a></h2>
+<p>Our build master will need the name of an image to perform its builds.
+Each time a new build will be requested, the same base image will be used again and again, actually discarding the result of the previous build.
+If you need some persistent storage between builds, you can <a class="reference external" href="settingupvolumes">use Volumes</a>.</p>
+<p>Each Docker image has a single purpose.
+Our worker image will be running a buildbot worker.</p>
+<p>Docker uses <code class="docutils literal"><span class="pre">Dockerfile</span></code>s to describe the steps necessary to build an image.
+The following example will build a minimal worker.
+This example is voluntarily simplistic, and should probably not be used in production, see next paragraph.</p>
+<div class="highlight-Docker"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="s"> debian:stable</span>
+<span class="k">RUN</span> apt-get update <span class="o">&amp;&amp;</span> apt-get install -y <span class="se">\</span>
+   python-dev <span class="se">\</span>
+   python-pip
+<span class="k">RUN</span> pip install buildbot-worker
+<span class="k">RUN</span> groupadd -r buildbot <span class="o">&amp;&amp;</span> useradd -r -g buildbot buildbot
+<span class="k">RUN</span> mkdir /worker <span class="o">&amp;&amp;</span> chown buildbot:buildbot /worker
+<span class="c"># Install your build-dependencies here ...</span>
+USER buildbot
+<span class="k">WORKDIR</span><span class="s"> /worker</span>
+<span class="hll"><span class="k">RUN</span> buildbot-worker create-worker . &lt;master-hostname&gt; &lt;workername&gt; &lt;workerpassword&gt;
+</span><span class="k">ENTRYPOINT</span><span class="s"> [&quot;/usr/local/bin/buildbot-worker&quot;]</span>
+<span class="k">CMD</span><span class="s"> [&quot;start&quot;, &quot;--nodaemon&quot;]</span>
+</pre></div>
+</td></tr></table></div>
+<p>On line 11, the hostname for your master instance, as well as the worker name and password is setup.
+Don’t forget to replace those values with some valid ones for your project.</p>
+<p>It is a good practice to set the <code class="docutils literal"><span class="pre">ENTRYPOINT</span></code> to the worker executable, and the <code class="docutils literal"><span class="pre">CMD</span></code> to <code class="docutils literal"><span class="pre">[&quot;start&quot;,</span> <span class="pre">&quot;--nodaemon&quot;]</span></code>.
+This way, no parameter will be required when starting the image.</p>
+<p>When your Dockerfile is ready, you can build your first image using the following command (replace <em>myworkername</em> with a relevant name for your case):</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>docker build -t myworkername - &lt; Dockerfile
+</pre></div>
+</div>
+</div>
+<div class="section" id="reuse-same-image-for-different-workers">
+<h2><a class="toc-backref" href="#id6">Reuse same image for different workers</a><a class="headerlink" href="#reuse-same-image-for-different-workers" title="Permalink to this headline">¶</a></h2>
+<p>Previous simple example hardcodes the worker name into the dockerfile, which will not work if you want to share your docker image between workers.</p>
+<p>You can find in buildbot source code in <a class="reference external" href="https://github.com/buildbot/buildbot-contrib/tree/master/master/contrib/docker">master/contrib/docker</a> one example configurations:</p>
+<dl class="docutils">
+<dt><a class="reference external" href="https://github.com/buildbot/buildbot-contrib/tree/master/master/contrib/docker/pythonnode_worker/">pythonnode_worker</a></dt>
+<dd>a worker with Python and node installed, which demonstrate how to reuse the base worker to create variations of build environments.
+It is based on the official <code class="docutils literal"><span class="pre">buildbot/buildbot-worker</span></code> image.</dd>
+</dl>
+<p>The master setups several environment variables before starting the workers:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">BUILDMASTER</span></code></dt>
+<dd>The address of the master the worker shall connect to</dd>
+<dt><code class="docutils literal"><span class="pre">BUILDMASTER_PORT</span></code></dt>
+<dd>The port of the master’s worker ‘pb’ protocol.</dd>
+<dt><code class="docutils literal"><span class="pre">WORKERNAME</span></code></dt>
+<dd>The name the worker should use to connect to master</dd>
+<dt><code class="docutils literal"><span class="pre">WORKERPASS</span></code></dt>
+<dd>The password the worker should use to connect to master</dd>
+</dl>
+</div>
+<div class="section" id="master-setup">
+<h2><a class="toc-backref" href="#id7">Master Setup</a><a class="headerlink" href="#master-setup" title="Permalink to this headline">¶</a></h2>
+<p>We will rely on docker-py to connect our master with docker.
+Now is the time to install it in your master environment.</p>
+<p>Before adding the worker to your master configuration, it is possible to validate the previous steps by starting the newly created image interactively.
+To do this, enter the following lines in a Python prompt where docker-py is installed:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">docker</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">docker_socket</span> <span class="o">=</span> <span class="s1">&#39;tcp://localhost:2375&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">base_url</span><span class="o">=</span><span class="n">docker_socket</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">worker_image</span> <span class="o">=</span> <span class="s1">&#39;my_project_worker&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">container</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">create_container</span><span class="p">(</span><span class="n">worker_image</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">client</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">container</span><span class="p">[</span><span class="s1">&#39;Id&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Optionally examine the logs of the master</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">client</span><span class="o">.</span><span class="n">stop</span><span class="p">(</span><span class="n">container</span><span class="p">[</span><span class="s1">&#39;Id&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">client</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">container</span><span class="p">[</span><span class="s1">&#39;Id&#39;</span><span class="p">])</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+<p>It is now time to add the new worker to the master configuration under <a class="reference internal" href="cfg-workers.html#cfg-workers" title="workers"><code class="xref bb bb-cfg docutils literal"><span class="pre">workers</span></code></a>.</p>
+<p>The following example will add a Docker latent worker for docker running at the following address: <code class="docutils literal"><span class="pre">tcp://localhost:2375</span></code>, the worker name will be <code class="docutils literal"><span class="pre">docker</span></code>, its password: <code class="docutils literal"><span class="pre">password</span></code>, and the base image name will be <code class="docutils literal"><span class="pre">my_project_worker</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">worker</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">DockerLatentWorker</span><span class="p">(</span><span class="s1">&#39;docker&#39;</span><span class="p">,</span> <span class="s1">&#39;password&#39;</span><span class="p">,</span>
+                              <span class="n">docker_host</span><span class="o">=</span><span class="s1">&#39;tcp://localhost:2375&#39;</span><span class="p">,</span>
+                              <span class="n">image</span><span class="o">=</span><span class="s1">&#39;my_project_worker&#39;</span><span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">password</span></code></dt>
+<dd>(mandatory)
+The worker password part of the <a class="reference internal" href="cfg-workers.html#latent-workers"><span class="std std-ref">Latent Workers</span></a> API.
+If the password is <code class="docutils literal"><span class="pre">None</span></code>, then it will be automatically generated from random number, and transmitted to the container via environment variable.</dd>
+</dl>
+<p>In addition to the arguments available for any <a class="reference internal" href="cfg-workers.html#latent-workers"><span class="std std-ref">Latent Workers</span></a>, <code class="xref py py-class docutils literal"><span class="pre">DockerLatentWorker</span></code> will accept the following extra ones:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">docker_host</span></code></dt>
+<dd>(mandatory)
+This is the address the master will use to connect with a running Docker instance.</dd>
+</dl>
+<p><code class="docutils literal"><span class="pre">image</span></code></p>
+<blockquote>
+<div>This is the name of the image that will be started by the build master. It should start a worker.
+This option can be a renderable, like <a class="reference internal" href="cfg-properties.html#interpolate"><span class="std std-ref">Interpolate</span></a>, so that it generates from the build request properties.</div></blockquote>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">command</span></code></dt>
+<dd>(optional)
+This will override the command setup during image creation.</dd>
+<dt><code class="docutils literal"><span class="pre">volumes</span></code></dt>
+<dd>(optional)
+See <a class="reference internal" href="#setting-up-volumes">Setting up Volumes</a></dd>
+<dt><code class="docutils literal"><span class="pre">dockerfile</span></code></dt>
+<dd><p class="first">(optional if <code class="docutils literal"><span class="pre">image</span></code> is given)
+This is the content of the Dockerfile that will be used to build the specified image if the image is not found by Docker.
+It should be a multiline string.</p>
+<div class="last admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In case <code class="docutils literal"><span class="pre">image</span></code> and <code class="docutils literal"><span class="pre">dockerfile</span></code> are given, no attempt is made to compare the image with the content of the Dockerfile parameter if the image is found.</p>
+</div>
+</dd>
+<dt><code class="docutils literal"><span class="pre">version</span></code></dt>
+<dd>(optional, default to the highest version known by docker-py)
+This will indicates which API version must be used to communicate with Docker.</dd>
+<dt><code class="docutils literal"><span class="pre">tls</span></code></dt>
+<dd>(optional)
+This allow to use TLS when connecting with the Docker socket.
+This should be a <code class="docutils literal"><span class="pre">docker.tls.TLSConfig</span></code> object.
+See <a class="reference external" href="https://docker-py.readthedocs.io/en/stable/tls.html">docker-py’s own documentation</a> for more details on how to initialise this object.</dd>
+<dt><code class="docutils literal"><span class="pre">followStartupLogs</span></code></dt>
+<dd>(optional, defaults to false)
+This transfers docker container’s log inside master logs during worker startup (before connection). This can be useful to debug worker startup. e.g network issues, etc.</dd>
+<dt><code class="docutils literal"><span class="pre">masterFQDN</span></code></dt>
+<dd>(optional, defaults to socket.getfqdn())
+Address of the master the worker should connect to. Use if you master machine does not have proper fqdn.
+This value is passed to the docker image via environment variable <code class="docutils literal"><span class="pre">BUILDMASTER</span></code></dd>
+<dt><code class="docutils literal"><span class="pre">hostconfig</span></code></dt>
+<dd>(optional)
+Extra host configuration parameters passed as a dictionary used to create HostConfig object. See <a class="reference external" href="https://docker-py.readthedocs.io/en/stable/api.html#docker.api.container.ContainerApiMixin.create_host_config">docker-py’s HostConfig documentation</a> for all the supported options.</dd>
+<dt><code class="docutils literal"><span class="pre">autopull</span></code></dt>
+<dd>(optional, defaults to false)
+Automatically pulls image if requested image is not on docker host.</dd>
+<dt><code class="docutils literal"><span class="pre">alwayPull</span></code></dt>
+<dd>(optional, defaults to false)
+Always pulls image if autopull is set to true.</dd>
+</dl>
+<div class="section" id="setting-up-volumes">
+<h3>Setting up Volumes<a class="headerlink" href="#setting-up-volumes" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal"><span class="pre">volume</span></code> parameter allows to share directory between containers, or between a container and the host system.
+Refer to Docker documentation for more information about Volumes.</p>
+<p>The format of that variable has to be an array of string.
+Each string specify a volume in the following format: <code class="samp docutils literal"><em><span class="pre">volumename</span></em><span class="pre">:</span><em><span class="pre">bindname</span></em></code>.
+The volume name has to be appended with <code class="docutils literal"><span class="pre">:ro</span></code> if the volume should be mounted <em>read-only</em>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is the same format as when specifying volumes on the command line for docker’s own <code class="docutils literal"><span class="pre">-v</span></code> option.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="hyper-latent-worker">
+<h1>Hyper latent worker<a class="headerlink" href="#hyper-latent-worker" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference external" href="https://hyper.sh">Hyper</a> is a CaaS solution for hosting docker container in the cloud, billed to the second.
+It forms a very cost efficient solution to run your CI in the cloud.</p>
+<p>Buildbot supports using <a class="reference external" href="https://hyper.sh">Hyper</a> to host your latent workers.</p>
+<dl class="class">
+<dt id="buildbot.worker.hyper.HyperLatentWorker">
+<em class="property">class </em><code class="descclassname">buildbot.worker.hyper.</code><code class="descname">HyperLatentWorker</code><a class="headerlink" href="#buildbot.worker.hyper.HyperLatentWorker" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="buildbot.plugins.worker.HyperLatentWorker">
+<em class="property">class </em><code class="descclassname">buildbot.plugins.worker.</code><code class="descname">HyperLatentWorker</code><a class="headerlink" href="#buildbot.plugins.worker.HyperLatentWorker" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>The <code class="xref py py-class docutils literal"><span class="pre">HyperLatentWorker</span></code> attempts to instantiate a fresh image for each build to assure consistency of the environment between builds.
+Each image will be discarded once the worker finished processing the build queue (i.e. becomes <code class="docutils literal"><span class="pre">idle</span></code>).
+See <a class="reference internal" href="cfg-workers.html#common-latent-workers-options"><span class="std std-ref">build_wait_timeout</span></a> to change this behavior.</p>
+<p>In addition to the arguments available for any <a class="reference internal" href="cfg-workers.html#latent-workers"><span class="std std-ref">Latent Workers</span></a>, <code class="xref py py-class docutils literal"><span class="pre">HyperLatentWorker</span></code> will accept the following extra ones:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">password</span></code></dt>
+<dd>(mandatory)
+The worker password part of the <a class="reference internal" href="cfg-workers.html#latent-workers"><span class="std std-ref">Latent Workers</span></a> API.
+If the password is <code class="docutils literal"><span class="pre">None</span></code>, then it will be automatically generated from random number, and transmitted to the container via environment variable.</dd>
+<dt><code class="docutils literal"><span class="pre">hyper_host</span></code></dt>
+<dd>(mandatory)
+This is the address the hyper infra endpoint will use to start docker containers.</dd>
+<dt><code class="docutils literal"><span class="pre">image</span></code></dt>
+<dd>(mandatory)
+This is the name of the image that will be started by the build master. It should start a worker.
+This option can be a renderable, like <a class="reference internal" href="cfg-properties.html#interpolate"><span class="std std-ref">Interpolate</span></a>, so that it generates from the build request properties.
+Images are by default pulled from the public <a class="reference external" href="https://hub.docker.com/">DockerHub</a> docker registry.
+You can consult the hyper documentation to know how to configure a custom registry.
+HyperLatentWorker does not support starting a worker built from a Dockerfile.</dd>
+<dt><code class="docutils literal"><span class="pre">masterFQDN</span></code></dt>
+<dd><p class="first">(optional, defaults to socket.getfqdn())
+Address of the master the worker should connect to. Use if you master machine does not have proper fqdn.
+This value is passed to the docker image via environment variable <code class="docutils literal"><span class="pre">BUILDMASTER</span></code></p>
+<p>If the value contains a colon (<code class="docutils literal"><span class="pre">:</span></code>), then BUILDMASTER and BUILDMASTER_PORT environment variables will be passed, following scheme: <code class="docutils literal"><span class="pre">masterFQDN=&quot;$BUILDMASTER:$BUILDMASTER_PORT&quot;</span></code></p>
+<p class="last">This feature is useful for testing behind a proxy using <code class="docutils literal"><span class="pre">ngrok</span></code> command like: <code class="docutils literal"><span class="pre">ngrok</span> <span class="pre">tcp</span> <span class="pre">9989</span></code>
+<code class="docutils literal"><span class="pre">ngrok</span></code> config can the be retrieved with following snippet:</p>
+</dd>
+</dl>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">future.moves.urllib.parse</span> <span class="kn">import</span> <span class="n">urlparse</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;http://localhost:4040/api/tunnels/command_line&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="n">masterFQDN</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;public_url&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">netloc</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">hyper_accesskey</span></code></dt>
+<dd>(mandatory)
+Access key to use as part of the creds to access hyper.</dd>
+<dt><code class="docutils literal"><span class="pre">hyper_secretkey</span></code></dt>
+<dd>(mandatory)
+Secret key to use as part of the creds to access hyper.</dd>
+<dt><code class="docutils literal"><span class="pre">hyper_size</span></code></dt>
+<dd>(optional, defaults to <code class="docutils literal"><span class="pre">s3</span></code>)
+Size of the container to use as per <a class="reference external" href="https://hyper.sh/pricing.html">HyperPricing</a></dd>
+</dl>
+</div>
+<div class="section" id="marathon-latent-worker">
+<h1>Marathon latent worker<a class="headerlink" href="#marathon-latent-worker" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference external" href="https://mesosphere.github.io/marathon/">Marathon</a> Marathon is a production-grade container orchestration platform for Mesosphere’s Data-center Operating System (DC/OS) and Apache <code class="docutils literal"><span class="pre">Mesos</span></code>.</p>
+<p>Buildbot supports using <a class="reference external" href="https://mesosphere.github.io/marathon/">Marathon</a> to host your latent workers.
+It requires either <a class="reference external" href="https://pypi.python.org/pypi/txrequests">txrequests</a> or <a class="reference external" href="https://pypi.python.org/pypi/treq">treq</a> to be installed to allow interaction with http server.
+See <code class="xref py py-class docutils literal"><span class="pre">HTTPClientService</span></code> for details.</p>
+<dl class="class">
+<dt id="buildbot.worker.marathon.MarathonLatentWorker">
+<em class="property">class </em><code class="descclassname">buildbot.worker.marathon.</code><code class="descname">MarathonLatentWorker</code><a class="headerlink" href="#buildbot.worker.marathon.MarathonLatentWorker" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="buildbot.plugins.worker.MarathonLatentWorker">
+<em class="property">class </em><code class="descclassname">buildbot.plugins.worker.</code><code class="descname">MarathonLatentWorker</code><a class="headerlink" href="#buildbot.plugins.worker.MarathonLatentWorker" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>The <code class="xref py py-class docutils literal"><span class="pre">MarathonLatentWorker</span></code> attempts to instantiate a fresh image for each build to assure consistency of the environment between builds.
+Each image will be discarded once the worker finished processing the build queue (i.e. becomes <code class="docutils literal"><span class="pre">idle</span></code>).
+See <a class="reference internal" href="cfg-workers.html#common-latent-workers-options"><span class="std std-ref">build_wait_timeout</span></a> to change this behavior.</p>
+<p>In addition to the arguments available for any <a class="reference internal" href="cfg-workers.html#latent-workers"><span class="std std-ref">Latent Workers</span></a>, <code class="xref py py-class docutils literal"><span class="pre">MarathonLatentWorker</span></code> will accept the following extra ones:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">marathon_url</span></code></dt>
+<dd>(mandatory)
+This is the URL to <a class="reference external" href="https://mesosphere.github.io/marathon/">Marathon</a> server.
+Its REST API will be used to start docker containers.</dd>
+<dt><code class="docutils literal"><span class="pre">marathon_auth</span></code></dt>
+<dd>(optional)
+This is the optional <code class="docutils literal"><span class="pre">('userid',</span> <span class="pre">'password')</span></code> <code class="docutils literal"><span class="pre">BasicAuth</span></code> credential.
+If <a class="reference external" href="https://pypi.python.org/pypi/txrequests">txrequests</a> is installed, this can be a <a class="reference external" href="http://docs.python-requests.org/en/master/user/authentication/">requests authentication plugin</a>.</dd>
+<dt><code class="docutils literal"><span class="pre">image</span></code></dt>
+<dd>(mandatory)
+This is the name of the image that will be started by the build master. It should start a worker.
+This option can be a renderable, like <a class="reference internal" href="cfg-properties.html#interpolate"><span class="std std-ref">Interpolate</span></a>, so that it generates from the build request properties.
+Images are by pulled from the default docker registry.
+MarathonLatentWorker does not support starting a worker built from a Dockerfile.</dd>
+<dt><code class="docutils literal"><span class="pre">masterFQDN</span></code></dt>
+<dd><p class="first">(optional, defaults to socket.getfqdn())
+Address of the master the worker should connect to. Use if you master machine does not have proper fqdn.
+This value is passed to the docker image via environment variable <code class="docutils literal"><span class="pre">BUILDMASTER</span></code></p>
+<p class="last">If the value contains a colon (<code class="docutils literal"><span class="pre">:</span></code>), then BUILDMASTER and BUILDMASTER_PORT environment variables will be passed, following scheme: <code class="docutils literal"><span class="pre">masterFQDN=&quot;$BUILDMASTER:$BUILDMASTER_PORT&quot;</span></code></p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">marathon_extra_config</span></code></dt>
+<dd>(optional, defaults to <code class="docutils literal"><span class="pre">{}`</span></code>)
+Extra configuration to be passed to <a class="reference external" href="http://mesosphere.github.io/marathon/docs/rest-api.html#post-v2-apps">Marathon API</a>.
+This implementation will setup the minimal configuration to run a worker (docker image, <code class="docutils literal"><span class="pre">BRIDGED</span></code> network)
+It will let the default for everything else, including memory size, volume mounting, etc.
+This configuration is voluntarily very raw so that it is easy to use new marathon features.
+This dictionary will be merged into the Buildbot generated config, and recursively override it.
+See <a class="reference external" href="http://mesosphere.github.io/marathon/docs/rest-api.html#post-v2-apps">Marathon API</a> documentation to learn what to include in this config.</dd>
+</dl>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/full_logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script><h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="secretsmanagement.html">2.4. Secret Management</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="configuration.html">2.5. Configuration</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="cfg-intro.html">2.5.1. Configuring Buildbot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-global.html">2.5.2. Global Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-changesources.html">2.5.3. Change Sources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-schedulers.html">2.5.4. Schedulers</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="cfg-workers.html">2.5.5. Workers</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="cfg-workers-ec2.html">Amazon Web Services Elastic Compute Cloud (“AWS EC2”)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cfg-workers-libvirt.html">Libvirt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cfg-workers-openstack.html">OpenStack</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Docker latent worker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hyper-latent-worker">Hyper latent worker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#marathon-latent-worker">Marathon latent worker</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-builders.html">2.5.6. Builder Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-buildfactories.html">2.5.7. Build Factories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-properties.html">2.5.8. Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-buildsteps.html">2.5.9. Build Steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-interlocks.html">2.5.10. Interlocks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-reporters.html">2.5.11. Reporters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-www.html">2.5.12. Web Server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-wwwhooks.html">2.5.13. Change Hooks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-services.html">2.5.14. Custom Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-dbconfig.html">2.5.15. DbConfig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cfg-configurators.html">2.5.16. Configurators</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="worker-transition.html">2.6. Transition to “worker” terminology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="customization.html">2.7. Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="new-style-steps.html">2.8. New-Style Build Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmdline.html">2.9. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resources.html">2.10. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html">2.11. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins.html">2.12. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deploy.html">2.13. Deployment</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../indices.html">6. Indices and Tables</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="cfg-workers-openstack.html"
+                        title="previous chapter">OpenStack</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="cfg-builders.html"
+                        title="next chapter">2.5.6. Builder Configuration</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/manual/cfg-workers-docker.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>
