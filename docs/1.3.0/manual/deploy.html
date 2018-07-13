@@ -1,0 +1,210 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>2.13. Deployment &#8212; Buildbot 1.3.0 documentation</title>
+    <link rel="stylesheet" href="../_static/qtile.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/icon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="3. Buildbot Development" href="../developer/index.html" />
+    <link rel="prev" title="2.12. Plugin Infrastructure in Buildbot" href="plugins.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../developer/index.html" title="3. Buildbot Development"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="plugins.html" title="2.12. Plugin Infrastructure in Buildbot"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Buildbot 1.3.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">2. Buildbot Manual</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="deployment">
+<h1>2.13. Deployment<a class="headerlink" href="#deployment" title="Permalink to this headline">¶</a></h1>
+<p>This page aims at describing the common pitfalls and best practices when deploying buildbot.</p>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#using-a-database-server" id="id6">Using A Database Server</a></li>
+<li><a class="reference internal" href="#maintenance" id="id7">Maintenance</a></li>
+<li><a class="reference internal" href="#troubleshooting" id="id8">Troubleshooting</a></li>
+</ul>
+</div>
+<div class="section" id="using-a-database-server">
+<span id="database-server"></span><h2><a class="toc-backref" href="#id6">2.13.1. Using A Database Server</a><a class="headerlink" href="#using-a-database-server" title="Permalink to this headline">¶</a></h2>
+<p>Buildbot uses the sqlite3 database backend by default.
+If you plan to host a lot of data, you may consider using a more suitable database server.</p>
+<p>If you want to use a database server (e.g., MySQL or Postgres) as the database backend for your Buildbot, use option <cite>buildbot create-master –db</cite> to specify the <a class="reference internal" href="cfg-global.html#database-specification"><span class="std std-ref">connection string</span></a> for the database, and make sure that the same URL appears in the <code class="docutils literal"><span class="pre">db_url</span></code> of the <a class="reference internal" href="cfg-global.html#cfg-db" title="db"><code class="xref bb bb-cfg docutils literal"><span class="pre">db</span></code></a> parameter in your configuration file.</p>
+<div class="section" id="additional-requirements">
+<h3>2.13.1.1. Additional Requirements<a class="headerlink" href="#additional-requirements" title="Permalink to this headline">¶</a></h3>
+<p>Depending on the selected database, further Python packages will be required.
+Consult the <a class="reference external" href="http://www.sqlalchemy.org/">SQLAlchemy</a> dialect list for a full description.
+The most common choice for MySQL is <a class="reference external" href="https://github.com/PyMySQL/mysqlclient-python">mysqlclient</a>.
+Any reasonably recent version should suffice.</p>
+<p>The most common choice for Postgres is <a class="reference external" href="http://initd.org/psycopg/">Psycopg</a>
+Any reasonably recent version should suffice.</p>
+</div>
+</div>
+<div class="section" id="maintenance">
+<span id="id1"></span><h2><a class="toc-backref" href="#id7">2.13.2. Maintenance</a><a class="headerlink" href="#maintenance" title="Permalink to this headline">¶</a></h2>
+<p>The buildmaster can be configured to send out email notifications when a worker has been offline for a while.
+Be sure to configure the buildmaster with a contact email address for each worker so these notifications are sent to someone who can bring it back online.</p>
+<p>If you find you can no longer provide a worker to the project, please let the project admins know, so they can put out a call for a replacement.</p>
+<p>The Buildbot records status and logs output continually, each time a build is performed.
+The status tends to be small, but the build logs can become quite large.
+Each build and log are recorded in a separate file, arranged hierarchically under the buildmaster’s base directory.
+To prevent these files from growing without bound, you should periodically delete old build logs.
+A simple cron job to delete anything older than, say, two weeks should do the job.
+The only trick is to leave the <code class="file docutils literal"><span class="pre">buildbot.tac</span></code> and other support files alone, for which <strong class="command">find</strong>’s <code class="docutils literal"><span class="pre">-mindepth</span></code> argument helps skip everything in the top directory.
+You can use something like the following (assuming builds are stored in <code class="file docutils literal"><span class="pre">./builds/</span></code> directory):</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>@weekly cd BASEDIR &amp;&amp; find . -mindepth 2 i-path &#39;./builds/*&#39; \
+    -prune -o -type f -mtime +14 -exec rm {} \;
+@weekly cd BASEDIR &amp;&amp; find twistd.log* -mtime +14 -exec rm {} \;
+</pre></div>
+</div>
+<p>Alternatively, you can configure a maximum number of old logs to be kept using the <code class="docutils literal"><span class="pre">--log-count</span></code> command line option when running <code class="docutils literal"><span class="pre">buildbot-worker</span> <span class="pre">create-worker</span></code> or <code class="docutils literal"><span class="pre">buildbot</span> <span class="pre">create-master</span></code>.</p>
+</div>
+<div class="section" id="troubleshooting">
+<span id="id2"></span><h2><a class="toc-backref" href="#id8">2.13.3. Troubleshooting</a><a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
+<p>Here are a few hints on diagnosing common problems.</p>
+<div class="section" id="starting-the-worker">
+<span id="id3"></span><h3>2.13.3.1. Starting the worker<a class="headerlink" href="#starting-the-worker" title="Permalink to this headline">¶</a></h3>
+<p>Cron jobs are typically run with a minimal shell (<code class="file docutils literal"><span class="pre">/bin/sh</span></code>, not <code class="file docutils literal"><span class="pre">/bin/bash</span></code>), and tilde expansion is not always performed in such commands.
+You may want to use explicit paths, because the <span class="target" id="index-0"></span><code class="xref std std-envvar docutils literal"><span class="pre">PATH</span></code> is usually quite short and doesn’t include anything set by your shell’s startup scripts (<code class="file docutils literal"><span class="pre">.profile</span></code>, <code class="file docutils literal"><span class="pre">.bashrc</span></code>, etc).
+If you’ve installed buildbot (or other Python libraries) to an unusual location, you may need to add a <span class="target" id="index-1"></span><code class="xref std std-envvar docutils literal"><span class="pre">PYTHONPATH</span></code> specification (note that Python will do tilde-expansion on <span class="target" id="index-2"></span><code class="xref std std-envvar docutils literal"><span class="pre">PYTHONPATH</span></code> elements by itself).
+Sometimes it is safer to fully-specify everything:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>@reboot PYTHONPATH=~/lib/python /usr/local/bin/buildbot \
+    start /usr/home/buildbot/basedir
+</pre></div>
+</div>
+<p>Take the time to get the <code class="docutils literal"><span class="pre">&#64;reboot</span></code> job set up.
+Otherwise, things will work fine for a while, but the first power outage or system reboot you have will stop the worker with nothing but the cries of sorrowful developers to remind you that it has gone away.</p>
+</div>
+<div class="section" id="connecting-to-the-buildmaster">
+<span id="id4"></span><h3>2.13.3.2. Connecting to the buildmaster<a class="headerlink" href="#connecting-to-the-buildmaster" title="Permalink to this headline">¶</a></h3>
+<p>If the worker cannot connect to the buildmaster, the reason should be described in the <code class="file docutils literal"><span class="pre">twistd.log</span></code> logfile.
+Some common problems are an incorrect master hostname or port number, or a mistyped bot name or password.
+If the worker loses the connection to the master, it is supposed to attempt to reconnect with an exponentially-increasing backoff.
+Each attempt (and the time of the next attempt) will be logged.
+If you get impatient, just manually stop and re-start the worker.</p>
+<p>When the buildmaster is restarted, all workers will be disconnected, and will attempt to reconnect as usual.
+The reconnect time will depend upon how long the buildmaster is offline (i.e. how far up the exponential backoff curve the workers have travelled).
+Again, <code class="samp docutils literal"><span class="pre">buildbot-worker</span> <span class="pre">restart</span> <em><span class="pre">BASEDIR</span></em></code> will speed up the process.</p>
+</div>
+<div class="section" id="contrib-scripts">
+<span id="id5"></span><h3>2.13.3.3. Contrib Scripts<a class="headerlink" href="#contrib-scripts" title="Permalink to this headline">¶</a></h3>
+<p>While some features of Buildbot are included in the distribution, others are only available in <a class="reference external" href="https://github.com/buildbot/buildbot-contrib/tree/master/master/contrib/">master/contrib/</a> in the <code class="docutils literal"><span class="pre">buildbot-contrib</span></code> source directory.
+The latest versions of such scripts are available at <a class="reference external" href="https://github.com/buildbot/buildbot-contrib/tree/master/master/contrib">master/contrib</a>.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/full_logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script><h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="secretsmanagement.html">2.4. Secret Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">2.5. Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="worker-transition.html">2.6. Transition to “worker” terminology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="customization.html">2.7. Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="new-style-steps.html">2.8. New-Style Build Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmdline.html">2.9. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resources.html">2.10. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html">2.11. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins.html">2.12. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">2.13. Deployment</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../indices.html">6. Indices and Tables</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="plugins.html"
+                        title="previous chapter">2.12. Plugin Infrastructure in Buildbot</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../developer/index.html"
+                        title="next chapter">3. Buildbot Development</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/manual/deploy.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>
