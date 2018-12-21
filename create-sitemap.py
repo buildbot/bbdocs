@@ -45,4 +45,4 @@ f.write("""\
 f.close()
 
 if os.stat('docs/sitemap.xml').st_size > 10*1024*1024:
-    print "docs/sitemap.xml is too bug (greater than 10MB)"
+    print("docs/sitemap.xml is too bug (greater than 10MB)")
