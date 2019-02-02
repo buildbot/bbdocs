@@ -1,0 +1,1327 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>2.5.13. Web Server &#8212; Buildbot 1.8.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/qtile.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="shortcut icon" href="../../_static/icon.png"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="2.5.14. Change Hooks" href="wwwhooks.html" />
+    <link rel="prev" title="2.5.12. Reporters" href="reporters.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="wwwhooks.html" title="2.5.14. Change Hooks"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="reporters.html" title="2.5.12. Reporters"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Buildbot 1.8.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >2. Buildbot Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">2.5. Configuration</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="admonition caution">
+<p class="first admonition-title">Caution</p>
+<p class="last">Buildbot is deprecating Python 2.7.
+This is one of the last releases supporting it on the buildmaster.
+<a class="reference external" href="https://github.com/buildbot/buildbot/issues/4439">More info</a>.</p>
+</div>
+<div class="section" id="web-server">
+<span id="cfg-www"></span><h1>2.5.13. Web Server<a class="headerlink" href="#web-server" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As of Buildbot 0.9.0, the built-in web server replaces the old <code class="docutils literal notranslate"><span class="pre">WebStatus</span></code> plugin.</p>
+</div>
+<p>Buildbot contains a built-in web server.
+This server is configured with the <code class="docutils literal notranslate"><span class="pre">www</span></code> configuration key, which specifies a dictionary with the following keys:</p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">port</span></code></dt>
+<dd>The TCP port on which to serve requests.
+Note that SSL is not supported.
+To host Buildbot with SSL, use an HTTP proxy such as lighttpd, nginx, or Apache.
+If this is <code class="docutils literal notranslate"><span class="pre">None</span></code>, the default, then the master will not implement a web server.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">json_cache_seconds</span></code></dt>
+<dd>The number of seconds into the future at which an HTTP API response should expire.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">rest_minimum_version</span></code></dt>
+<dd>The minimum supported REST API version.
+Any versions less than this value will not be available.
+This can be used to ensure that no clients are depending on API versions that will soon be removed from Buildbot.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">plugins</span></code></dt>
+<dd><p class="first">This key gives a dictionary of additional UI plugins to load, along with configuration for those plugins.
+These plugins must be separately installed in the Python environment, e.g., <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">buildbot-waterfall-view</span></code>.
+See <a class="reference internal" href="#ui-plugins"><span class="std std-ref">UI plugins</span></a>
+For example:</p>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;plugins&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;waterfall_view&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">debug</span></code></dt>
+<dd>If true, then debugging information will be output to the browser.
+This is best set to false (the default) on production systems, to avoid the possibility of information leakage.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">allowed_origins</span></code></dt>
+<dd>This gives a list of origins which are allowed to access the Buildbot API (including control via JSONRPC 2.0).
+It implements cross-origin request sharing (CORS), allowing pages at origins other than the Buildbot UI to use the API.
+Each origin is interpreted as filename match expression, with <code class="docutils literal notranslate"><span class="pre">?</span></code> matching one character and <code class="docutils literal notranslate"><span class="pre">*</span></code> matching anything.
+Thus <code class="docutils literal notranslate"><span class="pre">['*']</span></code> will match all origins, and <code class="docutils literal notranslate"><span class="pre">['https://*.buildbot.net']</span></code> will match secure sites under <code class="docutils literal notranslate"><span class="pre">buildbot.net</span></code>.
+The Buildbot UI will operate correctly without this parameter; it is only useful for allowing access from other web applications.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">auth</span></code></dt>
+<dd>Authentication module to use for the web server.
+See <a class="reference internal" href="#web-authentication"><span class="std std-ref">Authentication plugins</span></a>.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">avatar_methods</span></code></dt>
+<dd><p class="first">List of methods that can be used to get avatar pictures to use for the web server.
+By default, buildbot uses Gravatar to get images associated with each users, if you want to disable this you can just specify empty list:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;avatar_methods&#39;</span><span class="p">:</span> <span class="p">[]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="last">For use of corporate pictures, you can use LdapUserInfo, which can also acts as an avatar provider.
+See <a class="reference internal" href="#web-authentication"><span class="std std-ref">Authentication plugins</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">logfileName</span></code></dt>
+<dd>Filename used for http access logs, relative to the master directory.
+If set to <code class="docutils literal notranslate"><span class="pre">None</span></code> or the empty string, the content of the logs will land in the main <code class="file docutils literal notranslate"><span class="pre">twisted.log</span></code> log file.
+(Default to <code class="docutils literal notranslate"><span class="pre">http.log</span></code>)</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">logRotateLength</span></code></dt>
+<dd>The amount of bytes after which the <code class="file docutils literal notranslate"><span class="pre">http.log</span></code> file will be rotated.
+(Default to the same value as for the <code class="file docutils literal notranslate"><span class="pre">twisted.log</span></code> file, set in <code class="file docutils literal notranslate"><span class="pre">buildbot.tac</span></code>)</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">maxRotatedFiles</span></code></dt>
+<dd>The amount of log files that will be kept when rotating
+(Default to the same value as for the <code class="file docutils literal notranslate"><span class="pre">twisted.log</span></code> file, set in <code class="file docutils literal notranslate"><span class="pre">buildbot.tac</span></code>)</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">versions</span></code></dt>
+<dd><p class="first">Custom component versions that you’d like to display on the About page.
+Buildbot will automatically prepend the versions of Python, twisted and buildbot itself to the list.</p>
+<p><code class="docutils literal notranslate"><span class="pre">versions</span></code> should be a list of tuples. for example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># ...</span>
+    <span class="s1">&#39;versions&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;master.cfg&#39;</span><span class="p">,</span> <span class="s1">&#39;0.1&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;OS&#39;</span><span class="p">,</span> <span class="s1">&#39;Ubuntu 14.04&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="last">The first element of a tuple stands for the name of the component, the second stands for the corresponding version.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">custom_templates_dir</span></code></dt>
+<dd><p class="first">This directory will be parsed for custom angularJS templates to replace the one of the original website templates.
+if the directory string is relative, it will be joined to the master’s basedir.
+Either <code class="docutils literal notranslate"><span class="pre">*.jade</span></code> files or <code class="docutils literal notranslate"><span class="pre">*.html</span></code> files can be used, and will be used to override <code class="docutils literal notranslate"><span class="pre">views/&lt;filename&gt;.html</span></code> templates in the angularjs templateCache.
+Unlike with the regular nodejs based angularjs build system, Python only jade interpreter is used to parse the jade templates.
+<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pyjade</span></code> is be required to use jade templates.
+You can also override plugin’s directives, but they have to be in another directory.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># replace the template whose source is in:
+# www/base/src/app/builders/build/build.tpl.jade
+build.jade
+
+# replace the template whose source is in
+# www/console_view/src/module/view/builders-header/buildersheader.tpl.jade
+console_view/buildersheader.html
+</pre></div>
+</div>
+<p>Known differences between nodejs jade and pyjade:</p>
+<blockquote class="last">
+<div><ul class="simple">
+<li>quotes in attributes are not quoted. <a class="reference external" href="https://github.com/syrusakbary/pyjade/issues/132">https://github.com/syrusakbary/pyjade/issues/132</a>
+This means you should use double quotes for attributes e.g: <code class="docutils literal notranslate"><span class="pre">tr(ng-repeat=&quot;br</span> <span class="pre">in</span> <span class="pre">buildrequests</span> <span class="pre">|</span> <span class="pre">orderBy:'-submitted_at'&quot;)</span></code></li>
+</ul>
+</div></blockquote>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">change_hook_dialects</span></code></dt>
+<dd>See <a class="reference internal" href="wwwhooks.html#change-hooks"><span class="std std-ref">Change Hooks</span></a>.</dd>
+</dl>
+<p><code class="docutils literal notranslate"><span class="pre">cookie_expiration_time</span></code></p>
+<blockquote>
+<div><p>This allows to define the timeout of the session cookie.
+Should be a <a class="reference external" href="https://docs.python.org/2/library/datetime.html#timedelta-objects">datetime.timedelta</a>.
+Default is one week.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">datetime</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># ...</span>
+    <span class="s1">&#39;cookie_expiration_time&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">weeks</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">ui_default_config</span></code></p>
+<blockquote>
+<div><p>Settings in the settings page are stored per browser.
+This configuration parameter allows to override the default settings for all your users.
+If a user already have changed a value from the default, this will have no effect to him/her.
+The settings page in the UI will tell you what to insert in your master.cfg to reproduce the configuration you have in your own browser.
+Example use:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">][</span><span class="s1">&#39;ui_default_config&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;Builders.buildFetchLimit&#39;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
+    <span class="s1">&#39;Workers.showWorkerBuilders&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <a class="reference internal" href="global.html#cfg-buildbotURL" title="buildbotURL"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">buildbotURL</span></code></a> configuration value gives the base URL that all masters will use to generate links.
+The <a class="reference internal" href="#cfg-www" title="www"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">www</span></code></a> configuration gives the settings for the webserver.
+In simple cases, the <code class="docutils literal notranslate"><span class="pre">buildbotURL</span></code> contains the hostname and port of the master, e.g., <code class="docutils literal notranslate"><span class="pre">http://master.example.com:8010/</span></code>.
+In more complex cases, with multiple masters, web proxies, or load balancers, the correspondence may be less obvious.</p>
+</div>
+<div class="section" id="ui-plugins">
+<span id="id1"></span><h2>2.5.13.1. UI plugins<a class="headerlink" href="#ui-plugins" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="waterfall-view">
+<span id="waterfallview"></span><h3>Waterfall View<a class="headerlink" href="#waterfall-view" title="Permalink to this headline">¶</a></h3>
+<p>Waterfall shows the whole buildbot activity in vertical time line.
+Builds are represented with boxes whose height vary according to their duration.
+Builds are sorted by builders in the horizontal axes, which allows you to see how builders are scheduled together.</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install buildbot-waterfall-view
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;plugins&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;waterfall_view&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Waterfall is the emblematic view of Buildbot Eight.
+It allowed to see the whole Buildbot activity very quickly.
+Waterfall however had big scalability issues, and larger installs had to disable the page in order to avoid tens of seconds master hang because of a big waterfall page rendering.
+The whole Buildbot Eight internal status API has been tailored in order to make Waterfall possible.
+This is not the case anymore with Buildbot Nine, which has a more generic and scalable <a class="reference internal" href="../../developer/data.html#data-api"><span class="std std-ref">Data API</span></a> and <a class="reference internal" href="../../developer/rest.html#rest-api"><span class="std std-ref">REST API</span></a>.
+This is the reason why Waterfall does not display the steps details anymore.
+However nothing is impossible.
+We could make a specific REST api available to generate all the data needed for waterfall on the server.
+Please step-in if you want to help improve Waterfall view.</p>
+</div>
+</div>
+<div class="section" id="console-view">
+<span id="consoleview"></span><h3>Console View<a class="headerlink" href="#console-view" title="Permalink to this headline">¶</a></h3>
+<p>Console view shows the whole buildbot activity arranged by changes as discovered by <a class="reference internal" href="changesources.html#change-sources"><span class="std std-ref">Change Sources and Changes</span></a> vertically and builders horizontally.
+If a builder has no build in the current time range, it will not be displayed.
+If no change is available for a build, then it will generate a fake change according to the <code class="docutils literal notranslate"><span class="pre">got_revision</span></code> property.</p>
+<p>Console view will also group the builders by tags.
+When there are several tags defined per builders, it will first group the builders by the tag that is defined for most builders.
+Then given those builders, it will group them again in another tag cluster.
+In order to keep the UI usable, you have to keep your tags short!</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install buildbot-console-view
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;plugins&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;console_view&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Nine’s Console View is the equivalent of Buildbot Eight’s Console and tgrid views.
+Unlike Waterfall, we think it is now feature equivalent and even better, with its live update capabilities.
+Please submit an issue if you think there is an issue displaying your data, with screen shots of what happen and suggestion on what to improve.</p>
+</div>
+</div>
+<div class="section" id="grid-view">
+<span id="gridview"></span><h3>Grid View<a class="headerlink" href="#grid-view" title="Permalink to this headline">¶</a></h3>
+<p>Grid view shows the whole buildbot activity arranged by builders vertically and changes horizontally.
+It is equivalent to Buildbot Eight’s grid view.</p>
+<p>By default, changes on all branches are displayed but only one branch may be filtered by the user.
+Builders can also be filtered by tags.
+This feature is similar to the one in the builder list.</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install buildbot-grid-view
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;plugins&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;grid_view&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="badges">
+<span id="id2"></span><h3>Badges<a class="headerlink" href="#badges" title="Permalink to this headline">¶</a></h3>
+<p>Buildbot badges plugin produces an image in SVG or PNG format with information about the last build for the given builder name.
+PNG generation is based on the <a class="reference external" href="https://www.cairographics.org/">CAIRO</a> SVG engine, it requires a bit more CPU to generate.</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install buildbot-badges
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;plugins&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;badges&#39;</span><span class="p">:</span> <span class="p">{}}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>You can the access your builder’s badges using urls like <code class="docutils literal notranslate"><span class="pre">http://&lt;buildbotURL&gt;/badges/&lt;buildername&gt;.svg</span></code>.
+The default templates are very much configurable via the following options.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;left_text&quot;</span><span class="p">:</span> <span class="s2">&quot;Build Status&quot;</span><span class="p">,</span>  <span class="c1"># text on the left part of the image</span>
+    <span class="s2">&quot;left_color&quot;</span><span class="p">:</span> <span class="s2">&quot;#555&quot;</span><span class="p">,</span>  <span class="c1"># color of the left part of the image</span>
+    <span class="s2">&quot;style&quot;</span><span class="p">:</span> <span class="s2">&quot;flat&quot;</span><span class="p">,</span>  <span class="c1"># style of the template availables are &quot;flat&quot;, &quot;flat-square&quot;, &quot;plastic&quot;</span>
+    <span class="s2">&quot;template_name&quot;</span><span class="p">:</span> <span class="s2">&quot;{style}.svg.j2&quot;</span><span class="p">,</span>  <span class="c1"># name of the template</span>
+    <span class="s2">&quot;font_face&quot;</span><span class="p">:</span> <span class="s2">&quot;DejaVu Sans&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;font_size&quot;</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span>
+    <span class="s2">&quot;color_scheme&quot;</span><span class="p">:</span> <span class="p">{</span>  <span class="c1"># color to be used for right part of the image</span>
+        <span class="s2">&quot;exception&quot;</span><span class="p">:</span> <span class="s2">&quot;#007ec6&quot;</span><span class="p">,</span>  <span class="c1"># blue</span>
+        <span class="s2">&quot;failure&quot;</span><span class="p">:</span> <span class="s2">&quot;#e05d44&quot;</span><span class="p">,</span>    <span class="c1"># red</span>
+        <span class="s2">&quot;retry&quot;</span><span class="p">:</span> <span class="s2">&quot;#007ec6&quot;</span><span class="p">,</span>      <span class="c1"># blue</span>
+        <span class="s2">&quot;running&quot;</span><span class="p">:</span> <span class="s2">&quot;#007ec6&quot;</span><span class="p">,</span>    <span class="c1"># blue</span>
+        <span class="s2">&quot;skipped&quot;</span><span class="p">:</span> <span class="s2">&quot;a4a61d&quot;</span><span class="p">,</span>     <span class="c1"># yellowgreen</span>
+        <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="s2">&quot;#4c1&quot;</span><span class="p">,</span>       <span class="c1"># brightgreen</span>
+        <span class="s2">&quot;unknown&quot;</span><span class="p">:</span> <span class="s2">&quot;#9f9f9f&quot;</span><span class="p">,</span>    <span class="c1"># lightgrey</span>
+        <span class="s2">&quot;warnings&quot;</span><span class="p">:</span> <span class="s2">&quot;#dfb317&quot;</span>    <span class="c1"># yellow</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Those options can be configured either using the plugin configuration:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;plugins&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;badges&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;left_color&quot;</span><span class="p">:</span> <span class="s2">&quot;#222&quot;</span><span class="p">}}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Or via the URL arguments like <code class="docutils literal notranslate"><span class="pre">http://&lt;buildbotURL&gt;/badges/&lt;buildername&gt;.svg?left_color=222</span></code>.
+Custom templates can also be specified in a <code class="docutils literal notranslate"><span class="pre">template</span></code> directory nearby the <code class="docutils literal notranslate"><span class="pre">master.cfg</span></code>.</p>
+</div>
+</div>
+<div class="section" id="authentication-plugins">
+<span id="web-authentication"></span><h2>2.5.13.2. Authentication plugins<a class="headerlink" href="#authentication-plugins" title="Permalink to this headline">¶</a></h2>
+<p>By default, Buildbot does not require people to authenticate in order to access control features in the web UI.
+To secure Buildbot, you will need to configure an authentication plugin.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>To secure the Buildbot web interface, authorization rules must be provided via the ‘authz’ configuration.
+If you simply wish to lock down a Buildbot instance so that only read only access is permitted, you can
+restrict access to control endpoints to an unpopulated ‘admin’ role. For example:</p>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">][</span><span class="s1">&#39;authz&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Authz</span><span class="p">(</span><span class="n">allowRules</span><span class="o">=</span><span class="p">[</span><span class="n">util</span><span class="o">.</span><span class="n">AnyControlEndpointMatcher</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s2">&quot;admins&quot;</span><span class="p">)],</span><span class="n">roleMatchers</span><span class="o">=</span><span class="p">[])</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As of Buildbot 0.9.4, user session is managed via a <a class="reference external" href="https://en.wikipedia.org/wiki/JSON_Web_Token">JWT</a> token, using <a class="reference external" href="https://pyjwt.readthedocs.io/en/latest/algorithms.html">HS256</a> algorithm.
+The session secret is stored in the database in the <code class="docutils literal notranslate"><span class="pre">object_state</span></code> table with <code class="docutils literal notranslate"><span class="pre">name</span></code> column being <code class="docutils literal notranslate"><span class="pre">session_secret</span></code>.
+Please make sure appropriate access restriction is made to this database table.</p>
+</div>
+<p>Authentication plugins are implemented as classes, and passed as the <code class="docutils literal notranslate"><span class="pre">auth</span></code> parameter to <a class="reference internal" href="#cfg-www" title="www"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">www</span></code></a>.</p>
+<p>The available classes are described here:</p>
+<dl class="class">
+<dt id="buildbot.www.auth.NoAuth">
+<em class="property">class </em><code class="descclassname">buildbot.www.auth.</code><code class="descname">NoAuth</code><a class="headerlink" href="#buildbot.www.auth.NoAuth" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class is the default authentication plugin, which disables authentication</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.www.auth.UserPasswordAuth">
+<em class="property">class </em><code class="descclassname">buildbot.www.auth.</code><code class="descname">UserPasswordAuth</code><span class="sig-paren">(</span><em>users</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.www.auth.UserPasswordAuth" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>users</strong> – list of <code class="docutils literal notranslate"><span class="pre">(&quot;user&quot;,&quot;password&quot;)</span></code> tuples, or a dictionary of <code class="docutils literal notranslate"><span class="pre">{&quot;user&quot;:</span> <span class="pre">&quot;password&quot;,</span> <span class="pre">..}</span></code></td>
+</tr>
+</tbody>
+</table>
+<p>Simple username/password authentication using a list of user/password tuples provided in the configuration file.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">util</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># ...</span>
+    <span class="s1">&#39;auth&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">UserPasswordAuth</span><span class="p">({</span><span class="s2">&quot;homer&quot;</span><span class="p">:</span> <span class="s2">&quot;doh!&quot;</span><span class="p">}),</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.www.auth.CustomAuth">
+<em class="property">class </em><code class="descclassname">buildbot.www.auth.</code><code class="descname">CustomAuth</code><a class="headerlink" href="#buildbot.www.auth.CustomAuth" title="Permalink to this definition">¶</a></dt>
+<dd><p>This authentication class means to be overridden with a custom <code class="docutils literal notranslate"><span class="pre">check_credentials</span></code> method that gets username and password
+as arguments and check if the user can login. You may use it e.g. to check the credentials against an external database or file.</p>
+<dl class="docutils">
+<dt>::</dt>
+<dd><p class="first">from buildbot.plugins import util</p>
+<dl class="docutils">
+<dt>class MyAuth(util.CustomAuth):</dt>
+<dd><dl class="first last docutils">
+<dt>def check_credentials(self, user, password):</dt>
+<dd><dl class="first last docutils">
+<dt>if user == ‘snow’ and password == ‘white’:</dt>
+<dd>return True</dd>
+<dt>else:</dt>
+<dd>return False</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="last">from buildbot.plugins import util
+c[‘www’][‘auth’] = MyAuth()</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.www.auth.HTPasswdAuth">
+<em class="property">class </em><code class="descclassname">buildbot.www.auth.</code><code class="descname">HTPasswdAuth</code><span class="sig-paren">(</span><em>passwdFile</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.www.auth.HTPasswdAuth" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>passwdFile</strong> – An <code class="file docutils literal notranslate"><span class="pre">.htpasswd</span></code> file to read</td>
+</tr>
+</tbody>
+</table>
+<p>This class implements simple username/password authentication against a standard <code class="file docutils literal notranslate"><span class="pre">.htpasswd</span></code> file.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">util</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># ...</span>
+    <span class="s1">&#39;auth&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">HTPasswdAuth</span><span class="p">(</span><span class="s2">&quot;my_htpasswd&quot;</span><span class="p">),</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.www.oauth2.GoogleAuth">
+<em class="property">class </em><code class="descclassname">buildbot.www.oauth2.</code><code class="descname">GoogleAuth</code><span class="sig-paren">(</span><em>clientId</em>, <em>clientSecret</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.www.oauth2.GoogleAuth" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>clientId</strong> – The client ID of your buildbot application</li>
+<li><strong>clientSecret</strong> – The client secret of your buildbot application</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This class implements an authentication with <a class="reference external" href="https://developers.google.com/accounts/docs/OAuth2">Google</a> single sign-on.
+You can look at the <a class="reference external" href="https://developers.google.com/accounts/docs/OAuth2">Google</a> oauth2 documentation on how to register your Buildbot instance to the Google systems.
+The developer console will give you the two parameters you have to give to <code class="docutils literal notranslate"><span class="pre">GoogleAuth</span></code></p>
+<p>Register your Buildbot instance with the <code class="docutils literal notranslate"><span class="pre">BUILDBOT_URL/auth/login</span></code> url as the allowed redirect URI.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">util</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># ...</span>
+    <span class="s1">&#39;auth&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">GoogleAuth</span><span class="p">(</span><span class="s2">&quot;clientid&quot;</span><span class="p">,</span> <span class="s2">&quot;clientsecret&quot;</span><span class="p">),</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>in order to use this module, you need to install the Python <code class="docutils literal notranslate"><span class="pre">requests</span></code> module</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install requests
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.www.oauth2.GitHubAuth">
+<em class="property">class </em><code class="descclassname">buildbot.www.oauth2.</code><code class="descname">GitHubAuth</code><span class="sig-paren">(</span><em>clientId</em>, <em>clientSecret</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.www.oauth2.GitHubAuth" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">param clientId:</th><td class="field-body">The client ID of your buildbot application</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">param clientSecret:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body">The client secret of your buildbot application</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">param serverURL:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body">The server URL if this is a GitHub Enterprise server.</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">param apiVersion:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body">The GitHub API version to use. One of <code class="docutils literal notranslate"><span class="pre">3</span></code> or <code class="docutils literal notranslate"><span class="pre">4</span></code>
+(V3/REST or V4/GraphQL). Default=3.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">param getTeamsMembership:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body">When <code class="docutils literal notranslate"><span class="pre">True</span></code> fetch all team memberships for each or the
+organizations the user belongs to. The teams will be included in the
+user’s groups as <code class="docutils literal notranslate"><span class="pre">org-name/team-name</span></code>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">param debug:</th><td class="field-body">When <code class="docutils literal notranslate"><span class="pre">True</span></code> and using <code class="docutils literal notranslate"><span class="pre">apiVersion=4</span></code> show some additional log calls with the
+GraphQL queries and responses for debugging purposes.</td>
+</tr>
+</tbody>
+</table>
+<p>This class implements an authentication with <a class="reference external" href="http://developer.github.com/v3/oauth_authorizations/">GitHub</a> single sign-on.
+It functions almost identically to the <a class="reference internal" href="#buildbot.www.oauth2.GoogleAuth" title="buildbot.www.oauth2.GoogleAuth"><code class="xref py py-class docutils literal notranslate"><span class="pre">GoogleAuth</span></code></a> class.</p>
+<p>Register your Buildbot instance with the <code class="docutils literal notranslate"><span class="pre">BUILDBOT_URL/auth/login</span></code> url as the allowed redirect URI.</p>
+<p>The user’s email-address (for e.g. authorization) is set to the “primary” address set by the user in GitHub.
+When using group-based authorization, the user’s groups are equal to the names of the GitHub organizations the user
+is a member of.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">util</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># ...</span>
+    <span class="s1">&#39;auth&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">GitHubAuth</span><span class="p">(</span><span class="s2">&quot;clientid&quot;</span><span class="p">,</span> <span class="s2">&quot;clientsecret&quot;</span><span class="p">),</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Example for Enterprise GitHub:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">util</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># ...</span>
+    <span class="s1">&#39;auth&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">GitHubAuth</span><span class="p">(</span><span class="s2">&quot;clientid&quot;</span><span class="p">,</span> <span class="s2">&quot;clientsecret&quot;</span><span class="p">,</span> <span class="s2">&quot;https://git.corp.mycompany.com&quot;</span><span class="p">),</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>An example on fetching team membership could be:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">util</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># ...</span>
+    <span class="s1">&#39;auth&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">GitHubAuth</span><span class="p">(</span><span class="s2">&quot;clientid&quot;</span><span class="p">,</span> <span class="s2">&quot;clientsecret&quot;</span><span class="p">,</span> <span class="n">apiVersion</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">getTeamsMembership</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+    <span class="s1">&#39;authz&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">Authz</span><span class="p">(</span>
+        <span class="n">allowRules</span><span class="o">=</span><span class="p">[</span>
+          <span class="n">util</span><span class="o">.</span><span class="n">AnyControlEndpointMatcher</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s2">&quot;core-developers&quot;</span><span class="p">),</span>
+        <span class="p">],</span>
+        <span class="n">roleMatchers</span><span class="o">=</span><span class="p">[</span>
+          <span class="n">util</span><span class="o">.</span><span class="n">RolesFromGroups</span><span class="p">(</span><span class="n">groupPrefix</span><span class="o">=</span><span class="s1">&#39;buildbot/&#39;</span><span class="p">)</span>
+        <span class="p">]</span>
+      <span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>If the <code class="docutils literal notranslate"><span class="pre">buildbot</span></code> organization had two teams, for example, ‘core-developers’ and ‘contributors’,
+with the above example, any user belonging to those teams would be granted the roles matching those
+team names.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.www.oauth2.GitLabAuth">
+<em class="property">class </em><code class="descclassname">buildbot.www.oauth2.</code><code class="descname">GitLabAuth</code><span class="sig-paren">(</span><em>instanceUri</em>, <em>clientId</em>, <em>clientSecret</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.www.oauth2.GitLabAuth" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>instanceUri</strong> – The URI of your GitLab instance</li>
+<li><strong>clientId</strong> – The client ID of your buildbot application</li>
+<li><strong>clientSecret</strong> – The client secret of your buildbot application</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This class implements an authentication with <a class="reference external" href="http://doc.gitlab.com/ce/integration/oauth_provider.html">GitLab</a> single sign-on.
+It functions almost identically to the <a class="reference internal" href="#buildbot.www.oauth2.GoogleAuth" title="buildbot.www.oauth2.GoogleAuth"><code class="xref py py-class docutils literal notranslate"><span class="pre">GoogleAuth</span></code></a> class.</p>
+<p>Register your Buildbot instance with the <code class="docutils literal notranslate"><span class="pre">BUILDBOT_URL/auth/login</span></code> url as the allowed redirect URI.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">util</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># ...</span>
+    <span class="s1">&#39;auth&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">GitLabAuth</span><span class="p">(</span><span class="s2">&quot;https://gitlab.com&quot;</span><span class="p">,</span> <span class="s2">&quot;clientid&quot;</span><span class="p">,</span> <span class="s2">&quot;clientsecret&quot;</span><span class="p">),</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.www.oauth2.BitbucketAuth">
+<em class="property">class </em><code class="descclassname">buildbot.www.oauth2.</code><code class="descname">BitbucketAuth</code><span class="sig-paren">(</span><em>clientId</em>, <em>clientSecret</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.www.oauth2.BitbucketAuth" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>clientId</strong> – The client ID of your buildbot application</li>
+<li><strong>clientSecret</strong> – The client secret of your buildbot application</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This class implements an authentication with <a class="reference external" href="https://confluence.atlassian.com/bitbucket/oauth-on-bitbucket-cloud-238027431.html">Bitbucket</a> single sign-on.
+It functions almost identically to the <a class="reference internal" href="#buildbot.www.oauth2.GoogleAuth" title="buildbot.www.oauth2.GoogleAuth"><code class="xref py py-class docutils literal notranslate"><span class="pre">GoogleAuth</span></code></a> class.</p>
+<p>Register your Buildbot instance with the <code class="docutils literal notranslate"><span class="pre">BUILDBOT_URL/auth/login</span></code> url as the allowed redirect URI.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">util</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># ...</span>
+    <span class="s1">&#39;auth&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">BitbucketAuth</span><span class="p">(</span><span class="s2">&quot;clientid&quot;</span><span class="p">,</span> <span class="s2">&quot;clientsecret&quot;</span><span class="p">),</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.www.auth.RemoteUserAuth">
+<em class="property">class </em><code class="descclassname">buildbot.www.auth.</code><code class="descname">RemoteUserAuth</code><a class="headerlink" href="#buildbot.www.auth.RemoteUserAuth" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>header</strong> – header to use to get the username (defaults to <code class="docutils literal notranslate"><span class="pre">REMOTE_USER</span></code>)</li>
+<li><strong>headerRegex</strong> – regular expression to get the username from header value (defaults to <code class="docutils literal notranslate"><span class="pre">&quot;(?P&lt;username&gt;[^</span> <span class="pre">&#64;]+)&#64;(?P&lt;realm&gt;[^</span> <span class="pre">&#64;]+)&quot;)</span></code>.
+Note that your at least need to specify a <code class="docutils literal notranslate"><span class="pre">?P&lt;username&gt;</span></code> regular expression named group.</li>
+<li><strong>userInfoProvider</strong> – user info provider; see <a class="reference internal" href="#user-information"><span class="std std-ref">User Information</span></a></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>If the Buildbot UI is served through a reverse proxy that supports HTTP-based authentication (like apache or lighttpd), it’s possible to to tell Buildbot to trust the web server and get the username from th request headers.</p>
+<p>Administrator must make sure that it’s impossible to get access to Buildbot using other way than through frontend.
+Usually this means that Buildbot should listen for incoming connections only on localhost (or on some firewall-protected port).
+The reverse proxy must require HTTP authentication to access Buildbot pages (using any source for credentials, such as htpasswd, PAM, LDAP, Kerberos).</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">util</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># ...</span>
+    <span class="s1">&#39;auth&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">RemoteUserAuth</span><span class="p">(),</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>A corresponding Apache configuration example</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;Location &quot;/&quot;&gt;
+        AuthType Kerberos
+        AuthName &quot;Buildbot login via Kerberos&quot;
+        KrbMethodNegotiate On
+        KrbMethodK5Passwd On
+        KrbAuthRealms &lt;&lt;YOUR CORP REALMS&gt;&gt;
+        KrbVerifyKDC off
+        KrbServiceName Any
+        Krb5KeyTab /etc/krb5/krb5.keytab
+        KrbSaveCredentials Off
+        require valid-user
+        Order allow,deny
+
+        Satisfy Any
+
+        #] SSO
+        RewriteEngine On
+        RewriteCond %{LA-U:REMOTE_USER} (.+)$
+        RewriteRule . - [E=RU:%1,NS]
+        RequestHeader set REMOTE_USER %{RU}e
+
+&lt;/Location&gt;
+</pre></div>
+</div>
+<p>The advantage of this sort of authentication is that it is uses a proven and fast implementation for authentication.
+The problem is that the only information that is passed to Buildbot is the username, and there is no way to pass any other information like user email, user groups, etc.
+That information can be very useful to the mailstatus plugin, or for authorization processes.
+See <a class="reference internal" href="#user-information"><span class="std std-ref">User Information</span></a> for a mechanism to supply that information.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="user-information">
+<span id="id3"></span><h2>2.5.13.3. User Information<a class="headerlink" href="#user-information" title="Permalink to this headline">¶</a></h2>
+<p>For authentication mechanisms which cannot provide complete information about a user, Buildbot needs another way to get user data.
+This is useful both for authentication (to fetch more data about the logged-in user) and for avatars (to fetch data about other users).</p>
+<p>This extra information is provided by, appropriately enough, user info providers.
+These can be passed to <a class="reference internal" href="#buildbot.www.auth.RemoteUserAuth" title="buildbot.www.auth.RemoteUserAuth"><code class="xref py py-class docutils literal notranslate"><span class="pre">RemoteUserAuth</span></code></a> and as an element of <code class="docutils literal notranslate"><span class="pre">avatar_methods</span></code>.</p>
+<p>This can also be passed to oauth2 authentication plugins.
+In this case the username provided by oauth2 will be used, and all other information will be taken from ldap (Full Name, email, and groups):</p>
+<p>Currently only one provider is available:</p>
+<dl class="class">
+<dt id="buildbot.ldapuserinfo.LdapUserInfo">
+<em class="property">class </em><code class="descclassname">buildbot.ldapuserinfo.</code><code class="descname">LdapUserInfo</code><span class="sig-paren">(</span><em>uri</em>, <em>bindUser</em>, <em>bindPw</em>, <em>accountBase</em>, <em>accountPattern</em>, <em>groupBase=None</em>, <em>groupMemberPattern=None</em>, <em>groupName=None</em>, <em>accountFullName</em>, <em>accountEmail</em>, <em>avatarPattern=None</em>, <em>avatarData=None</em>, <em>accountExtraFields=None</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.ldapuserinfo.LdapUserInfo" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>uri</strong> – uri of the ldap server</li>
+<li><strong>bindUser</strong> – username of the ldap account that is used to get the infos for other users (usually a “faceless” account)</li>
+<li><strong>bindPw</strong> – password of the <code class="docutils literal notranslate"><span class="pre">bindUser</span></code></li>
+<li><strong>accountBase</strong> – the base dn (distinguished name)of the user database</li>
+<li><strong>accountPattern</strong> – the pattern for searching in the account database.
+This must contain the <code class="docutils literal notranslate"><span class="pre">%(username)s</span></code> string, which is replaced by the searched username</li>
+<li><strong>accountFullName</strong> – the name of the field in account ldap database where the full user name is to be found.</li>
+<li><strong>accountEmail</strong> – the name of the field in account ldap database where the user email is to be found.</li>
+<li><strong>groupBase</strong> – the base dn of the groups database.</li>
+<li><strong>groupMemberPattern</strong> – the pattern for searching in the group database.
+This must contain the <code class="docutils literal notranslate"><span class="pre">%(dn)s</span></code> string, which is replaced by the searched username’s dn</li>
+<li><strong>groupName</strong> – the name of the field in groups ldap database where the group name is to be found.</li>
+<li><strong>avatarPattern</strong> – the pattern for searching avatars from emails in the account database.
+This must contain the <code class="docutils literal notranslate"><span class="pre">%(email)s</span></code> string, which is replaced by the searched email</li>
+<li><strong>avatarData</strong> – the name of the field in groups ldap database where the avatar picture is to be found.
+This field is supposed to contain the raw picture, format is automatically detected from jpeg, png or git.</li>
+<li><strong>accountExtraFields</strong> – extra fields to extracts for use with the authorization policies.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>If one of the three optional groups parameters is supplied, then all of them become mandatory. If none is supplied, the retrieved user info has an empty list of groups.</p>
+</dd></dl>
+
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">util</span>
+
+<span class="c1"># this configuration works for MS Active Directory ldap implementation</span>
+<span class="c1"># we use it for user info, and avatars</span>
+<span class="n">userInfoProvider</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">LdapUserInfo</span><span class="p">(</span>
+    <span class="n">uri</span><span class="o">=</span><span class="s1">&#39;ldap://ldap.mycompany.com:3268&#39;</span><span class="p">,</span>
+    <span class="n">bindUser</span><span class="o">=</span><span class="s1">&#39;ldap_user&#39;</span><span class="p">,</span>
+    <span class="n">bindPw</span><span class="o">=</span><span class="s1">&#39;p4$$wd&#39;</span><span class="p">,</span>
+    <span class="n">accountBase</span><span class="o">=</span><span class="s1">&#39;dc=corp,dc=mycompany,dc=com&#39;</span><span class="p">,</span>
+    <span class="n">groupBase</span><span class="o">=</span><span class="s1">&#39;dc=corp,dc=mycompany,dc=com&#39;</span><span class="p">,</span>
+    <span class="n">accountPattern</span><span class="o">=</span><span class="s1">&#39;(&amp;(objectClass=person)(sAMAccountName=</span><span class="si">%(username)s</span><span class="s1">))&#39;</span><span class="p">,</span>
+    <span class="n">accountFullName</span><span class="o">=</span><span class="s1">&#39;displayName&#39;</span><span class="p">,</span>
+    <span class="n">accountEmail</span><span class="o">=</span><span class="s1">&#39;mail&#39;</span><span class="p">,</span>
+    <span class="n">groupMemberPattern</span><span class="o">=</span><span class="s1">&#39;(&amp;(objectClass=group)(member=</span><span class="si">%(dn)s</span><span class="s1">))&#39;</span><span class="p">,</span>
+    <span class="n">groupName</span><span class="o">=</span><span class="s1">&#39;cn&#39;</span><span class="p">,</span>
+    <span class="n">avatarPattern</span><span class="o">=</span><span class="s1">&#39;(&amp;(objectClass=person)(mail=</span><span class="si">%(email)s</span><span class="s1">))&#39;</span><span class="p">,</span>
+    <span class="n">avatarData</span><span class="o">=</span><span class="s1">&#39;thumbnailPhoto&#39;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="n">PORT</span><span class="p">,</span> <span class="n">allowed_origins</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">],</span>
+                <span class="n">url</span><span class="o">=</span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;buildbotURL&#39;</span><span class="p">],</span>
+                <span class="n">auth</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">RemoteUserAuth</span><span class="p">(</span><span class="n">userInfoProvider</span><span class="o">=</span><span class="n">userInfoProvider</span><span class="p">),</span>
+                <span class="n">avatar_methods</span><span class="o">=</span><span class="p">[</span><span class="n">userInfoProvider</span><span class="p">,</span>
+                                <span class="n">util</span><span class="o">.</span><span class="n">AvatarGravatar</span><span class="p">()])</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>In order to use this module, you need to install the <code class="docutils literal notranslate"><span class="pre">ldap3</span></code> module:</p>
+<div class="last highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install ldap3
+</pre></div>
+</div>
+</div>
+<p>In the case of oauth2 authentications, you have to pass the userInfoProvider as keyword argument:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="k">import</span> <span class="n">util</span>
+<span class="n">userInfoProvider</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">LdapUserInfo</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># ...</span>
+    <span class="s1">&#39;auth&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">GoogleAuth</span><span class="p">(</span><span class="s2">&quot;clientid&quot;</span><span class="p">,</span> <span class="s2">&quot;clientsecret&quot;</span><span class="p">,</span> <span class="n">userInfoProvider</span><span class="o">=</span><span class="n">userInfoProvider</span><span class="p">),</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="reverse-proxy-configuration">
+<span id="reverse-proxy-config"></span><h2>2.5.13.4. Reverse Proxy Configuration<a class="headerlink" href="#reverse-proxy-configuration" title="Permalink to this headline">¶</a></h2>
+<p>It is usually better to put buildbot behind a reverse proxy in production.</p>
+<ul class="simple">
+<li>Provides automatic gzip compression</li>
+<li>Provides SSL support with a widely used implementation</li>
+<li>Provides support for http/2 or spdy for fast parallel REST api access from the browser</li>
+</ul>
+<p>Reverse proxy however might be problematic for websocket, you have to configure it specifically to pass web socket requests.
+Here is an nginx configuration that is known to work (nginx 1.6.2):</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>server {
+        # Enable SSL and http2
+        listen 443 ssl http2 default_server;
+
+        server_name yourdomain.com;
+
+        root html;
+        index index.html index.htm;
+
+        ssl on;
+        ssl_certificate /etc/nginx/ssl/server.cer;
+        ssl_certificate_key /etc/nginx/ssl/server.key;
+
+        # put a one day session timeout for websockets to stay longer
+        ssl_session_cache      shared:SSL:10m;
+        ssl_session_timeout  1440m;
+
+        # please consult latest nginx documentation for current secure encryption settings
+        ssl_protocols ..
+        ssl_ciphers ..
+        ssl_prefer_server_ciphers   on;
+        #
+
+        # force https
+        add_header Strict-Transport-Security &quot;max-age=31536000; includeSubdomains;&quot;;
+        spdy_headers_comp 5;
+
+        proxy_set_header HOST $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto  $scheme;
+        proxy_set_header X-Forwarded-Server  $host;
+        proxy_set_header X-Forwarded-Host  $host;
+
+        # you could use / if you use domain based proxy instead of path based proxy
+        location /buildbot/ {
+            proxy_pass http://127.0.0.1:5000/;
+        }
+        location /buildbot/sse/ {
+            # proxy buffering will prevent sse to work
+            proxy_buffering off;
+            proxy_pass http://127.0.0.1:5000/sse/;
+        }
+        # required for websocket
+        location /buildbot/ws {
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection &quot;upgrade&quot;;
+            proxy_pass http://127.0.0.1:5000/ws;
+            # raise the proxy timeout for the websocket
+            proxy_read_timeout 6000s;
+        }
+}
+</pre></div>
+</div>
+<p>To run with Apache2, you’ll need <a class="reference external" href="https://httpd.apache.org/docs/2.4/mod/mod_proxy_wstunnel.html">mod_proxy_wstunnel</a> in addition to <a class="reference external" href="https://httpd.apache.org/docs/2.4/mod/mod_proxy_http.html">mod_proxy_http</a>. Serving HTTPS (<a class="reference external" href="https://httpd.apache.org/docs/2.4/mod/mod_ssl.html">mod_ssl</a>) is advised to prevent issues with enterprise proxies (see <a class="reference internal" href="../../developer/www-server.html#sse"><span class="std std-ref">Server Sent Events</span></a>), even if you don’t need the encryption itself.</p>
+<p>Here is a configuration that is known to work (Apache 2.4.10 / Debian 8, Apache 2.4.25 / Debian 9, Apache 2.4.6 / CentOS 7), directly at the top of the domain.</p>
+<p>If you want to add access control directives, just put them in a
+<code class="docutils literal notranslate"><span class="pre">&lt;Location</span> <span class="pre">/&gt;</span></code>.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;VirtualHost *:443&gt;
+    ServerName buildbot.example
+    ServerAdmin webmaster@buildbot.example
+
+    # replace with actual port of your Buildbot master
+    ProxyPass /ws ws://127.0.0.1:8020/ws
+    ProxyPassReverse /ws ws://127.0.0.1:8020/ws
+    ProxyPass / http://127.0.0.1:8020/
+    ProxyPassReverse / http://127.0.0.1:8020/
+
+    SetEnvIf X-Url-Scheme https HTTPS=1
+    ProxyPreserveHost On
+
+    SSLEngine on
+    SSLCertificateFile /path/to/cert.pem
+    SSLCertificateKeyFile /path/to/cert.key
+
+    # check Apache2 documentation for current safe SSL settings
+    # This is actually the Debian 8 default at the time of this writing:
+    SSLProtocol all -SSLv3
+
+&lt;/VirtualHost&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="authorization-rules">
+<span id="web-authorization"></span><h2>2.5.13.5. Authorization rules<a class="headerlink" href="#authorization-rules" title="Permalink to this headline">¶</a></h2>
+<p>The authorization framework in Buildbot is very generic and flexible.
+Drawback is that it is not very obvious for newcomers.
+The ‘simple’ example will however allow you to easily start by implementing an admins-have-all-rights setup.</p>
+<p>Please carefully read the following documentation to understand how to setup authorization in Buildbot.</p>
+<p>Authorization framework is tightly coupled to the REST API.
+Authorization framework only works for HTTP, not for other means of interaction like IRC or try scheduler.
+It allows or denies access to the REST APIs according to rules.</p>
+<div><svg height="120" viewBox="0 0 1216 120" width="1216" xmlns="http://www.w3.org/2000/svg" xmlns:inkspace="http://www.inkscape.org/namespaces/inkscape" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs id="defs_block">
+    <filter height="1.504" id="filter_blur" inkspace:collect="always" width="1.1575" x="-0.07875" y="-0.252">
+      <feGaussianBlur id="feGaussianBlur3780" inkspace:collect="always" stdDeviation="4.2" />
+    </filter>
+  </defs>
+  <title>blockdiag</title>
+  <desc />
+  <polygon fill="rgb(0,0,0)" points="133,60 133,63 143,63 143,66 133,66 133,69 141,78 137,78 131,72 125,78 121,78 129,69 129,66 119,66 119,63 129,63 129,60" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <ellipse cx="131" cy="57" fill="rgb(0,0,0)" rx="4.0" ry="4.0" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="325,60 325,63 335,63 335,66 325,66 325,69 333,78 329,78 323,72 317,78 313,78 321,69 321,66 311,66 311,63 321,63 321,60" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <ellipse cx="323" cy="57" fill="rgb(0,0,0)" rx="4.0" ry="4.0" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="515,38 587,66 515,94 443,66 515,38" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <rect fill="rgb(0,0,0)" height="40" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" width="128" x="643" y="46" />
+  <polygon fill="rgb(0,0,0)" points="899,38 971,66 899,94 827,66 899,38" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <rect fill="rgb(0,0,0)" height="40" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" width="128" x="1027" y="46" />
+  <polygon fill="rgb(255,255,255)" points="130,54 130,57 140,57 140,60 130,60 130,63 138,72 134,72 128,66 122,72 118,72 126,63 126,60 116,60 116,57 126,57 126,54" stroke="rgb(0,0,0)" />
+  <ellipse cx="128" cy="51" fill="rgb(255,255,255)" rx="4.0" ry="4.0" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="24" x="128.0" y="85">User</text>
+  <polygon fill="rgb(255,255,255)" points="322,54 322,57 332,57 332,60 322,60 322,63 330,72 326,72 320,66 314,72 310,72 318,63 318,60 308,60 308,57 318,57 318,54" stroke="rgb(0,0,0)" />
+  <ellipse cx="320" cy="51" fill="rgb(255,255,255)" rx="4.0" ry="4.0" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="102" x="320.0" y="85">AuthenticatedUser</text>
+  <polygon fill="rgb(255,255,255)" points="512,32 584,60 512,88 440,60 512,32" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="66" x="512.0" y="66">RoleMatcher</text>
+  <rect fill="rgb(255,255,255)" height="40" stroke="rgb(0,0,0)" width="128" x="640" y="40" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="24" x="704.0" y="66">Role</text>
+  <polygon fill="rgb(255,255,255)" points="896,32 968,60 896,88 824,60 896,32" stroke="rgb(0,0,0)" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="72" x="896.0" y="59">EndpointMatc</text>
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="18" x="896.0" y="72">her</text>
+  <rect fill="rgb(255,255,255)" height="40" stroke="rgb(0,0,0)" width="128" x="1024" y="40" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="102" x="1088.0" y="66">REST API Endpoint</text>
+  <path d="M 140 60 L 300 60" fill="none" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(0,0,0)" points="307,60 300,56 300,64 307,60" stroke="rgb(0,0,0)" />
+  <path d="M 332 60 L 432 60" fill="none" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(0,0,0)" points="439,60 432,56 432,64 439,60" stroke="rgb(0,0,0)" />
+  <path d="M 584 60 L 632 60" fill="none" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(0,0,0)" points="639,60 632,56 632,64 639,60" stroke="rgb(0,0,0)" />
+  <path d="M 776 60 L 824 60" fill="none" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(0,0,0)" points="769,60 776,56 776,64 769,60" stroke="rgb(0,0,0)" />
+  <path d="M 976 60 L 1024 60" fill="none" stroke="rgb(0,0,0)" />
+  <polygon fill="rgb(0,0,0)" points="969,60 976,56 976,64 969,60" stroke="rgb(0,0,0)" />
+  <rect fill="white" height="15" stroke="rgb(0,0,0)" width="40" x="204" y="38" />
+  <text fill="rgb(0,0,0)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="24" x="224.0" y="51">Auth</text>
+</svg>
+</div>
+<ul>
+<li><p class="first">Roles is a label that you give to a user.</p>
+<p>It is similar but different to the usual notion of group:</p>
+<ul class="simple">
+<li>A user can have several roles, and a role can be given to several users.</li>
+<li>Role is an application specific notion, while group is more organization specific notion.</li>
+<li>Groups are given by the auth plugin, e.g <code class="docutils literal notranslate"><span class="pre">ldap</span></code>, <code class="docutils literal notranslate"><span class="pre">github</span></code>, and are not always in the precise control of the buildbot admins.</li>
+<li>Roles can be dynamically assigned, according to the context.
+For example, there is the <code class="docutils literal notranslate"><span class="pre">owner</span></code> role, which can be given to a user for a build that he is at the origin, so that he can stop or rebuild only builds of his own.</li>
+</ul>
+</li>
+<li><p class="first">Endpoint matchers associate role requirements to REST API endpoints.
+The default policy is allow in case no matcher matches (see below why)</p>
+</li>
+<li><p class="first">Role matchers associate authenticated users to roles.</p>
+</li>
+</ul>
+<div class="section" id="authz-configuration">
+<h3>Authz Configuration<a class="headerlink" href="#authz-configuration" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="buildbot.www.authz.Authz">
+<em class="property">class </em><code class="descclassname">buildbot.www.authz.</code><code class="descname">Authz</code><span class="sig-paren">(</span><em>allowRules=[]</em>, <em>roleMatcher=[]</em>, <em>stringsMatcher=util.fnmatchStrMatcher</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.www.authz.Authz" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>allowRules</strong> – List of <code class="xref py py-class docutils literal notranslate"><span class="pre">EndpointMatcherBase</span></code> processed in order for each endpoint grant request.</li>
+<li><strong>roleMatcher</strong> – List of RoleMatchers</li>
+<li><strong>stringsMatcher</strong> – Selects algorithm used to make strings comparison (used to compare roles and builder names).
+can be <code class="xref py py-class docutils literal notranslate"><span class="pre">util.fnmatchStrMatcher</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">util.reStrMatcher</span></code> from <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">buildbot.plugins</span> <span class="pre">import</span> <span class="pre">util</span></code></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">Authz</span></code> needs to be configured in <code class="docutils literal notranslate"><span class="pre">c['www']['authz']</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="endpoint-matchers">
+<h3>Endpoint matchers<a class="headerlink" href="#endpoint-matchers" title="Permalink to this headline">¶</a></h3>
+<p>Endpoint matchers are responsible for creating rules to match REST endpoints, and requiring roles for them.
+Endpoint matchers are processed in the order they are configured.
+The first rule matching an endpoint will prevent further rules from being checked.
+To continue checking other rules when the result is <cite>deny</cite>, set <cite>defaultDeny=False</cite>.
+If no endpoint matcher matches, then the access is granted.</p>
+<p>One can implement the default deny policy by putting an <code class="xref py py-class docutils literal notranslate"><span class="pre">AnyEndpointMatcher</span></code> with nonexistent role in the end of the list.
+Please note that this will deny all REST apis, and most of the UI do not implement proper access denied message in case of such error.</p>
+<p>The following sequence is implemented by each EndpointMatcher class.</p>
+<ul class="simple">
+<li>Check whether the requested endpoint is supported by this matcher</li>
+<li>Get necessary info from data api, and decides whether it matches.</li>
+<li>Look if the users has the required role.</li>
+</ul>
+<p>Several endpoints matchers are currently implemented.
+If you need a very complex setup, you may need to implement your own endpoint matchers.
+In this case, you can look at the source code for detailed examples on how to write endpoint matchers.</p>
+<dl class="class">
+<dt id="buildbot.www.authz.endpointmatchers.EndpointMatcherBase">
+<em class="property">class </em><code class="descclassname">buildbot.www.authz.endpointmatchers.</code><code class="descname">EndpointMatcherBase</code><span class="sig-paren">(</span><em>role</em>, <em>defaultDeny=True</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.www.authz.endpointmatchers.EndpointMatcherBase" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>role</strong> – The role which grants access to this endpoint.
+List of roles is not supported, but a <code class="docutils literal notranslate"><span class="pre">fnmatch</span></code> expression can be provided to match several roles.</li>
+<li><strong>defaultDeny</strong> – The role matcher algorithm will stop if this value is true, and if the endpoint matched.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This is the base endpoint matcher.
+Its arguments are inherited by all the other endpoint matchers.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.www.authz.endpointmatchers.AnyEndpointMatcher">
+<em class="property">class </em><code class="descclassname">buildbot.www.authz.endpointmatchers.</code><code class="descname">AnyEndpointMatcher</code><span class="sig-paren">(</span><em>role</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.www.authz.endpointmatchers.AnyEndpointMatcher" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>role</strong> – The role which grants access to any endpoint.</td>
+</tr>
+</tbody>
+</table>
+<p>AnyEndpointMatcher grants all rights to people with given role (usually “admins”)</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.www.authz.endpointmatchers.AnyControlEndpointMatcher">
+<em class="property">class </em><code class="descclassname">buildbot.www.authz.endpointmatchers.</code><code class="descname">AnyControlEndpointMatcher</code><span class="sig-paren">(</span><em>role</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.www.authz.endpointmatchers.AnyControlEndpointMatcher" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>role</strong> – The role which grants access to any control endpoint.</td>
+</tr>
+</tbody>
+</table>
+<p>AnyControlEndpointMatcher grants control rights to people with given role (usually “admins”)
+This endpoint matcher is matches current and future control endpoints.
+You need to add this in the end of your configuration to make sure it is future proof.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.www.authz.endpointmatchers.ForceBuildEndpointMatcher">
+<em class="property">class </em><code class="descclassname">buildbot.www.authz.endpointmatchers.</code><code class="descname">ForceBuildEndpointMatcher</code><span class="sig-paren">(</span><em>builder</em>, <em>role</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.www.authz.endpointmatchers.ForceBuildEndpointMatcher" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>builder</strong> – name of the builder.</li>
+<li><strong>role</strong> – The role needed to get access to such endpoints.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>ForceBuildEndpointMatcher grants right to force builds.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.www.authz.endpointmatchers.StopBuildEndpointMatcher">
+<em class="property">class </em><code class="descclassname">buildbot.www.authz.endpointmatchers.</code><code class="descname">StopBuildEndpointMatcher</code><span class="sig-paren">(</span><em>builder</em>, <em>role</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.www.authz.endpointmatchers.StopBuildEndpointMatcher" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>builder</strong> – name of the builder.</li>
+<li><strong>role</strong> – The role needed to get access to such endpoints.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>StopBuildEndpointMatcher grants rights to stop builds.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.www.authz.endpointmatchers.RebuildBuildEndpointMatcher">
+<em class="property">class </em><code class="descclassname">buildbot.www.authz.endpointmatchers.</code><code class="descname">RebuildBuildEndpointMatcher</code><span class="sig-paren">(</span><em>builder</em>, <em>role</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.www.authz.endpointmatchers.RebuildBuildEndpointMatcher" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>builder</strong> – name of the builder.</li>
+<li><strong>role</strong> – The role needed to get access to such endpoints.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>RebuildBuildEndpointMatcher grants rights to rebuild builds.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.www.authz.endpointmatchers.EnableSchedulerEndpointMatcher">
+<em class="property">class </em><code class="descclassname">buildbot.www.authz.endpointmatchers.</code><code class="descname">EnableSchedulerEndpointMatcher</code><span class="sig-paren">(</span><em>builder</em>, <em>role</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.www.authz.endpointmatchers.EnableSchedulerEndpointMatcher" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>builder</strong> – name of the builder.</li>
+<li><strong>role</strong> – The role needed to get access to such endpoints.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>EnableSchedulerEndpointMatcher grants rights to enable and disable schedulers via the UI.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="role-matchers">
+<h3>Role matchers<a class="headerlink" href="#role-matchers" title="Permalink to this headline">¶</a></h3>
+<p>Endpoint matchers are responsible for creating rules to match people and grant them roles.
+You can grant roles from groups information provided by the Auth plugins, or if you prefer directly to people’s email.</p>
+<dl class="class">
+<dt id="buildbot.www.authz.roles.RolesFromGroups">
+<em class="property">class </em><code class="descclassname">buildbot.www.authz.roles.</code><code class="descname">RolesFromGroups</code><span class="sig-paren">(</span><em>groupPrefix</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.www.authz.roles.RolesFromGroups" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>groupPrefix</strong> – prefix to remove from each group</td>
+</tr>
+</tbody>
+</table>
+<p>RolesFromGroups grants roles from the groups of the user.
+If a user has group <code class="docutils literal notranslate"><span class="pre">buildbot-admin</span></code>, and groupPrefix is <code class="docutils literal notranslate"><span class="pre">buildbot-</span></code>, then user will be granted the role ‘admin’</p>
+<p>ex:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">roleMatchers</span><span class="o">=</span><span class="p">[</span>
+  <span class="n">util</span><span class="o">.</span><span class="n">RolesFromGroups</span><span class="p">(</span><span class="n">groupPrefix</span><span class="o">=</span><span class="s2">&quot;buildbot-&quot;</span><span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.www.authz.roles.RolesFromEmails">
+<em class="property">class </em><code class="descclassname">buildbot.www.authz.roles.</code><code class="descname">RolesFromEmails</code><span class="sig-paren">(</span><em>roledict</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.www.authz.roles.RolesFromEmails" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>roledict</strong> – dictionary with key=role, and value=list of email strings</td>
+</tr>
+</tbody>
+</table>
+<p>RolesFromEmails grants roles to users according to the hardcoded emails.</p>
+<p>ex:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">roleMatchers</span><span class="o">=</span><span class="p">[</span>
+  <span class="n">util</span><span class="o">.</span><span class="n">RolesFromEmails</span><span class="p">(</span><span class="n">admins</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;my@email.com&quot;</span><span class="p">])</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.www.authz.roles.RolesFromDomain">
+<em class="property">class </em><code class="descclassname">buildbot.www.authz.roles.</code><code class="descname">RolesFromDomain</code><span class="sig-paren">(</span><em>roledict</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.www.authz.roles.RolesFromDomain" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>roledict</strong> – dictionary with key=role, and value=list of domain strings</td>
+</tr>
+</tbody>
+</table>
+<p>RolesFromDomain grants roles to users according to their email domains.
+If a user tried to login with email <code class="docutils literal notranslate"><span class="pre">foo&#64;gmail.com</span></code>, then user will be granted the role ‘admins’.</p>
+<p>ex:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">roleMatchers</span><span class="o">=</span><span class="p">[</span>
+  <span class="n">util</span><span class="o">.</span><span class="n">RolesFromDomain</span><span class="p">(</span><span class="n">admins</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;gmail.com&quot;</span><span class="p">])</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.www.authz.roles.RolesFromOwner">
+<em class="property">class </em><code class="descclassname">buildbot.www.authz.roles.</code><code class="descname">RolesFromOwner</code><span class="sig-paren">(</span><em>roledict</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.www.authz.roles.RolesFromOwner" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>roledict</strong> – dictionary with key=role, and value=list of email strings</td>
+</tr>
+</tbody>
+</table>
+<p>RolesFromOwner grants a given role when property owner matches the email of the user</p>
+<p>ex:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">roleMatchers</span><span class="o">=</span><span class="p">[</span>
+    <span class="n">RolesFromOwner</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s2">&quot;owner&quot;</span><span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="buildbot.www.authz.roles.RolesFromUsername">
+<em class="property">class </em><code class="descclassname">buildbot.www.authz.roles.</code><code class="descname">RolesFromUsername</code><span class="sig-paren">(</span><em>roles</em>, <em>usernames</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.www.authz.roles.RolesFromUsername" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>roles</strong> – roles to assign when the username matches.</li>
+<li><strong>usernames</strong> – list of usernames that have the roles.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>RolesFromUsername grants the given roles when the <code class="docutils literal notranslate"><span class="pre">username</span></code> property is within the list of usernames.</p>
+<p>ex:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">roleMatchers</span><span class="o">=</span><span class="p">[</span>
+    <span class="n">RolesFromUsername</span><span class="p">(</span><span class="n">roles</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;admins&quot;</span><span class="p">],</span> <span class="n">usernames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;root&quot;</span><span class="p">]),</span>
+    <span class="n">RolesFromUsername</span><span class="p">(</span><span class="n">roles</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;developers&quot;</span><span class="p">,</span> <span class="s2">&quot;integrators&quot;</span><span class="p">],</span> <span class="n">usernames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Alice&quot;</span><span class="p">,</span> <span class="s2">&quot;Bob&quot;</span><span class="p">])</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="example-configs">
+<h3>Example Configs<a class="headerlink" href="#example-configs" title="Permalink to this headline">¶</a></h3>
+<p>Simple config which allows admin people to control everything, but allow anonymous to look at build results:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="n">authz</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Authz</span><span class="p">(</span>
+  <span class="n">allowRules</span><span class="o">=</span><span class="p">[</span>
+    <span class="n">util</span><span class="o">.</span><span class="n">AnyControlEndpointMatcher</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s2">&quot;admins&quot;</span><span class="p">),</span>
+  <span class="p">],</span>
+  <span class="n">roleMatchers</span><span class="o">=</span><span class="p">[</span>
+    <span class="n">util</span><span class="o">.</span><span class="n">RolesFromEmails</span><span class="p">(</span><span class="n">admins</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;my@email.com&quot;</span><span class="p">])</span>
+  <span class="p">]</span>
+<span class="p">)</span>
+<span class="n">auth</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">UserPasswordAuth</span><span class="p">({</span><span class="s1">&#39;my@email.com&#39;</span><span class="p">:</span> <span class="s1">&#39;mypass&#39;</span><span class="p">})</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">][</span><span class="s1">&#39;auth&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">auth</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">][</span><span class="s1">&#39;authz&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">authz</span>
+</pre></div>
+</div>
+<p>More complex config with separation per branch:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">authz</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Authz</span><span class="p">(</span>
+    <span class="n">stringsMatcher</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">fnmatchStrMatcher</span><span class="p">,</span>  <span class="c1"># simple matcher with &#39;*&#39; glob character</span>
+    <span class="c1"># stringsMatcher = util.reStrMatcher,   # if you prefer regular expressions</span>
+    <span class="n">allowRules</span><span class="o">=</span><span class="p">[</span>
+        <span class="c1"># admins can do anything,</span>
+        <span class="c1"># defaultDeny=False: if user does not have the admin role, we continue parsing rules</span>
+        <span class="n">util</span><span class="o">.</span><span class="n">AnyEndpointMatcher</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s2">&quot;admins&quot;</span><span class="p">,</span> <span class="n">defaultDeny</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+
+        <span class="n">util</span><span class="o">.</span><span class="n">StopBuildEndpointMatcher</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s2">&quot;owner&quot;</span><span class="p">),</span>
+
+        <span class="c1"># *-try groups can start &quot;try&quot; builds</span>
+        <span class="n">util</span><span class="o">.</span><span class="n">ForceBuildEndpointMatcher</span><span class="p">(</span><span class="n">builder</span><span class="o">=</span><span class="s2">&quot;try&quot;</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="s2">&quot;*-try&quot;</span><span class="p">),</span>
+        <span class="c1"># *-mergers groups can start &quot;merge&quot; builds</span>
+        <span class="n">util</span><span class="o">.</span><span class="n">ForceBuildEndpointMatcher</span><span class="p">(</span><span class="n">builder</span><span class="o">=</span><span class="s2">&quot;merge&quot;</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="s2">&quot;*-mergers&quot;</span><span class="p">),</span>
+        <span class="c1"># *-releasers groups can start &quot;release&quot; builds</span>
+        <span class="n">util</span><span class="o">.</span><span class="n">ForceBuildEndpointMatcher</span><span class="p">(</span><span class="n">builder</span><span class="o">=</span><span class="s2">&quot;release&quot;</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="s2">&quot;*-releasers&quot;</span><span class="p">),</span>
+        <span class="c1"># if future Buildbot implement new control, we are safe with this last rule</span>
+        <span class="n">util</span><span class="o">.</span><span class="n">AnyControlEndpointMatcher</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s2">&quot;admins&quot;</span><span class="p">)</span>
+    <span class="p">],</span>
+    <span class="n">roleMatchers</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">RolesFromGroups</span><span class="p">(</span><span class="n">groupPrefix</span><span class="o">=</span><span class="s2">&quot;buildbot-&quot;</span><span class="p">),</span>
+        <span class="n">RolesFromEmails</span><span class="p">(</span><span class="n">admins</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;homer@springfieldplant.com&quot;</span><span class="p">],</span>
+                        <span class="n">reaper</span><span class="o">-</span><span class="k">try</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;007@mi6.uk&quot;</span><span class="p">]),</span>
+        <span class="c1"># role owner is granted when property owner matches the email of the user</span>
+        <span class="n">RolesFromOwner</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s2">&quot;owner&quot;</span><span class="p">)</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">][</span><span class="s1">&#39;authz&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">authz</span>
+</pre></div>
+</div>
+<p>Using GitHub authentication and allowing access to control endpoints for users in the “Buildbot” organization:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="n">authz</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Authz</span><span class="p">(</span>
+  <span class="n">allowRules</span><span class="o">=</span><span class="p">[</span>
+    <span class="n">util</span><span class="o">.</span><span class="n">AnyControlEndpointMatcher</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s2">&quot;BuildBot&quot;</span><span class="p">)</span>
+  <span class="p">],</span>
+  <span class="n">roleMatchers</span><span class="o">=</span><span class="p">[</span>
+    <span class="n">util</span><span class="o">.</span><span class="n">RolesFromGroups</span><span class="p">()</span>
+  <span class="p">]</span>
+<span class="p">)</span>
+<span class="n">auth</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">GitHubAuth</span><span class="p">(</span><span class="s1">&#39;CLIENT_ID&#39;</span><span class="p">,</span> <span class="s1">&#39;CLIENT_SECRET&#39;</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">][</span><span class="s1">&#39;auth&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">auth</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">][</span><span class="s1">&#39;authz&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">authz</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/full_logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script><h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../secretsmanagement.html">2.4. Secret Management</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">2.5. Configuration</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="intro.html">2.5.1. Configuring Buildbot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="global.html">2.5.2. Global Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changesources.html">2.5.3. Change Sources and Changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changesources.html#changes">2.5.4. Changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="schedulers.html">2.5.5. Schedulers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workers.html">2.5.6. Workers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="builders.html">2.5.7. Builder Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="buildfactories.html">2.5.8. Build Factories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="properties.html">2.5.9. Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="buildsteps.html">2.5.10. Build Steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="interlocks.html">2.5.11. Interlocks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reporters.html">2.5.12. Reporters</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">2.5.13. Web Server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wwwhooks.html">2.5.14. Change Hooks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="services.html">2.5.15. Custom Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dbconfig.html">2.5.16. DbConfig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configurators.html">2.5.17. Configurators</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../customization.html">2.6. Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cmdline.html">2.7. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../resources.html">2.8. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../optimization.html">2.9. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins.html">2.10. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../deploy.html">2.11. Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../upgrading/index.html">2.12. Upgrading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../indices.html">6. Indices and Tables</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="reporters.html"
+                        title="previous chapter">2.5.12. Reporters</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="wwwhooks.html"
+                        title="next chapter">2.5.14. Change Hooks</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/manual/configuration/www.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>
