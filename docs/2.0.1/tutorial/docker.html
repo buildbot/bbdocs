@@ -1,0 +1,230 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>1.2. First Buildbot run with Docker &#8212; Buildbot 2.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/qtile.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="shortcut icon" href="../_static/icon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="1.3. A Quick Tour" href="tour.html" />
+    <link rel="prev" title="1.1. First Run" href="firstrun.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tour.html" title="1.3. A Quick Tour"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="firstrun.html" title="1.1. First Run"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Buildbot 2.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">1. Buildbot Tutorial</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="admonition caution">
+<p class="first admonition-title">Caution</p>
+<p class="last">Buildbot is deprecating Python 2.7.
+This is one of the last releases supporting it on the buildmaster.
+<a class="reference external" href="https://github.com/buildbot/buildbot/issues/4439">More info</a>.</p>
+</div>
+<div class="section" id="first-buildbot-run-with-docker">
+<span id="first-run-docker-label"></span><h1>1.2. First Buildbot run with Docker<a class="headerlink" href="#first-buildbot-run-with-docker" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Docker can be tricky to get working correctly if you haven’t used it before.
+If you’re having trouble, first determine whether it is a Buildbot issue or a Docker issue by running:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker run ubuntu:12.04 apt-get update
+</pre></div>
+</div>
+<p class="last">If that fails, look for help with your Docker install.
+On the other hand, if that succeeds, then you may have better luck getting help from members of the Buildbot community.</p>
+</div>
+<p><a class="reference external" href="https://www.docker.com">Docker</a> is a tool that makes building and deploying custom environments a breeze.
+It uses lightweight linux containers (LXC) and performs quickly, making it a great instrument for the testing community.
+The next section includes a Docker pre-flight check.
+If it takes more that 3 minutes to get the ‘Success’ message for you, try the Buildbot pip-based <a class="reference internal" href="firstrun.html#getting-code-label"><span class="std std-ref">first run</span></a> instead.</p>
+<div class="section" id="current-docker-dependencies">
+<h2>1.2.1. Current Docker dependencies<a class="headerlink" href="#current-docker-dependencies" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Linux system, with at least kernel 3.8 and AUFS support.
+For example, Standard Ubuntu, Debian and Arch systems.</li>
+<li>Packages: lxc, iptables, ca-certificates, and bzip2 packages.</li>
+<li>Local clock on time or slightly in the future for proper SSL communication.</li>
+<li>This tutorial uses docker-compose to run a master, a worker, and a postgresql database server</li>
+</ul>
+</div>
+<div class="section" id="installation">
+<h2>1.2.2. Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">Use the <a class="reference external" href="https://docs.docker.com/engine/installation/">Docker installation instructions</a> for your operating system.</p>
+</li>
+<li><p class="first">Make sure you install docker-compose.
+As root or inside a virtualenv, run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install docker-compose
+</pre></div>
+</div>
+</li>
+<li><p class="first">Test docker is happy in your environment:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo docker run -i busybox /bin/echo Success
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="building-and-running-buildbot">
+<h2>1.2.3. Building and running Buildbot<a class="headerlink" href="#building-and-running-buildbot" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># clone the example repository</span>
+git clone --depth <span class="m">1</span> https://github.com/buildbot/buildbot-docker-example-config
+
+<span class="c1"># Build the Buildbot container (it will take a few minutes to download packages)</span>
+<span class="nb">cd</span> buildbot-docker-example-config/simple
+docker-compose up
+</pre></div>
+</div>
+<p>You should now be able to go to <a class="reference external" href="http://localhost:8010">http://localhost:8010</a> and see a web page similar to:</p>
+<img alt="index page" src="../_images/index.png" />
+<p>Click on “Builds” at the left to open the submenu and then <a class="reference external" href="http://localhost:8010/#/builders">Builders</a> to see that the worker you just started has connected to the master:</p>
+<img alt="builder runtests is active." src="../_images/builders.png" />
+</div>
+<div class="section" id="overview-of-the-docker-compose-configuration">
+<h2>1.2.4. Overview of the docker-compose configuration<a class="headerlink" href="#overview-of-the-docker-compose-configuration" title="Permalink to this headline">¶</a></h2>
+<p>This docker-compose configuration is made as a basis for what you would put in production</p>
+<ul class="simple">
+<li>Separated containers for each component</li>
+<li>A solid database backend with postgresql</li>
+<li>A buildbot master that exposes its configuration to the docker host</li>
+<li>A buildbot worker that can be cloned in order to add additional power</li>
+<li>Containers are linked together so that the only port exposed to external is the web server</li>
+<li>The default master container is based on Alpine linux for minimal footprint</li>
+<li>The default worker container is based on more widely known Ubuntu distribution, as this is the container you want to customize.</li>
+<li>Download the config from a tarball accessible via a web server</li>
+</ul>
+</div>
+<div class="section" id="playing-with-your-buildbot-containers">
+<h2>1.2.5. Playing with your Buildbot containers<a class="headerlink" href="#playing-with-your-buildbot-containers" title="Permalink to this headline">¶</a></h2>
+<p>If you’ve come this far, you have a Buildbot environment that you can freely experiment with.</p>
+<p>In order to modify the configuration, you need to fork the project on github <a class="reference external" href="https://github.com/buildbot/buildbot-docker-example-config">https://github.com/buildbot/buildbot-docker-example-config</a>
+Then you can clone your own fork, and start the docker-compose again.</p>
+<p>To modify your config, edit the master.cfg file, commit your changes, and push to your fork.
+You can use the command buildbot check-config in order to make sure the config is valid before the push.
+You will need to change <code class="docutils literal notranslate"><span class="pre">docker-compose.yml</span></code> the variable <code class="docutils literal notranslate"><span class="pre">BUILDBOT_CONFIG_URL</span></code> in order to point to your github fork.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">BUILDBOT_CONFIG_URL</span></code> may point to a <code class="docutils literal notranslate"><span class="pre">.tar.gz</span></code> file accessible from HTTP.
+Several git servers like github can generate that tarball automatically from the master branch of a git repository
+If the <code class="docutils literal notranslate"><span class="pre">BUILDBOT_CONFIG_URL</span></code> does not end with <code class="docutils literal notranslate"><span class="pre">.tar.gz</span></code>, it is considered to be the URL to a <code class="docutils literal notranslate"><span class="pre">master.cfg</span></code> file accessible from HTTP.</p>
+</div>
+<div class="section" id="customize-your-worker-container">
+<h2>1.2.6. Customize your Worker container<a class="headerlink" href="#customize-your-worker-container" title="Permalink to this headline">¶</a></h2>
+<p>It is advised to customize you worker container in order to suit your project’s build dependencies and need.
+An example DockerFile is available which the buildbot community uses for its own CI purposes:</p>
+<p><a class="reference external" href="https://github.com/buildbot/metabbotcfg/blob/nine/docker/metaworker/Dockerfile">https://github.com/buildbot/metabbotcfg/blob/nine/docker/metaworker/Dockerfile</a></p>
+</div>
+<div class="section" id="multi-master">
+<h2>1.2.7. Multi-master<a class="headerlink" href="#multi-master" title="Permalink to this headline">¶</a></h2>
+<p>A multi-master environment can be setup using the <code class="docutils literal notranslate"><span class="pre">multimaster/docker-compose.yml</span></code> file in the example repository</p>
+<blockquote>
+<div># Build the Buildbot container (it will take a few minutes to download packages)
+cd buildbot-docker-example-config/simple
+docker-compose up -d
+docker-compose scale buildbot=4</div></blockquote>
+</div>
+<div class="section" id="going-forward">
+<h2>1.2.8. Going forward<a class="headerlink" href="#going-forward" title="Permalink to this headline">¶</a></h2>
+<p>You’ve got a taste now, but you’re probably curious for more.
+Let’s step it up a little in the second tutorial by changing the configuration and doing an actual build.
+Continue on to <a class="reference internal" href="tour.html#quick-tour-label"><span class="std std-ref">A Quick Tour</span></a>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/full_logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script><h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">1. Buildbot Tutorial</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="firstrun.html">1.1. First Run</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">1.2. First Buildbot run with Docker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tour.html">1.3. A Quick Tour</a></li>
+<li class="toctree-l2"><a class="reference internal" href="further.html">1.4. Further Reading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/index.html">2. Buildbot Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../indices.html">6. Indices and Tables</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="firstrun.html"
+                        title="previous chapter">1.1. First Run</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="tour.html"
+                        title="next chapter">1.3. A Quick Tour</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/tutorial/docker.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>
