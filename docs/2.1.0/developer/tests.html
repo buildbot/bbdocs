@@ -1,0 +1,573 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>3.2.4. Buildbot’s Test Suite &#8212; Buildbot 2.1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/qtile.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="shortcut icon" href="../_static/icon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="3.2.5. Configuration" href="config.html" />
+    <link rel="prev" title="3.2.3. CoffeeScript Coding Style" href="coffeescript-style.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="config.html" title="3.2.5. Configuration"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="coffeescript-style.html" title="3.2.3. CoffeeScript Coding Style"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Buildbot 2.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >3. Buildbot Development</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="general.html" accesskey="U">3.2. General Documents</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="admonition caution">
+<p class="first admonition-title">Caution</p>
+<p class="last">Buildbot no longer supports Python 2.7 on the Buildbot master.</p>
+</div>
+<div class="section" id="buildbot-s-test-suite">
+<h1>3.2.4. Buildbot’s Test Suite<a class="headerlink" href="#buildbot-s-test-suite" title="Permalink to this headline">¶</a></h1>
+<p>Buildbot’s master tests are under <code class="docutils literal notranslate"><span class="pre">buildbot.test</span></code>, <code class="docutils literal notranslate"><span class="pre">buildbot-worker</span></code> package tests are under <code class="docutils literal notranslate"><span class="pre">buildbot_worker.test</span></code>.
+Tests for the workers are similar to the master, although in some cases helpful functionality on the master is not re-implemented on the worker.</p>
+<div class="section" id="quick-start">
+<h2>3.2.4.1. Quick-Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h2>
+<p>Buildbot uses Twisted <a class="reference external" href="http://twistedmatrix.com/trac/wiki/TwistedTrial">trial</a> to run its test suite.
+Following is a quick shell session to put you on the right track.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># the usual buildbot development bootstrap with git and virtualenv</span>
+git clone https://github.com/buildbot/buildbot
+<span class="nb">cd</span> buildbot
+
+<span class="c1"># helper script which creates the virtualenv for development</span>
+make virtualenv
+. .venv/bin/activate
+
+<span class="c1"># now we run the test suite</span>
+trial buildbot
+
+<span class="c1"># find all tests that talk about mail</span>
+trial -n --reporter<span class="o">=</span>bwverbose buildbot <span class="p">|</span> grep mail
+
+<span class="c1"># run only one test module</span>
+trial buildbot.test.unit.test_reporters_mail
+</pre></div>
+</div>
+</div>
+<div class="section" id="suites">
+<h2>3.2.4.2. Suites<a class="headerlink" href="#suites" title="Permalink to this headline">¶</a></h2>
+<p>Tests are divided into a few suites:</p>
+<ul class="simple">
+<li>Unit tests (<code class="docutils literal notranslate"><span class="pre">buildbot.test.unit</span></code>) - these follow unit-testing practices and
+attempt to maximally isolate the system under test.  Unit tests are the main
+mechanism of achieving test coverage, and all new code should be well-covered
+by corresponding unit tests.<ul>
+<li>Interface tests are a special type of unit tests, and are found in the same directory and often the same file.
+In many cases, Buildbot has multiple implementations of the same interface – at least one “real” implementation and a fake implementation used in unit testing.
+The interface tests ensure that these implementations all meet the same standards.
+This ensures consistency between implementations, and also ensures that the unit tests are testing against realistic fakes.</li>
+</ul>
+</li>
+<li>Integration tests (<code class="docutils literal notranslate"><span class="pre">buildbot.test.integration</span></code>) - these test combinations
+of multiple units.  Of necessity, integration tests are incomplete - they
+cannot test every condition; difficult to maintain - they tend to be complex
+and touch a lot of code; and slow - they usually require considerable setup
+and execute a lot of code.  As such, use of integration tests is limited to a
+few, broad tests to act as a failsafe for the unit and interface tests.</li>
+<li>Regression tests (<code class="docutils literal notranslate"><span class="pre">buildbot.test.regressions</span></code>) - these test to prevent
+re-occurrence of historical bugs.  In most cases, a regression is better
+tested by a test in the other suites, or unlike to recur, so this suite tends
+to be small.</li>
+<li>Fuzz tests (<code class="docutils literal notranslate"><span class="pre">buildbot.test.fuzz</span></code>) - these tests run for a long time and
+apply randomization to try to reproduce rare or unusual failures.  The
+Buildbot project does not currently have a framework to run fuzz tests
+regularly.</li>
+</ul>
+<div class="section" id="unit-tests">
+<h3>Unit Tests<a class="headerlink" href="#unit-tests" title="Permalink to this headline">¶</a></h3>
+<p>Every code module should have corresponding unit tests.  This is not currently
+true of Buildbot, due to a large body of legacy code, but is a goal of the
+project.  All new code must meet this requirement.</p>
+<p>Unit test modules are be named after the package or class they test, replacing
+<code class="docutils literal notranslate"><span class="pre">.</span></code> with <code class="docutils literal notranslate"><span class="pre">_</span></code> and omitting the <code class="docutils literal notranslate"><span class="pre">buildbot_</span></code>. For example,
+<a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/test/unit/test_schedulers_timed_Periodic.py">test_schedulers_timed_Periodic.py</a>
+tests the <code class="xref py py-class docutils literal notranslate"><span class="pre">Periodic</span></code> class in
+<a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/schedulers/timed.py">master/buildbot/schedulers/timed.py</a>. Modules with only one class, or a few
+trivial classes, can be tested in a single test module. For more complex
+situations, prefer to use multiple test modules.</p>
+<p>Unit tests using renderables require special handling. The following example
+shows how the same test would be written with the ‘param’ parameter and with the
+same parameter as a renderable.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">test_param</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ConcreteClass</span><span class="p">(</span><span class="n">param</span><span class="o">=</span><span class="s1">&#39;val&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">param</span><span class="p">,</span> <span class="s1">&#39;val&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When the parameter is renderable, you need to instantiate the Class before you
+can you renderables:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">build</span> <span class="o">=</span> <span class="n">Properties</span><span class="p">(</span><span class="n">paramVal</span><span class="o">=</span><span class="s1">&#39;val&#39;</span><span class="p">)</span>
+
+<span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">test_param_renderable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ConcreteClass</span><span class="p">(</span><span class="n">param</span><span class="o">=</span><span class="n">Interpolate</span><span class="p">(</span><span class="s1">&#39;%(kw:rendered_val)s&#39;</span><span class="p">,</span>
+                           <span class="n">rendered_val</span><span class="o">=</span><span class="n">Property</span><span class="p">(</span><span class="s1">&#39;paramVal&#39;</span><span class="p">))</span>
+    <span class="k">yield</span> <span class="n">f</span><span class="o">.</span><span class="n">start_instance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">param</span><span class="p">,</span> <span class="s1">&#39;val&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="interface-tests">
+<h3>Interface Tests<a class="headerlink" href="#interface-tests" title="Permalink to this headline">¶</a></h3>
+<p>Interface tests exist to verify that multiple implementations of an interface
+meet the same requirements.  Note that the name ‘interface’ should not be
+confused with the sparse use of Zope Interfaces in the Buildbot code – in this
+context, an interface is any boundary between testable units.</p>
+<p>Ideally, all interfaces, both public and private, should be tested.  Certainly,
+any <em>public</em> interfaces need interface tests.</p>
+<p>Interface tests are most often found in files named for the “real” implementation, e.g., <a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/test/unit/test_db_changes.py">test_db_changes.py</a>.
+When there is ambiguity, test modules should be named after the interface they are testing.
+Interface tests have the following form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.test.util</span> <span class="k">import</span> <span class="n">interfaces</span>
+<span class="kn">from</span> <span class="nn">twistd.trial</span> <span class="k">import</span> <span class="n">unittest</span>
+
+<span class="k">class</span> <span class="nc">Tests</span><span class="p">(</span><span class="n">interfaces</span><span class="o">.</span><span class="n">InterfaceTests</span><span class="p">):</span>
+
+    <span class="c1"># define methods that must be overridden per implementation</span>
+    <span class="k">def</span> <span class="nf">someSetupMethod</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="c1"># method signature tests</span>
+    <span class="k">def</span> <span class="nf">test_signature_someMethod</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nd">@self</span><span class="o">.</span><span class="n">assertArgSpecMatches</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">systemUnderTest</span><span class="o">.</span><span class="n">someMethod</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">someMethod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">):</span>
+            <span class="k">pass</span>
+
+    <span class="c1"># tests that all implementations must pass</span>
+    <span class="k">def</span> <span class="nf">test_something</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span> <span class="c1"># ...</span>
+
+<span class="k">class</span> <span class="nc">RealTests</span><span class="p">(</span><span class="n">Tests</span><span class="p">):</span>
+
+    <span class="c1"># tests that only *real* implementations must pass</span>
+    <span class="k">def</span> <span class="nf">test_something_else</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span> <span class="c1"># ...</span>
+</pre></div>
+</div>
+<p>All of the test methods are defined here, segregated into tests that all implementations must pass, and tests that the fake implementation is not expected to pass.
+The <code class="docutils literal notranslate"><span class="pre">test_signature_someMethod</span></code> test above illustrates the <code class="xref py py-func docutils literal notranslate"><span class="pre">buildbot.test.util.interfaces.assertArgSpecMatches</span></code> decorator, which can be used to compare the argument specification of a callable with a reference signature conveniently written as a nested function.
+Wherever possible, prefer to add tests to the <code class="docutils literal notranslate"><span class="pre">Tests</span></code> class, even if this means testing one method (e.g,. <code class="docutils literal notranslate"><span class="pre">setFoo</span></code>) in terms of another (e.g., <code class="docutils literal notranslate"><span class="pre">getFoo</span></code>).</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">assertArgSpecMatches</span></code> method can take multiple methods to test; it will check each one in turn.</p>
+<p>At the bottom of the test module, a subclass is created for each implementation, implementing the setup methods that were stubbed out in the parent classes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">TestFakeThing</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">,</span> <span class="n">Tests</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">someSetupMethod</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span> <span class="c1"># ...</span>
+
+<span class="k">class</span> <span class="nc">TestRealThing</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">,</span> <span class="n">RealTests</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">someSetupMethod</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span> <span class="c1"># ...</span>
+</pre></div>
+</div>
+<p>For implementations which require optional software, such as an AMQP server, this is the appropriate place to signal that tests should be skipped when their prerequisites are not available.</p>
+</div>
+<div class="section" id="integration-tests">
+<h3>Integration Tests<a class="headerlink" href="#integration-tests" title="Permalink to this headline">¶</a></h3>
+<p>Integration test modules test several units at once, including their
+interactions.  In general, they serve as a catch-all for failures and bugs that
+were not detected by the unit and interface tests.  As such, they should not
+aim to be exhaustive, but merely representative.</p>
+<p>Integration tests are very difficult to maintain if they reach into the
+internals of any part of Buildbot.  Where possible, try to use the same means
+as a user would to set up, run, and check the results of an integration test.
+That may mean writing a <code class="file docutils literal notranslate"><span class="pre">master.cfg</span></code> to be parsed, and checking the
+results by examining the database (or fake DB API) afterward.</p>
+</div>
+<div class="section" id="regression-tests">
+<h3>Regression Tests<a class="headerlink" href="#regression-tests" title="Permalink to this headline">¶</a></h3>
+<p>Regression tests are even more rare in Buildbot than integration tests.  In
+many cases, a regression test is not necessary – either the test is
+better-suited as a unit or interface test, or the failure is so specific that a
+test will never fail again.</p>
+<p>Regression tests tend to be closely tied to the code in which the error
+occurred.  When that code is refactored, the regression test generally becomes
+obsolete, and is deleted.</p>
+</div>
+<div class="section" id="fuzz-tests">
+<h3>Fuzz Tests<a class="headerlink" href="#fuzz-tests" title="Permalink to this headline">¶</a></h3>
+<p>Fuzz tests generally run for a fixed amount of time, running randomized tests
+against a system.  They do not run at all during normal runs of the Buildbot
+tests, unless <code class="docutils literal notranslate"><span class="pre">BUILDBOT_FUZZ</span></code> is defined. This is accomplished with something
+like the following at the end of each test module:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="s1">&#39;BUILDBOT_FUZZ&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+    <span class="k">del</span> <span class="n">LRUCacheFuzzer</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="mixins">
+<h2>3.2.4.3. Mixins<a class="headerlink" href="#mixins" title="Permalink to this headline">¶</a></h2>
+<p>Buildbot provides a number of purpose-specific mixin classes in <a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/util">master/buildbot/util</a>.
+These generally define a set of utility functions as well as <code class="docutils literal notranslate"><span class="pre">setUpXxx</span></code> and <code class="docutils literal notranslate"><span class="pre">tearDownXxx</span></code> methods.
+These methods should be called explicitly from your subclass’s <code class="docutils literal notranslate"><span class="pre">setUp</span></code> and <code class="docutils literal notranslate"><span class="pre">tearDown</span></code> methods.
+Note that some of these methods return Deferreds, which should be handled properly by the caller.</p>
+</div>
+<div class="section" id="fakes">
+<span id="id1"></span><h2>3.2.4.4. Fakes<a class="headerlink" href="#fakes" title="Permalink to this headline">¶</a></h2>
+<p>Buildbot provides a number of pre-defined fake implementations of internal interfaces, in <a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/test/fake">master/buildbot/test/fake</a>.
+These are designed to be used in unit tests to limit the scope of the test.
+For example, the fake DB API eliminates the need to create a real database when testing code that uses the DB API, and isolates bugs in the system under test from bugs in the real DB implementation.</p>
+<p>The danger of using fakes is that the fake interface and the real interface can
+differ.  The interface tests exist to solve this problem.  All fakes should be
+fully tested in an integration test, so that the fakes pass the same tests as
+the “real” thing.  It is particularly important that the method signatures be
+compared.</p>
+</div>
+<div class="section" id="type-validation">
+<h2>3.2.4.5. Type Validation<a class="headerlink" href="#type-validation" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/test/util/validation.py">master/buildbot/test/util/validation.py</a> provides a set of classes and definitions for validating Buildbot data types.
+It supports four types of data:</p>
+<blockquote>
+<div><ul class="simple">
+<li>DB API dictionaries, as returned from the <code class="docutils literal notranslate"><span class="pre">getXxx</span></code> methods,</li>
+<li>Data API dictionaries, as returned from <code class="docutils literal notranslate"><span class="pre">get</span></code>,</li>
+<li>Data API messages, and</li>
+<li>Simple data types.</li>
+</ul>
+</div></blockquote>
+<p>These are validated from elsewhere in the codebase with calls to</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">verifyDbDict(testcase,</span> <span class="pre">type,</span> <span class="pre">value)</span></code>,</li>
+<li><code class="docutils literal notranslate"><span class="pre">verifyData(testcase,</span> <span class="pre">type,</span> <span class="pre">options,</span> <span class="pre">value)</span></code>,</li>
+<li><code class="docutils literal notranslate"><span class="pre">verifyMessage(testcase,</span> <span class="pre">routingKey,</span> <span class="pre">message)</span></code>, and</li>
+<li><code class="docutils literal notranslate"><span class="pre">verifyType(testcase,</span> <span class="pre">name,</span> <span class="pre">value,</span> <span class="pre">validator)</span></code>.</li>
+</ul>
+</div></blockquote>
+<p>respectively.
+The <code class="docutils literal notranslate"><span class="pre">testcase</span></code> argument is used to fail the test case if the validation does not succeed.
+For DB dictionaries and data dictionaries, the <code class="docutils literal notranslate"><span class="pre">type</span></code> identifies the expected data type.
+For messages, the type is determined from the first element of the routing key.</p>
+<p>All messages sent with the fake MQ implementation are automatically validated using <code class="docutils literal notranslate"><span class="pre">verifyMessage</span></code>.
+The <code class="docutils literal notranslate"><span class="pre">verifyType</span></code> method is used to validate simple types, e.g.,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">validation</span><span class="o">.</span><span class="n">verifyType</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;param1&#39;</span><span class="p">,</span> <span class="n">param1</span><span class="p">,</span> <span class="n">validation</span><span class="o">.</span><span class="n">StringValidator</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>In any case, if <code class="docutils literal notranslate"><span class="pre">testcase</span></code> is None, then the functions will raise an <code class="xref py py-exc docutils literal notranslate"><span class="pre">AssertionError</span></code> on failure.</p>
+<div class="section" id="validator-classes">
+<h3>Validator Classes<a class="headerlink" href="#validator-classes" title="Permalink to this headline">¶</a></h3>
+<p>A validator is an instance of the <code class="docutils literal notranslate"><span class="pre">Validator</span></code> class.
+Its <code class="docutils literal notranslate"><span class="pre">validate</span></code> method is a generator function that takes a name and an object to validate.
+It yields error messages describing any deviations of <code class="docutils literal notranslate"><span class="pre">object</span></code> from the designated data type.
+The <code class="docutils literal notranslate"><span class="pre">name</span></code> argument is used to make such messages more helpful.</p>
+<p>A number of validators are supplied for basic types.
+A few classes deserve special mention:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">NoneOk</span></code> wraps another validator, allowing the object to be None.</li>
+<li><code class="docutils literal notranslate"><span class="pre">Any</span></code> will match any object without error.</li>
+<li><code class="docutils literal notranslate"><span class="pre">IdentifierValidator</span></code> will match identifiers; see <a class="reference internal" href="database.html#type-identifier"><span class="std std-ref">identifier</span></a>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">DictValidator</span></code> takes key names as keyword arguments, with the values giving validators for each key.
+The <code class="docutils literal notranslate"><span class="pre">optionalNames</span></code> argument is a list of keys which may be omitted without error.</li>
+<li><code class="docutils literal notranslate"><span class="pre">SourcedPropertiesValidator</span></code> matches dictionaries with (value, source) keys, the representation used for properties in the data API.</li>
+<li><code class="docutils literal notranslate"><span class="pre">MessageValidator</span></code> validates messages.
+It checks that the routing key is a tuple of strings.
+The first tuple element gives the message type.
+The last tuple element is the event, and must be a member of the <code class="docutils literal notranslate"><span class="pre">events</span></code> set.
+The remaining “middle” tuple elements must match the message values identified by <code class="docutils literal notranslate"><span class="pre">keyFields</span></code>.
+The <code class="docutils literal notranslate"><span class="pre">messageValidator</span></code> should be a <code class="docutils literal notranslate"><span class="pre">DictValidator</span></code> configured to check the message body.
+This validator’s <code class="docutils literal notranslate"><span class="pre">validate</span></code> method is called with a tuple <code class="docutils literal notranslate"><span class="pre">(routingKey,</span> <span class="pre">message)</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">Selector</span></code> allows different validators to be selected based on matching functions.
+Its <code class="docutils literal notranslate"><span class="pre">add</span></code> method takes a matching function, which should return a boolean, and a validator to use if the matching function returns true.
+If the matching function is None, it is used as a default.
+This class is used for message and data validation.</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="defining-validators">
+<h3>Defining Validators<a class="headerlink" href="#defining-validators" title="Permalink to this headline">¶</a></h3>
+<p>DB validators are defined in the <code class="docutils literal notranslate"><span class="pre">dbdict</span></code> dictionary, e.g.,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dbdict</span><span class="p">[</span><span class="s1">&#39;foodict&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DictValidator</span><span class="p">(</span>
+    <span class="nb">id</span><span class="o">=</span><span class="n">IntValidator</span><span class="p">(),</span>
+    <span class="n">name</span><span class="o">=</span><span class="n">StringValidator</span><span class="p">(),</span>
+    <span class="o">...</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Data validators are <code class="docutils literal notranslate"><span class="pre">Selector</span></code> validators, where the selector is the <code class="docutils literal notranslate"><span class="pre">options</span></code> passed to <code class="docutils literal notranslate"><span class="pre">verifyData</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;foo&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Selector</span><span class="p">()</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;foo&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="k">lambda</span> <span class="n">opts</span> <span class="p">:</span> <span class="n">opt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fanciness&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="n">DictValidator</span><span class="p">(</span>
+        <span class="n">fooid</span><span class="o">=</span><span class="n">IntValidator</span><span class="p">(),</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">StringValidator</span><span class="p">(),</span>
+        <span class="o">...</span>
+<span class="p">))</span>
+</pre></div>
+</div>
+<p>Similarly, message validators are <code class="docutils literal notranslate"><span class="pre">Selector</span></code> validators, where the selector is the routing key.
+The underlying validator should be a <code class="docutils literal notranslate"><span class="pre">MessageValidator</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">message</span><span class="p">[</span><span class="s1">&#39;foo&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Selector</span><span class="p">()</span>
+<span class="n">message</span><span class="p">[</span><span class="s1">&#39;foo&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="k">lambda</span> <span class="n">rk</span> <span class="p">:</span> <span class="n">rk</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;new&#39;</span><span class="p">,</span>
+    <span class="n">MessageValidator</span><span class="p">(</span>
+        <span class="n">keyFields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;fooid&#39;</span><span class="p">],</span>
+        <span class="n">events</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">,</span> <span class="s1">&#39;complete&#39;</span><span class="p">],</span>
+        <span class="n">messageValidator</span><span class="o">=</span><span class="n">DictValidator</span><span class="p">(</span>
+            <span class="n">fooid</span><span class="o">=</span><span class="n">IntValidator</span><span class="p">(),</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">StringValidator</span><span class="p">(),</span>
+            <span class="o">...</span>
+       <span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="good-tests">
+<h2>3.2.4.6. Good Tests<a class="headerlink" href="#good-tests" title="Permalink to this headline">¶</a></h2>
+<p>Bad tests are worse than no tests at all, since they waste developers’ time
+wondering “was that a spurious failure?” or “what the heck is this test trying
+to do?”  Buildbot needs good tests.  So what makes a good test?</p>
+<div class="section" id="independent-of-time">
+<span id="tests-independent-of-time"></span><h3>Independent of Time<a class="headerlink" href="#independent-of-time" title="Permalink to this headline">¶</a></h3>
+<p>Tests that depend on wall time will fail. As a bonus, they run very slowly. Do
+not use <code class="xref py py-meth docutils literal notranslate"><span class="pre">reactor.callLater</span></code> to wait “long enough” for something to happen.</p>
+<p>For testing things that themselves depend on time, consider using
+<code class="xref py py-class docutils literal notranslate"><span class="pre">twisted.internet.tasks.Clock</span></code>.  This may mean passing a clock instance to
+the code under test, and propagating that instance as necessary to ensure that
+all of the code using <code class="xref py py-meth docutils literal notranslate"><span class="pre">callLater</span></code> uses it.  Refactoring code for
+testability is difficult, but worthwhile.</p>
+<p>For testing things that do not depend on time, but for which you cannot detect
+the “end” of an operation: add a way to detect the end of the operation!</p>
+</div>
+<div class="section" id="clean-code">
+<h3>Clean Code<a class="headerlink" href="#clean-code" title="Permalink to this headline">¶</a></h3>
+<p>Make your tests readable. This is no place to skimp on comments! Others will
+attempt to learn about the expected behavior of your class by reading the
+tests. As a side note, if you use a <code class="xref py py-class docutils literal notranslate"><span class="pre">Deferred</span></code> chain in your test, write
+the callbacks as nested functions, rather than using methods with funny names:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">testSomething</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">doThisFirst</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">andThisNext</span><span class="p">(</span><span class="n">res</span><span class="p">):</span>
+        <span class="k">pass</span> <span class="c1"># ...</span>
+    <span class="n">d</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">andThisNext</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">d</span>
+</pre></div>
+</div>
+<p>This isolates the entire test into one indented block. It is OK to add methods
+for common functionality, but give them real names and explain in detail what
+they do.</p>
+</div>
+<div class="section" id="good-name">
+<h3>Good Name<a class="headerlink" href="#good-name" title="Permalink to this headline">¶</a></h3>
+<p>Test method names should follow the pattern <code class="samp docutils literal notranslate"><span class="pre">test_</span><em><span class="pre">METHOD</span></em><span class="pre">_</span><em><span class="pre">CONDITION</span></em></code>
+where <em>METHOD</em> is the method being tested, and <em>CONDITION</em> is the
+condition under which it’s tested. Since we can’t always test a single
+method, this is not a hard-and-fast rule.</p>
+</div>
+<div class="section" id="assert-only-one-thing">
+<h3>Assert Only One Thing<a class="headerlink" href="#assert-only-one-thing" title="Permalink to this headline">¶</a></h3>
+<p>Where practical, each test should have a single assertion. This may require a
+little bit of work to get several related pieces of information into a single
+Python object for comparison. The problem with multiple assertions is that, if
+the first assertion fails, the remainder are not tested.  The test results then
+do not tell the entire story.</p>
+</div>
+<div class="section" id="prefer-fakes-to-mocks">
+<h3>Prefer Fakes to Mocks<a class="headerlink" href="#prefer-fakes-to-mocks" title="Permalink to this headline">¶</a></h3>
+<p>Mock objects are too “compliant”, and this often masks errors in the system
+under test.  For example, a mis-spelled method name on a mock object will not
+raise an exception.</p>
+<p>Where possible, use one of the pre-written fake objects (see
+<a class="reference internal" href="#fakes"><span class="std std-ref">Fakes</span></a>) instead of a mock object.  Fakes
+themselves should be well-tested using interface tests.</p>
+<p>Where they are appropriate, Mock objects can be constructed easily using the
+aptly-named <a class="reference external" href="http://www.voidspace.org.uk/python/mock/">mock</a> module, which is
+a requirement for Buildbot’s tests.</p>
+</div>
+<div class="section" id="small-tests">
+<h3>Small Tests<a class="headerlink" href="#small-tests" title="Permalink to this headline">¶</a></h3>
+<p>The shorter each test is, the better. Test as little code as possible in each test.</p>
+<p>It is fine, and in fact encouraged, to write the code under test in such a way
+as to facilitate this. As an illustrative example, if you are testing a new
+Step subclass, but your tests require instantiating a BuildMaster, you’re
+probably doing something wrong!</p>
+<p>This also applies to test modules.  Several short, easily-digested test modules
+are preferred over a 1000-line monster.</p>
+</div>
+<div class="section" id="isolation">
+<h3>Isolation<a class="headerlink" href="#isolation" title="Permalink to this headline">¶</a></h3>
+<p>Each test should be maximally independent of other tests. Do not leave files
+laying around after your test has finished, and do not assume that some other
+test has run beforehand. It’s fine to use caching techniques to avoid repeated,
+lengthy setup times.</p>
+</div>
+<div class="section" id="be-correct">
+<h3>Be Correct<a class="headerlink" href="#be-correct" title="Permalink to this headline">¶</a></h3>
+<p>Tests should be as robust as possible, which at a basic level means using the
+available frameworks correctly. All Deferreds should have callbacks and be
+chained properly. Error conditions should be checked properly. Race conditions
+should not exist (see <a class="reference internal" href="#tests-independent-of-time"><span class="std std-ref">Independent of Time</span></a>, above).</p>
+</div>
+<div class="section" id="be-helpful">
+<h3>Be Helpful<a class="headerlink" href="#be-helpful" title="Permalink to this headline">¶</a></h3>
+<p>Note that tests will pass most of the time, but the moment when they are most
+useful is when they fail.</p>
+<p>When the test fails, it should produce output that is helpful to the person
+chasing it down. This is particularly important when the tests are run
+remotely, in which case the person chasing down the bug does not have access to
+the system on which the test fails. A test which fails sporadically with no
+more information than “AssertionFailed” is a prime candidate for deletion if
+the error isn’t obvious. Making the error obvious also includes adding comments
+describing the ways a test might fail.</p>
+</div>
+<div class="section" id="keeping-state">
+<h3>Keeping State<a class="headerlink" href="#keeping-state" title="Permalink to this headline">¶</a></h3>
+<p>Python does not allow assignment to anything but the innermost local scope or
+the global scope with the <code class="docutils literal notranslate"><span class="pre">global</span></code> keyword.  This presents a problem when
+creating nested functions:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">test_localVariable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">cb_called</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">def</span> <span class="nf">cb</span><span class="p">():</span>
+        <span class="n">cb_called</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">cb</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">cb_called</span><span class="p">)</span> <span class="c1"># will fail!</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">cb_called</span> <span class="pre">=</span> <span class="pre">True</span></code> assigns to a <em>different variable</em> than
+<code class="docutils literal notranslate"><span class="pre">cb_called</span> <span class="pre">=</span> <span class="pre">False</span></code>.  In production code, it’s usually best to work around
+such problems, but in tests this is often the clearest way to express the
+behavior under test.</p>
+<p>The solution is to change something in a common mutable object.  While a simple
+list can serve as such a mutable object, this leads to code that is hard to
+read.  Instead, use <code class="xref py py-class docutils literal notranslate"><span class="pre">State</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.test.state</span> <span class="k">import</span> <span class="n">State</span>
+
+<span class="k">def</span> <span class="nf">test_localVariable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">State</span><span class="p">(</span><span class="n">cb_called</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">cb</span><span class="p">():</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">cb_called</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">cb</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">cb_called</span><span class="p">)</span> <span class="c1"># passes</span>
+</pre></div>
+</div>
+<p>This is almost as readable as the first example, but it actually works.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/full_logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script><h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/index.html">2. Buildbot Manual</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">3. Buildbot Development</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html">3.1. Development Quick-start</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="general.html">3.2. General Documents</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="master-overview.html">3.2.1. Master Organization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="style.html">3.2.2. Buildbot Coding Style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="coffeescript-style.html">3.2.3. CoffeeScript Coding Style</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">3.2.4. Buildbot’s Test Suite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html">3.2.5. Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#configuration-in-angularjs">3.2.6. Configuration in AngularJS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="schedulers.html">3.2.7. Writing Schedulers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html">3.2.8. Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="results.html">3.2.9. Build Result Codes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www-server.html">3.2.10. WWW Server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www-data-module.html">3.2.11. Javascript Data Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www-base-app.html">3.2.12. Base web application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auth.html">3.2.13. Authentication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="authz.html">3.2.14. Authorization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="master-worker.html">3.2.15. Master-Worker API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="br-claiming.html">3.2.16. Claiming Build Requests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="encodings.html">3.2.17. String Encodings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metrics.html">3.2.18. Metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="secrets.html">3.2.19. Secrets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="secrets.html#secrets-manager">3.2.20. Secrets manager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="secrets.html#secrets-providers">3.2.21. Secrets providers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="stats-service.html">3.2.22. Statistics Service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plugins-publish.html">3.2.23. How to package Buildbot plugins</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="apis.html">3.3. APIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classes.html">3.4. Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../indices.html">6. Indices and Tables</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="coffeescript-style.html"
+                        title="previous chapter">3.2.3. CoffeeScript Coding Style</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="config.html"
+                        title="next chapter">3.2.5. Configuration</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/developer/tests.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>
