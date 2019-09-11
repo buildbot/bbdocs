@@ -1,0 +1,583 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>2.3. Concepts &#8212; Buildbot 2.4.1 documentation</title>
+    <link rel="stylesheet" href="../_static/qtile.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="shortcut icon" href="../_static/icon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="2.4. Secret Management" href="secretsmanagement.html" />
+    <link rel="prev" title="2.2.6. Next Steps" href="installation/misc.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="secretsmanagement.html" title="2.4. Secret Management"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="installation/misc.html" title="2.2.6. Next Steps"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Buildbot 2.4.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">2. Buildbot Manual</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="admonition caution">
+<p class="first admonition-title">Caution</p>
+<p class="last">Buildbot no longer supports Python 2.7 on the Buildbot master.</p>
+</div>
+<div class="section" id="concepts">
+<h1>2.3. Concepts<a class="headerlink" href="#concepts" title="Permalink to this headline">¶</a></h1>
+<p>This chapter defines some of the basic concepts that the Buildbot uses.
+You’ll need to understand how the Buildbot sees the world to configure it properly.</p>
+<div class="section" id="source-stamps">
+<span id="id1"></span><h2>2.3.1. Source Stamps<a class="headerlink" href="#source-stamps" title="Permalink to this headline">¶</a></h2>
+<p>Buildbot uses the concept of <em>source stamp set</em> to identify exact source code that needs to be built for a certain project.
+A <em>source stamp set</em> is a collection of one or more source stamps.</p>
+<p>A <em>source stamp</em> is a collection of information needed to identify a particular version of code on a certain codebase. This information most often is a revision and possibly a branch.</p>
+<p>A <em>codebase</em> is a collection of related files and their history tracked as a unit by version control systems.
+A single codebase may appear in multiple repositories which themselves are identified by URLs.
+For example, <code class="docutils literal notranslate"><span class="pre">https://github.com/mozilla/mozilla-central</span></code> and <code class="docutils literal notranslate"><span class="pre">http://hg.mozilla.org/mozilla-release</span></code> both contain the Firefox codebase, although not exactly the same code.</p>
+<p>A <em>project</em> corresponds to a set of one or more codebases that together may be built and produce some end artifact.
+For example, a company may build several applications based on the same core library.
+The “app” codebase and the “core” codebase are in separate repositories, but are compiled together and constitute a single project.
+Changes to either codebase should cause a rebuild of the application.</p>
+<p>A <em>revision</em> is an identifier used by most version control systems to uniquely specify a particular version of the source code.
+Sometimes in order to do that a revision may make sense only if used in combination with a <em>branch</em>.</p>
+<p>To sum up the above, to build a project, Buildbot needs to know exactly which version of each codebase it should build.
+It uses a <em>source stamp</em> to do so for each codebase, each of which informs Buildbot that it should use a specific <em>revision</em> from that codebase.
+Collectively these source stamps are called <em>source stamp set</em> for each project.</p>
+<img alt="Source Stamp Sets" src="../_images/changes.svg" /></div>
+<div class="section" id="version-control-systems">
+<span id="id2"></span><h2>2.3.2. Version Control Systems<a class="headerlink" href="#version-control-systems" title="Permalink to this headline">¶</a></h2>
+<p>Buildbot supports a significant number of version control systems, so it treats them abstractly.</p>
+<p>For purposes of deciding when to perform builds, Buildbot’s change sources monitor repositories, and represent any updates to those repositories as <em>changes</em>.
+These change sources fall broadly into two categories: pollers which periodically check the repository for updates; and hooks, where the repository is configured to notify Buildbot whenever an update occurs.
+For more information see <a class="reference internal" href="configuration/changesources.html#change-sources"><span class="std std-ref">Change Sources and Changes</span></a> and <a class="reference internal" href="configuration/changesources.html#how-different-vc-systems-specify-sources"><span class="std std-ref">How Different VC Systems Specify Sources</span></a>.</p>
+<p>When it comes time to actually perform a build, a scheduler prepares a source stamp set, as described above, based on its configuration.
+When the build begins, one or more source steps use the information in the source stamp set to actually check out the source code, using the normal VCS commands.</p>
+</div>
+<div class="section" id="changes">
+<span id="concept-changes"></span><h2>2.3.3. Changes<a class="headerlink" href="#changes" title="Permalink to this headline">¶</a></h2>
+<p>A <a class="reference internal" href="configuration/changesources.html#change-attrs"><span class="std std-ref">Change</span></a> is an abstract way Buildbot uses to represent a single change to the source files performed by a developer.
+In version control systems that support the notion of atomic check-ins a change represents a changeset or commit.</p>
+<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">Change</span></code> comprises the following information:</p>
+<blockquote>
+<div><ul class="simple">
+<li>the developer that is responsible for the change</li>
+<li>the list of files that the change added, removed or modified</li>
+<li>the message of the commit</li>
+<li>the repository, the codebase and the project that the change corresponds to</li>
+<li>the revision and the branch of the commit</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="scheduling-builds">
+<span id="id3"></span><h2>2.3.4. Scheduling Builds<a class="headerlink" href="#scheduling-builds" title="Permalink to this headline">¶</a></h2>
+<p>Each Buildmaster has a set of scheduler objects, each of which gets a copy of every incoming <code class="xref py py-class docutils literal notranslate"><span class="pre">Change</span></code>.
+The Schedulers are responsible for deciding when <code class="xref py py-class docutils literal notranslate"><span class="pre">Build</span></code>s should be run.
+Some Buildbot installations might have a single scheduler, while others may have several, each for a different purpose.</p>
+<p>For example, a <em>quick</em> scheduler might exist to give immediate feedback to developers, hoping to catch obvious problems in the code that can be detected quickly.
+These typically do not run the full test suite, nor do they run on a wide variety of platforms.
+They also usually do a VC update rather than performing a brand-new checkout each time.</p>
+<p>A separate <em>full</em> scheduler might run more comprehensive tests, to catch more subtle problems.
+It might be configured to run after the quick scheduler, to give developers time to commit fixes to bugs caught by the quick scheduler before running the comprehensive tests.
+This scheduler would also feed multiple <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code>s.</p>
+<p>Many schedulers can be configured to wait a while after seeing a source-code change - this is the <em>tree stable timer</em>.
+The timer allows multiple commits to be “batched” together.
+This is particularly useful in distributed version control systems, where a developer may push a long sequence of changes all at once.
+To save resources, it’s often desirable only to test the most recent change.</p>
+<p>Schedulers can also filter out the changes they are interested in, based on a number of criteria.
+For example, a scheduler that only builds documentation might skip any changes that do not affect the documentation.
+Schedulers can also filter on the branch to which a commit was made.</p>
+<p>There is some support for configuring dependencies between builds - for example, you may want to build packages only for revisions which pass all of the unit tests.
+This support is under active development in Buildbot, and is referred to as “build coordination”.</p>
+<p>Periodic builds (those which are run every N seconds rather than after new Changes arrive) are triggered by a special <a class="reference internal" href="configuration/schedulers.html#sched-Periodic" title="Periodic"><code class="xref bb bb-sched docutils literal notranslate"><span class="pre">Periodic</span></code></a> scheduler.</p>
+<p>Each scheduler creates and submits <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildSet</span></code> objects to the <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildMaster</span></code>, which is then responsible for making sure the individual <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildRequests</span></code> are delivered to the target <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code>s.</p>
+<p>Scheduler instances are activated by placing them in the <a class="reference internal" href="configuration/schedulers.html#cfg-schedulers" title="schedulers"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">schedulers</span></code></a> list in the buildmaster config file.
+Each scheduler must have a unique name.</p>
+</div>
+<div class="section" id="buildsets">
+<span id="buildset"></span><h2>2.3.5. BuildSets<a class="headerlink" href="#buildsets" title="Permalink to this headline">¶</a></h2>
+<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildSet</span></code> is the name given to a set of <code class="xref py py-class docutils literal notranslate"><span class="pre">Build</span></code>s that all compile/test the same version of the tree on multiple <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code>s.
+In general, all these component <code class="xref py py-class docutils literal notranslate"><span class="pre">Build</span></code>s will perform the same sequence of <code class="xref py py-class docutils literal notranslate"><span class="pre">Step</span></code>s, using the same source code, but on different platforms or against a different set of libraries.</p>
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildSet</span></code> is tracked as a single unit, which fails if any of the component <code class="xref py py-class docutils literal notranslate"><span class="pre">Build</span></code>s have failed, and therefore can succeed only if <em>all</em> of the component <code class="xref py py-class docutils literal notranslate"><span class="pre">Build</span></code>s have succeeded.
+There are two kinds of status notification messages that can be emitted for a <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildSet</span></code>: the <code class="docutils literal notranslate"><span class="pre">firstFailure</span></code> type (which fires as soon as we know the <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildSet</span></code> will fail), and the <code class="docutils literal notranslate"><span class="pre">Finished</span></code> type (which fires once the <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildSet</span></code> has completely finished, regardless of whether the overall set passed or failed).</p>
+<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildSet</span></code> is created with set of one or more <em>source stamp</em> tuples of <code class="docutils literal notranslate"><span class="pre">(branch,</span> <span class="pre">revision,</span> <span class="pre">changes,</span> <span class="pre">patch)</span></code>, some of which may be <code class="docutils literal notranslate"><span class="pre">None</span></code>, and a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code>s on which it is to be run.
+They are then given to the BuildMaster, which is responsible for creating a separate <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildRequest</span></code> for each <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code>.</p>
+<p>There are a couple of different likely values for the <code class="docutils literal notranslate"><span class="pre">SourceStamp</span></code>:</p>
+<dl class="docutils">
+<dt><code class="samp docutils literal notranslate"><span class="pre">(revision=None,</span> <span class="pre">changes=</span><em><span class="pre">CHANGES</span></em><span class="pre">,</span> <span class="pre">patch=None)</span></code></dt><dd>This is a <code class="xref py py-class docutils literal notranslate"><span class="pre">SourceStamp</span></code> used when a series of <code class="xref py py-class docutils literal notranslate"><span class="pre">Change</span></code>s have triggered a build.
+The VC step will attempt to check out a tree that contains <em>CHANGES</em> (and any changes that occurred before <em>CHANGES</em>, but not any that occurred after them.)</dd>
+<dt><code class="samp docutils literal notranslate"><span class="pre">(revision=None,</span> <span class="pre">changes=None,</span> <span class="pre">patch=None)</span></code></dt><dd>This builds the most recent code on the default branch.
+This is the sort of <code class="xref py py-class docutils literal notranslate"><span class="pre">SourceStamp</span></code> that would be used on a <code class="xref py py-class docutils literal notranslate"><span class="pre">Build</span></code> that was triggered by a user request, or a <a class="reference internal" href="configuration/schedulers.html#sched-Periodic" title="Periodic"><code class="xref bb bb-sched docutils literal notranslate"><span class="pre">Periodic</span></code></a> scheduler.
+It is also possible to configure the VC Source Step to always check out the latest sources rather than paying attention to the <code class="xref py py-class docutils literal notranslate"><span class="pre">Change</span></code>s in the <code class="xref py py-class docutils literal notranslate"><span class="pre">SourceStamp</span></code>, which will result in same behavior as this.</dd>
+<dt><code class="samp docutils literal notranslate"><span class="pre">(branch=</span><em><span class="pre">BRANCH</span></em><span class="pre">,</span> <span class="pre">revision=None,</span> <span class="pre">changes=None,</span> <span class="pre">patch=None)</span></code></dt><dd>This builds the most recent code on the given <em>BRANCH</em>.
+Again, this is generally triggered by a user request or a <a class="reference internal" href="configuration/schedulers.html#sched-Periodic" title="Periodic"><code class="xref bb bb-sched docutils literal notranslate"><span class="pre">Periodic</span></code></a> scheduler.</dd>
+<dt><code class="samp docutils literal notranslate"><span class="pre">(revision=</span><em><span class="pre">REV</span></em><span class="pre">,</span> <span class="pre">changes=None,</span> <span class="pre">patch=(</span><em><span class="pre">LEVEL</span></em><span class="pre">,</span> <em><span class="pre">DIFF</span></em><span class="pre">,</span> <em><span class="pre">SUBDIR_ROOT</span></em><span class="pre">))</span></code></dt><dd>This checks out the tree at the given revision <em>REV</em>, then applies a patch (using <code class="docutils literal notranslate"><span class="pre">patch</span> <span class="pre">-pLEVEL</span> <span class="pre">&lt;DIFF</span></code>) from inside the relative directory <em>SUBDIR_ROOT</em>.
+Item <em>SUBDIR_ROOT</em> is optional and defaults to the builder working directory.
+The <a class="reference internal" href="cmdline.html#cmdline-try" title="try"><code class="xref bb bb-cmdline docutils literal notranslate"><span class="pre">try</span></code></a> command creates this kind of <code class="xref py py-class docutils literal notranslate"><span class="pre">SourceStamp</span></code>.
+If <code class="docutils literal notranslate"><span class="pre">patch</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>, the patching step is bypassed.</dd>
+</dl>
+<p>The buildmaster is responsible for turning the <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildSet</span></code> into a set of <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildRequest</span></code> objects and queueing them on the appropriate <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code>s.</p>
+</div>
+<div class="section" id="buildrequests">
+<span id="buildrequest"></span><h2>2.3.6. BuildRequests<a class="headerlink" href="#buildrequests" title="Permalink to this headline">¶</a></h2>
+<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildRequest</span></code> is a request to build a specific set of source code (specified by one or more source stamps) on a single <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code>.
+Each <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code> runs the <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildRequest</span></code> as soon as it can (i.e. when an associated worker becomes free).
+<code class="xref py py-class docutils literal notranslate"><span class="pre">BuildRequest</span></code>s are prioritized from oldest to newest, so when a worker becomes free, the <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code> with the oldest <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildRequest</span></code> is run.</p>
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildRequest</span></code> contains one <code class="xref py py-class docutils literal notranslate"><span class="pre">SourceStamp</span></code> specification per codebase.
+The actual process of running the build (the series of <code class="xref py py-class docutils literal notranslate"><span class="pre">Step</span></code>s that will be executed) is implemented by the <code class="xref py py-class docutils literal notranslate"><span class="pre">Build</span></code> object.
+In the future this might be changed, to have the <code class="xref py py-class docutils literal notranslate"><span class="pre">Build</span></code> define <em>what</em> gets built, and a separate <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildProcess</span></code> (provided by the Builder) to define <em>how</em> it gets built.</p>
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildRequest</span></code> may be mergeable with other compatible <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildRequest</span></code>s.
+Builds that are triggered by incoming <code class="xref py py-class docutils literal notranslate"><span class="pre">Change</span></code>s will generally be mergeable.
+Builds that are triggered by user requests are generally not, unless they are multiple requests to build the <em>latest sources</em> of the same branch.
+A merge of buildrequests is performed per codebase, thus on changes having the same codebase.</p>
+</div>
+<div class="section" id="builders">
+<span id="builder"></span><h2>2.3.7. Builders<a class="headerlink" href="#builders" title="Permalink to this headline">¶</a></h2>
+<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code> handles the process of scheduling work to workers.
+Each <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code> is responsible for a certain type of build, which usually consist of identical or very similar sequence of steps.</p>
+<p>The class serves as a kind of queue for that particular type of build.
+In general, each <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code> runs independently, but it’s possible to constrain the behavior of <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code>s using various kinds of interlocks.</p>
+<p>Each builder is a long-lived object which controls a sequence of <code class="xref py py-class docutils literal notranslate"><span class="pre">Build</span></code>s.
+A <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code> is created when the config file is first parsed, and lives forever (or rather until it is removed from the config file).
+It mediates the connections to the workers that do all the work, and is responsible for creating the <code class="xref py py-class docutils literal notranslate"><span class="pre">Build</span></code> objects - <a class="reference internal" href="#concepts-build"><span class="std std-ref">Builds</span></a>.</p>
+<p>Each builder gets a unique name, and the path name of a directory where it gets to do all its work.
+This path is used in two ways.
+On the buildmaster-side a directory is created for keeping status information.
+On the worker-side a directory is created where the actual checkout, compile and test commands are executed.</p>
+</div>
+<div class="section" id="build-factories">
+<span id="concepts-build-factories"></span><h2>2.3.8. Build Factories<a class="headerlink" href="#build-factories" title="Permalink to this headline">¶</a></h2>
+<p>A builder also has a <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildFactory</span></code>, which is responsible for creating new <code class="xref py py-class docutils literal notranslate"><span class="pre">Build</span></code> instances: because the <code class="xref py py-class docutils literal notranslate"><span class="pre">Build</span></code> instance is what actually performs each build, choosing the <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildFactory</span></code> is the way to specify what happens each time a build is done (<a class="reference internal" href="#concepts-build"><span class="std std-ref">Builds</span></a>).</p>
+</div>
+<div class="section" id="workers">
+<span id="concepts-workers"></span><h2>2.3.9. Workers<a class="headerlink" href="#workers" title="Permalink to this headline">¶</a></h2>
+<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">Worker</span></code>s corresponds to an environment where builds are executed.
+A single physical machine must run at least one <code class="xref py py-class docutils literal notranslate"><span class="pre">Worker</span></code>s in order for Buildbot to be able to utilize it for running builds.
+Multiple <code class="xref py py-class docutils literal notranslate"><span class="pre">Worker</span></code>s may run on a single machine to provide different environments that can reuse the same hardware by means of containers or virtual machines.</p>
+<p>Each builder is associated with one or more <code class="xref py py-class docutils literal notranslate"><span class="pre">Worker</span></code>s.
+For example, a builder which is used to perform macOS builds (as opposed to Linux or Windows builds) should naturally be associated with a Mac worker.</p>
+<p>If multiple workers are available for any given builder, you will have some measure of redundancy: in case one worker goes offline, the others can still keep the <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code> working.
+In addition, multiple workers will allow multiple simultaneous builds for the same <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code>, which might be useful if you have a lot of forced or <code class="docutils literal notranslate"><span class="pre">try</span></code> builds taking place.</p>
+<p>Ideally, each <code class="xref py py-class docutils literal notranslate"><span class="pre">Worker</span></code> that is configured for a builder should be identical.
+Otherwise build or test failures will be dependent on which worker the build is ran and this will complicate investigation of failures.</p>
+</div>
+<div class="section" id="builds">
+<span id="concepts-build"></span><h2>2.3.10. Builds<a class="headerlink" href="#builds" title="Permalink to this headline">¶</a></h2>
+<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">Build</span></code> is a single compile or test run of a particular version of the source code, and is comprised of a series of steps.
+The steps may be arbitrary. For example, for compiled software a build generally consists of the checkout, configure, make, and make check sequence.
+For interpreted projects like Python modules, a build is generally a checkout followed by an invocation of the bundled test suite.</p>
+<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildFactory</span></code> describes the steps a build will perform.
+The builder which starts a build uses its configured build factory to determine the build’s steps.</p>
+</div>
+<div class="section" id="users">
+<span id="concepts-users"></span><h2>2.3.11. Users<a class="headerlink" href="#users" title="Permalink to this headline">¶</a></h2>
+<p>Buildbot has a somewhat limited awareness of <em>users</em>.
+It assumes the world consists of a set of developers, each of whom can be described by a couple of simple attributes.
+These developers make changes to the source code, causing builds which may succeed or fail.</p>
+<p>Users also may have different levels of authorization when issuing Buildbot commands, such as forcing a build from the web interface or from an IRC channel.</p>
+<p>Each developer is primarily known through the source control system.
+Each <code class="xref py py-class docutils literal notranslate"><span class="pre">Change</span></code> object that arrives is tagged with a <code class="xref py py-attr docutils literal notranslate"><span class="pre">who</span></code> field that typically gives the account name (on the repository machine) of the user responsible for that change.
+This string is displayed on the HTML status pages and in each <code class="xref py py-class docutils literal notranslate"><span class="pre">Build</span></code>’s <em>blamelist</em>.</p>
+<p>To do more with the User than just refer to them, this username needs to be mapped into an address of some sort.
+The responsibility for this mapping is left up to the status module which needs the address.
+In the future, the responsibility for managing users will be transferred to User Objects.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">who</span></code> fields in <code class="docutils literal notranslate"><span class="pre">git</span></code> Changes are used to create <a class="reference internal" href="#user-objects"><span class="std std-ref">User Objects</span></a>, which allows for more control and flexibility in how Buildbot manages users.</p>
+<div class="section" id="user-objects">
+<span id="id4"></span><h3>2.3.11.1. User Objects<a class="headerlink" href="#user-objects" title="Permalink to this headline">¶</a></h3>
+<p>User Objects allow Buildbot to better manage users throughout its various interactions with users (see <a class="reference internal" href="configuration/changesources.html#change-sources"><span class="std std-ref">Change Sources and Changes</span></a> and <a class="reference internal" href="configuration/reporters.html#reporters"><span class="std std-ref">Reporters</span></a>).
+The User Objects are stored in the Buildbot database and correlate the various attributes that a user might have: irc, Git, etc.</p>
+<div class="section" id="id5">
+<h4>Changes<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
+<p>Incoming Changes all have a <code class="docutils literal notranslate"><span class="pre">who</span></code> attribute attached to them that specifies which developer is responsible for that Change.
+When a Change is first rendered, the <code class="docutils literal notranslate"><span class="pre">who</span></code> attribute is parsed and added to the database if it doesn’t exist or checked against an existing user.
+The <code class="docutils literal notranslate"><span class="pre">who</span></code> attribute is formatted in different ways depending on the version control system that the Change came from.</p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">git</span></code></dt><dd><code class="docutils literal notranslate"><span class="pre">who</span></code> attributes take the form <code class="docutils literal notranslate"><span class="pre">Full</span> <span class="pre">Name</span> <span class="pre">&lt;Email&gt;</span></code>.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">svn</span></code></dt><dd><code class="docutils literal notranslate"><span class="pre">who</span></code> attributes are of the form <code class="docutils literal notranslate"><span class="pre">Username</span></code>.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">hg</span></code></dt><dd><code class="docutils literal notranslate"><span class="pre">who</span></code> attributes are free-form strings, but usually adhere to similar conventions as <code class="docutils literal notranslate"><span class="pre">git</span></code> attributes (<code class="docutils literal notranslate"><span class="pre">Full</span> <span class="pre">Name</span> <span class="pre">&lt;Email&gt;</span></code>).</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">cvs</span></code></dt><dd><code class="docutils literal notranslate"><span class="pre">who</span></code> attributes are of the form <code class="docutils literal notranslate"><span class="pre">Username</span></code>.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">darcs</span></code></dt><dd><code class="docutils literal notranslate"><span class="pre">who</span></code> attributes contain an <code class="docutils literal notranslate"><span class="pre">Email</span></code> and may also include a <code class="docutils literal notranslate"><span class="pre">Full</span> <span class="pre">Name</span></code> like <code class="docutils literal notranslate"><span class="pre">git</span></code> attributes.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">bzr</span></code></dt><dd><code class="docutils literal notranslate"><span class="pre">who</span></code> attributes are free-form strings like <code class="docutils literal notranslate"><span class="pre">hg</span></code>, and can include a <code class="docutils literal notranslate"><span class="pre">Username</span></code>, <code class="docutils literal notranslate"><span class="pre">Email</span></code>, and/or <code class="docutils literal notranslate"><span class="pre">Full</span> <span class="pre">Name</span></code>.</dd>
+</dl>
+</div>
+<div class="section" id="tools">
+<h4>Tools<a class="headerlink" href="#tools" title="Permalink to this headline">¶</a></h4>
+<p>For managing users manually, use the <code class="docutils literal notranslate"><span class="pre">buildbot</span> <span class="pre">user</span></code> command, which allows you to add, remove, update, and show various attributes of users in the Buildbot database (see <a class="reference internal" href="cmdline.html#command-line-tool"><span class="std std-ref">Command-line Tool</span></a>).</p>
+</div>
+<div class="section" id="uses">
+<h4>Uses<a class="headerlink" href="#uses" title="Permalink to this headline">¶</a></h4>
+<p>Correlating the various bits and pieces that Buildbot views as users also means that one attribute of a user can be translated into another.
+This provides a more complete view of users throughout Buildbot.</p>
+<p>One such use is being able to find email addresses based on a set of Builds to notify users through the <code class="docutils literal notranslate"><span class="pre">MailNotifier</span></code>.
+This process is explained more clearly in <a class="reference internal" href="#email-addresses"><span class="std std-ref">Email Addresses</span></a>.</p>
+<p>Another way to utilize <cite>User Objects</cite> is through <cite>UsersAuth</cite> for web authentication.
+To use <cite>UsersAuth</cite>, you need to set a <cite>bb_username</cite> and <cite>bb_password</cite> via the <code class="docutils literal notranslate"><span class="pre">buildbot</span> <span class="pre">user</span></code> command line tool to check against.
+The password will be encrypted before storing in the database along with other user attributes.</p>
+</div>
+</div>
+<div class="section" id="doing-things-with-users">
+<span id="id6"></span><h3>2.3.11.2. Doing Things With Users<a class="headerlink" href="#doing-things-with-users" title="Permalink to this headline">¶</a></h3>
+<p>Each change has a single user who is responsible for it.
+Most builds have a set of changes: the build generally represents the first time these changes have been built and tested by the Buildbot.
+The build has a <em>blamelist</em> that is the union of the users responsible for all the build’s changes.
+If the build was created by a <a class="reference internal" href="configuration/schedulers.html#try-schedulers"><span class="std std-ref">Try Schedulers</span></a> this list will include the submitter of the try job, if known.</p>
+<p>The build provides a list of users who are interested in the build – the <em>interested users</em>.
+Usually this is equal to the blamelist, but may also be expanded, e.g., to include the current build sherrif or a module’s maintainer.</p>
+<p>If desired, the buildbot can notify the interested users until the problem is resolved.</p>
+</div>
+<div class="section" id="email-addresses">
+<span id="id7"></span><h3>2.3.11.3. Email Addresses<a class="headerlink" href="#email-addresses" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="configuration/reporters.html#reporter-MailNotifier" title="MailNotifier"><code class="xref bb bb-reporter docutils literal notranslate"><span class="pre">MailNotifier</span></code></a> is a status target which can send email about the results of each build.
+It accepts a static list of email addresses to which each message should be delivered, but it can also be configured to send mail to the <code class="xref py py-class docutils literal notranslate"><span class="pre">Build</span></code>’s Interested Users.
+To do this, it needs a way to convert User names into email addresses.</p>
+<p>For many VC systems, the User Name is actually an account name on the system which hosts the repository.
+As such, turning the name into an email address is a simple matter of appending <code class="docutils literal notranslate"><span class="pre">&#64;repositoryhost.com</span></code>.
+Some projects use other kinds of mappings (for example the preferred email address may be at <code class="docutils literal notranslate"><span class="pre">project.org</span></code> despite the repository host being named <code class="docutils literal notranslate"><span class="pre">cvs.project.org</span></code>), and some VC systems have full separation between the concept of a user and that of an account on the repository host (like Perforce).
+Some systems (like Git) put a full contact email address in every change.</p>
+<p>To convert these names to addresses, the <code class="xref py py-class docutils literal notranslate"><span class="pre">MailNotifier</span></code> uses an <code class="xref py py-class docutils literal notranslate"><span class="pre">EmailLookup</span></code> object.
+This provides a <code class="xref py py-meth docutils literal notranslate"><span class="pre">getAddress</span></code> method which accepts a name and (eventually) returns an address.
+The default <code class="xref py py-class docutils literal notranslate"><span class="pre">MailNotifier</span></code> module provides an <code class="xref py py-class docutils literal notranslate"><span class="pre">EmailLookup</span></code> which simply appends a static string, configurable when the notifier is created.
+To create more complex behaviors (perhaps using an LDAP lookup, or using <code class="docutils literal notranslate"><span class="pre">finger</span></code> on a central host to determine a preferred address for the developer), provide a different object as the <code class="docutils literal notranslate"><span class="pre">lookup</span></code> argument.</p>
+<p>If an EmailLookup object isn’t given to the MailNotifier, the MailNotifier will try to find emails through <a class="reference internal" href="#user-objects"><span class="std std-ref">User Objects</span></a>.
+This will work the same as if an EmailLookup object was used if every user in the Build’s Interested Users list has an email in the database for them.
+If a user whose change led to a Build doesn’t have an email attribute, that user will not receive an email.
+If <code class="docutils literal notranslate"><span class="pre">extraRecipients</span></code> is given, those users are still sent mail when the EmailLookup object is not specified.</p>
+<p>In the future, when the Problem mechanism has been set up, the Buildbot will need to send mail to arbitrary Users.
+It will do this by locating a <code class="xref py py-class docutils literal notranslate"><span class="pre">MailNotifier</span></code>-like object among all the buildmaster’s status targets, and asking it to send messages to various Users.
+This means the User-to-address mapping only has to be set up once, in your <code class="xref py py-class docutils literal notranslate"><span class="pre">MailNotifier</span></code>, and every email message the buildbot emits will take advantage of it.</p>
+</div>
+<div class="section" id="irc-nicknames">
+<span id="id8"></span><h3>2.3.11.4. IRC Nicknames<a class="headerlink" href="#irc-nicknames" title="Permalink to this headline">¶</a></h3>
+<p>Like <code class="xref py py-class docutils literal notranslate"><span class="pre">MailNotifier</span></code>, the <code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.status.words.IRC</span></code> class provides a status target which can announce the results of each build.
+It also provides an interactive interface by responding to online queries posted in the channel or sent as private messages.</p>
+<p>In the future, the buildbot can be configured to map User names to IRC nicknames, to watch for the recent presence of these nicknames, and to deliver build status messages to the interested parties.
+Like <code class="xref py py-class docutils literal notranslate"><span class="pre">MailNotifier</span></code> does for email addresses, the <code class="xref py py-class docutils literal notranslate"><span class="pre">IRC</span></code> object will have an <code class="xref py py-class docutils literal notranslate"><span class="pre">IRCLookup</span></code> which is responsible for nicknames.
+The mapping can be set up statically, or it can be updated by online users themselves (by claiming a username with some kind of <code class="docutils literal notranslate"><span class="pre">buildbot:</span> <span class="pre">i</span> <span class="pre">am</span> <span class="pre">user</span> <span class="pre">warner</span></code> commands).</p>
+<p>Once the mapping is established, the rest of the buildbot can ask the <code class="xref py py-class docutils literal notranslate"><span class="pre">IRC</span></code> object to send messages to various users.
+It can report on the likelihood that the user saw the given message (based upon how long the user has been inactive on the channel), which might prompt the Problem Hassler logic to send them an email message instead.</p>
+<p>These operations and authentication of commands issued by particular nicknames will be implemented in <a class="reference internal" href="#user-objects"><span class="std std-ref">User Objects</span></a>.</p>
+</div>
+</div>
+<div class="section" id="build-properties">
+<span id="index-0"></span><span id="id9"></span><h2>2.3.12. Build Properties<a class="headerlink" href="#build-properties" title="Permalink to this headline">¶</a></h2>
+<p>Each build has a set of <em>Build Properties</em>, which can be used by its build steps to modify their actions.
+These properties, in the form of key-value pairs, provide a general framework for dynamically altering the behavior of a build based on its circumstances.</p>
+<p>Properties form a simple kind of variable in a build.
+Some properties are set when the build starts, and properties can be changed as a build progresses – properties set or changed in one step may be accessed in subsequent steps.
+Property values can be numbers, strings, lists, or dictionaries - basically, anything that can be represented in JSON.</p>
+<p>Properties are very flexible, and can be used to implement all manner of functionality.
+Here are some examples:</p>
+<p>Most Source steps record the revision that they checked out in the <code class="docutils literal notranslate"><span class="pre">got_revision</span></code> property.
+A later step could use this property to specify the name of a fully-built tarball, dropped in an easily-accessible directory for later testing.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In builds with more than one codebase, the <code class="docutils literal notranslate"><span class="pre">got_revision</span></code> property is a dictionary, keyed by codebase.</p>
+</div>
+<p>Some projects want to perform nightly builds as well as building in response to committed changes.
+Such a project would run two schedulers, both pointing to the same set of builders, but could provide an <code class="docutils literal notranslate"><span class="pre">is_nightly</span></code> property so that steps can distinguish the nightly builds, perhaps to run more resource-intensive tests.</p>
+<p>Some projects have different build processes on different systems.
+Rather than create a build factory for each worker, the steps can use worker properties to identify the unique aspects of each worker and adapt the build process dynamically.</p>
+</div>
+<div class="section" id="multiple-codebase-builds">
+<span id="id10"></span><h2>2.3.13. Multiple-Codebase Builds<a class="headerlink" href="#multiple-codebase-builds" title="Permalink to this headline">¶</a></h2>
+<p>What if an end-product is composed of code from several codebases?
+Changes may arrive from different repositories within the tree-stable-timer period.
+Buildbot will not only use the source-trees that contain changes but also needs the remaining source-trees to build the complete product.</p>
+<p>For this reason a <a class="reference internal" href="#scheduling-builds"><span class="std std-ref">Scheduler</span></a> can be configured to base a build on a set of several source-trees that can (partly) be overridden by the information from incoming <code class="xref py py-class docutils literal notranslate"><span class="pre">Change</span></code>s.</p>
+<p>As described <a class="reference internal" href="#source-stamps"><span class="std std-ref">above</span></a>, the source for each codebase is identified by a source stamp, containing its repository, branch and revision.
+A full build set will specify a source stamp set describing the source to use for each codebase.</p>
+<p>Configuring all of this takes a coordinated approach.  A complete multiple repository configuration consists of:</p>
+<p>a <em>codebase generator</em></p>
+<blockquote>
+<div>Every relevant change arriving from a VC must contain a codebase.
+This is done by a <a class="reference internal" href="configuration/global.html#cfg-codebaseGenerator" title="codebaseGenerator"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">codebaseGenerator</span></code></a> that is defined in the configuration.
+Most generators examine the repository of a change to determine its codebase, using project-specific rules.</div></blockquote>
+<p>some <em>schedulers</em></p>
+<blockquote>
+<div>Each <a class="reference internal" href="configuration/schedulers.html#cfg-schedulers" title="schedulers"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">scheduler</span></code></a> has to be configured with a set of all required <code class="docutils literal notranslate"><span class="pre">codebases</span></code> to build a product.
+These codebases indicate the set of required source-trees.
+In order for the scheduler to be able to produce a complete set for each build, the configuration can give a default repository, branch, and revision for each codebase.
+When a scheduler must generate a source stamp for a codebase that has received no changes, it applies these default values.</div></blockquote>
+<p>multiple <em>source steps</em> - one for each codebase</p>
+<blockquote>
+<div><p>A <a class="reference internal" href="#builder"><span class="std std-ref">Builders</span></a>’s build factory must include a <a class="reference internal" href="configuration/buildsteps.html#source-checkout"><span class="std std-ref">source step</span></a> for each codebase.
+Each of the source steps has a <code class="docutils literal notranslate"><span class="pre">codebase</span></code> attribute which is used to select an appropriate source stamp from the source stamp set for a build.
+This information comes from the arrived changes or from the scheduler’s configured default values.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Each <a class="reference internal" href="configuration/buildsteps.html#source-checkout"><span class="std std-ref">source step</span></a> has to have its own <code class="docutils literal notranslate"><span class="pre">workdir</span></code> set in order for the checkout to be done for each codebase in its own directory.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Ensure you specify the codebase within your source step’s Interpolate() calls (ex. <code class="docutils literal notranslate"><span class="pre">http://.../svn/%(src:codebase:branch)s)</span></code>.
+See <a class="reference internal" href="configuration/properties.html#interpolate"><span class="std std-ref">Interpolate</span></a> for details.</p>
+</div>
+</div></blockquote>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Defining a <a class="reference internal" href="configuration/global.html#cfg-codebaseGenerator" title="codebaseGenerator"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">codebaseGenerator</span></code></a> that returns non-empty (not <code class="docutils literal notranslate"><span class="pre">''</span></code>) codebases will change the behavior of all the schedulers.</p>
+</div>
+</div>
+<div class="section" id="multimaster">
+<span id="id11"></span><h2>2.3.14. Multimaster<a class="headerlink" href="#multimaster" title="Permalink to this headline">¶</a></h2>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Buildbot Multimaster is considered experimental.
+There are still some companies using it in production.
+Don’t hesitate to use the mailing lists to share your experience.</p>
+</div>
+<div><svg height="520" viewBox="0 0 832 520" width="832" xmlns="http://www.w3.org/2000/svg" xmlns:inkspace="http://www.inkscape.org/namespaces/inkscape" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs id="defs_block">
+    <filter height="1.504" id="filter_blur" inkspace:collect="always" width="1.1575" x="-0.07875" y="-0.252">
+      <feGaussianBlur id="feGaussianBlur3780" inkspace:collect="always" stdDeviation="4.2" />
+    </filter>
+  </defs>
+  <title>blockdiag</title>
+  <desc />
+  <ellipse cx="323" cy="66" fill="rgb(0,0,0)" rx="64.0" ry="20.0" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <ellipse cx="323" cy="386" fill="rgb(0,0,0)" rx="64.0" ry="20.0" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <path d="M 75 46 L 187 46 A8,8 0 0 1 195 54 L 195 78 A8,8 0 0 1 187 86 L 75 86 A8,8 0 0 1 67 78 L 67 54 A8,8 0 0 1 75 46" fill="rgb(0,0,0)" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <path d="M 75 206 L 187 206 A8,8 0 0 1 195 214 L 195 238 A8,8 0 0 1 187 246 L 75 246 A8,8 0 0 1 67 238 L 67 214 A8,8 0 0 1 75 206" fill="rgb(0,0,0)" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="133,380 133,383 143,383 143,386 133,386 133,389 141,398 137,398 131,392 125,398 121,398 129,389 129,386 119,386 119,383 129,383 129,380" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <ellipse cx="131" cy="377" fill="rgb(0,0,0)" rx="4.0" ry="4.0" stroke="rgb(0,153,204)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <polygon fill="rgb(0,0,0)" points="133,460 133,463 143,463 143,466 133,466 133,469 141,478 137,478 131,472 125,478 121,478 129,469 129,466 119,466 119,463 129,463 129,460" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <ellipse cx="131" cy="457" fill="rgb(0,0,0)" rx="4.0" ry="4.0" stroke="rgb(0,153,204)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <path d="M 459 46 L 571 46 A8,8 0 0 1 579 54 L 579 78 A8,8 0 0 1 571 86 L 459 86 A8,8 0 0 1 451 78 L 451 54 A8,8 0 0 1 459 46" fill="rgb(0,0,0)" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <path d="M 459 126 L 571 126 A8,8 0 0 1 579 134 L 579 158 A8,8 0 0 1 571 166 L 459 166 A8,8 0 0 1 451 158 L 451 134 A8,8 0 0 1 459 126" fill="rgb(0,0,0)" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <path d="M 459 206 L 571 206 A8,8 0 0 1 579 214 L 579 238 A8,8 0 0 1 571 246 L 459 246 A8,8 0 0 1 451 238 L 451 214 A8,8 0 0 1 459 206" fill="rgb(0,0,0)" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <path d="M 459 286 L 571 286 A8,8 0 0 1 579 294 L 579 318 A8,8 0 0 1 571 326 L 459 326 A8,8 0 0 1 451 318 L 451 294 A8,8 0 0 1 459 286" fill="rgb(0,0,0)" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <path d="M 651 62 A64,8 0 0 1 779 62 L 779 86 A64,8 0 0 1 651 86 L 651 62" fill="rgb(0,0,0)" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <path d="M 647 58 A64,8 0 0 1 775 58 L 775 82 A64,8 0 0 1 647 82 L 647 58" fill="rgb(0,0,0)" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <path d="M 643 54 A64,8 0 0 1 771 54 L 771 78 A64,8 0 0 1 643 78 L 643 54" fill="rgb(0,0,0)" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" />
+  <rect fill="rgb(0,0,0)" height="40" stroke="rgb(0,0,0)" style="filter:url(#filter_blur);opacity:0.7;fill-opacity:1" width="128" x="643" y="126" />
+  <ellipse cx="320" cy="60" fill="rgb(51,181,229)" rx="64.0" ry="20.0" stroke="rgb(0,153,204)" />
+  <text fill="rgb(225,245,254)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="72" x="320.0" y="66">LoadBalancer</text>
+  <ellipse cx="320" cy="380" fill="rgb(51,181,229)" rx="64.0" ry="20.0" stroke="rgb(0,153,204)" />
+  <text fill="rgb(225,245,254)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="84" x="320.0" y="386">LoadBalancerUI</text>
+  <path d="M 72 40 L 184 40 A8,8 0 0 1 192 48 L 192 72 A8,8 0 0 1 184 80 L 72 80 A8,8 0 0 1 64 72 L 64 48 A8,8 0 0 1 72 40" fill="rgb(51,181,229)" stroke="rgb(0,153,204)" />
+  <text fill="rgb(225,245,254)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="42" x="128.0" y="66">Worker1</text>
+  <ellipse cx="128.0" cy="140.0" fill="rgb(0,153,204)" rx="4.0" ry="4.0" stroke="rgb(0,153,204)" />
+  <ellipse cx="128.0" cy="120.0" fill="rgb(0,153,204)" rx="4.0" ry="4.0" stroke="rgb(0,153,204)" />
+  <ellipse cx="128.0" cy="160.0" fill="rgb(0,153,204)" rx="4.0" ry="4.0" stroke="rgb(0,153,204)" />
+  <path d="M 72 200 L 184 200 A8,8 0 0 1 192 208 L 192 232 A8,8 0 0 1 184 240 L 72 240 A8,8 0 0 1 64 232 L 64 208 A8,8 0 0 1 72 200" fill="rgb(51,181,229)" stroke="rgb(0,153,204)" />
+  <text fill="rgb(225,245,254)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="42" x="128.0" y="226">WorkerN</text>
+  <polygon fill="rgb(51,181,229)" points="130,374 130,377 140,377 140,380 130,380 130,383 138,392 134,392 128,386 122,392 118,392 126,383 126,380 116,380 116,377 126,377 126,374" stroke="rgb(0,153,204)" />
+  <ellipse cx="128" cy="371" fill="rgb(51,181,229)" rx="4.0" ry="4.0" stroke="rgb(0,153,204)" />
+  <text fill="rgb(225,245,254)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="30" x="128.0" y="405">User1</text>
+  <polygon fill="rgb(51,181,229)" points="130,454 130,457 140,457 140,460 130,460 130,463 138,472 134,472 128,466 122,472 118,472 126,463 126,460 116,460 116,457 126,457 126,454" stroke="rgb(0,153,204)" />
+  <ellipse cx="128" cy="451" fill="rgb(51,181,229)" rx="4.0" ry="4.0" stroke="rgb(0,153,204)" />
+  <text fill="rgb(225,245,254)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="30" x="128.0" y="485">User2</text>
+  <path d="M 456 40 L 568 40 A8,8 0 0 1 576 48 L 576 72 A8,8 0 0 1 568 80 L 456 80 A8,8 0 0 1 448 72 L 448 48 A8,8 0 0 1 456 40" fill="rgb(51,181,229)" stroke="rgb(0,153,204)" />
+  <text fill="rgb(225,245,254)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="42" x="512.0" y="66">Master1</text>
+  <path d="M 456 120 L 568 120 A8,8 0 0 1 576 128 L 576 152 A8,8 0 0 1 568 160 L 456 160 A8,8 0 0 1 448 152 L 448 128 A8,8 0 0 1 456 120" fill="rgb(51,181,229)" stroke="rgb(0,153,204)" />
+  <text fill="rgb(225,245,254)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="42" x="512.0" y="146">Master2</text>
+  <path d="M 456 200 L 568 200 A8,8 0 0 1 576 208 L 576 232 A8,8 0 0 1 568 240 L 456 240 A8,8 0 0 1 448 232 L 448 208 A8,8 0 0 1 456 200" fill="rgb(51,181,229)" stroke="rgb(0,153,204)" />
+  <text fill="rgb(225,245,254)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="54" x="512.0" y="226">MasterUI1</text>
+  <path d="M 456 280 L 568 280 A8,8 0 0 1 576 288 L 576 312 A8,8 0 0 1 568 320 L 456 320 A8,8 0 0 1 448 312 L 448 288 A8,8 0 0 1 456 280" fill="rgb(51,181,229)" stroke="rgb(0,153,204)" />
+  <text fill="rgb(225,245,254)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="54" x="512.0" y="306">MasterUI2</text>
+  <path d="M 648 56 A64,8 0 0 1 776 56 L 776 80 A64,8 0 0 1 648 80 L 648 56" fill="rgb(51,181,229)" stroke="rgb(0,153,204)" />
+  <path d="M 776 56 A64,8 0 0 1 648 56" fill="rgb(51,181,229)" stroke="rgb(0,153,204)" />
+  <path d="M 644 52 A64,8 0 0 1 772 52 L 772 76 A64,8 0 0 1 644 76 L 644 52" fill="rgb(51,181,229)" stroke="rgb(0,153,204)" />
+  <path d="M 772 52 A64,8 0 0 1 644 52" fill="rgb(51,181,229)" stroke="rgb(0,153,204)" />
+  <path d="M 640 48 A64,8 0 0 1 768 48 L 768 72 A64,8 0 0 1 640 72 L 640 48" fill="rgb(51,181,229)" stroke="rgb(0,153,204)" />
+  <path d="M 768 48 A64,8 0 0 1 640 48" fill="rgb(51,181,229)" stroke="rgb(0,153,204)" />
+  <text fill="rgb(225,245,254)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="48" x="704.0" y="70">database</text>
+  <rect fill="rgb(51,181,229)" height="40" stroke="rgb(0,153,204)" width="128" x="640" y="120" />
+  <path d="M 640 120 L 704 136" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 704 136 L 768 120" fill="none" stroke="rgb(0,153,204)" />
+  <text fill="rgb(225,245,254)" font-family="sans-serif" font-size="11" font-style="normal" font-weight="normal" text-anchor="middle" textLength="66" x="704.0" y="154">crossbar.io</text>
+  <path d="M 384 60 L 440 60" fill="none" stroke="rgb(0,153,204)" />
+  <polygon fill="rgb(0,153,204)" points="447,60 440,56 440,64 447,60" stroke="rgb(0,153,204)" />
+  <path d="M 384 60 L 416 60" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 416 60 L 416 140" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 416 140 L 440 140" fill="none" stroke="rgb(0,153,204)" />
+  <polygon fill="rgb(0,153,204)" points="447,140 440,136 440,144 447,140" stroke="rgb(0,153,204)" />
+  <path d="M 384 380 L 432 380" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 432 380 L 432 220" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 432 220 L 440 220" fill="none" stroke="rgb(0,153,204)" />
+  <polygon fill="rgb(0,153,204)" points="447,220 440,216 440,224 447,220" stroke="rgb(0,153,204)" />
+  <path d="M 384 380 L 432 380" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 432 380 L 432 300" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 432 300 L 440 300" fill="none" stroke="rgb(0,153,204)" />
+  <polygon fill="rgb(0,153,204)" points="447,300 440,296 440,304 447,300" stroke="rgb(0,153,204)" />
+  <path d="M 192 60 L 248 60" fill="none" stroke="rgb(0,153,204)" />
+  <polygon fill="rgb(0,153,204)" points="255,60 248,56 248,64 255,60" stroke="rgb(0,153,204)" />
+  <path d="M 192 140 L 240 140" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 240 140 L 240 60" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 240 60 L 248 60" fill="none" stroke="rgb(0,153,204)" />
+  <polygon fill="rgb(0,153,204)" points="255,60 248,56 248,64 255,60" stroke="rgb(0,153,204)" />
+  <path d="M 192 220 L 240 220" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 240 220 L 240 60" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 240 60 L 248 60" fill="none" stroke="rgb(0,153,204)" />
+  <polygon fill="rgb(0,153,204)" points="255,60 248,56 248,64 255,60" stroke="rgb(0,153,204)" />
+  <path d="M 140 380 L 248 380" fill="none" stroke="rgb(0,153,204)" />
+  <polygon fill="rgb(0,153,204)" points="255,380 248,376 248,384 255,380" stroke="rgb(0,153,204)" />
+  <path d="M 140 460 L 240 460" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 240 460 L 240 380" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 240 380 L 248 380" fill="none" stroke="rgb(0,153,204)" />
+  <polygon fill="rgb(0,153,204)" points="255,380 248,376 248,384 255,380" stroke="rgb(0,153,204)" />
+  <path d="M 576 60 L 632 60" fill="none" stroke="rgb(0,153,204)" />
+  <polygon fill="rgb(0,153,204)" points="639,60 632,56 632,64 639,60" stroke="rgb(0,153,204)" />
+  <path d="M 576 60 L 608 60" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 608 60 L 608 140" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 608 140 L 620.0 140" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 620.0 140.0 A4.0,4.0 0 0 1 628.0 140.0" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 628.0 140 L 632 140" fill="none" stroke="rgb(0,153,204)" />
+  <polygon fill="rgb(0,153,204)" points="639,140 632,136 632,144 639,140" stroke="rgb(0,153,204)" />
+  <path d="M 576 140 L 624 140" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 624 140 L 624 60" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 624 60 L 632 60" fill="none" stroke="rgb(0,153,204)" />
+  <polygon fill="rgb(0,153,204)" points="639,60 632,56 632,64 639,60" stroke="rgb(0,153,204)" />
+  <path d="M 576 140 L 620.0 140" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 620.0 140.0 A4.0,4.0 0 0 1 628.0 140.0" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 628.0 140 L 632 140" fill="none" stroke="rgb(0,153,204)" />
+  <polygon fill="rgb(0,153,204)" points="639,140 632,136 632,144 639,140" stroke="rgb(0,153,204)" />
+  <path d="M 576 220 L 624 220" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 624 220 L 624 60" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 624 60 L 632 60" fill="none" stroke="rgb(0,153,204)" />
+  <polygon fill="rgb(0,153,204)" points="639,60 632,56 632,64 639,60" stroke="rgb(0,153,204)" />
+  <path d="M 576 220 L 624 220" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 624 220 L 624 140" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 624 140 L 632 140" fill="none" stroke="rgb(0,153,204)" />
+  <polygon fill="rgb(0,153,204)" points="639,140 632,136 632,144 639,140" stroke="rgb(0,153,204)" />
+  <path d="M 576 300 L 624 300" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 624 300 L 624 60" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 624 60 L 632 60" fill="none" stroke="rgb(0,153,204)" />
+  <polygon fill="rgb(0,153,204)" points="639,60 632,56 632,64 639,60" stroke="rgb(0,153,204)" />
+  <path d="M 576 300 L 624 300" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 624 300 L 624 140" fill="none" stroke="rgb(0,153,204)" />
+  <path d="M 624 140 L 632 140" fill="none" stroke="rgb(0,153,204)" />
+  <polygon fill="rgb(0,153,204)" points="639,140 632,136 632,144 639,140" stroke="rgb(0,153,204)" />
+  <rect fill="none" height="220" stroke="rgb(66,139,202)" stroke-width="3" width="144" x="56" y="30" />
+  <rect fill="none" height="140" stroke="rgb(66,139,202)" stroke-width="3" width="144" x="56" y="350" />
+  <rect fill="none" height="300" stroke="rgb(66,139,202)" stroke-width="3" width="144" x="440" y="30" />
+  <rect fill="none" height="140" stroke="rgb(66,139,202)" stroke-width="3" width="144" x="632" y="30" />
+</svg>
+</div>
+<p>Buildbot supports interconnection of several masters.
+This has to be done through a multi-master enabled message queue backend.
+As of now the only one supported is wamp and crossbar.io.
+see <a class="reference internal" href="configuration/global.html#mq-specification"><span class="std std-ref">wamp</span></a></p>
+<p>There are then several strategy for introducing multimaster in your buildbot infra.
+A simple way to say it is by adding the concept of symmetrics and asymmetrics multimaster (like there is SMP and AMP for multi core CPUs)</p>
+<p>Symmetric multimaster is when each master share the exact same configuration. They run the same builders, same schedulers, same everything, the only difference is that workers are connected evenly between the masters (by any means (e.g. DNS load balancing, etc)) Symmetric multimaster is good to use to scale buildbot horizontally.</p>
+<p>Asymmetric multimaster is when each master have different configuration. Each master may have a specific responsibility (e.g schedulers, set of builder, UI). This was more how you did in 0.8, also because of its own technical limitations. A nice feature of asymmetric multimaster is that you can have the UI only handled by some masters.</p>
+<p>Separating the UI from the controlling will greatly help in the performance of the UI, because badly written BuildSteps?? can stall the reactor for several seconds.</p>
+<p>The fanciest configuration would probably be a symmetric configuration for everything but the UI.
+You would scale the number of UI master according to your number of UI users, and scale the number of engine masters to the number of workers.</p>
+<p>Depending on your workload and size of master host, it is probably a good idea to start thinking of multimaster starting from a hundred workers connected.</p>
+<p>Multimaster can also be used for high availability, and seamless upgrade of configuration code.
+Complex configuration indeed requires sometimes to restart the master to reload custom steps or code, or just to upgrade the upstream buildbot version.</p>
+<p>In this case, you will implement following procedure:</p>
+<ul class="simple">
+<li>Start new master(s) with new code and configuration.</li>
+<li>Send a graceful shutdown to the old master(s).</li>
+<li>New master(s) will start taking the new jobs, while old master(s) will just finish managing the running builds.</li>
+<li>As an old master is finishing the running builds, it will drop the connections from the workers, who will then reconnect automatically, and by the mean of load balancer will get connected to a new master to run new jobs.</li>
+</ul>
+<p>As buildbot nine has been designed to allow such procedure, it has not been implemented in production yet as we know.
+There is probably a new REST api needed in order to graceful shutdown a master, and the details of gracefully dropping the connection to the workers to be sorted out.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/full_logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script><h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="secretsmanagement.html">2.4. Secret Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration/index.html">2.5. Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="customization.html">2.6. Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmdline.html">2.7. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resources.html">2.8. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html">2.9. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins.html">2.10. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deploy.html">2.11. Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upgrading/index.html">2.12. Upgrading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../indices.html">6. Indices and Tables</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="installation/misc.html"
+                        title="previous chapter">2.2.6. Next Steps</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="secretsmanagement.html"
+                        title="next chapter">2.4. Secret Management</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/manual/concepts.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>
