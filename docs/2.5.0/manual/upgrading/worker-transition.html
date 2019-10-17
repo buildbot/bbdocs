@@ -1,0 +1,650 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>2.12.3. Transition to “worker” terminology &#8212; Buildbot 2.5.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/qtile.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="shortcut icon" href="../../_static/icon.png"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="3. Buildbot Development" href="../../developer/index.html" />
+    <link rel="prev" title="2.12.2. New-Style Build Steps" href="new-style-steps.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../developer/index.html" title="3. Buildbot Development"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="new-style-steps.html" title="2.12.2. New-Style Build Steps"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Buildbot 2.5.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >2. Buildbot Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">2.12. Upgrading</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="admonition caution">
+<p class="first admonition-title">Caution</p>
+<p class="last">Buildbot no longer supports Python 2.7 on the Buildbot master.</p>
+</div>
+<div class="section" id="transition-to-worker-terminology">
+<span id="id1"></span><h1>2.12.3. Transition to “worker” terminology<a class="headerlink" href="#transition-to-worker-terminology" title="Permalink to this headline">¶</a></h1>
+<p>Since version 0.9.0 of Buildbot “slave”-based terminology is deprecated
+in favor of “worker”-based terminology.</p>
+<p>API change is done in backward compatible way, so old “slave”-containing
+classes, functions and attributes are still available and can be used.
+Old API support will be removed in the future versions of Buildbot.</p>
+<p>Rename of API introduced in beta versions of Buildbot 0.9.0 done without
+providing fallback.
+See release notes for the list of breaking changes of private interfaces.
+The fallbacks have been removed in Buildbot version 2.0.0.</p>
+<div class="section" id="old-names-fallback-settings">
+<h2>2.12.3.1. Old names fallback settings<a class="headerlink" href="#old-names-fallback-settings" title="Permalink to this headline">¶</a></h2>
+<p>Use of obsolete names will raise Python warnings with category
+<code class="xref py py-exc docutils literal notranslate"><span class="pre">buildbot.worker_transition.DeprecatedWorkerAPIWarning</span></code>.
+By default these warnings are printed in the application log.
+This behaviour can be changed by setting appropriate Python warnings settings
+via Python’s <code class="xref py py-mod docutils literal notranslate"><span class="pre">warnings</span></code> module:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">buildbot.worker_transition</span> <span class="kn">import</span> <span class="n">DeprecatedWorkerAPIWarning</span>
+<span class="c1"># Treat old-name usage as errors:</span>
+<span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="n">DeprecatedWorkerAPIWarning</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>See Python’s <code class="xref py py-mod docutils literal notranslate"><span class="pre">warnings</span></code> module documentation for complete list of
+available actions, in particular warnings can be disabled using
+<code class="docutils literal notranslate"><span class="pre">&quot;ignore&quot;</span></code> action.</p>
+<p>It’s recommended to configure warnings inside <code class="file docutils literal notranslate"><span class="pre">buildbot.tac</span></code>, before
+using any other Buildbot classes.</p>
+</div>
+<div class="section" id="changed-api">
+<h2>2.12.3.2. Changed API<a class="headerlink" href="#changed-api" title="Permalink to this headline">¶</a></h2>
+<p>In general “Slave” and “Buildslave” parts in identifiers and messages were
+replaced with “Worker”; “SlaveBuilder” with “WorkerForBuilder”.</p>
+<p>Below is the list of changed API (use of old names from this list will work).
+Note that some of these symbols are not included in Buildbot’s public API.
+Compatibility is provided as a convenience to those using the private symbols
+anyway.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Old name</th>
+<th class="head">New name</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.interfaces.IBuildSlave</span></code></td>
+<td><code class="xref py py-class docutils literal notranslate"><span class="pre">IWorker</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.interfaces.NoSlaveError</span></code> (private)</td>
+<td>left as is, but deprecated (it shouldn’t be used at all)</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.interfaces.BuildSlaveTooOldError</span></code></td>
+<td><code class="xref py py-class docutils literal notranslate"><span class="pre">WorkerTooOldError</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.interfaces.LatentBuildSlaveFailedToSubstantiate</span></code>
+(private)</td>
+<td><code class="xref py py-class docutils literal notranslate"><span class="pre">LatentWorkerFailedToSubstantiate</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.interfaces.ILatentBuildSlave</span></code></td>
+<td><code class="xref py py-class docutils literal notranslate"><span class="pre">ILatentWorker</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.interfaces.ISlaveStatus</span></code> (will be removed in 0.9.x)</td>
+<td><code class="xref py py-class docutils literal notranslate"><span class="pre">IWorkerStatus</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-mod docutils literal notranslate"><span class="pre">buildbot.buildslave</span></code> module with all contents</td>
+<td><a class="reference internal" href="../../developer/cls-worker.html#module-buildbot.worker" title="buildbot.worker"><code class="xref py py-mod docutils literal notranslate"><span class="pre">buildbot.worker</span></code></a></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.buildslave.AbstractBuildSlave</span></code></td>
+<td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.worker.AbstractWorker</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.buildslave.AbstractBuildSlave.slavename</span></code> (private)</td>
+<td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.worker.AbstractWorker.workername</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.buildslave.AbstractLatentBuildSlave</span></code></td>
+<td><a class="reference internal" href="../customization.html#buildbot.worker.AbstractLatentWorker" title="buildbot.worker.AbstractLatentWorker"><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.worker.AbstractLatentWorker</span></code></a></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.buildslave.BuildSlave</span></code></td>
+<td><a class="reference internal" href="../../developer/cls-worker.html#buildbot.worker.Worker" title="buildbot.worker.Worker"><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.worker.Worker</span></code></a></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-mod docutils literal notranslate"><span class="pre">buildbot.buildslave.ec2</span></code></td>
+<td><code class="xref py py-mod docutils literal notranslate"><span class="pre">buildbot.worker.ec2</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.buildslave.ec2.EC2LatentBuildSlave</span></code></td>
+<td><a class="reference internal" href="../configuration/workers-ec2.html#buildbot.worker.ec2.EC2LatentWorker" title="buildbot.worker.ec2.EC2LatentWorker"><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.worker.ec2.EC2LatentWorker</span></code></a></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-mod docutils literal notranslate"><span class="pre">buildbot.buildslave.libvirt</span></code></td>
+<td><code class="xref py py-mod docutils literal notranslate"><span class="pre">buildbot.worker.libvirt</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.buildslave.libvirt.LibVirtSlave</span></code></td>
+<td><a class="reference internal" href="../configuration/workers-libvirt.html#buildbot.worker.libvirt.LibVirtWorker" title="buildbot.worker.libvirt.LibVirtWorker"><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.worker.libvirt.LibVirtWorker</span></code></a></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-mod docutils literal notranslate"><span class="pre">buildbot.buildslave.openstack</span></code></td>
+<td><code class="xref py py-mod docutils literal notranslate"><span class="pre">buildbot.worker.openstack</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.buildslave.openstack.OpenStackLatentBuildSlave</span></code></td>
+<td><a class="reference internal" href="../configuration/workers-openstack.html#buildbot.worker.openstack.OpenStackLatentWorker" title="buildbot.worker.openstack.OpenStackLatentWorker"><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.worker.openstack.OpenStackLatentWorker</span></code></a></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.config.MasterConfig.slaves</span></code></td>
+<td><a class="reference internal" href="../../developer/config.html#buildbot.config.MasterConfig.workers" title="buildbot.config.MasterConfig.workers"><code class="xref py py-attr docutils literal notranslate"><span class="pre">workers</span></code></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="../../developer/config.html#buildbot.config.BuilderConfig" title="buildbot.config.BuilderConfig"><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.config.BuilderConfig</span></code></a> constructor keyword argument
+<code class="docutils literal notranslate"><span class="pre">slavename</span></code> was renamed to</td>
+<td><code class="docutils literal notranslate"><span class="pre">workername</span></code></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="../../developer/config.html#buildbot.config.BuilderConfig" title="buildbot.config.BuilderConfig"><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.config.BuilderConfig</span></code></a> constructor keyword argument
+<code class="docutils literal notranslate"><span class="pre">slavenames</span></code> was renamed to</td>
+<td><code class="docutils literal notranslate"><span class="pre">workernames</span></code></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="../../developer/config.html#buildbot.config.BuilderConfig" title="buildbot.config.BuilderConfig"><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.config.BuilderConfig</span></code></a> constructor keyword argument
+<code class="docutils literal notranslate"><span class="pre">slavebuilddir</span></code> was renamed to</td>
+<td><code class="docutils literal notranslate"><span class="pre">workerbuilddir</span></code></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="../../developer/config.html#buildbot.config.BuilderConfig" title="buildbot.config.BuilderConfig"><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.config.BuilderConfig</span></code></a> constructor keyword argument
+<code class="docutils literal notranslate"><span class="pre">nextSlave</span></code> was renamed to</td>
+<td><code class="docutils literal notranslate"><span class="pre">nextWorker</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.config.BuilderConfig.slavenames</span></code></td>
+<td><a class="reference internal" href="../../developer/config.html#buildbot.config.BuilderConfig.workernames" title="buildbot.config.BuilderConfig.workernames"><code class="xref py py-attr docutils literal notranslate"><span class="pre">workernames</span></code></a></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.config.BuilderConfig.slavebuilddir</span></code></td>
+<td><a class="reference internal" href="../../developer/config.html#buildbot.config.BuilderConfig.workerbuilddir" title="buildbot.config.BuilderConfig.workerbuilddir"><code class="xref py py-attr docutils literal notranslate"><span class="pre">workerbuilddir</span></code></a></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.config.BuilderConfig.nextSlave</span></code></td>
+<td><a class="reference internal" href="../../developer/config.html#buildbot.config.BuilderConfig.nextWorker" title="buildbot.config.BuilderConfig.nextWorker"><code class="xref py py-attr docutils literal notranslate"><span class="pre">nextWorker</span></code></a></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-mod docutils literal notranslate"><span class="pre">buildbot.process.slavebuilder</span></code></td>
+<td><code class="xref py py-mod docutils literal notranslate"><span class="pre">buildbot.process.workerforbuilder</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.process.slavebuilder.AbstractSlaveBuilder</span></code></td>
+<td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.process.workerforbuilder.AbstractWorkerForBuilder</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.process.slavebuilder.AbstractSlaveBuilder.slave</span></code></td>
+<td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.process.workerforbuilder.AbstractWorkerForBuilder.worker</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.process.slavebuilder.SlaveBuilder</span></code></td>
+<td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.process.workerforbuilder.WorkerForBuilder</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.process.slavebuilder.LatentSlaveBuilder</span></code></td>
+<td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.process.workerforbuilder.LatentWorkerForBuilder</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">buildbot.process.build.Build.getSlaveName</span></code></td>
+<td><code class="xref py py-meth docutils literal notranslate"><span class="pre">getWorkerName</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">buildbot.process.build.Build.slavename</span></code></td>
+<td><code class="xref py py-meth docutils literal notranslate"><span class="pre">workername</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-func docutils literal notranslate"><span class="pre">buildbot.process.builder.enforceChosenSlave</span></code></td>
+<td><code class="xref py py-func docutils literal notranslate"><span class="pre">enforceChosenWorker</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">buildbot.process.builder.Builder.canStartWithSlavebuilder</span></code></td>
+<td><code class="xref py py-meth docutils literal notranslate"><span class="pre">canStartWithWorkerForBuilder</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.process.builder.Builder.attaching_slaves</span></code></td>
+<td><code class="xref py py-attr docutils literal notranslate"><span class="pre">attaching_workers</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.process.builder.Builder.slaves</span></code></td>
+<td><code class="xref py py-attr docutils literal notranslate"><span class="pre">workers</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">buildbot.process.builder.Builder.addLatentSlave</span></code></td>
+<td><code class="xref py py-meth docutils literal notranslate"><span class="pre">addLatentWorker</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">buildbot.process.builder.Builder.getAvailableSlaves</span></code></td>
+<td><code class="xref py py-meth docutils literal notranslate"><span class="pre">getAvailableWorkers</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.schedulers.forcesched.BuildslaveChoiceParameter</span></code></td>
+<td><code class="xref py py-class docutils literal notranslate"><span class="pre">WorkerChoiceParameter</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.process.buildstep.BuildStep.buildslave</span></code></td>
+<td><a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.worker" title="buildbot.process.buildstep.BuildStep.worker"><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.process.buildstep.BuildStep.worker</span></code></a>
+(also it was moved from class static attribute to instance attribute)</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">buildbot.process.buildstep.BuildStep.setBuildSlave</span></code></td>
+<td><a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.setWorker" title="buildbot.process.buildstep.BuildStep.setWorker"><code class="xref py py-meth docutils literal notranslate"><span class="pre">buildbot.process.buildstep.BuildStep.setWorker</span></code></a></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">buildbot.process.buildstep.BuildStep.slaveVersion</span></code></td>
+<td><a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.workerVersion" title="buildbot.process.buildstep.BuildStep.workerVersion"><code class="xref py py-meth docutils literal notranslate"><span class="pre">buildbot.process.buildstep.BuildStep.workerVersion</span></code></a></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">buildbot.process.buildstep.BuildStep.slaveVersionIsOlderThan</span></code></td>
+<td><a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.workerVersionIsOlderThan" title="buildbot.process.buildstep.BuildStep.workerVersionIsOlderThan"><code class="xref py py-meth docutils literal notranslate"><span class="pre">buildbot.process.buildstep.BuildStep.workerVersionIsOlderThan</span></code></a></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">buildbot.process.buildstep.BuildStep.checkSlaveHasCommand</span></code></td>
+<td><a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.checkWorkerHasCommand" title="buildbot.process.buildstep.BuildStep.checkWorkerHasCommand"><code class="xref py py-meth docutils literal notranslate"><span class="pre">buildbot.process.buildstep.BuildStep.checkWorkerHasCommand</span></code></a></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">buildbot.process.buildstep.BuildStep.getSlaveName</span></code></td>
+<td><a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.getWorkerName" title="buildbot.process.buildstep.BuildStep.getWorkerName"><code class="xref py py-meth docutils literal notranslate"><span class="pre">buildbot.process.buildstep.BuildStep.getWorkerName</span></code></a></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.locks.SlaveLock</span></code></td>
+<td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.locks.WorkerLock</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.locks.SlaveLock.maxCountForSlave</span></code></td>
+<td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.locks.WorkerLock.maxCountForWorker</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.locks.SlaveLock</span></code> constructor argument
+<code class="docutils literal notranslate"><span class="pre">maxCountForSlave</span></code> was renamed</td>
+<td><code class="docutils literal notranslate"><span class="pre">maxCountForWorker</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-mod docutils literal notranslate"><span class="pre">buildbot.steps.slave</span></code></td>
+<td><code class="xref py py-mod docutils literal notranslate"><span class="pre">buildbot.steps.worker</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.steps.slave.SlaveBuildStep</span></code></td>
+<td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.steps.worker.WorkerBuildStep</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.steps.slave.CompositeStepMixin.getFileContentFromSlave</span></code></td>
+<td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.steps.worker.CompositeStepMixin.getFileContentFromWorker</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.steps.transfer.FileUpload.slavesrc</span></code></td>
+<td><code class="xref py py-attr docutils literal notranslate"><span class="pre">workersrc</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.steps.transfer.FileUpload</span></code>
+constructor argument <code class="docutils literal notranslate"><span class="pre">slavesrc</span></code> was renamed to</td>
+<td><code class="docutils literal notranslate"><span class="pre">workersrc</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.steps.transfer.DirectoryUpload.slavesrc</span></code></td>
+<td><code class="xref py py-attr docutils literal notranslate"><span class="pre">workersrc</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.steps.transfer.DirectoryUpload</span></code>
+constructor argument <code class="docutils literal notranslate"><span class="pre">slavesrc</span></code> was renamed to</td>
+<td><code class="docutils literal notranslate"><span class="pre">workersrc</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.steps.transfer.MultipleFileUpload.slavesrcs</span></code></td>
+<td><code class="xref py py-attr docutils literal notranslate"><span class="pre">workersrcs</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.steps.transfer.MultipleFileUpload</span></code>
+constructor argument <code class="docutils literal notranslate"><span class="pre">slavesrcs</span></code> was renamed to</td>
+<td><code class="docutils literal notranslate"><span class="pre">workersrcs</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.steps.transfer.FileDownload.slavedest</span></code></td>
+<td><code class="xref py py-attr docutils literal notranslate"><span class="pre">workerdest</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.steps.transfer.FileDownload</span></code>
+constructor argument <code class="docutils literal notranslate"><span class="pre">slavedest</span></code> was renamed to</td>
+<td><code class="docutils literal notranslate"><span class="pre">workerdest</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.steps.transfer.StringDownload.slavedest</span></code></td>
+<td><code class="xref py py-attr docutils literal notranslate"><span class="pre">workerdest</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.steps.transfer.StringDownload</span></code>
+constructor argument <code class="docutils literal notranslate"><span class="pre">slavedest</span></code> was renamed to</td>
+<td><code class="docutils literal notranslate"><span class="pre">workerdest</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.steps.transfer.JSONStringDownload.slavedest</span></code></td>
+<td><code class="xref py py-attr docutils literal notranslate"><span class="pre">workerdest</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.steps.transfer.JSONStringDownload</span></code>
+constructor argument <code class="docutils literal notranslate"><span class="pre">slavedest</span></code> was renamed to</td>
+<td><code class="docutils literal notranslate"><span class="pre">workerdest</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.steps.transfer.JSONPropertiesDownload.slavedest</span></code></td>
+<td><code class="xref py py-attr docutils literal notranslate"><span class="pre">workerdest</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.steps.transfer.JSONPropertiesDownload</span></code>
+constructor argument <code class="docutils literal notranslate"><span class="pre">slavedest</span></code> was renamed to</td>
+<td><code class="docutils literal notranslate"><span class="pre">workerdest</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.process.remotecommand.RemoteCommand.buildslave</span></code></td>
+<td><code class="xref py py-attr docutils literal notranslate"><span class="pre">worker</span></code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="plugins">
+<h2>2.12.3.3. Plugins<a class="headerlink" href="#plugins" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">buildbot.buildslave</span></code> entry point was renamed to <code class="docutils literal notranslate"><span class="pre">buildbot.worker</span></code>, new
+plugins should be updated accordingly.</p>
+<p>Plugins that use old <code class="docutils literal notranslate"><span class="pre">buildbot.buildslave</span></code> entry point are still available
+in the configuration file in the same way, as they were in versions prior
+0.9.0:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">buildslave</span>  <span class="c1"># deprecated, use &quot;worker&quot; instead</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">buildslave</span><span class="o">.</span><span class="n">ThirdPartyWorker</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>But also they available using new namespace inside configuration
+file, so its recommended to use <code class="docutils literal notranslate"><span class="pre">buildbot.plugins.worker</span></code>
+name even if plugin uses old entry points:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">worker</span>
+<span class="c1"># ThirdPartyWorker can be defined in using `buildbot.buildslave` entry</span>
+<span class="c1"># point, this still will work.</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">worker</span><span class="o">.</span><span class="n">ThirdPartyWorker</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Other changes:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">buildbot.plugins.util.BuildslaveChoiceParameter</span></code> is deprecated in favor of
+<code class="docutils literal notranslate"><span class="pre">WorkerChoiceParameter</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">buildbot.plugins.util.enforceChosenSlave</span></code> is deprecated in favor of
+<code class="docutils literal notranslate"><span class="pre">enforceChosenWorker</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">buildbot.plugins.util.SlaveLock</span></code> is deprecated in favor of
+<code class="docutils literal notranslate"><span class="pre">WorkerLock</span></code>.</li>
+</ul>
+</div>
+<div class="section" id="buildmasterconfig-changes">
+<h2>2.12.3.4. <code class="docutils literal notranslate"><span class="pre">BuildmasterConfig</span></code> changes<a class="headerlink" href="#buildmasterconfig-changes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">c['slaves']</span></code> was replaced with <code class="docutils literal notranslate"><span class="pre">c['workers']</span></code>.
+Use of <code class="docutils literal notranslate"><span class="pre">c['slaves']</span></code> will work, but is considered deprecated, and will be
+removed in the future versions of Buildbot.</li>
+<li>Configuration key <code class="docutils literal notranslate"><span class="pre">c['slavePortnum']</span></code> is deprecated in favor of
+<code class="docutils literal notranslate"><span class="pre">c['protocols']['pb']['port']</span></code>.</li>
+</ul>
+</div>
+<div class="section" id="docker-latent-worker-changes">
+<h2>2.12.3.5. Docker latent worker changes<a class="headerlink" href="#docker-latent-worker-changes" title="Permalink to this headline">¶</a></h2>
+<p>In addition to class being renamed, environment variables that are set inside
+container <code class="docutils literal notranslate"><span class="pre">SLAVENAME</span></code> and <code class="docutils literal notranslate"><span class="pre">SLAVEPASS</span></code> were renamed to
+<code class="docutils literal notranslate"><span class="pre">WORKERNAME</span></code> and <code class="docutils literal notranslate"><span class="pre">WORKERPASS</span></code> accordingly.
+Old environment variable are still available, but are deprecated and will be
+removed in the future.</p>
+</div>
+<div class="section" id="ec2-latent-worker-changes">
+<h2>2.12.3.6. EC2 latent worker changes<a class="headerlink" href="#ec2-latent-worker-changes" title="Permalink to this headline">¶</a></h2>
+<p>Use of default values of <code class="docutils literal notranslate"><span class="pre">keypair_name</span></code> and <code class="docutils literal notranslate"><span class="pre">security_name</span></code>
+constructor arguments of <a class="reference internal" href="../configuration/workers-ec2.html#buildbot.worker.ec2.EC2LatentWorker" title="buildbot.worker.ec2.EC2LatentWorker"><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.worker.ec2.EC2LatentWorker</span></code></a>
+is deprecated. Please specify them explicitly.</p>
+</div>
+<div class="section" id="steps-slave-setpropertiesfromenv-changes">
+<h2>2.12.3.7. <code class="docutils literal notranslate"><span class="pre">steps.slave.SetPropertiesFromEnv</span></code> changes<a class="headerlink" href="#steps-slave-setpropertiesfromenv-changes" title="Permalink to this headline">¶</a></h2>
+<p>In addition to <code class="docutils literal notranslate"><span class="pre">buildbot.steps.slave</span></code> module being renamed to
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">buildbot.steps.worker</span></code>, default <code class="docutils literal notranslate"><span class="pre">source</span></code> value for
+<code class="xref py py-class docutils literal notranslate"><span class="pre">SetPropertiesFromEnv</span></code> was changed from
+<code class="docutils literal notranslate"><span class="pre">&quot;SlaveEnvironment&quot;</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;WorkerEnvironment&quot;</span></code>.</p>
+</div>
+<div class="section" id="local-worker-changes">
+<h2>2.12.3.8. Local worker changes<a class="headerlink" href="#local-worker-changes" title="Permalink to this headline">¶</a></h2>
+<p>Working directory for local workers were changed from
+<code class="docutils literal notranslate"><span class="pre">master-basedir/slaves/name</span></code> to <code class="docutils literal notranslate"><span class="pre">master-basedir/workers/name</span></code>.</p>
+</div>
+<div class="section" id="worker-manager-changes">
+<h2>2.12.3.9. Worker Manager changes<a class="headerlink" href="#worker-manager-changes" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">slave_config</span></code> function argument was renamed to <code class="docutils literal notranslate"><span class="pre">worker_config</span></code>.</p>
+</div>
+<div class="section" id="properties">
+<h2>2.12.3.10. Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">slavename</span></code> property is deprecated in favor of <code class="docutils literal notranslate"><span class="pre">workername</span></code> property.
+Render of deprecated property will produce warning.</p>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.worker.AbstractWorker</span></code>
+(previously <code class="docutils literal notranslate"><span class="pre">buildbot.buildslave.AbstractBuildSlave</span></code>) <code class="docutils literal notranslate"><span class="pre">slavename</span></code>
+property source were changed from <code class="docutils literal notranslate"><span class="pre">BuildSlave</span></code> to
+<code class="docutils literal notranslate"><span class="pre">Worker</span> <span class="pre">(deprecated)</span></code></p>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractWorker</span></code> now sets <code class="docutils literal notranslate"><span class="pre">workername</span></code>
+property with source <code class="docutils literal notranslate"><span class="pre">Worker</span></code> which should be used.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="metrics">
+<h2>2.12.3.11. Metrics<a class="headerlink" href="#metrics" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.process.metrics.AttachedSlavesWatcher</span></code> was renamed to
+<code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.process.metrics.AttachedWorkersWatcher</span></code>.</li>
+<li><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.worker.manager.WorkerManager.name</span></code>
+(previously <code class="docutils literal notranslate"><span class="pre">buildbot.buildslave.manager.BuildslaveManager.name</span></code>) metric
+measurement class name changed from <code class="docutils literal notranslate"><span class="pre">BuildslaveManager</span></code> to <code class="docutils literal notranslate"><span class="pre">WorkerManager</span></code></li>
+<li><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.worker.manager.WorkerManager.managed_services_name</span></code>
+(previously <code class="docutils literal notranslate"><span class="pre">buildbot.buildslave.manager.BuildslaveManager.managed_services_name`)</span>
+<span class="pre">metric</span> <span class="pre">measurement</span> <span class="pre">managed</span> <span class="pre">service</span> <span class="pre">name</span> <span class="pre">changed</span> <span class="pre">from</span> <span class="pre">``buildslaves</span></code> to
+<code class="docutils literal notranslate"><span class="pre">workers</span></code></li>
+</ul>
+<p>Renamed events:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Old name</th>
+<th class="head">New name</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">AbstractBuildSlave.attached_slaves</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">AbstractWorker.attached_workers</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">BotMaster.attached_slaves</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">BotMaster.attached_workers</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">BotMaster.slaveLost()</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">BotMaster.workerLost()</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">BotMaster.getBuildersForSlave()</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">BotMaster.getBuildersForWorker()</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">AttachedSlavesWatcher</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">AttachedWorkersWatcher</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">attached_slaves</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">attached_workers</span></code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="database">
+<h2>2.12.3.12. Database<a class="headerlink" href="#database" title="Permalink to this headline">¶</a></h2>
+<p>Schema changes:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Old name</th>
+<th class="head">New name</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">buildslaves</span></code> table</td>
+<td><code class="docutils literal notranslate"><span class="pre">workers</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">builds.buildslaveid</span></code> (not ForeignKey) column</td>
+<td><code class="docutils literal notranslate"><span class="pre">workerid</span></code> (now ForeignKey)</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">configured_buildslaves</span></code> table</td>
+<td><code class="docutils literal notranslate"><span class="pre">configured_workers</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">configured_buildslaves.buildslaveid</span></code> (ForeignKey) column</td>
+<td><code class="docutils literal notranslate"><span class="pre">workerid</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">connected_buildslaves</span></code> table</td>
+<td><code class="docutils literal notranslate"><span class="pre">connected_workers</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">connected_buildslaves.buildslaveid</span></code> (ForeignKey) column</td>
+<td><code class="docutils literal notranslate"><span class="pre">workerid</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">buildslaves_name</span></code> index</td>
+<td><code class="docutils literal notranslate"><span class="pre">workers_name</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">configured_slaves_buildmasterid</span></code> index</td>
+<td><code class="docutils literal notranslate"><span class="pre">configured_workers_buildmasterid</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">configured_slaves_slaves</span></code> index</td>
+<td><code class="docutils literal notranslate"><span class="pre">configured_workers_workers</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">configured_slaves_identity</span></code> index</td>
+<td><code class="docutils literal notranslate"><span class="pre">configured_workers_identity</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">connected_slaves_masterid</span></code> index</td>
+<td><code class="docutils literal notranslate"><span class="pre">connected_workers_masterid</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">connected_slaves_slaves</span></code> index</td>
+<td><code class="docutils literal notranslate"><span class="pre">connected_workers_workers</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">connected_slaves_identity</span></code> index</td>
+<td><code class="docutils literal notranslate"><span class="pre">connected_workers_identity</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">builds_buildslaveid</span></code> index</td>
+<td><code class="docutils literal notranslate"><span class="pre">builds_workerid</span></code></td>
+</tr>
+</tbody>
+</table>
+<p>List of database-related changes in API (fallback for old API is provided):</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Old name</th>
+<th class="head">New name</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="xref py py-mod docutils literal notranslate"><span class="pre">buildbot.db.buildslaves</span></code></td>
+<td><a class="reference internal" href="../../developer/database.html#module-buildbot.db.workers" title="buildbot.db.workers"><code class="xref py py-mod docutils literal notranslate"><span class="pre">workers</span></code></a></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.db.buildslaves.BuildslavesConnectorComponent</span></code></td>
+<td><a class="reference internal" href="../../developer/database.html#buildbot.db.workers.WorkersConnectorComponent" title="buildbot.db.workers.WorkersConnectorComponent"><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.db.workers.WorkersConnectorComponent</span></code></a></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-meth docutils literal notranslate"><span class="pre">buildbot.db.buildslaves.BuildslavesConnectorComponent.getBuildslaves</span></code>
+(rewritten in nine)</td>
+<td><a class="reference internal" href="../../developer/database.html#buildbot.db.workers.WorkersConnectorComponent.getWorkers" title="buildbot.db.workers.WorkersConnectorComponent.getWorkers"><code class="xref py py-meth docutils literal notranslate"><span class="pre">buildbot.db.workers.WorkersConnectorComponent.getWorkers</span></code></a></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.db.connector.DBConnector.buildslaves</span></code></td>
+<td><code class="xref py py-attr docutils literal notranslate"><span class="pre">buildbot.db.connector.DBConnector.workers</span></code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="usepty-changes">
+<h2>2.12.3.13. <code class="docutils literal notranslate"><span class="pre">usePTY</span></code> changes<a class="headerlink" href="#usepty-changes" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">usePTY</span></code> default value has been changed from <code class="docutils literal notranslate"><span class="pre">slave-config</span></code> to <code class="docutils literal notranslate"><span class="pre">None</span></code> (use of <code class="docutils literal notranslate"><span class="pre">slave-config</span></code> will still work, but discouraged).</p>
+</div>
+<div class="section" id="buildbot-worker">
+<span id="worker-transition-buildbot-worker"></span><h2>2.12.3.14. <code class="docutils literal notranslate"><span class="pre">buildbot-worker</span></code><a class="headerlink" href="#buildbot-worker" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">buildbot-slave</span></code> package has been renamed to <code class="docutils literal notranslate"><span class="pre">buildbot-worker</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">buildbot-worker</span></code> has backward incompatible changes and requires buildmaster &gt;= 0.9.0b8.
+<code class="docutils literal notranslate"><span class="pre">buildbot-slave</span></code> from 0.8.x will work with both 0.8.x and 0.9.x versions of buildmaster, so there is no need to upgrade currently deployed buildbot-slaves during switch from 0.8.x to 0.9.x.</p>
+<table border="1" class="docutils" id="id2">
+<caption><span class="caption-text">Master/worker compatibility table</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head stub">&#160;</th>
+<th class="head">master 0.8.x</th>
+<th class="head">master 0.9.x</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><th class="stub">buildbot-slave</th>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr class="row-odd"><th class="stub">buildbot-worker</th>
+<td>no</td>
+<td>yes</td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">buildbot-worker</span></code> doesn’t support worker-side specification of <code class="docutils literal notranslate"><span class="pre">usePTY</span></code> (with <code class="docutils literal notranslate"><span class="pre">--usepty</span></code> command line switch of <code class="docutils literal notranslate"><span class="pre">buildbot-worker</span> <span class="pre">create-worker</span></code>), you need to specify this option on master side.</p>
+<p><code class="docutils literal notranslate"><span class="pre">getSlaveInfo</span></code> remote command was renamed to <code class="docutils literal notranslate"><span class="pre">getWorkerInfo</span></code> in <code class="docutils literal notranslate"><span class="pre">buildbot-worker</span></code>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/full_logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script><h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../secretsmanagement.html">2.4. Secret Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration/index.html">2.5. Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../customization.html">2.6. Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cmdline.html">2.7. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../resources.html">2.8. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../optimization.html">2.9. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins.html">2.10. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../deploy.html">2.11. Deployment</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">2.12. Upgrading</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="nine-upgrade.html">2.12.1. Upgrading from Buildbot 0.8.x</a></li>
+<li class="toctree-l3"><a class="reference internal" href="new-style-steps.html">2.12.2. New-Style Build Steps</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">2.12.3. Transition to “worker” terminology</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../indices.html">6. Indices and Tables</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="new-style-steps.html"
+                        title="previous chapter">2.12.2. New-Style Build Steps</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../../developer/index.html"
+                        title="next chapter">3. Buildbot Development</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/manual/upgrading/worker-transition.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>
