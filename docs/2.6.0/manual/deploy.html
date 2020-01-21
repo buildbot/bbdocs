@@ -1,0 +1,318 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>2.11. Deployment &#8212; Buildbot 2.6.0 documentation</title>
+    <link rel="stylesheet" href="../_static/qtile.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="shortcut icon" href="../_static/icon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="2.12. Upgrading" href="upgrading/index.html" />
+    <link rel="prev" title="2.10. Plugin Infrastructure in Buildbot" href="plugins.html" /> 
+  <!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="upgrading/index.html" title="2.12. Upgrading"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="plugins.html" title="2.10. Plugin Infrastructure in Buildbot"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Buildbot 2.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">2. Buildbot Manual</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="admonition caution">
+<p class="first admonition-title">Caution</p>
+<p class="last">Buildbot no longer supports Python 2.7 on the Buildbot master.</p>
+</div>
+<div class="section" id="deployment">
+<h1>2.11. Deployment<a class="headerlink" href="#deployment" title="Permalink to this headline">¶</a></h1>
+<p>This page aims at describing the common pitfalls and best practices when deploying buildbot.</p>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#using-a-database-server" id="id6">Using A Database Server</a></li>
+<li><a class="reference internal" href="#maintenance" id="id7">Maintenance</a></li>
+<li><a class="reference internal" href="#troubleshooting" id="id8">Troubleshooting</a></li>
+</ul>
+</div>
+<div class="section" id="using-a-database-server">
+<span id="database-server"></span><h2><a class="toc-backref" href="#id6">2.11.1. Using A Database Server</a><a class="headerlink" href="#using-a-database-server" title="Permalink to this headline">¶</a></h2>
+<p>Buildbot uses the sqlite3 database backend by default.</p>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">SQLite3 is perfectly suitable for small setups with a few users.
+However, it does not scale well with large numbers of builders, workers and users.
+If you expect your Buildbot to grow over time, it is strongly advised to use a real database server (e.g., MySQL or Postgres).</p>
+</div>
+<p>If you want to use a database server as the database backend for your Buildbot, use option <cite>buildbot create-master –db</cite> to specify the <a class="reference internal" href="configuration/global.html#database-specification"><span class="std std-ref">connection string</span></a> for the database, and make sure that the same URL appears in the <code class="docutils literal notranslate"><span class="pre">db_url</span></code> of the <a class="reference internal" href="configuration/global.html#cfg-db" title="db"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">db</span></code></a> parameter in your configuration file.</p>
+<div class="section" id="server-setup-example">
+<h3>2.11.1.1. Server Setup Example<a class="headerlink" href="#server-setup-example" title="Permalink to this headline">¶</a></h3>
+<p>Installing and configuring a database server can be complex.
+Here is a minimalist example on how to install and configure a PostgreSQL server for your Buildbot on a recent Ubuntu system.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">To install PostgreSQL on Ubuntu, you need root access.
+There are other ways to do it without root access (e.g. docker, build from source, etc.) but outside the scope of this example.</p>
+</div>
+<p>First, let’s install the server with <code class="docutils literal notranslate"><span class="pre">apt-get</span></code>:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> sudo apt-get update
+<span class="go">Hit:1 http://fr.archive.ubuntu.com/ubuntu bionic InRelease</span>
+<span class="go">Hit:2 http://fr.archive.ubuntu.com/ubuntu bionic-security InRelease</span>
+<span class="go">Hit:3 http://fr.archive.ubuntu.com/ubuntu bionic-updates InRelease</span>
+<span class="go">Reading package lists... Done</span>
+<span class="gp">$</span> sudo apt-get install postgresql
+<span class="go">Reading package lists... Done</span>
+<span class="go">Building dependency tree</span>
+<span class="go">Reading state information... Done</span>
+<span class="go">The following additional packages will be installed:</span>
+<span class="go">  libpq5 postgresql-10 postgresql-client-10 postgresql-client-common postgresql-common ssl-cert</span>
+<span class="go">Suggested packages:</span>
+<span class="go">  postgresql-doc locales-all postgresql-doc-10 libjson-perl openssl-blacklist</span>
+<span class="go">Recommended packages:</span>
+<span class="go">  sysstat</span>
+<span class="go">The following NEW packages will be installed:</span>
+<span class="go">  libpq5 postgresql postgresql-10 postgresql-client-10 postgresql-client-common postgresql-common ssl-cert</span>
+<span class="go">0 upgraded, 7 newly installed, 0 to remove and 132 not upgraded.</span>
+<span class="go">Need to get 5,010 kB of archives.</span>
+<span class="go">After this operation, 19.7 MB of additional disk space will be used.</span>
+<span class="go">Get:1 http://fr.archive.ubuntu.com/ubuntu bionic-security/main amd64 libpq5 amd64 10.8-0ubuntu0.18.04.1 [107 kB]</span>
+<span class="go">Get:2 http://fr.archive.ubuntu.com/ubuntu bionic/main amd64 postgresql-client-common all 190 [29.5 kB]</span>
+<span class="go">...</span>
+<span class="go">Setting up postgresql-10 (10.8-0ubuntu0.18.04.1) ...</span>
+<span class="go">Creating new PostgreSQL cluster 10/main ...</span>
+<span class="go">/usr/lib/postgresql/10/bin/initdb -D /var/lib/postgresql/10/main --auth-local peer --auth-host md5</span>
+<span class="go">The files belonging to this database system will be owned by user &quot;postgres&quot;.</span>
+<span class="go">This user must also own the server process.</span>
+
+<span class="go">The database cluster will be initialized with locale &quot;en_US.UTF-8&quot;.</span>
+<span class="go">The default database encoding has accordingly been set to &quot;UTF8&quot;.</span>
+<span class="go">The default text search configuration will be set to &quot;english&quot;.</span>
+
+<span class="go">Data page checksums are disabled.</span>
+
+<span class="go">fixing permissions on existing directory /var/lib/postgresql/10/main ... ok</span>
+<span class="go">creating subdirectories ... ok</span>
+<span class="go">selecting default max_connections ... 100</span>
+<span class="go">selecting default shared_buffers ... 128MB</span>
+<span class="go">selecting dynamic shared memory implementation ... posix</span>
+<span class="go">creating configuration files ... ok</span>
+<span class="go">running bootstrap script ... ok</span>
+<span class="go">performing post-bootstrap initialization ... ok</span>
+<span class="go">syncing data to disk ... ok</span>
+
+<span class="go">Success. You can now start the database server using:</span>
+
+<span class="go">    /usr/lib/postgresql/10/bin/pg_ctl -D /var/lib/postgresql/10/main -l logfile start</span>
+
+<span class="go">Ver Cluster Port Status Owner    Data directory              Log file</span>
+<span class="go">10  main    5432 down   postgres /var/lib/postgresql/10/main /var/log/postgresql/postgresql-10-main.log</span>
+<span class="go">update-alternatives: using /usr/share/postgresql/10/man/man1/postmaster.1.gz to provide /usr/share/man/man1/postmaster.1.gz (postmaster.1.gz) in auto mode</span>
+<span class="go">Setting up postgresql (10+190) ...</span>
+<span class="go">Processing triggers for systemd (237-3ubuntu10.13) ...</span>
+<span class="gp">$</span> sudo systemctl status postgresql@10-main.service
+<span class="go">● postgresql@10-main.service - PostgreSQL Cluster 10-main</span>
+<span class="go">   Loaded: loaded (/lib/systemd/system/postgresql@.service; indirect; vendor preset: enabled)</span>
+<span class="go">   Active: active (running) since Wed 2019-05-29 11:33:40 CEST; 3min 1s ago</span>
+<span class="go"> Main PID: 24749 (postgres)</span>
+<span class="go">    Tasks: 7 (limit: 4915)</span>
+<span class="go">   CGroup: /system.slice/system-postgresql.slice/postgresql@10-main.service</span>
+<span class="go">           ├─24749 /usr/lib/postgresql/10/bin/postgres -D /var/lib/postgresql/10/main -c config_file=/etc/postgresql/10/main/postgresql.conf</span>
+<span class="go">           ├─24751 postgres: 10/main: checkpointer process</span>
+<span class="go">           ├─24752 postgres: 10/main: writer process</span>
+<span class="go">           ├─24753 postgres: 10/main: wal writer process</span>
+<span class="go">           ├─24754 postgres: 10/main: autovacuum launcher process</span>
+<span class="go">           ├─24755 postgres: 10/main: stats collector process</span>
+<span class="go">           └─24756 postgres: 10/main: bgworker: logical replication launcher</span>
+
+<span class="go">May 29 11:33:38 ubuntu1804 systemd[1]: Starting PostgreSQL Cluster 10-main...</span>
+<span class="go">May 29 11:33:40 ubuntu1804 systemd[1]: Started PostgreSQL Cluster 10-main.</span>
+</pre></div>
+</div>
+<p>Once the server is installed, create a user and associated database for your Buildbot.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> sudo su - postgres
+<span class="go">postgres$ createuser -P buildbot</span>
+<span class="go">Enter password for new role: bu1ldb0t</span>
+<span class="go">Enter it again: bu1ldb0t</span>
+<span class="go">postgres$ createdb -O buildbot buildbot</span>
+<span class="go">postgres$ exit</span>
+</pre></div>
+</div>
+<p>After which, you can configure a proper <a class="reference external" href="http://www.sqlalchemy.org/">SQLAlchemy</a> URL:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;db&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;db_url&#39;</span><span class="p">:</span> <span class="s1">&#39;postgresql://buildbot:bu1ldb0t@127.0.0.1/buildbot&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>And initialize the database tables with the following command:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> buildbot upgrade-master
+<span class="go">checking basedir</span>
+<span class="go">checking for running master</span>
+<span class="go">checking master.cfg</span>
+<span class="go">upgrading basedir</span>
+<span class="go">creating master.cfg.sample</span>
+<span class="go">upgrading database (postgresql://buildbot:xxxx@127.0.0.1/buildbot)</span>
+<span class="go">upgrade complete</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="additional-requirements">
+<h3>2.11.1.2. Additional Requirements<a class="headerlink" href="#additional-requirements" title="Permalink to this headline">¶</a></h3>
+<p>Depending on the selected database, further Python packages will be required.
+Consult the <a class="reference external" href="http://www.sqlalchemy.org/">SQLAlchemy</a> dialect list for a full description.
+The most common choice for MySQL is <a class="reference external" href="https://github.com/PyMySQL/mysqlclient-python">mysqlclient</a>.
+Any reasonably recent version should suffice.</p>
+<p>The most common choice for Postgres is <a class="reference external" href="http://initd.org/psycopg/">Psycopg</a>
+Any reasonably recent version should suffice.</p>
+</div>
+</div>
+<div class="section" id="maintenance">
+<span id="id1"></span><h2><a class="toc-backref" href="#id7">2.11.2. Maintenance</a><a class="headerlink" href="#maintenance" title="Permalink to this headline">¶</a></h2>
+<p>The buildmaster can be configured to send out email notifications when a worker has been offline for a while.
+Be sure to configure the buildmaster with a contact email address for each worker so these notifications are sent to someone who can bring it back online.</p>
+<p>If you find you can no longer provide a worker to the project, please let the project admins know, so they can put out a call for a replacement.</p>
+<p>The Buildbot records status and logs output continually, each time a build is performed.
+The status tends to be small, but the build logs can become quite large.
+Each build and log are recorded in a separate file, arranged hierarchically under the buildmaster’s base directory.
+To prevent these files from growing without bound, you should periodically delete old build logs.
+A simple cron job to delete anything older than, say, two weeks should do the job.
+The only trick is to leave the <code class="file docutils literal notranslate"><span class="pre">buildbot.tac</span></code> and other support files alone, for which <strong class="command">find</strong>’s <code class="docutils literal notranslate"><span class="pre">-mindepth</span></code> argument helps skip everything in the top directory.
+You can use something like the following (assuming builds are stored in <code class="file docutils literal notranslate"><span class="pre">./builds/</span></code> directory):</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@weekly cd BASEDIR &amp;&amp; find . -mindepth 2 i-path &#39;./builds/*&#39; \
+    -prune -o -type f -mtime +14 -exec rm {} \;
+@weekly cd BASEDIR &amp;&amp; find twistd.log* -mtime +14 -exec rm {} \;
+</pre></div>
+</div>
+<p>Alternatively, you can configure a maximum number of old logs to be kept using the <code class="docutils literal notranslate"><span class="pre">--log-count</span></code> command line option when running <code class="docutils literal notranslate"><span class="pre">buildbot-worker</span> <span class="pre">create-worker</span></code> or <code class="docutils literal notranslate"><span class="pre">buildbot</span> <span class="pre">create-master</span></code>.</p>
+</div>
+<div class="section" id="troubleshooting">
+<span id="id2"></span><h2><a class="toc-backref" href="#id8">2.11.3. Troubleshooting</a><a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
+<p>Here are a few hints on diagnosing common problems.</p>
+<div class="section" id="starting-the-worker">
+<span id="id3"></span><h3>2.11.3.1. Starting the worker<a class="headerlink" href="#starting-the-worker" title="Permalink to this headline">¶</a></h3>
+<p>Cron jobs are typically run with a minimal shell (<code class="file docutils literal notranslate"><span class="pre">/bin/sh</span></code>, not <code class="file docutils literal notranslate"><span class="pre">/bin/bash</span></code>), and tilde expansion is not always performed in such commands.
+You may want to use explicit paths, because the <span class="target" id="index-0"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PATH</span></code> is usually quite short and doesn’t include anything set by your shell’s startup scripts (<code class="file docutils literal notranslate"><span class="pre">.profile</span></code>, <code class="file docutils literal notranslate"><span class="pre">.bashrc</span></code>, etc).
+If you’ve installed buildbot (or other Python libraries) to an unusual location, you may need to add a <span class="target" id="index-1"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> specification (note that Python will do tilde-expansion on <span class="target" id="index-2"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> elements by itself).
+Sometimes it is safer to fully-specify everything:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@reboot PYTHONPATH=~/lib/python /usr/local/bin/buildbot \
+    start /usr/home/buildbot/basedir
+</pre></div>
+</div>
+<p>Take the time to get the <code class="docutils literal notranslate"><span class="pre">&#64;reboot</span></code> job set up.
+Otherwise, things will work fine for a while, but the first power outage or system reboot you have will stop the worker with nothing but the cries of sorrowful developers to remind you that it has gone away.</p>
+</div>
+<div class="section" id="connecting-to-the-buildmaster">
+<span id="id4"></span><h3>2.11.3.2. Connecting to the buildmaster<a class="headerlink" href="#connecting-to-the-buildmaster" title="Permalink to this headline">¶</a></h3>
+<p>If the worker cannot connect to the buildmaster, the reason should be described in the <code class="file docutils literal notranslate"><span class="pre">twistd.log</span></code> logfile.
+Some common problems are an incorrect master hostname or port number, or a mistyped bot name or password.
+If the worker loses the connection to the master, it is supposed to attempt to reconnect with an exponentially-increasing backoff.
+Each attempt (and the time of the next attempt) will be logged.
+If you get impatient, just manually stop and re-start the worker.</p>
+<p>When the buildmaster is restarted, all workers will be disconnected, and will attempt to reconnect as usual.
+The reconnect time will depend upon how long the buildmaster is offline (i.e. how far up the exponential backoff curve the workers have travelled).
+Again, <code class="samp docutils literal notranslate"><span class="pre">buildbot-worker</span> <span class="pre">restart</span> <em><span class="pre">BASEDIR</span></em></code> will speed up the process.</p>
+</div>
+<div class="section" id="contrib-scripts">
+<span id="id5"></span><h3>2.11.3.3. Contrib Scripts<a class="headerlink" href="#contrib-scripts" title="Permalink to this headline">¶</a></h3>
+<p>While some features of Buildbot are included in the distribution, others are only available in <a class="reference external" href="https://github.com/buildbot/buildbot-contrib/tree/master/master/contrib/">master/contrib/</a> in the <code class="docutils literal notranslate"><span class="pre">buildbot-contrib</span></code> source directory.
+The latest versions of such scripts are available at <a class="reference external" href="https://github.com/buildbot/buildbot-contrib/tree/master/master/contrib">master/contrib</a>.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/full_logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script><h3>Table Of Contents</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="secretsmanagement.html">2.4. Secret Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration/index.html">2.5. Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="customization.html">2.6. Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmdline.html">2.7. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resources.html">2.8. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html">2.9. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins.html">2.10. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">2.11. Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upgrading/index.html">2.12. Upgrading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../indices.html">6. Indices and Tables</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="plugins.html"
+                        title="previous chapter">2.10. Plugin Infrastructure in Buildbot</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="upgrading/index.html"
+                        title="next chapter">2.12. Upgrading</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/manual/deploy.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>
