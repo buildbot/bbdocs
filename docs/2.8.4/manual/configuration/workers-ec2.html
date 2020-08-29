@@ -1,0 +1,596 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html4" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Amazon Web Services Elastic Compute Cloud (“AWS EC2”) &mdash; Buildbot 2.8.4 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/icon.png"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Libvirt" href="workers-libvirt.html" />
+    <link rel="prev" title="2.5.6. Workers" href="workers.html" /> 
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> Buildbot
+          
+
+          
+            
+            <img src="../../_static/full_logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.8.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../secretsmanagement.html">2.4. Secret Management</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">2.5. Configuration</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="intro.html">2.5.1. Configuring Buildbot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="global.html">2.5.2. Global Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changesources.html">2.5.3. Change Sources and Changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changesources.html#changes">2.5.4. Changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="schedulers.html">2.5.5. Schedulers</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="workers.html">2.5.6. Workers</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="workers.html#defining-workers">2.5.6.1. Defining Workers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="workers.html#worker-options">2.5.6.2. Worker Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="workers.html#local-workers">2.5.6.3. Local Workers</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="workers.html#latent-workers">2.5.6.4. Latent Workers</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="builders.html">2.5.7. Builder Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="buildfactories.html">2.5.8. Build Factories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="buildsets.html">2.5.9. Build Sets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="properties.html">2.5.10. Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="buildsteps.html">2.5.11. Build Steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="interlocks.html">2.5.12. Interlocks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reporters.html">2.5.13. Reporters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www.html">2.5.14. Web Server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wwwhooks.html">2.5.15. Change Hooks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="services.html">2.5.16. Custom Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dbconfig.html">2.5.17. DbConfig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configurators.html">2.5.18. Configurators</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../customization.html">2.6. Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cmdline.html">2.7. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../resources.html">2.8. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../optimization.html">2.9. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins.html">2.10. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../deploy.html">2.11. Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../upgrading/index.html">2.12. Upgrading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../indices.html">6. Indices and Tables</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Buildbot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">2. Buildbot Manual</a> &raquo;</li>
+        
+          <li><a href="index.html">2.5. Configuration</a> &raquo;</li>
+        
+          <li><a href="workers.html">2.5.6. Workers</a> &raquo;</li>
+        
+      <li>Amazon Web Services Elastic Compute Cloud (“AWS EC2”)</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/manual/configuration/workers-ec2.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="admonition caution">
+<p class="first admonition-title">Caution</p>
+<p class="last">Buildbot no longer supports Python 2.7 on the Buildbot master.</p>
+</div>
+<span class="target" id="index-0"></span><div class="section" id="amazon-web-services-elastic-compute-cloud-aws-ec2">
+<span id="worker-EC2LatentWorker"></span><h1>Amazon Web Services Elastic Compute Cloud (“AWS EC2”)<a class="headerlink" href="#amazon-web-services-elastic-compute-cloud-aws-ec2" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="buildbot.worker.ec2.EC2LatentWorker">
+<em class="property">class </em><code class="descclassname">buildbot.worker.ec2.</code><code class="descname">EC2LatentWorker</code><a class="headerlink" href="#buildbot.worker.ec2.EC2LatentWorker" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><a class="reference external" href="http://aws.amazon.com/ec2/">EC2</a> is a web service that allows you to start virtual machines in an Amazon data center.
+Please see their website for details, including costs.
+Using the AWS EC2 latent workers involves getting an EC2 account with AWS and setting up payment; customizing one or more EC2 machine images (“AMIs”) on your desired operating system(s) and publishing them (privately if needed); and configuring the buildbot master to know how to start your customized images for “substantiating” your latent workers.</p>
+<p>This document will guide you through setup of a AWS EC2 latent worker:</p>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#get-an-aws-ec2-account" id="id1">Get an AWS EC2 Account</a></li>
+<li><a class="reference internal" href="#create-an-ami" id="id2">Create an AMI</a></li>
+<li><a class="reference internal" href="#configure-the-master-with-an-ec2latentworker" id="id3">Configure the Master with an <a class="reference internal" href="#buildbot.worker.ec2.EC2LatentWorker" title="buildbot.worker.ec2.EC2LatentWorker"><code class="xref py py-class docutils literal notranslate"><span class="pre">EC2LatentWorker</span></code></a></a></li>
+<li><a class="reference internal" href="#volumes" id="id4">Volumes</a></li>
+<li><a class="reference internal" href="#vpc-support" id="id5">VPC Support</a></li>
+<li><a class="reference internal" href="#spot-instances" id="id6">Spot instances</a></li>
+</ul>
+</div>
+<div class="section" id="get-an-aws-ec2-account">
+<h2><a class="toc-backref" href="#id1">Get an AWS EC2 Account</a><a class="headerlink" href="#get-an-aws-ec2-account" title="Permalink to this headline">¶</a></h2>
+<p>To start off, to use the AWS EC2 latent worker, you need to get an AWS developer account and sign up for EC2.
+Although Amazon often changes this process, these instructions should help you get started:</p>
+<ol class="arabic simple">
+<li>Go to <a class="reference external" href="http://aws.amazon.com/">http://aws.amazon.com/</a> and click to “Sign Up Now” for an AWS account.</li>
+<li>Once you are logged into your account, you need to sign up for EC2.
+Instructions for how to do this have changed over time because Amazon changes their website, so the best advice is to hunt for it.
+After signing up for EC2, it may say it wants you to upload an x.509 cert.
+You will need this to create images (see below) but it is not technically necessary for the buildbot master configuration.</li>
+<li>You must enter a valid credit card before you will be able to use EC2.
+Do that under ‘Payment Method’.</li>
+<li>Make sure you’re signed up for EC2 by going to <span class="menuselection">Your Account ‣ Account Activity</span> and verifying EC2 is listed.</li>
+</ol>
+</div>
+<div class="section" id="create-an-ami">
+<h2><a class="toc-backref" href="#id2">Create an AMI</a><a class="headerlink" href="#create-an-ami" title="Permalink to this headline">¶</a></h2>
+<p>Now you need to create an AMI and configure the master.
+You may need to run through this cycle a few times to get it working, but these instructions should get you started.</p>
+<p>Creating an AMI is out of the scope of this document.
+The <a class="reference external" href="http://docs.amazonwebservices.com/AWSEC2/latest/GettingStartedGuide/">EC2 Getting Started Guide</a> is a good resource for this task.
+Here are a few additional hints.</p>
+<ul class="simple">
+<li>When an instance of the image starts, it needs to automatically start a buildbot worker that connects to your master (to create a buildbot worker, <a class="reference internal" href="../installation/worker.html#creating-a-worker"><span class="std std-ref">Creating a worker</span></a>; to make a daemon, <a class="reference internal" href="../installation/misc.html#launching-the-daemons"><span class="std std-ref">Launching the daemons</span></a>).</li>
+<li>You may want to make an instance of the buildbot worker, configure it as a standard worker in the master (i.e., not as a latent worker), and test and debug it that way before you turn it into an AMI and convert to a latent worker in the master.</li>
+<li>In order to avoid extra costs in case of master failure, you should configure the worker of the AMI with <code class="docutils literal notranslate"><span class="pre">maxretries</span></code> option (see <a class="reference internal" href="../installation/worker.html#worker-options"><span class="std std-ref">Worker Options</span></a>)
+Also see <a class="reference external" href="https://github.com/buildbot/buildbot-contrib/blob/master/worker/contrib/systemd/buildbot-worker%40.service">example systemd unit file example</a></li>
+</ul>
+</div>
+<div class="section" id="configure-the-master-with-an-ec2latentworker">
+<h2><a class="toc-backref" href="#id3">Configure the Master with an <a class="reference internal" href="#buildbot.worker.ec2.EC2LatentWorker" title="buildbot.worker.ec2.EC2LatentWorker"><code class="xref py py-class docutils literal notranslate"><span class="pre">EC2LatentWorker</span></code></a></a><a class="headerlink" href="#configure-the-master-with-an-ec2latentworker" title="Permalink to this headline">¶</a></h2>
+<p>Now let’s assume you have an AMI that should work with the <a class="reference internal" href="#buildbot.worker.ec2.EC2LatentWorker" title="buildbot.worker.ec2.EC2LatentWorker"><code class="xref py py-class docutils literal notranslate"><span class="pre">EC2LatentWorker</span></code></a>.
+It’s now time to set up your buildbot master configuration.</p>
+<p>You will need some information from your AWS account: the <cite>Access Key Id</cite> and the <cite>Secret Access Key</cite>.
+If you’ve built the AMI yourself, you probably already are familiar with these values.
+If you have not, and someone has given you access to an AMI, these hints may help you find the necessary values:</p>
+<ul class="simple">
+<li>While logged into your AWS account, find the “Access Identifiers” link (either on the left, or via <span class="menuselection">Your Account ‣ Access Identifiers</span>.</li>
+<li>On the page, you’ll see alphanumeric values for “Your Access Key Id:” and “Your Secret Access Key:”.
+Make a note of these.
+Later on, we’ll call the first one your <code class="docutils literal notranslate"><span class="pre">identifier</span></code> and the second one your <code class="docutils literal notranslate"><span class="pre">secret_identifier</span></code>.</li>
+</ul>
+<p>When creating an <a class="reference internal" href="#buildbot.worker.ec2.EC2LatentWorker" title="buildbot.worker.ec2.EC2LatentWorker"><code class="xref py py-class docutils literal notranslate"><span class="pre">EC2LatentWorker</span></code></a> in the buildbot master configuration, the first three arguments are required.
+The name and password are the first two arguments, and work the same as with normal workers.
+The next argument specifies the type of the EC2 virtual machine (available options as of this writing include <code class="docutils literal notranslate"><span class="pre">m1.small</span></code>, <code class="docutils literal notranslate"><span class="pre">m1.large</span></code>, <code class="docutils literal notranslate"><span class="pre">m1.xlarge</span></code>, <code class="docutils literal notranslate"><span class="pre">c1.medium</span></code>, and <code class="docutils literal notranslate"><span class="pre">c1.xlarge</span></code>; see the EC2 documentation for descriptions of these machines).</p>
+<p>Here is the simplest example of configuring an EC2 latent worker.
+It specifies all necessary remaining values explicitly in the instantiation.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">worker</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">EC2LatentWorker</span><span class="p">(</span><span class="s1">&#39;bot1&#39;</span><span class="p">,</span> <span class="s1">&#39;sekrit&#39;</span><span class="p">,</span> <span class="s1">&#39;m1.large&#39;</span><span class="p">,</span>
+                           <span class="n">ami</span><span class="o">=</span><span class="s1">&#39;ami-12345&#39;</span><span class="p">,</span>
+                           <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;publickey&#39;</span><span class="p">,</span>
+                           <span class="n">secret_identifier</span><span class="o">=</span><span class="s1">&#39;privatekey&#39;</span>
+                           <span class="n">keypair_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+                           <span class="n">security_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+                           <span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">ami</span></code> argument specifies the AMI that the master should start.
+The <code class="docutils literal notranslate"><span class="pre">identifier</span></code> argument specifies the AWS <cite>Access Key Id</cite>, and the <code class="docutils literal notranslate"><span class="pre">secret_identifier</span></code> specifies the AWS <cite>Secret Access Key</cite>.
+Both the AMI and the account information can be specified in alternate ways.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Whoever has your <code class="docutils literal notranslate"><span class="pre">identifier</span></code> and <code class="docutils literal notranslate"><span class="pre">secret_identifier</span></code> values can request AWS work charged to your account, so these values need to be carefully protected.
+Another way to specify these access keys is to put them in a separate file.
+Buildbot supports the standard AWS credentials file.
+You can then make the access privileges stricter for this separate file, and potentially let more people read your main configuration file.
+If your master is running in EC2, you can also use IAM roles for EC2 to delegate permissions.</p>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">keypair_name</span></code> and <code class="docutils literal notranslate"><span class="pre">security_name</span></code> allow you to specify different names for these AWS EC2 values.</p>
+<p>You can make an <code class="file docutils literal notranslate"><span class="pre">.aws</span></code> directory in the home folder of the user running the buildbot master.
+In that directory, create a file called <code class="file docutils literal notranslate"><span class="pre">credentials</span></code>.
+The format of the file should be as follows, replacing <code class="docutils literal notranslate"><span class="pre">identifier</span></code> and <code class="docutils literal notranslate"><span class="pre">secret_identifier</span></code> with the credentials obtained before.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">default</span><span class="p">]</span>
+<span class="n">aws_access_key_id</span> <span class="o">=</span> <span class="n">identifier</span>
+<span class="n">aws_secret_access_key</span> <span class="o">=</span> <span class="n">secret_identifier</span>
+</pre></div>
+</div>
+<p>If you are using IAM roles, no config file is required.
+Then you can instantiate the worker as follows.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">worker</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">EC2LatentWorker</span><span class="p">(</span><span class="s1">&#39;bot1&#39;</span><span class="p">,</span> <span class="s1">&#39;sekrit&#39;</span><span class="p">,</span> <span class="s1">&#39;m1.large&#39;</span><span class="p">,</span>
+                           <span class="n">ami</span><span class="o">=</span><span class="s1">&#39;ami-12345&#39;</span><span class="p">,</span>
+                           <span class="n">keypair_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+                           <span class="n">security_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+                           <span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>Previous examples used a particular AMI.
+If the Buildbot master will be deployed in a process-controlled environment, it may be convenient to specify the AMI more flexibly.
+Rather than specifying an individual AMI, specify one or two AMI filters.</p>
+<p>In all cases, the AMI that sorts last by its location (the S3 bucket and manifest name) will be preferred.</p>
+<p>One available filter is to specify the acceptable AMI owners, by AWS account number (the 12 digit number, usually rendered in AWS with hyphens like “1234-5678-9012”, should be entered as in integer).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">worker</span>
+<span class="n">bot1</span> <span class="o">=</span> <span class="n">worker</span><span class="o">.</span><span class="n">EC2LatentWorker</span><span class="p">(</span><span class="s1">&#39;bot1&#39;</span><span class="p">,</span> <span class="s1">&#39;sekrit&#39;</span><span class="p">,</span> <span class="s1">&#39;m1.large&#39;</span><span class="p">,</span>
+                              <span class="n">valid_ami_owners</span><span class="o">=</span><span class="p">[</span><span class="mi">11111111111</span><span class="p">,</span>
+                                                <span class="mi">22222222222</span><span class="p">],</span>
+                              <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;publickey&#39;</span><span class="p">,</span>
+                              <span class="n">secret_identifier</span><span class="o">=</span><span class="s1">&#39;privatekey&#39;</span><span class="p">,</span>
+                              <span class="n">keypair_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+                              <span class="n">security_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+                              <span class="p">)</span>
+</pre></div>
+</div>
+<p>The other available filter is to provide a regular expression string that will be matched against each AMI’s location (the S3 bucket and manifest name).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">worker</span>
+<span class="n">bot1</span> <span class="o">=</span> <span class="n">worker</span><span class="o">.</span><span class="n">EC2LatentWorker</span><span class="p">(</span>
+        <span class="s1">&#39;bot1&#39;</span><span class="p">,</span> <span class="s1">&#39;sekrit&#39;</span><span class="p">,</span> <span class="s1">&#39;m1.large&#39;</span><span class="p">,</span>
+        <span class="n">valid_ami_location_regex</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;buildbot\-.*/image.manifest.xml&#39;</span><span class="p">,</span>
+        <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;publickey&#39;</span><span class="p">,</span>
+        <span class="n">secret_identifier</span><span class="o">=</span><span class="s1">&#39;privatekey&#39;</span><span class="p">,</span>
+        <span class="n">keypair_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+        <span class="n">security_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
+</pre></div>
+</div>
+<p>The regular expression can specify a group, which will be preferred for the sorting.
+Only the first group is used; subsequent groups are ignored.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">worker</span>
+<span class="n">bot1</span> <span class="o">=</span> <span class="n">worker</span><span class="o">.</span><span class="n">EC2LatentWorker</span><span class="p">(</span>
+    <span class="s1">&#39;bot1&#39;</span><span class="p">,</span> <span class="s1">&#39;sekrit&#39;</span><span class="p">,</span> <span class="s1">&#39;m1.large&#39;</span><span class="p">,</span>
+    <span class="n">valid_ami_location_regex</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;buildbot\-.*\-(.*)/image.manifest.xml&#39;</span><span class="p">,</span>
+    <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;publickey&#39;</span><span class="p">,</span>
+    <span class="n">secret_identifier</span><span class="o">=</span><span class="s1">&#39;privatekey&#39;</span><span class="p">,</span>
+    <span class="n">keypair_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+    <span class="n">security_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>If the group can be cast to an integer, it will be.
+This allows 10 to sort after 1, for instance.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">worker</span>
+<span class="n">bot1</span> <span class="o">=</span> <span class="n">worker</span><span class="o">.</span><span class="n">EC2LatentWorker</span><span class="p">(</span>
+        <span class="s1">&#39;bot1&#39;</span><span class="p">,</span> <span class="s1">&#39;sekrit&#39;</span><span class="p">,</span> <span class="s1">&#39;m1.large&#39;</span><span class="p">,</span>
+        <span class="n">valid_ami_location_regex</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;buildbot\-.*\-(\d+)/image.manifest.xml&#39;</span><span class="p">,</span>
+        <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;publickey&#39;</span><span class="p">,</span>
+        <span class="n">secret_identifier</span><span class="o">=</span><span class="s1">&#39;privatekey&#39;</span><span class="p">,</span>
+        <span class="n">keypair_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+        <span class="n">security_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
+</pre></div>
+</div>
+<p>In addition to using the password as a handshake between the master and the worker, you may want to use a firewall to assert that only machines from a specific IP can connect as workers.
+This is possible with AWS EC2 by using the Elastic IP feature.
+To configure, generate a Elastic IP in AWS, and then specify it in your configuration using the <code class="docutils literal notranslate"><span class="pre">elastic_ip</span></code> argument.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">worker</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">EC2LatentWorker</span><span class="p">(</span><span class="s1">&#39;bot1&#39;</span><span class="p">,</span> <span class="s1">&#39;sekrit&#39;</span><span class="p">,</span> <span class="s1">&#39;m1.large&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;ami-12345&#39;</span><span class="p">,</span>
+                           <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;publickey&#39;</span><span class="p">,</span>
+                           <span class="n">secret_identifier</span><span class="o">=</span><span class="s1">&#39;privatekey&#39;</span><span class="p">,</span>
+                           <span class="n">elastic_ip</span><span class="o">=</span><span class="s1">&#39;208.77.188.166&#39;</span><span class="p">,</span>
+                           <span class="n">keypair_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+                           <span class="n">security_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+                           <span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>One other way to configure a worker is by settings AWS tags.
+They can for example be used to have a more restrictive security <a class="reference external" href="http://aws.amazon.com/iam/">IAM</a> policy.
+To get Buildbot to tag the latent worker specify the tag keys and values in your configuration using the <code class="docutils literal notranslate"><span class="pre">tags</span></code> argument.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">worker</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">EC2LatentWorker</span><span class="p">(</span><span class="s1">&#39;bot1&#39;</span><span class="p">,</span> <span class="s1">&#39;sekrit&#39;</span><span class="p">,</span> <span class="s1">&#39;m1.large&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;ami-12345&#39;</span><span class="p">,</span>
+                           <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;publickey&#39;</span><span class="p">,</span>
+                           <span class="n">secret_identifier</span><span class="o">=</span><span class="s1">&#39;privatekey&#39;</span><span class="p">,</span>
+                           <span class="n">keypair_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+                           <span class="n">security_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+                           <span class="n">tags</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;SomeTag&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">})</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>If the worker needs access to additional AWS resources, you can also enable your workers to access them via an EC2 instance profile.
+To use this capability, you must first create an instance profile separately in AWS.
+Then specify its name on EC2LatentWorker via instance_profile_name.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">worker</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">EC2LatentWorker</span><span class="p">(</span><span class="s1">&#39;bot1&#39;</span><span class="p">,</span> <span class="s1">&#39;sekrit&#39;</span><span class="p">,</span> <span class="s1">&#39;m1.large&#39;</span><span class="p">,</span>
+                           <span class="n">ami</span><span class="o">=</span><span class="s1">&#39;ami-12345&#39;</span><span class="p">,</span>
+                           <span class="n">keypair_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+                           <span class="n">security_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+                           <span class="n">instance_profile_name</span><span class="o">=</span><span class="s1">&#39;my_profile&#39;</span>
+                           <span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>You may also supply your own boto3.Session object to allow for more flexible session options (ex. cross-account)
+To use this capability, you must first create a boto3.Session object.
+Then provide it to EC2LatentWorker via <code class="docutils literal notranslate"><span class="pre">session</span></code> argument.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">boto3</span>
+<span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">worker</span>
+
+<span class="n">session</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">EC2LatentWorker</span><span class="p">(</span><span class="s1">&#39;bot1&#39;</span><span class="p">,</span> <span class="s1">&#39;sekrit&#39;</span><span class="p">,</span> <span class="s1">&#39;m1.large&#39;</span><span class="p">,</span>
+                           <span class="n">ami</span><span class="o">=</span><span class="s1">&#39;ami-12345&#39;</span><span class="p">,</span>
+                           <span class="n">keypair_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+                           <span class="n">security_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+                           <span class="n">session</span><span class="o">=</span><span class="n">session</span>
+                           <span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="#buildbot.worker.ec2.EC2LatentWorker" title="buildbot.worker.ec2.EC2LatentWorker"><code class="xref py py-class docutils literal notranslate"><span class="pre">EC2LatentWorker</span></code></a> supports all other configuration from the standard <code class="xref py py-class docutils literal notranslate"><span class="pre">Worker</span></code>.
+The <code class="docutils literal notranslate"><span class="pre">missing_timeout</span></code> and <code class="docutils literal notranslate"><span class="pre">notify_on_missing</span></code> specify how long to wait for an EC2 instance to attach before considering the attempt to have failed, and email addresses to alert, respectively.
+<code class="docutils literal notranslate"><span class="pre">missing_timeout</span></code> defaults to 20 minutes.</p>
+</div>
+<div class="section" id="volumes">
+<h2><a class="toc-backref" href="#id4">Volumes</a><a class="headerlink" href="#volumes" title="Permalink to this headline">¶</a></h2>
+<p>If you want to attach existing volumes to an ec2 latent worker, use the volumes attribute.
+This mechanism can be valuable if you want to maintain state on a conceptual worker across multiple start/terminate sequences.
+<code class="docutils literal notranslate"><span class="pre">volumes</span></code> expects a list of (volume_id, mount_point) tuples to attempt attaching when your instance has been created.</p>
+<p>If you want to attach new ephemeral volumes, use the the block_device_map attribute.
+This follows the AWS API syntax, essentially acting as a passthrough.
+The only distinction is that the volumes default to deleting on termination to avoid leaking volume resources when workers are terminated.
+See boto documentation for further details.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">worker</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">EC2LatentWorker</span><span class="p">(</span><span class="s1">&#39;bot1&#39;</span><span class="p">,</span> <span class="s1">&#39;sekrit&#39;</span><span class="p">,</span> <span class="s1">&#39;m1.large&#39;</span><span class="p">,</span>
+                           <span class="n">ami</span><span class="o">=</span><span class="s1">&#39;ami-12345&#39;</span><span class="p">,</span>
+                           <span class="n">keypair_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+                           <span class="n">security_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+                           <span class="n">block_device_map</span><span class="o">=</span> <span class="p">[</span>
+                             <span class="p">{</span>
+                                <span class="s2">&quot;DeviceName&quot;</span><span class="p">:</span> <span class="s2">&quot;/dev/xvdb&quot;</span><span class="p">,</span>
+                                <span class="s2">&quot;Ebs&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                                   <span class="s2">&quot;VolumeType&quot;</span><span class="p">:</span> <span class="s2">&quot;io1&quot;</span><span class="p">,</span>
+                                   <span class="s2">&quot;Iops&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>
+                                   <span class="s2">&quot;VolumeSize&quot;</span><span class="p">:</span> <span class="mi">100</span>
+                                <span class="p">}</span>
+                             <span class="p">}</span>
+                           <span class="p">]</span>
+                           <span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="vpc-support">
+<h2><a class="toc-backref" href="#id5">VPC Support</a><a class="headerlink" href="#vpc-support" title="Permalink to this headline">¶</a></h2>
+<p>If you are managing workers within a VPC, your worker configuration must be modified from above.
+You must specify the id of the subnet where you want your worker placed.
+You must also specify security groups created within your VPC as opposed to classic EC2 security groups.
+This can be done by passing the ids of the vpc security groups.
+Note, when using a VPC, you can not specify classic EC2 security groups (as specified by security_name).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">worker</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">EC2LatentWorker</span><span class="p">(</span><span class="s1">&#39;bot1&#39;</span><span class="p">,</span> <span class="s1">&#39;sekrit&#39;</span><span class="p">,</span> <span class="s1">&#39;m1.large&#39;</span><span class="p">,</span>
+                           <span class="n">ami</span><span class="o">=</span><span class="s1">&#39;ami-12345&#39;</span><span class="p">,</span>
+                           <span class="n">keypair_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+                           <span class="n">subnet_id</span><span class="o">=</span><span class="s1">&#39;subnet-12345&#39;</span><span class="p">,</span>
+                           <span class="n">security_group_ids</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;sg-12345&#39;</span><span class="p">,</span><span class="s1">&#39;sg-67890&#39;</span><span class="p">]</span>
+                           <span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="spot-instances">
+<h2><a class="toc-backref" href="#id6">Spot instances</a><a class="headerlink" href="#spot-instances" title="Permalink to this headline">¶</a></h2>
+<p>If you would prefer to use spot instances for running your builds, you can accomplish that by passing in a True value to the <code class="docutils literal notranslate"><span class="pre">spot_instance</span></code> parameter to the <a class="reference internal" href="#buildbot.worker.ec2.EC2LatentWorker" title="buildbot.worker.ec2.EC2LatentWorker"><code class="xref py py-class docutils literal notranslate"><span class="pre">EC2LatentWorker</span></code></a> constructor.
+Additionally, you may want to specify <code class="docutils literal notranslate"><span class="pre">max_spot_price</span></code> and <code class="docutils literal notranslate"><span class="pre">price_multiplier</span></code> in order to limit your builds’ budget consumption.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">worker</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">EC2LatentWorker</span><span class="p">(</span><span class="s1">&#39;bot1&#39;</span><span class="p">,</span> <span class="s1">&#39;sekrit&#39;</span><span class="p">,</span> <span class="s1">&#39;m1.large&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;ami-12345&#39;</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s1">&#39;us-west-2&#39;</span><span class="p">,</span>
+                           <span class="n">identifier</span><span class="o">=</span><span class="s1">&#39;publickey&#39;</span><span class="p">,</span>
+                           <span class="n">secret_identifier</span><span class="o">=</span><span class="s1">&#39;privatekey&#39;</span><span class="p">,</span>
+                           <span class="n">elastic_ip</span><span class="o">=</span><span class="s1">&#39;208.77.188.166&#39;</span><span class="p">,</span>
+                           <span class="n">keypair_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+                           <span class="n">security_name</span><span class="o">=</span><span class="s1">&#39;latent_buildbot_worker&#39;</span><span class="p">,</span>
+                           <span class="n">placement</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">spot_instance</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                           <span class="n">max_spot_price</span><span class="o">=</span><span class="mf">0.09</span><span class="p">,</span>
+                           <span class="n">price_multiplier</span><span class="o">=</span><span class="mf">1.15</span><span class="p">,</span>
+                           <span class="n">product_description</span><span class="o">=</span><span class="s1">&#39;Linux/UNIX&#39;</span><span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>This example would attempt to create a m1.large spot instance in the us-west-2b region costing no more than $0.09/hour.
+The spot prices for ‘Linux/UNIX’ spot instances in that region over the last 24 hours will be averaged and multiplied by the <code class="docutils literal notranslate"><span class="pre">price_multiplier</span></code> parameter, then a spot request will be sent to Amazon with the above details.
+If the multiple exceeds the <code class="docutils literal notranslate"><span class="pre">max_spot_price</span></code>, the bid price will be the <code class="docutils literal notranslate"><span class="pre">max_spot_price</span></code>.</p>
+<p>Either <code class="docutils literal notranslate"><span class="pre">max_spot_price</span></code> or <code class="docutils literal notranslate"><span class="pre">price_multiplier</span></code>, but not both, may be None.
+If <code class="docutils literal notranslate"><span class="pre">price_multiplier</span></code> is None, then no historical price information is retrieved; the bid price is simply the specified <code class="docutils literal notranslate"><span class="pre">max_spot_price</span></code>.
+If the <code class="docutils literal notranslate"><span class="pre">max_spot_price</span></code> is None, then the multiple of the historical average spot prices is used as the bid price with no limit.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="workers-libvirt.html" class="btn btn-neutral float-right" title="Libvirt" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="workers.html" class="btn btn-neutral float-left" title="2.5.6. Workers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright Buildbot Team Members
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
