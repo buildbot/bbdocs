@@ -1,0 +1,728 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>3.7. Database &mdash; Buildbot 2.9.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/icon.png"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="3.8. Database connectors API" href="database/index.html" />
+    <link rel="prev" title="3.6. Data API" href="data.html" /> 
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> Buildbot
+          
+
+          
+            
+            <img src="../_static/full_logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.9.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/index.html">2. Buildbot Manual</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">3. Buildbot Development</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html">3.1. Development Quick-start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pull-request.html">3.2. Submitting Pull Requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="general.html">3.3. General Documents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rest.html">3.4. REST API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="raml/index.html">3.5. REST API Specification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html">3.6. Data API</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">3.7. Database</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#database-overview">3.7.1. Database Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#schema">3.7.2. Schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#identifier">3.7.3. Identifier</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#writing-database-connector-methods">3.7.4. Writing Database Connector Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-buildbot.db.connector">3.7.4.1. The DB Connector and Components</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-buildbot.db.pool">3.7.4.2. Direct Database Access</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-buildbot.db.model">3.7.4.3. Database Schema</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#caching">3.7.4.4. Caching</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tests">3.7.4.5. Tests</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#modifying-the-database-schema">3.7.5. Modifying the Database Schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#foreign-key-checking">3.7.6. Foreign key checking</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database-compatibility-notes">3.7.7. Database Compatibility Notes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#index-length-in-mysql">3.7.7.1. Index Length in MySQL</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#transactions-in-mysql">3.7.7.2. Transactions in MySQL</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#referential-integrity-in-sqlite-and-mysql">3.7.7.3. Referential Integrity in SQLite and MySQL</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#subqueries-in-mysql">3.7.7.4. Subqueries in MySQL</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#too-many-variables-in-sqlite">3.7.7.5. Too Many Variables in SQLite</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#testing-migrations-with-real-databases">3.7.8. Testing migrations with real databases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#run-databases-in-docker">3.7.8.1. Run databases in Docker</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="database/index.html">3.8. Database connectors API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mq.html">3.9. Messaging and Queues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classes.html">3.10. Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../indices.html">6. API Indices</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Buildbot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html"><span class="section-number">3. </span>Buildbot Development</a> &raquo;</li>
+        
+      <li><span class="section-number">3.7. </span>Database</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/developer/database.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>Buildbot no longer supports Python 2.7 on the Buildbot master.</p>
+</div>
+<div class="section" id="database">
+<span id="developer-database"></span><h1><span class="section-number">3.7. </span>Database<a class="headerlink" href="#database" title="Permalink to this headline">¶</a></h1>
+<p>BuildBot stores most of its state in a database.
+This section describes the database connector classes, which allow other parts of Buildbot to access the database.
+It also describes how to modify the database schema and the connector classes themselves.</p>
+<div class="section" id="database-overview">
+<h2><span class="section-number">3.7.1. </span>Database Overview<a class="headerlink" href="#database-overview" title="Permalink to this headline">¶</a></h2>
+<p>All access to the Buildbot database is mediated by database connector classes.
+These classes provide a functional, asynchronous interface to other parts of
+Buildbot, and encapsulate the database-specific details in a single location in
+the codebase.</p>
+<p>The connector API, defined below, is a stable API in Buildbot, and can be
+called from any other component.  Given a master <code class="docutils literal notranslate"><span class="pre">master</span></code>, the root of the
+database connectors is available at <code class="docutils literal notranslate"><span class="pre">master.db</span></code>, so, for example, the state
+connector’s <code class="docutils literal notranslate"><span class="pre">getState</span></code> method is <code class="docutils literal notranslate"><span class="pre">master.db.state.getState</span></code>.</p>
+<p>The connectors all use <a class="reference external" href="http://www.sqlalchemy.org/docs/index.html">SQLAlchemy Core</a> to achieve (almost)
+database-independent operation.  Note that the SQLAlchemy ORM is not used in
+Buildbot.  Database queries are carried out in threads, and report their
+results back to the main thread via Twisted Deferreds.</p>
+</div>
+<div class="section" id="schema">
+<h2><span class="section-number">3.7.2. </span>Schema<a class="headerlink" href="#schema" title="Permalink to this headline">¶</a></h2>
+<p>The database schema is maintained with <a class="reference external" href="https://github.com/openstack/sqlalchemy-migrate">SQLAlchemy-Migrate</a>.  This package handles the
+details of upgrading users between different schema versions.</p>
+<p>The schema itself is considered an implementation detail, and may change
+significantly from version to version.  Users should rely on the API (below),
+rather than performing queries against the database itself.</p>
+</div>
+<div class="section" id="identifier">
+<h2><span class="section-number">3.7.3. </span>Identifier<a class="headerlink" href="#identifier" title="Permalink to this headline">¶</a></h2>
+<p id="type-identifier">Restrictions on many string fields in the database are referred to as the Identifier concept.
+An “identifier” is a nonempty unicode string of limited length, containing only UTF-8 alphanumeric characters along with <code class="docutils literal notranslate"><span class="pre">-</span></code> (dash) and <code class="docutils literal notranslate"><span class="pre">_</span></code> (underscore), and not beginning with a digit.
+Wherever an identifier is used, the documentation will give the maximum length in characters.
+The function <a class="reference internal" href="utils.html#buildbot.util.identifiers.isIdentifier" title="buildbot.util.identifiers.isIdentifier"><code class="xref py py-func docutils literal notranslate"><span class="pre">buildbot.util.identifiers.isIdentifier</span></code></a> is useful to verify a well-formed identifier.</p>
+</div>
+<div class="section" id="writing-database-connector-methods">
+<h2><span class="section-number">3.7.4. </span>Writing Database Connector Methods<a class="headerlink" href="#writing-database-connector-methods" title="Permalink to this headline">¶</a></h2>
+<p>The information above is intended for developers working on the rest of
+Buildbot, and treating the database layer as an abstraction.  The remainder of
+this section describes the internals of the database implementation, and is
+intended for developers modifying the schema or adding new methods to the
+database layer.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>It’s difficult to change the database schema significantly after it has
+been released, and very disruptive to users to change the database API.
+Consider very carefully the future-proofing of any changes here!</p>
+</div>
+<div class="section" id="module-buildbot.db.connector">
+<span id="the-db-connector-and-components"></span><h3><span class="section-number">3.7.4.1. </span>The DB Connector and Components<a class="headerlink" href="#module-buildbot.db.connector" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="buildbot.db.connector.DBConnector">
+<em class="property">class </em><code class="sig-prename descclassname">buildbot.db.connector.</code><code class="sig-name descname">DBConnector</code><a class="headerlink" href="#buildbot.db.connector.DBConnector" title="Permalink to this definition">¶</a></dt>
+<dd><p>The root of the database connectors, <code class="docutils literal notranslate"><span class="pre">master.db</span></code>, is a
+<a class="reference internal" href="#buildbot.db.connector.DBConnector" title="buildbot.db.connector.DBConnector"><code class="xref py py-class docutils literal notranslate"><span class="pre">DBConnector</span></code></a> instance.  Its main purpose is
+to hold reference to each of the connector components, but it also handles
+timed cleanup tasks.</p>
+<p>If you are adding a new connector component, import its module and create
+an instance of it in this class’s constructor.</p>
+</dd></dl>
+
+<span class="target" id="module-buildbot.db.base"></span><dl class="py class">
+<dt id="buildbot.db.base.DBConnectorComponent">
+<em class="property">class </em><code class="sig-prename descclassname">buildbot.db.base.</code><code class="sig-name descname">DBConnectorComponent</code><a class="headerlink" href="#buildbot.db.base.DBConnectorComponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the base class for connector components.</p>
+<p>There should be no need to override the constructor defined by this base
+class.</p>
+<dl class="py attribute">
+<dt id="buildbot.db.base.DBConnectorComponent.db">
+<code class="sig-name descname">db</code><a class="headerlink" href="#buildbot.db.base.DBConnectorComponent.db" title="Permalink to this definition">¶</a></dt>
+<dd><p>A reference to the <a class="reference internal" href="#buildbot.db.connector.DBConnector" title="buildbot.db.connector.DBConnector"><code class="xref py py-class docutils literal notranslate"><span class="pre">DBConnector</span></code></a>, so that
+connector components can use e.g., <code class="docutils literal notranslate"><span class="pre">self.db.pool</span></code> or
+<code class="docutils literal notranslate"><span class="pre">self.db.model</span></code>.  In the unusual case that a connector component
+needs access to the master, the easiest path is <code class="docutils literal notranslate"><span class="pre">self.db.master</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.db.base.DBConnectorComponent.checkLength">
+<code class="sig-name descname">checkLength</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">col</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.base.DBConnectorComponent.checkLength" title="Permalink to this definition">¶</a></dt>
+<dd><p>For use by subclasses to check that ‘value’ will fit in ‘col’, where ‘col’ is a table column from the model.
+Ignore this check for database engines that either provide this error themselves (postgres) or that do not enforce maximum-length restrictions (sqlite)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.db.base.DBConnectorComponent.findSomethingId">
+<code class="sig-name descname">findSomethingId</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">tbl</span></em>, <em class="sig-param"><span class="n">whereclause</span></em>, <em class="sig-param"><span class="n">insert_values</span></em>, <em class="sig-param"><span class="n">_race_hook</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">autoCreate</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.base.DBConnectorComponent.findSomethingId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find (using <code class="docutils literal notranslate"><span class="pre">whereclause</span></code>) or add (using <code class="docutils literal notranslate"><span class="pre">insert_values</span></code>) a row to
+<code class="docutils literal notranslate"><span class="pre">table</span></code>, and return the resulting ID. If <code class="docutils literal notranslate"><span class="pre">autoCreate</span></code> == False, we will not automatically insert the row.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.db.base.DBConnectorComponent.hashColumns">
+<code class="sig-name descname">hashColumns</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.base.DBConnectorComponent.hashColumns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hash the given values in a consistent manner: None is represented as xf5, an invalid unicode byte; strings are converted to utf8; and integers are represented by their decimal expansion.
+The values are then joined by ‘0’ and hashed with sha1.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.db.base.DBConnectorComponent.doBatch">
+<code class="sig-name descname">doBatch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch</span></em>, <em class="sig-param"><span class="n">batch_n</span><span class="o">=</span><span class="default_value">500</span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.base.DBConnectorComponent.doBatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns an Iterator that batches stuff in order to not push to many thing in a single request.
+Especially sqlite has 999 limit on argument it can take in a requests.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-buildbot.db.pool">
+<span id="direct-database-access"></span><h3><span class="section-number">3.7.4.2. </span>Direct Database Access<a class="headerlink" href="#module-buildbot.db.pool" title="Permalink to this headline">¶</a></h3>
+<p>The connectors all use <a class="reference external" href="http://www.sqlalchemy.org/docs/index.html">SQLAlchemy Core</a> as a wrapper around database
+client drivers.  Unfortunately, SQLAlchemy is a synchronous library, so some
+extra work is required to use it in an asynchronous context like Buildbot.
+This is accomplished by deferring all database operations to threads, and
+returning a Deferred.  The <code class="xref py py-class docutils literal notranslate"><span class="pre">Pool</span></code> class takes care of
+the details.</p>
+<p>A connector method should look like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">myMethod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">thd</span><span class="p">(</span><span class="n">conn</span><span class="p">):</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="o">...</span> <span class="c1"># construct a query</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
+            <span class="o">...</span> <span class="c1"># do something with the results</span>
+        <span class="k">return</span> <span class="o">...</span> <span class="c1"># return an interesting value</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">do</span><span class="p">(</span><span class="n">thd</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Picking that apart, the body of the method defines a function named <code class="docutils literal notranslate"><span class="pre">thd</span></code>
+taking one argument, a <code class="xref py py-class docutils literal notranslate"><span class="pre">Connection</span></code> object.  It then calls
+<code class="docutils literal notranslate"><span class="pre">self.db.pool.do</span></code>, passing the <code class="docutils literal notranslate"><span class="pre">thd</span></code> function.  This function is called in
+a thread, and can make blocking calls to SQLAlchemy as desired.  The <code class="docutils literal notranslate"><span class="pre">do</span></code>
+method will return a Deferred that will fire with the return value of <code class="docutils literal notranslate"><span class="pre">thd</span></code>,
+or with a failure representing any exceptions raised by <code class="docutils literal notranslate"><span class="pre">thd</span></code>.</p>
+<p>The return value of <code class="docutils literal notranslate"><span class="pre">thd</span></code> must not be an SQLAlchemy object - in particular,
+any <code class="xref py py-class docutils literal notranslate"><span class="pre">ResultProxy</span></code>
+objects must be parsed into lists or other data structures before they are
+returned.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>As the name <code class="docutils literal notranslate"><span class="pre">thd</span></code> indicates, the function runs in a thread.  It should
+not interact with any other part of Buildbot, nor with any of the Twisted
+components that expect to be accessed from the main thread – the reactor,
+Deferreds, etc.</p>
+</div>
+<p>Queries can be constructed using any of the SQLAlchemy core methods, using
+tables from <a class="reference internal" href="#buildbot.db.model.Model" title="buildbot.db.model.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a>, and executed with the connection
+object, <code class="docutils literal notranslate"><span class="pre">conn</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>SQLAlchemy requires the use of a syntax that is forbidden by pep8.
+If in where clauses you need to select rows where a value is NULL,
+you need to write (<cite>tbl.c.value == None</cite>). This form is forbidden by pep8
+which requires the use of <cite>is None</cite> instead of <cite>== None</cite>. As sqlalchemy is using operator
+overloading to implement pythonic SQL statements, and <cite>is</cite> operator is not overloadable,
+we need to keep the <cite>==</cite> operators. In order to solve this issue, buildbot
+uses <cite>buildbot.db.NULL</cite> constant, which is <cite>None</cite>.
+So instead of writing <cite>tbl.c.value == None</cite>, please write <cite>tbl.c.value == NULL</cite>)</p>
+</div>
+<dl class="py class">
+<dt id="buildbot.db.pool.DBThreadPool">
+<em class="property">class </em><code class="sig-prename descclassname">buildbot.db.pool.</code><code class="sig-name descname">DBThreadPool</code><a class="headerlink" href="#buildbot.db.pool.DBThreadPool" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="buildbot.db.pool.DBThreadPool.do">
+<code class="sig-name descname">do</code><span class="sig-paren">(</span><em class="sig-param">callable</em>, <em class="sig-param">...</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.pool.DBThreadPool.do" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Deferred</p>
+</dd>
+</dl>
+<p>Call <code class="docutils literal notranslate"><span class="pre">callable</span></code> in a thread, with a <code class="xref py py-class docutils literal notranslate"><span class="pre">Connection</span></code> object as first
+argument.  Returns a deferred that will fire with the results of the
+callable, or with a failure representing any exception raised during
+its execution.</p>
+<p>Any additional positional or keyword arguments are passed to
+<code class="docutils literal notranslate"><span class="pre">callable</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.db.pool.DBThreadPool.do_with_engine">
+<code class="sig-name descname">do_with_engine</code><span class="sig-paren">(</span><em class="sig-param">callable</em>, <em class="sig-param">...</em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.pool.DBThreadPool.do_with_engine" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Deferred</p>
+</dd>
+</dl>
+<p>Similar to <a class="reference internal" href="#buildbot.db.pool.DBThreadPool.do" title="buildbot.db.pool.DBThreadPool.do"><code class="xref py py-meth docutils literal notranslate"><span class="pre">do</span></code></a>, call <code class="docutils literal notranslate"><span class="pre">callable</span></code> in a thread, but with an
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Engine</span></code> object as
+first argument.</p>
+<p>This method is only used for schema manipulation, and should not be
+used in a running master.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-buildbot.db.model">
+<span id="database-schema"></span><h3><span class="section-number">3.7.4.3. </span>Database Schema<a class="headerlink" href="#module-buildbot.db.model" title="Permalink to this headline">¶</a></h3>
+<p>Database connector methods access the database through SQLAlchemy, which
+requires access to Python objects representing the database tables.  That is
+handled through the model.</p>
+<dl class="py class">
+<dt id="buildbot.db.model.Model">
+<em class="property">class </em><code class="sig-prename descclassname">buildbot.db.model.</code><code class="sig-name descname">Model</code><a class="headerlink" href="#buildbot.db.model.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class contains the canonical description of the buildbot schema, It is
+presented in the form of SQLAlchemy <code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code> instances, as class variables.  At
+runtime, the model is available at <code class="docutils literal notranslate"><span class="pre">master.db.model</span></code>, so for example the
+<code class="docutils literal notranslate"><span class="pre">buildrequests</span></code> table can be referred to as
+<code class="docutils literal notranslate"><span class="pre">master.db.model.buildrequests</span></code>, and columns are available in its <code class="docutils literal notranslate"><span class="pre">c</span></code>
+attribute.</p>
+<p>The source file, <a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/db/model.py">master/buildbot/db/model.py</a>, contains comments describing each table; that information is not replicated in this documentation.</p>
+<p>Note that the model is not used for new installations or upgrades of the
+Buildbot database.  See <a class="reference internal" href="#modifying-the-database-schema"><span class="std std-ref">Modifying the Database Schema</span></a> for more
+information.</p>
+<dl class="py attribute">
+<dt id="buildbot.db.model.Model.metadata">
+<code class="sig-name descname">metadata</code><a class="headerlink" href="#buildbot.db.model.Model.metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>The model object also has a <code class="docutils literal notranslate"><span class="pre">metadata</span></code> attribute containing a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">MetaData</span></code> instance.
+Connector methods should not need to access this object.  The metadata
+is not bound to an engine.</p>
+</dd></dl>
+
+<p>The <a class="reference internal" href="#buildbot.db.model.Model" title="buildbot.db.model.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a> class also defines some migration-related methods:</p>
+<dl class="py method">
+<dt id="buildbot.db.model.Model.is_current">
+<code class="sig-name descname">is_current</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.model.Model.is_current" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>boolean via Deferred</p>
+</dd>
+</dl>
+<p>Returns true if the current database’s version is current.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.db.model.Model.upgrade">
+<code class="sig-name descname">upgrade</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.model.Model.upgrade" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Deferred</p>
+</dd>
+</dl>
+<p>Upgrades the database to the most recent schema version.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="caching">
+<h3><span class="section-number">3.7.4.4. </span>Caching<a class="headerlink" href="#caching" title="Permalink to this headline">¶</a></h3>
+<p>Connector component methods that get an object based on an ID are good
+candidates for caching.  The <a class="reference internal" href="#buildbot.db.base.cached" title="buildbot.db.base.cached"><code class="xref py py-func docutils literal notranslate"><span class="pre">cached</span></code></a> decorator
+makes this automatic:</p>
+<dl class="py function">
+<dt id="buildbot.db.base.cached">
+<code class="sig-prename descclassname">buildbot.db.base.</code><code class="sig-name descname">cached</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cachename</span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.base.cached" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cache_name</strong> – name of the cache to use</p>
+</dd>
+</dl>
+<p>A decorator for “getter” functions that fetch an object from the database
+based on a single key.  The wrapped method will only be called if the named
+cache does not contain the key.</p>
+<p>The wrapped function must take one argument (the key); the wrapper will
+take a key plus an optional <code class="docutils literal notranslate"><span class="pre">no_cache</span></code> argument which, if true, will
+cause it to invoke the underlying method even if the key is in the cache.</p>
+<p>The resulting method will have a <code class="docutils literal notranslate"><span class="pre">cache</span></code> attribute which can be used to
+access the underlying cache.</p>
+</dd></dl>
+
+<p>In most cases, getter methods return a well-defined dictionary.  Unfortunately,
+Python does not handle weak references to bare dictionaries, so components must
+instantiate a subclass of <code class="docutils literal notranslate"><span class="pre">dict</span></code>.  The whole assembly looks something like
+this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ThDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="k">class</span> <span class="nc">ThingConnectorComponent</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">DBConnectorComponent</span><span class="p">):</span>
+
+    <span class="nd">@base</span><span class="o">.</span><span class="n">cached</span><span class="p">(</span><span class="s1">&#39;thdicts&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">getThing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">thid</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">thd</span><span class="p">(</span><span class="n">conn</span><span class="p">):</span>
+            <span class="o">...</span>
+            <span class="n">thdict</span> <span class="o">=</span> <span class="n">ThDict</span><span class="p">(</span><span class="n">thid</span><span class="o">=</span><span class="n">thid</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">attr</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">thdict</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">do</span><span class="p">(</span><span class="n">thd</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="tests">
+<h3><span class="section-number">3.7.4.5. </span>Tests<a class="headerlink" href="#tests" title="Permalink to this headline">¶</a></h3>
+<p>It goes without saying that any new connector methods must be fully tested!</p>
+<p>You will also want to add an in-memory implementation of the methods to the
+fake classes in <code class="docutils literal notranslate"><span class="pre">master/buildbot/test/fake/fakedb.py</span></code>.  Non-DB Buildbot code
+is tested using these fake implementations in order to isolate that code from
+the database code, and to speed-up tests.</p>
+<p>The keys and types used in the return value from a connector’s <code class="docutils literal notranslate"><span class="pre">get</span></code> methods are described in <a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/test/util/validation.py">master/buildbot/test/util/validation.py</a>, via the <code class="docutils literal notranslate"><span class="pre">dbdict</span></code> module-level value.
+This is a dictionary of <code class="docutils literal notranslate"><span class="pre">DictValidator</span></code> objects, one for each return value.</p>
+<p>These values are used within test methods like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rv</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">masters</span><span class="o">.</span><span class="n">getMaster</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+<span class="n">validation</span><span class="o">.</span><span class="n">verifyDbDict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;masterdict&#39;</span><span class="p">,</span> <span class="n">rv</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="modifying-the-database-schema">
+<span id="id2"></span><h2><span class="section-number">3.7.5. </span>Modifying the Database Schema<a class="headerlink" href="#modifying-the-database-schema" title="Permalink to this headline">¶</a></h2>
+<p>Changes to the schema are accomplished through migration scripts, supported by
+<a class="reference external" href="https://github.com/openstack/sqlalchemy-migrate">SQLAlchemy-Migrate</a>.  In fact,
+even new databases are created with the migration scripts – a new database is
+a migrated version of an empty database.</p>
+<p>The schema is tracked by a version number, stored in the <code class="docutils literal notranslate"><span class="pre">migrate_version</span></code>
+table.  This number is incremented for each change to the schema, and used to
+determine whether the database must be upgraded.  The master will refuse to run
+with an out-of-date database.</p>
+<p>To make a change to the schema, first consider how to handle any existing data.
+When adding new columns, this may not be necessary, but table refactorings can
+be complex and require caution so as not to lose information.</p>
+<p>Create a new script in <a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/db/migrate/versions">master/buildbot/db/migrate/versions</a>, following the numbering scheme already present.
+The script should have an <code class="docutils literal notranslate"><span class="pre">update</span></code> method, which takes an engine as a parameter, and upgrades the database, both changing the schema and performing any required data migrations.
+The engine passed to this parameter is “enhanced” by SQLAlchemy-Migrate, with methods to handle adding, altering, and dropping columns.
+See the SQLAlchemy-Migrate documentation for details.</p>
+<p>Next, modify <a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/db/model.py">master/buildbot/db/model.py</a> to represent the updated schema.
+Buildbot’s automated tests perform a rudimentary comparison of an upgraded database with the model, but it is important to check the details - key length, nullability, and so on can sometimes be missed by the checks.
+If the schema and the upgrade scripts get out of sync, bizarre behavior can result.</p>
+<p>Also, adjust the fake database table definitions in <a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/test/fakedb">master/buildbot/test/fakedb</a> according to your changes.</p>
+<p>Your upgrade script should have unit tests.  The classes in <a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/test/util/migration.py">master/buildbot/test/util/migration.py</a> make this straightforward.
+Unit test scripts should be named e.g., <code class="file docutils literal notranslate"><span class="pre">test_db_migrate_versions_015_remove_bad_master_objectid.py</span></code>.</p>
+<p>The <a class="reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/test/integration/test_upgrade.py">master/buildbot/test/integration/test_upgrade.py</a> also tests
+upgrades, and will confirm that the resulting database matches the model.  If
+you encounter implicit indexes on MySQL, that do not appear on SQLite or
+Postgres, add them to <code class="docutils literal notranslate"><span class="pre">implied_indexes</span></code> in
+<code class="file docutils literal notranslate"><span class="pre">master/buidlbot/db/model.py</span></code>.</p>
+</div>
+<div class="section" id="foreign-key-checking">
+<h2><span class="section-number">3.7.6. </span>Foreign key checking<a class="headerlink" href="#foreign-key-checking" title="Permalink to this headline">¶</a></h2>
+<p>PostgreSQL and SQlite db backends are checking the foreign keys consistency.
+<a class="reference external" href="http://trac.buildbot.net/ticket/2248">bug #2248</a> needs to be fixed so that we can support foreign key checking for MySQL.</p>
+<p>To maintain consistency with real db, fakedb can check the foreign key consistency of your test data. For this, just enable it with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">fakedb</span><span class="o">.</span><span class="n">FakeDBConnector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">checkForeignKeys</span> <span class="o">=</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<p>Note that tests that only use fakedb do not really need foreign key consistency, even if this is a good practice to enable it in new code.</p>
+</div>
+<div class="section" id="database-compatibility-notes">
+<h2><span class="section-number">3.7.7. </span>Database Compatibility Notes<a class="headerlink" href="#database-compatibility-notes" title="Permalink to this headline">¶</a></h2>
+<p>Or: “If you thought any database worked right, think again”</p>
+<p>Because Buildbot works over a wide range of databases, it is generally limited
+to database features present in all supported backends.  This section
+highlights a few things to watch out for.</p>
+<p>In general, Buildbot should be functional on all supported database backends.
+If use of a backend adds minor usage restrictions, or cannot implement some
+kinds of error checking, that is acceptable if the restrictions are
+well-documented in the manual.</p>
+<p>The metabuildbot tests Buildbot against all supported databases, so most
+compatibility errors will be caught before a release.</p>
+<div class="section" id="index-length-in-mysql">
+<h3><span class="section-number">3.7.7.1. </span>Index Length in MySQL<a class="headerlink" href="#index-length-in-mysql" title="Permalink to this headline">¶</a></h3>
+<p id="index-0">MySQL only supports about 330-character indexes. The actual index length is
+1000 bytes, but MySQL uses 3-byte encoding for UTF8 strings.  This is a
+longstanding bug in MySQL - see <a class="reference external" href="http://bugs.mysql.com/bug.php?id=4541">“Specified key was too long; max key
+length is 1000 bytes” with utf8</a>.
+While this makes sense for indexes used for record lookup, it limits the
+ability to use unique indexes to prevent duplicate rows.</p>
+<p>InnoDB only supports indexes up to 255 unicode characters, which is why
+all indexed columns are limited to 255 characters in Buildbot.</p>
+</div>
+<div class="section" id="transactions-in-mysql">
+<h3><span class="section-number">3.7.7.2. </span>Transactions in MySQL<a class="headerlink" href="#transactions-in-mysql" title="Permalink to this headline">¶</a></h3>
+<p id="index-1">Unfortunately, use of the MyISAM storage engine precludes real transactions in
+MySQL.  <code class="docutils literal notranslate"><span class="pre">transaction.commit()</span></code> and <code class="docutils literal notranslate"><span class="pre">transaction.rollback()</span></code> are essentially
+no-ops: modifications to data in the database are visible to other users
+immediately, and are not reverted in a rollback.</p>
+</div>
+<div class="section" id="referential-integrity-in-sqlite-and-mysql">
+<h3><span class="section-number">3.7.7.3. </span>Referential Integrity in SQLite and MySQL<a class="headerlink" href="#referential-integrity-in-sqlite-and-mysql" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="index-2"></span><p id="index-3">Neither MySQL nor SQLite enforce referential integrity based on foreign keys.
+Postgres does enforce, however.  If possible, test your changes on Postgres
+before committing, to check that tables are added and removed in the proper
+order.</p>
+</div>
+<div class="section" id="subqueries-in-mysql">
+<h3><span class="section-number">3.7.7.4. </span>Subqueries in MySQL<a class="headerlink" href="#subqueries-in-mysql" title="Permalink to this headline">¶</a></h3>
+<p id="index-4">MySQL’s query planner is easily confused by subqueries.  For example, a DELETE
+query specifying id’s that are IN a subquery will not work.  The workaround is
+to run the subquery directly, and then execute a DELETE query for each returned
+id.</p>
+<p>If this weakness has a significant performance impact, it would be acceptable to
+conditionalize use of the subquery on the database dialect.</p>
+</div>
+<div class="section" id="too-many-variables-in-sqlite">
+<h3><span class="section-number">3.7.7.5. </span>Too Many Variables in SQLite<a class="headerlink" href="#too-many-variables-in-sqlite" title="Permalink to this headline">¶</a></h3>
+<p id="index-5">Sqlite has a limitation on the number of variables it can use.
+This limitation is usually <a class="reference external" href="http://www.sqlite.org/c3ref/c_limit_attached.html#sqlitelimitvariablenumber">SQLITE_LIMIT_VARIABLE_NUMBER=999</a>.
+There is currently no way with pysqlite to query the value of this limit.
+The C-api <code class="docutils literal notranslate"><span class="pre">sqlite_limit</span></code> is just not bound to the python.</p>
+<p>When you hit this problem, you will get error like the following:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sqlalchemy.exc.OperationalError: (OperationalError) too many SQL variables
+u&#39;DELETE FROM scheduler_changes WHERE scheduler_changes.changeid IN (?, ?, ?, ..., ?)
+</pre></div>
+</div>
+<p>You can use the method <code class="xref py py-meth docutils literal notranslate"><span class="pre">doBatch</span></code> in order to write batching code in a consistent manner.</p>
+</div>
+</div>
+<div class="section" id="testing-migrations-with-real-databases">
+<h2><span class="section-number">3.7.8. </span>Testing migrations with real databases<a class="headerlink" href="#testing-migrations-with-real-databases" title="Permalink to this headline">¶</a></h2>
+<p>By default Buildbot test suite uses SQLite database for testings database
+migrations.
+To use other database set <code class="docutils literal notranslate"><span class="pre">BUILDBOT_TEST_DB_URL</span></code> environment variable to
+value in <a class="reference external" href="http://docs.sqlalchemy.org/en/latest/core/engines.html#database-urls">SQLAlchemy database URL specification</a>.</p>
+<p>For example, to run tests with file-based SQLite database you can start
+tests in the following way:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">BUILDBOT_TEST_DB_URL</span><span class="o">=</span>sqlite:////tmp/test_db.sqlite trial buildbot.test
+</pre></div>
+</div>
+<div class="section" id="run-databases-in-docker">
+<h3><span class="section-number">3.7.8.1. </span>Run databases in Docker<a class="headerlink" href="#run-databases-in-docker" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference external" href="https://www.docker.com/">Docker</a> allows to easily install and configure
+different databases locally in containers.</p>
+<p>To run tests with PostgreSQL:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install psycopg.</span>
+pip install psycopg2
+<span class="c1"># Start container with PostgreSQL 9.5.</span>
+<span class="c1"># It will listen on port 15432 on localhost.</span>
+sudo docker run --name bb-test-postgres -e <span class="nv">POSTGRES_PASSWORD</span><span class="o">=</span>password <span class="se">\</span>
+    -p <span class="m">127</span>.0.0.1:15432:5432 -d postgres:9.5
+<span class="c1"># Start interesting tests</span>
+<span class="nv">BUILDBOT_TEST_DB_URL</span><span class="o">=</span>postgresql://postgres:password@localhost:15432/postgres <span class="se">\</span>
+    trial buildbot.test
+</pre></div>
+</div>
+<p>To run tests with MySQL:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install mysqlclient</span>
+pip install mysqlclient
+<span class="c1"># Start container with MySQL 5.5.</span>
+<span class="c1"># It will listen on port 13306 on localhost.</span>
+sudo docker run --name bb-test-mysql -e <span class="nv">MYSQL_ROOT_PASSWORD</span><span class="o">=</span>password <span class="se">\</span>
+    -p <span class="m">127</span>.0.0.1:13306:3306 -d mysql:5.5
+<span class="c1"># Start interesting tests</span>
+<span class="nv">BUILDBOT_TEST_DB_URL</span><span class="o">=</span>mysql+mysqldb://root:password@127.0.0.1:13306/mysql <span class="se">\</span>
+    trial buildbot.test
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="database/index.html" class="btn btn-neutral float-right" title="3.8. Database connectors API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="data.html" class="btn btn-neutral float-left" title="3.6. Data API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright Buildbot Team Members
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
