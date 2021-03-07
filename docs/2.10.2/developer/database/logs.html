@@ -1,0 +1,456 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>3.8.7. Logs connector &mdash; Buildbot 2.10.2 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/buildbot_rtd.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/icon.png"/>
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="3.8.8. Changes connector" href="changes.html" />
+    <link rel="prev" title="3.8.6. Steps connector" href="steps.html" /> 
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Buildbot
+          
+
+          
+            
+            <img src="../../_static/full_logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.10.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../manual/index.html">2. Buildbot Manual</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">3. Buildbot Development</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../quickstart.html">3.1. Development Quick-start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pull-request.html">3.2. Submitting Pull Requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../general.html">3.3. General Documents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rest.html">3.4. REST API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../raml/index.html">3.5. REST API Specification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../data.html">3.6. Data API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../database.html">3.7. Database</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">3.8. Database connectors API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="buildsets.html">3.8.1. Buildsets connector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="buildrequests.html">3.8.2. Buildrequests connector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="builders.html">3.8.3. Builders connector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="builds.html">3.8.4. Builds connector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="build_data.html">3.8.5. Build data connector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="steps.html">3.8.6. Steps connector</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">3.8.7. Logs connector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html">3.8.8. Changes connector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changesources.html">3.8.9. Change sources connector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="schedulers.html">3.8.10. Schedulers connector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sourcestamps.html">3.8.11. Source stamps connector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="state.html">3.8.12. State connector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="users.html">3.8.13. Users connector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="masters.html">3.8.14. Masters connector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workers.html">3.8.15. Workers connector</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../mq.html">3.9. Messaging and Queues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../classes.html">3.10. Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../indices.html">6. API Indices</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Buildbot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html"><span class="section-number">3. </span>Buildbot Development</a> &raquo;</li>
+        
+          <li><a href="index.html"><span class="section-number">3.8. </span>Database connectors API</a> &raquo;</li>
+        
+      <li><span class="section-number">3.8.7. </span>Logs connector</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/developer/database/logs.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>Buildbot no longer supports Python 2.7 on the Buildbot master.</p>
+</div>
+<div class="section" id="module-buildbot.db.logs">
+<span id="logs-connector"></span><h1><span class="section-number">3.8.7. </span>Logs connector<a class="headerlink" href="#module-buildbot.db.logs" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="index-0"></span><dl class="py class">
+<dt id="buildbot.db.logs.LogsConnectorComponent">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">buildbot.db.logs.</span></code><code class="sig-name descname"><span class="pre">LogsConnectorComponent</span></code><a class="headerlink" href="#buildbot.db.logs.LogsConnectorComponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class handles log data.
+Build steps can have zero or more logs.
+Logs are uniquely identified by name within a step.</p>
+<p>Information about a log, apart from its contents, is represented as a dictionary with the following keys, referred to as a <em>logdict</em>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id</span></code> (log ID, globally unique)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stepid</span></code> (step ID, indicating the containing step)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code> free-form name of this log</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">slug</span></code> (50-identifier for the log, unique within the step)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">complete</span></code> (true if the log is complete and will not receive more lines)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_lines</span></code> (number of lines in the log)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span></code> (log type; see below)</p></li>
+</ul>
+<p>Each log has a type that describes how to interpret its contents.
+See the <a class="reference internal" href="../raml/logchunk.html#rtype-logchunk" title="logchunk"><code class="xref bb bb-rtype docutils literal notranslate"><span class="pre">logchunk</span></code></a> resource type for details.</p>
+<p>A log is contains a sequence of newline-separated lines of unicode.
+Log line numbering is zero-based.</p>
+<p>Each line must be less than 64k when encoded in UTF-8.
+Longer lines will be truncated, and a warning logged.</p>
+<p>Lines are stored internally in “chunks”, and optionally compressed, but the implementation hides these details from callers.</p>
+<dl class="py method">
+<dt id="buildbot.db.logs.LogsConnectorComponent.getLog">
+<code class="sig-name descname"><span class="pre">getLog</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.logs.LogsConnectorComponent.getLog" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>logid</strong> (<em>integer</em>) – ID of the requested log</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>logdict via Deferred</p>
+</dd>
+</dl>
+<p>Get a log, identified by logid.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.db.logs.LogsConnectorComponent.getLogBySlug">
+<code class="sig-name descname"><span class="pre">getLogBySlug</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stepid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slug</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.logs.LogsConnectorComponent.getLogBySlug" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stepid</strong> (<em>integer</em>) – ID of the step containing this log</p></li>
+<li><p><strong>slug</strong> – slug of the logfile to retrieve</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>logdict via Deferred</p>
+</dd>
+</dl>
+<p>Get a log, identified by name within the given step.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.db.logs.LogsConnectorComponent.getLogs">
+<code class="sig-name descname"><span class="pre">getLogs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stepid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.logs.LogsConnectorComponent.getLogs" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>stepid</strong> (<em>integer</em>) – ID of the step containing the desired logs</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of logdicts via Deferred</p>
+</dd>
+</dl>
+<p>Get all logs within the given step.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.db.logs.LogsConnectorComponent.getLogLines">
+<code class="sig-name descname"><span class="pre">getLogLines</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_line</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_line</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.logs.LogsConnectorComponent.getLogLines" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logid</strong> (<em>integer</em>) – ID of the log</p></li>
+<li><p><strong>first_line</strong> – first line to return</p></li>
+<li><p><strong>last_line</strong> – last line to return</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>see below</p>
+</dd>
+</dl>
+<p>Get a subset of lines for a logfile.</p>
+<p>The return value, via Deferred, is a concatenation of newline-terminated strings.
+If the requested last line is beyond the end of the logfile, only existing lines will be included.
+If the log does not exist, or has no associated lines, this method returns an empty string.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.db.logs.LogsConnectorComponent.addLog">
+<code class="sig-name descname"><span class="pre">addLog</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stepid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.logs.LogsConnectorComponent.addLog" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stepid</strong> (<em>integer</em>) – ID of the step containing this log</p></li>
+<li><p><strong>name</strong> (<em>string</em>) – name of the logfile</p></li>
+<li><p><strong>slug</strong> (<em>50-character identifier</em>) – slug (unique identifier) of the logfile</p></li>
+<li><p><strong>type</strong> (<em>string</em>) – log type (see above)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>KeyError</strong> – if a log with the given slug already exists in the step</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>ID of the new log, via Deferred</p>
+</dd>
+</dl>
+<p>Add a new log file to the given step.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.db.logs.LogsConnectorComponent.appendLog">
+<code class="sig-name descname"><span class="pre">appendLog</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.logs.LogsConnectorComponent.appendLog" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logid</strong> (<em>integer</em>) – ID of the requested log</p></li>
+<li><p><strong>content</strong> (<em>string</em>) – new content to be appended to the log</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>tuple of first and last line numbers in the new chunk, via Deferred</p>
+</dd>
+</dl>
+<p>Append content to an existing log.
+The content must end with a newline.
+If the given log does not exist, the method will silently do nothing.</p>
+<p>It is not safe to call this method more than once simultaneously for the same <code class="docutils literal notranslate"><span class="pre">logid</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.db.logs.LogsConnectorComponent.finishLog">
+<code class="sig-name descname"><span class="pre">finishLog</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.logs.LogsConnectorComponent.finishLog" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>logid</strong> (<em>integer</em>) – ID of the log to mark complete</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Deferred</p>
+</dd>
+</dl>
+<p>Mark a log as complete.</p>
+<p>Note that no checking for completeness is performed when appending to a log.
+It is up to the caller to avoid further calls to <code class="docutils literal notranslate"><span class="pre">appendLog</span></code> after <code class="docutils literal notranslate"><span class="pre">finishLog</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.db.logs.LogsConnectorComponent.compressLog">
+<code class="sig-name descname"><span class="pre">compressLog</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.logs.LogsConnectorComponent.compressLog" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>logid</strong> (<em>integer</em>) – ID of the log to compress</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Deferred</p>
+</dd>
+</dl>
+<p>Compress the given log.
+This method performs internal optimizations of a log’s chunks to reduce the space used and make read operations more efficient.
+It should only be called for finished logs.
+This method may take some time to complete.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.db.logs.LogsConnectorComponent.deleteOldLogChunks">
+<code class="sig-name descname"><span class="pre">deleteOldLogChunks</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">older_than_timestamp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.db.logs.LogsConnectorComponent.deleteOldLogChunks" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>older_than_timestamp</strong> (<em>integer</em>) – the logs whose step’s <code class="docutils literal notranslate"><span class="pre">started_at</span></code> is older than <code class="docutils literal notranslate"><span class="pre">older_than_timestamp</span></code> will be deleted.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Deferred</p>
+</dd>
+</dl>
+<p>Delete old logchunks (helper for the <code class="docutils literal notranslate"><span class="pre">logHorizon</span></code> policy).
+Old logs have their logchunks deleted from the database, but they keep their <code class="docutils literal notranslate"><span class="pre">num_lines</span></code> metadata.
+They have their types changed to ‘d’, so that the UI can display something meaningful.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="changes.html" class="btn btn-neutral float-right" title="3.8.8. Changes connector" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="steps.html" class="btn btn-neutral float-left" title="3.8.6. Steps connector" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright Buildbot Team Members.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
