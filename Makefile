@@ -1,3 +1,3 @@
 all:
-	python generate_index.py
-	python create-sitemap.py
+	python3 generate_index.py
+	python3 create-sitemap.py

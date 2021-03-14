@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import re
 import os
@@ -28,7 +28,7 @@ def create_index_html():
                 versions.append((v, fn))
     versions.sort(reverse=True)
     current_version = versions[0][1]
-    os.system("find docs/{} -name '*.html' | xargs python add-tracking.py".format(current_version))
+    os.system("find docs/{} -name '*.html' | xargs python3 add-tracking.py".format(current_version))
     os.system("rm -f docs/current")
     os.system("ln -sf {} docs/current".format(current_version))
     older_versions = versions[1:]
