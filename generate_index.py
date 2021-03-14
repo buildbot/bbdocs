@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import re
 import os
 
 from jinja2 import Environment, FileSystemLoader
@@ -20,7 +21,8 @@ def create_index_html():
     fname = "docs/index.html"
     versions = []
     for fn in os.listdir('docs'):
-        if fn.startswith('0.') or fn.startswith('1.') or fn.startswith('2.'):
+        m = re.match(r'^\d\..*', fn)
+        if m is not None:
             v = version.parse(fn)
             if v > version.parse("0.8.5"):
                 versions.append((v, fn))
