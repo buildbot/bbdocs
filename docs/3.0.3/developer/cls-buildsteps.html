@@ -1,0 +1,1286 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>3.10.6. BuildSteps &mdash; Buildbot 3.0.3 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/buildbot_rtd.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/icon.png"/>
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="3.10.7. BaseScheduler" href="cls-basescheduler.html" />
+    <link rel="prev" title="3.10.5. RemoteCommands" href="cls-remotecommands.html" /> 
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Buildbot
+          
+
+          
+            
+            <img src="../_static/full_logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                3.0.3
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/index.html">2. Buildbot Manual</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">3. Buildbot Development</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html">3.1. Development Quick-start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pull-request.html">3.2. Submitting Pull Requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="general.html">3.3. General Documents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rest.html">3.4. REST API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="raml/index.html">3.5. REST API Specification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html">3.6. Data API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="database.html">3.7. Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="database/index.html">3.8. Database connectors API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mq.html">3.9. Messaging and Queues</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="classes.html">3.10. Classes</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="cls-build.html">3.10.1. Builds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cls-worker.html">3.10.2. Workers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cls-buildfactory.html">3.10.3. BuildFactory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cls-changesources.html">3.10.4. Change Sources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cls-remotecommands.html">3.10.5. RemoteCommands</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">3.10.6. BuildSteps</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#buildstep">3.10.6.1. BuildStep</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#commandmixin">3.10.6.2. CommandMixin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#shellmixin">3.10.6.3. ShellMixin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#exceptions">3.10.6.4. Exceptions</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cls-basescheduler.html">3.10.7. BaseScheduler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cls-forcesched.html">3.10.8. ForceScheduler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cls-irenderable.html">3.10.9. IRenderable</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cls-iproperties.html">3.10.10. IProperties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cls-iconfigurator.html">3.10.11. <code class="docutils literal notranslate"><span class="pre">IConfigurator</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="cls-resultspec.html">3.10.12. ResultSpecs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cls-protocols.html">3.10.13. Protocols</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cls-workermanager.html">3.10.14. WorkerManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cls-log.html">3.10.15. Logs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cls-logobserver.html">3.10.16. LogObservers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cls-auth.html">3.10.17. Authentication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cls-avatar.html">3.10.18. Avatars</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cls-www.html">3.10.19. Web Server Classes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../indices.html">6. API Indices</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Buildbot</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html"><span class="section-number">3. </span>Buildbot Development</a> &raquo;</li>
+        
+          <li><a href="classes.html"><span class="section-number">3.10. </span>Classes</a> &raquo;</li>
+        
+      <li><span class="section-number">3.10.6. </span>BuildSteps</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/developer/cls-buildsteps.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>Buildbot no longer supports Python 2.7 on the Buildbot master.</p>
+</div>
+<div class="section" id="module-buildbot.process.buildstep">
+<span id="buildsteps"></span><h1><span class="section-number">3.10.6. </span>BuildSteps<a class="headerlink" href="#module-buildbot.process.buildstep" title="Permalink to this headline">¶</a></h1>
+<p>There are a few parent classes that are used as base classes for real buildsteps.
+This section describes the base classes.
+The “leaf” classes are described in <a class="reference internal" href="../manual/configuration/steps/index.html"><span class="doc">Build Steps</span></a>.</p>
+<p>See <a class="reference internal" href="../manual/customization.html#writing-new-buildsteps"><span class="std std-ref">Writing New BuildSteps</span></a> for a guide to implementing new steps.</p>
+<div class="section" id="buildstep">
+<h2><span class="section-number">3.10.6.1. </span>BuildStep<a class="headerlink" href="#buildstep" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="buildbot.process.buildstep.BuildStep">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">buildbot.process.buildstep.</span></code><code class="sig-name descname"><span class="pre">BuildStep</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">descriptionDone</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">descriptionSuffix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">haltOnFailure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flunkOnWarnings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flunkOnFailure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warnOnWarnings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warnOnFailure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alwaysRun</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progressMetrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useProgress</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doStepIf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hideStepIf</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep" title="Permalink to this definition">¶</a></dt>
+<dd><p>All constructor arguments must be given as keyword arguments.
+Each constructor parameter is copied to the corresponding attribute.</p>
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.name">
+<code class="sig-name descname"><span class="pre">name</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the step.
+Note that this value may change when the step is started, if the existing name was not unique.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.stepid">
+<code class="sig-name descname"><span class="pre">stepid</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.stepid" title="Permalink to this definition">¶</a></dt>
+<dd><p>The ID of this step in the database.
+This attribute is not set until the step starts.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.description">
+<code class="sig-name descname"><span class="pre">description</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.description" title="Permalink to this definition">¶</a></dt>
+<dd><p>The description of the step.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.descriptionDone">
+<code class="sig-name descname"><span class="pre">descriptionDone</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.descriptionDone" title="Permalink to this definition">¶</a></dt>
+<dd><p>The description of the step after it has finished.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.descriptionSuffix">
+<code class="sig-name descname"><span class="pre">descriptionSuffix</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.descriptionSuffix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Any extra information to append to the description.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.locks">
+<code class="sig-name descname"><span class="pre">locks</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.locks" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of locks for this step; see <a class="reference internal" href="../manual/configuration/interlocks.html#interlocks"><span class="std std-ref">Interlocks</span></a>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.progressMetrics">
+<code class="sig-name descname"><span class="pre">progressMetrics</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.progressMetrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of names of metrics that should be used to track the progress of this build, and build ETA’s for users.
+This is generally set in the</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.useProgress">
+<code class="sig-name descname"><span class="pre">useProgress</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.useProgress" title="Permalink to this definition">¶</a></dt>
+<dd><p>If true (the default), then ETAs will be calculated for this step using progress metrics.
+If the step is known to have unpredictable timing (e.g., an incremental build), then this should be set to false.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.doStepIf">
+<code class="sig-name descname"><span class="pre">doStepIf</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.doStepIf" title="Permalink to this definition">¶</a></dt>
+<dd><p>A callable or bool to determine whether this step should be executed.
+See <a class="reference internal" href="../manual/configuration/steps/common.html#buildstep-common-parameters"><span class="std std-ref">Parameters Common to all Steps</span></a> for details.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.hideStepIf">
+<code class="sig-name descname"><span class="pre">hideStepIf</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.hideStepIf" title="Permalink to this definition">¶</a></dt>
+<dd><p>A callable or bool to determine whether this step should be shown in the waterfall and build details pages.
+See <a class="reference internal" href="../manual/configuration/steps/common.html#buildstep-common-parameters"><span class="std std-ref">Parameters Common to all Steps</span></a> for details.</p>
+</dd></dl>
+
+<p>The following attributes affect the behavior of the containing build:</p>
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.haltOnFailure">
+<code class="sig-name descname"><span class="pre">haltOnFailure</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.haltOnFailure" title="Permalink to this definition">¶</a></dt>
+<dd><p>If true, the build will halt on a failure of this step, and not execute subsequent tests (except those with <code class="docutils literal notranslate"><span class="pre">alwaysRun</span></code>).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.flunkOnWarnings">
+<code class="sig-name descname"><span class="pre">flunkOnWarnings</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.flunkOnWarnings" title="Permalink to this definition">¶</a></dt>
+<dd><p>If true, the build will be marked as a failure if this step ends with warnings.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.flunkOnFailure">
+<code class="sig-name descname"><span class="pre">flunkOnFailure</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.flunkOnFailure" title="Permalink to this definition">¶</a></dt>
+<dd><p>If true, the build will be marked as a failure if this step fails.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.warnOnWarnings">
+<code class="sig-name descname"><span class="pre">warnOnWarnings</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.warnOnWarnings" title="Permalink to this definition">¶</a></dt>
+<dd><p>If true, the build will be marked as warnings, or worse, if this step ends with warnings.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.warnOnFailure">
+<code class="sig-name descname"><span class="pre">warnOnFailure</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.warnOnFailure" title="Permalink to this definition">¶</a></dt>
+<dd><p>If true, the build will be marked as warnings, or worse, if this step fails.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.alwaysRun">
+<code class="sig-name descname"><span class="pre">alwaysRun</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.alwaysRun" title="Permalink to this definition">¶</a></dt>
+<dd><p>If true, the step will run even if a previous step halts the build with <code class="docutils literal notranslate"><span class="pre">haltOnFailure</span></code>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.logEncoding">
+<code class="sig-name descname"><span class="pre">logEncoding</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.logEncoding" title="Permalink to this definition">¶</a></dt>
+<dd><p>The log encoding to use for logs produced in this step, or None to ues the global default.
+See <a class="reference internal" href="../manual/configuration/global.html#log-encodings"><span class="std std-ref">Log Handling</span></a>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.rendered">
+<code class="sig-name descname"><span class="pre">rendered</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.rendered" title="Permalink to this definition">¶</a></dt>
+<dd><p>At the beginning of the step, the renderable attributes are rendered against the properties.
+There is a slight delay however when those are not yet rendered, which lead to weird and difficult to reproduce bugs.
+To address this problem, a <code class="docutils literal notranslate"><span class="pre">rendered</span></code> attribute is available for methods that could be called early in the buildstep creation.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.results">
+<code class="sig-name descname"><span class="pre">results</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.results" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the result (a code from <a class="reference internal" href="results.html#module-buildbot.process.results" title="buildbot.process.results"><code class="xref py py-mod docutils literal notranslate"><span class="pre">buildbot.process.results</span></code></a>) of the step.
+This attribute only exists after the step is finished, and should only be used in <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.getResultSummary" title="buildbot.process.buildstep.BuildStep.getResultSummary"><code class="xref py py-meth docutils literal notranslate"><span class="pre">getResultSummary</span></code></a>.</p>
+</dd></dl>
+
+<p>A few important pieces of information are not available when a step is constructed, and are added later.
+These are set by the following methods; the order in which these methods are called is not defined.</p>
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.setBuild">
+<code class="sig-name descname"><span class="pre">setBuild</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">build</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.setBuild" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>build</strong> – the <a class="reference internal" href="cls-build.html#buildbot.process.build.Build" title="buildbot.process.build.Build"><code class="xref py py-class docutils literal notranslate"><span class="pre">Build</span></code></a> instance controlling this step.</p>
+</dd>
+</dl>
+<p>This method is called during setup to set the build instance controlling this worker.
+Subclasses can override this to get access to the build object as soon as it is available.
+The default implementation sets the <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.build" title="buildbot.process.buildstep.BuildStep.build"><code class="xref py py-attr docutils literal notranslate"><span class="pre">build</span></code></a> attribute.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.build">
+<code class="sig-name descname"><span class="pre">build</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>The build object controlling this step.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.setWorker">
+<code class="sig-name descname"><span class="pre">setWorker</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">build</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.setWorker" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>build</strong> – the <a class="reference internal" href="cls-worker.html#buildbot.worker.Worker" title="buildbot.worker.Worker"><code class="xref py py-class docutils literal notranslate"><span class="pre">Worker</span></code></a> instance on which this step will run.</p>
+</dd>
+</dl>
+<p>Similarly, this method is called with the worker that will run this step.
+The default implementation sets the <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.worker" title="buildbot.process.buildstep.BuildStep.worker"><code class="xref py py-attr docutils literal notranslate"><span class="pre">worker</span></code></a> attribute.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.worker">
+<code class="sig-name descname"><span class="pre">worker</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.worker" title="Permalink to this definition">¶</a></dt>
+<dd><p>The worker that will run this step.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.workdir">
+<code class="sig-name descname"><span class="pre">workdir</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.workdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implemented as a property.
+Workdir where actions of the step are happening.
+The workdir is by order of priority</p>
+<ul>
+<li><p>workdir of the step, if defined via constructor argument</p></li>
+<li><p>workdir of the BuildFactory (itself defaults to ‘build’).</p>
+<blockquote>
+<div><p>BuildFactory workdir can be a function of sourcestamp. See <a class="reference internal" href="../manual/customization.html#factory-workdir-functions"><span class="std std-ref">Factory Workdir Functions</span></a></p>
+</div></blockquote>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.setDefaultWorkdir">
+<code class="sig-name descname"><span class="pre">setDefaultWorkdir</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workdir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.setDefaultWorkdir" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>workdir</strong> – the default workdir, from the build</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This method is deprecated and should not be used anymore, as workdir is calculated automatically via a property</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.setupProgress">
+<code class="sig-name descname"><span class="pre">setupProgress</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.setupProgress" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is called during build setup to give the step a chance to set up progress tracking.
+It is only called if the build has <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.useProgress" title="buildbot.process.buildstep.BuildStep.useProgress"><code class="xref py py-attr docutils literal notranslate"><span class="pre">useProgress</span></code></a> set.
+There is rarely any reason to override this method.</p>
+</dd></dl>
+
+<p>Execution of the step itself is governed by the following methods and attributes.</p>
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.startStep">
+<code class="sig-name descname"><span class="pre">startStep</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remote</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.startStep" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>remote</strong> – a remote reference to the worker-side
+<code class="xref py py-class docutils literal notranslate"><span class="pre">WorkerForBuilderPb</span></code> instance</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Deferred</p>
+</dd>
+</dl>
+<p>Begin the step.
+This is the build’s interface to step execution.
+Subclasses should override <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.run" title="buildbot.process.buildstep.BuildStep.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run</span></code></a> to implement custom behaviors.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.run">
+<code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.run" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>result via Deferred</p>
+</dd>
+</dl>
+<p>Execute the step.
+When this method returns (or when the Deferred it returns fires), the step is complete.
+The method’s return value must be an integer, giving the result of the step – a constant from <a class="reference internal" href="results.html#module-buildbot.process.results" title="buildbot.process.results"><code class="xref py py-mod docutils literal notranslate"><span class="pre">buildbot.process.results</span></code></a>.
+If the method raises an exception or its Deferred fires with failure, then the step will be completed with an EXCEPTION result.
+Any other output from the step (logfiles, status strings, URLs, etc.) is the responsibility of the <code class="docutils literal notranslate"><span class="pre">run</span></code> method.</p>
+<p>Subclasses should override this method.
+Do <em>not</em> call <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.finished" title="buildbot.process.buildstep.BuildStep.finished"><code class="xref py py-meth docutils literal notranslate"><span class="pre">finished</span></code></a> or <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.failed" title="buildbot.process.buildstep.BuildStep.failed"><code class="xref py py-meth docutils literal notranslate"><span class="pre">failed</span></code></a> from this method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.start">
+<code class="sig-name descname"><span class="pre">start</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.start" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">None</span></code> or <a class="reference internal" href="results.html#buildbot.process.results.SKIPPED" title="buildbot.process.results.SKIPPED"><code class="xref py py-data docutils literal notranslate"><span class="pre">SKIPPED</span></code></a>,
+optionally via a Deferred.</p>
+</dd>
+</dl>
+<p>Begin the step.
+BuildSteps written before Buildbot-0.9.0 often override this method instead of <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.run" title="buildbot.process.buildstep.BuildStep.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run</span></code></a>, but this approach is deprecated.</p>
+<p>When the step is done, it should call <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.finished" title="buildbot.process.buildstep.BuildStep.finished"><code class="xref py py-meth docutils literal notranslate"><span class="pre">finished</span></code></a>, with a result – a constant from <a class="reference internal" href="results.html#module-buildbot.process.results" title="buildbot.process.results"><code class="xref py py-mod docutils literal notranslate"><span class="pre">buildbot.process.results</span></code></a>.
+The result will be handed off to the <a class="reference internal" href="cls-build.html#buildbot.process.build.Build" title="buildbot.process.build.Build"><code class="xref py py-class docutils literal notranslate"><span class="pre">Build</span></code></a>.</p>
+<p>If the step encounters an exception, it should call <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.failed" title="buildbot.process.buildstep.BuildStep.failed"><code class="xref py py-meth docutils literal notranslate"><span class="pre">failed</span></code></a> with a Failure object.</p>
+<p>If the step decides it does not need to be run, <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.start" title="buildbot.process.buildstep.BuildStep.start"><code class="xref py py-meth docutils literal notranslate"><span class="pre">start</span></code></a> can return the constant <a class="reference internal" href="results.html#buildbot.process.results.SKIPPED" title="buildbot.process.results.SKIPPED"><code class="xref py py-data docutils literal notranslate"><span class="pre">SKIPPED</span></code></a>.
+In this case, it is not necessary to call <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.finished" title="buildbot.process.buildstep.BuildStep.finished"><code class="xref py py-meth docutils literal notranslate"><span class="pre">finished</span></code></a> directly.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.finished">
+<code class="sig-name descname"><span class="pre">finished</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.finished" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>results</strong> – a constant from <a class="reference internal" href="results.html#module-buildbot.process.results" title="buildbot.process.results"><code class="xref py py-mod docutils literal notranslate"><span class="pre">results</span></code></a></p>
+</dd>
+</dl>
+<p>A call to this method indicates that the step is finished and the build should analyze the results and perhaps proceed to the next step.
+The step should not perform any additional processing after calling this method.
+This method must only be called from the (deprecated) <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.start" title="buildbot.process.buildstep.BuildStep.start"><code class="xref py py-meth docutils literal notranslate"><span class="pre">start</span></code></a> method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.failed">
+<code class="sig-name descname"><span class="pre">failed</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">failure</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.failed" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>failure</strong> – a <code class="xref py py-class docutils literal notranslate"><span class="pre">Failure</span></code> instance</p>
+</dd>
+</dl>
+<p>Similar to <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.finished" title="buildbot.process.buildstep.BuildStep.finished"><code class="xref py py-meth docutils literal notranslate"><span class="pre">finished</span></code></a>, this method indicates that the step is finished, but handles exceptions with appropriate logging and diagnostics.</p>
+<p>This method handles <a class="reference internal" href="#buildbot.process.buildstep.BuildStepFailed" title="buildbot.process.buildstep.BuildStepFailed"><code class="xref py py-exc docutils literal notranslate"><span class="pre">BuildStepFailed</span></code></a> specially, by calling <code class="docutils literal notranslate"><span class="pre">finished(FAILURE)</span></code>.
+This provides subclasses with a shortcut to stop execution of a step by raising this failure in a context where <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.failed" title="buildbot.process.buildstep.BuildStep.failed"><code class="xref py py-meth docutils literal notranslate"><span class="pre">failed</span></code></a> will catch it.
+This method must only be called from the (deprecated) <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.start" title="buildbot.process.buildstep.BuildStep.start"><code class="xref py py-meth docutils literal notranslate"><span class="pre">start</span></code></a> method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.interrupt">
+<code class="sig-name descname"><span class="pre">interrupt</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reason</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.interrupt" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>reason</strong> (string or <code class="xref py py-class docutils literal notranslate"><span class="pre">Failure</span></code>) – why the build was interrupted</p>
+</dd>
+</dl>
+<p>This method is used from various control interfaces to stop a running step.
+The step should be brought to a halt as quickly as possible, by cancelling a remote command, killing a local process, etc.
+The step must still finish with either <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.finished" title="buildbot.process.buildstep.BuildStep.finished"><code class="xref py py-meth docutils literal notranslate"><span class="pre">finished</span></code></a> or <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.failed" title="buildbot.process.buildstep.BuildStep.failed"><code class="xref py py-meth docutils literal notranslate"><span class="pre">failed</span></code></a>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">reason</span></code> parameter can be a string or, when a worker is lost during step processing, a <code class="xref py py-exc docutils literal notranslate"><span class="pre">ConnectionLost</span></code> failure.</p>
+<p>The parent method handles any pending lock operations, and should be called by implementations in subclasses.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.BuildStep.stopped">
+<code class="sig-name descname"><span class="pre">stopped</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.stopped" title="Permalink to this definition">¶</a></dt>
+<dd><p>If false, then the step is running.
+If true, the step is not running, or has been interrupted.</p>
+</dd></dl>
+
+<p>A step can indicate its up-to-the-moment status using a short summary string.
+These methods allow step subclasses to produce such summaries.</p>
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.updateSummary">
+<code class="sig-name descname"><span class="pre">updateSummary</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.updateSummary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the summary, calling <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.getCurrentSummary" title="buildbot.process.buildstep.BuildStep.getCurrentSummary"><code class="xref py py-meth docutils literal notranslate"><span class="pre">getCurrentSummary</span></code></a> or <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.getResultSummary" title="buildbot.process.buildstep.BuildStep.getResultSummary"><code class="xref py py-meth docutils literal notranslate"><span class="pre">getResultSummary</span></code></a> as appropriate.
+New-style build steps should call this method any time the summary may have changed.
+This method is debounced, so even calling it for every log line is acceptable.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.getCurrentSummary">
+<code class="sig-name descname"><span class="pre">getCurrentSummary</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.getCurrentSummary" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dictionary, optionally via Deferred</p>
+</dd>
+</dl>
+<p>Returns a dictionary containing status information for a running step.
+The dictionary can have a <code class="docutils literal notranslate"><span class="pre">step</span></code> key with a unicode value giving a summary for display with the step.
+This method is only called while the step is running.</p>
+<p>New-style build steps should override this method to provide a more interesting summary than the default <code class="docutils literal notranslate"><span class="pre">u&quot;running&quot;</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.getResultSummary">
+<code class="sig-name descname"><span class="pre">getResultSummary</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.getResultSummary" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dictionary, optionally via Deferred</p>
+</dd>
+</dl>
+<p>Returns a dictionary containing status information for a completed step.
+The dictionary can have keys <code class="docutils literal notranslate"><span class="pre">step</span></code> and <code class="docutils literal notranslate"><span class="pre">build</span></code>, each with unicode values.
+The <code class="docutils literal notranslate"><span class="pre">step</span></code> key gives a summary for display with the step, while the <code class="docutils literal notranslate"><span class="pre">build</span></code> key gives a summary for display with the entire build.
+The latter should be used sparingly, and include only information that the user would find relevant for the entire build, such as a number of test failures.
+Either or both keys can be omitted.</p>
+<p>This method is only called while the step is finished.
+The step’s result is available in <code class="docutils literal notranslate"><span class="pre">self.results</span></code> at that time.</p>
+<p>New-style build steps should override this method to provide a more interesting summary than the default, or to provide any build summary information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.getBuildResultSummary">
+<code class="sig-name descname"><span class="pre">getBuildResultSummary</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.getBuildResultSummary" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dictionary, optionally via Deferred</p>
+</dd>
+</dl>
+<p>Returns a dictionary containing status information for a completed step.
+This method calls <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.getResultSummary" title="buildbot.process.buildstep.BuildStep.getResultSummary"><code class="xref py py-meth docutils literal notranslate"><span class="pre">getResultSummary</span></code></a>, and automatically compute a <code class="docutils literal notranslate"><span class="pre">build</span></code> key from the <code class="docutils literal notranslate"><span class="pre">step</span></code> key according to the <code class="docutils literal notranslate"><span class="pre">updateBuildSummaryPolicy</span></code></p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.describe">
+<code class="sig-name descname"><span class="pre">describe</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">done</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.describe" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>done</strong> – If true, the step is finished.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of strings</p>
+</dd>
+</dl>
+<p>Describe the step succinctly.
+The return value should be a sequence of short strings suitable for display in a horizontally constrained space.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Be careful not to assume that the step has been started in this method.
+In relatively rare circumstances, steps are described before they have started.
+Ideally, unit tests should be used to ensure that this method is resilient.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This method is not called for new-style steps.
+Instead, override <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.getCurrentSummary" title="buildbot.process.buildstep.BuildStep.getCurrentSummary"><code class="xref py py-meth docutils literal notranslate"><span class="pre">getCurrentSummary</span></code></a> and <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.getResultSummary" title="buildbot.process.buildstep.BuildStep.getResultSummary"><code class="xref py py-meth docutils literal notranslate"><span class="pre">getResultSummary</span></code></a>.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.addTestResultSets">
+<code class="sig-name descname"><span class="pre">addTestResultSets</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.addTestResultSets" title="Permalink to this definition">¶</a></dt>
+<dd><p>The steps may override this to add any test result sets for this step via <code class="docutils literal notranslate"><span class="pre">self.addTestResultSet()</span></code>.
+This function is called just before the step execution is started.
+The function is not called if the step is skipped or otherwise not run.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.addTestResultSet">
+<code class="sig-name descname"><span class="pre">addTestResultSet</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">category</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_unit</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.addTestResultSet" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>description</strong> – Description of the test result set</p></li>
+<li><p><strong>category</strong> – Category of the test result set</p></li>
+<li><p><strong>value_unit</strong> – The value unit of the test result set</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The ID of the created test result set via a Deferred.</p>
+</dd>
+</dl>
+<p>Creates a new test result set to which test results can be associated.</p>
+<p>There are standard values of the <code class="docutils literal notranslate"><span class="pre">category</span></code> and <code class="docutils literal notranslate"><span class="pre">value_unit</span></code> parameters, see TODO.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt>
+<code class="sig-name descname"><span class="pre">addTestResult(setid,</span> <span class="pre">value,</span> <span class="pre">test_name=None,</span> <span class="pre">test_code_path=None,</span> <span class="pre">line=None,</span></code></dt>
+<dt>
+<code class="sig-name descname"><span class="pre">duration_ns=None)</span></code></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>setid</strong> – The ID of a test result set returned by <code class="docutils literal notranslate"><span class="pre">addTestResultSet</span></code>.</p></li>
+<li><p><strong>value</strong> – The value of the result as a string</p></li>
+<li><p><strong>test_name</strong> – The name of the test.</p></li>
+<li><p><strong>test_code_path</strong> – The path to the code file that resulted in this test result.</p></li>
+<li><p><strong>line</strong> – The line within <code class="docutils literal notranslate"><span class="pre">test_code_path</span></code> file that resulted in this test result.</p></li>
+<li><p><strong>duration_ns</strong> – The duration of the test itself, in nanoseconds.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Creates a test result.
+Either <code class="docutils literal notranslate"><span class="pre">test_name</span></code> or <code class="docutils literal notranslate"><span class="pre">test_code_path</span></code> must be specified.
+The function queues the test results and will submit them to the database when enough test
+results are added so that performance impact is minimized.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.finishTestResultSets">
+<code class="sig-name descname"><span class="pre">finishTestResultSets</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.finishTestResultSets" title="Permalink to this definition">¶</a></dt>
+<dd><p>The steps may override this to finish submission of any test results for the step.</p>
+</dd></dl>
+
+<p>Build steps have statistics, a simple key/value store of data which can later be aggregated over all steps in a build.
+Note that statistics are not preserved after a build is complete.</p>
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.hasStatistic">
+<code class="sig-name descname"><span class="pre">hasStatistic</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.hasStatistic" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>stat</strong> (<em>string</em>) – name of the statistic</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the statistic exists on this step</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.getStatistic">
+<code class="sig-name descname"><span class="pre">getStatistic</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.getStatistic" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stat</strong> (<em>string</em>) – name of the statistic</p></li>
+<li><p><strong>default</strong> – default value if the statistic does not exist</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>value of the statistic, or the default value</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.getStatistics">
+<code class="sig-name descname"><span class="pre">getStatistics</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.getStatistics" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a dictionary of all statistics for this step</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.setStatistic">
+<code class="sig-name descname"><span class="pre">setStatistic</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.setStatistic" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stat</strong> (<em>string</em>) – name of the statistic</p></li>
+<li><p><strong>value</strong> – value to assign to the statistic</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>value of the statistic</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>Build steps support progress metrics - values that increase roughly linearly during the execution of the step, and can thus be used to calculate an expected completion time for a running step.
+A metric may be a count of lines logged, tests executed, or files compiled.
+The build mechanics will take care of translating this progress information into an ETA for the user.</p>
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.setProgress">
+<code class="sig-name descname"><span class="pre">setProgress</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.setProgress" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metric</strong> (<em>string</em>) – the metric to update</p></li>
+<li><p><strong>value</strong> (<em>integer</em>) – the new value for the metric</p></li>
+</ul>
+</dd>
+</dl>
+<p>Update a progress metric.
+This should be called by subclasses that can provide useful progress-tracking information.</p>
+<p>The specified metric name must be included in <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.progressMetrics" title="buildbot.process.buildstep.BuildStep.progressMetrics"><code class="xref py py-attr docutils literal notranslate"><span class="pre">progressMetrics</span></code></a>.</p>
+</dd></dl>
+
+<p>The following methods are provided as utilities to subclasses.
+These methods should only be invoked after the step is started.</p>
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.workerVersion">
+<code class="sig-name descname"><span class="pre">workerVersion</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oldversion</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.workerVersion" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>command</strong> (<em>string</em>) – command to examine</p></li>
+<li><p><strong>oldversion</strong> – return value if the worker does not specify a version</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>string</p>
+</dd>
+</dl>
+<p>Fetch the version of the named command, as specified on the worker.
+In practice, all commands on a worker have the same version, but passing <code class="docutils literal notranslate"><span class="pre">command</span></code> is still useful to ensure that the command is implemented on the worker.
+If the command is not implemented on the worker, <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.workerVersion" title="buildbot.process.buildstep.BuildStep.workerVersion"><code class="xref py py-meth docutils literal notranslate"><span class="pre">workerVersion</span></code></a> will return <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<p>Versions take the form <code class="docutils literal notranslate"><span class="pre">x.y</span></code> where <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> are integers, and are compared as expected for version numbers.</p>
+<p>Buildbot versions older than 0.5.0 did not support version queries; in this case, <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.workerVersion" title="buildbot.process.buildstep.BuildStep.workerVersion"><code class="xref py py-meth docutils literal notranslate"><span class="pre">workerVersion</span></code></a> will return <code class="docutils literal notranslate"><span class="pre">oldVersion</span></code>.
+Since such ancient versions of Buildbot are no longer in use, this functionality is largely vestigial.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.workerVersionIsOlderThan">
+<code class="sig-name descname"><span class="pre">workerVersionIsOlderThan</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minversion</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.workerVersionIsOlderThan" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>command</strong> (<em>string</em>) – command to examine</p></li>
+<li><p><strong>minversion</strong> – minimum version</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>boolean</p>
+</dd>
+</dl>
+<p>This method returns true if <code class="docutils literal notranslate"><span class="pre">command</span></code> is not implemented on the worker, or if it is older than <code class="docutils literal notranslate"><span class="pre">minversion</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.checkWorkerHasCommand">
+<code class="sig-name descname"><span class="pre">checkWorkerHasCommand</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.checkWorkerHasCommand" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>command</strong> (<em>string</em>) – command to examine</p>
+</dd>
+</dl>
+<p>This method raise <code class="xref py py-class docutils literal notranslate"><span class="pre">WorkerSetupError</span></code> if <code class="docutils literal notranslate"><span class="pre">command</span></code> is not implemented on the worker</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.getWorkerName">
+<code class="sig-name descname"><span class="pre">getWorkerName</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.getWorkerName" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>string</p>
+</dd>
+</dl>
+<p>Get the name of the worker assigned to this step.</p>
+</dd></dl>
+
+<p>Most steps exist to run commands.
+While the details of exactly how those commands are constructed are left to subclasses, the execution of those commands comes down to this method:</p>
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.runCommand">
+<code class="sig-name descname"><span class="pre">runCommand</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.runCommand" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>command</strong> – <a class="reference internal" href="cls-remotecommands.html#buildbot.process.remotecommand.RemoteCommand" title="buildbot.process.remotecommand.RemoteCommand"><code class="xref py py-class docutils literal notranslate"><span class="pre">RemoteCommand</span></code></a> instance</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Deferred</p>
+</dd>
+</dl>
+<p>This method connects the given command to the step’s worker and runs it, returning the Deferred from <a class="reference internal" href="cls-remotecommands.html#buildbot.process.remotecommand.RemoteCommand.run" title="buildbot.process.remotecommand.RemoteCommand.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run</span></code></a>.</p>
+</dd></dl>
+
+<p>The <a class="reference internal" href="#buildbot.process.buildstep.BuildStep" title="buildbot.process.buildstep.BuildStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">BuildStep</span></code></a> class provides methods to add log data to the step.
+Subclasses provide a great deal of user-configurable functionality on top of these methods.
+These methods can be called while the step is running, but not before.</p>
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.addLog">
+<code class="sig-name descname"><span class="pre">addLog</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'s'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logEncoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.addLog" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – log name</p></li>
+<li><p><strong>type</strong> – log type; see <a class="reference internal" href="raml/logchunk.html#rtype-logchunk" title="logchunk"><code class="xref bb bb-rtype docutils literal notranslate"><span class="pre">logchunk</span></code></a></p></li>
+<li><p><strong>logEncoding</strong> – the log encoding, or None to use the step or global default (see <a class="reference internal" href="../manual/configuration/global.html#log-encodings"><span class="std std-ref">Log Handling</span></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><a class="reference internal" href="cls-log.html#buildbot.process.log.Log" title="buildbot.process.log.Log"><code class="xref py py-class docutils literal notranslate"><span class="pre">Log</span></code></a> instance via Deferred</p>
+</dd>
+</dl>
+<p>Add a new logfile with the given name to the step, and return the log file instance.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.getLog">
+<code class="sig-name descname"><span class="pre">getLog</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.getLog" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> – log name</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>KeyError</strong> – if there is no such log</p></li>
+<li><p><strong>KeyError</strong> – if no such log is defined</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><a class="reference internal" href="cls-log.html#buildbot.process.log.Log" title="buildbot.process.log.Log"><code class="xref py py-class docutils literal notranslate"><span class="pre">Log</span></code></a> instance</p>
+</dd>
+</dl>
+<p>Return an existing logfile, previously added with <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.addLog" title="buildbot.process.buildstep.BuildStep.addLog"><code class="xref py py-meth docutils literal notranslate"><span class="pre">addLog</span></code></a>.
+Note that this return value is synchronous, and only available after <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.addLog" title="buildbot.process.buildstep.BuildStep.addLog"><code class="xref py py-meth docutils literal notranslate"><span class="pre">addLog</span></code></a>’s deferred has fired.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.addCompleteLog">
+<code class="sig-name descname"><span class="pre">addCompleteLog</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.addCompleteLog" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – log name</p></li>
+<li><p><strong>text</strong> – content of the logfile</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Deferred</p>
+</dd>
+</dl>
+<p>This method adds a new log and sets <code class="docutils literal notranslate"><span class="pre">text</span></code> as its content.
+This is often useful to add a short logfile describing activities performed on the master.
+The logfile is immediately closed, and no further data can be added.</p>
+<p>If the logfile’s content is a bytestring, it is decoded with the step’s log encoding or the global default log encoding.
+To add a logfile with a different character encoding, perform the decode operation directly and pass the resulting unicode string to this method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.addHTMLLog">
+<code class="sig-name descname"><span class="pre">addHTMLLog</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">html</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.addHTMLLog" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – log name</p></li>
+<li><p><strong>html</strong> – content of the logfile</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Deferred</p>
+</dd>
+</dl>
+<p>Similar to <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.addCompleteLog" title="buildbot.process.buildstep.BuildStep.addCompleteLog"><code class="xref py py-meth docutils literal notranslate"><span class="pre">addCompleteLog</span></code></a>, this adds a logfile containing pre-formatted HTML, allowing more expressiveness than the text format supported by <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.addCompleteLog" title="buildbot.process.buildstep.BuildStep.addCompleteLog"><code class="xref py py-meth docutils literal notranslate"><span class="pre">addCompleteLog</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.addLogObserver">
+<code class="sig-name descname"><span class="pre">addLogObserver</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.addLogObserver" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>logname</strong> – log name</p></li>
+<li><p><strong>observer</strong> – log observer instance</p></li>
+</ul>
+</dd>
+</dl>
+<p>Add a log observer for the named log.
+The named log need not have been added already: the observer will be connected when the log is added.</p>
+<p>See <a class="reference internal" href="../manual/customization.html#adding-logobservers"><span class="std std-ref">Adding LogObservers</span></a> for more information on log observers.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.addLogWithFailure">
+<code class="sig-name descname"><span class="pre">addLogWithFailure</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">why</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logprefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.addLogWithFailure" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>why</strong> (<em>Failure</em>) – the failure to log</p></li>
+<li><p><strong>logprefix</strong> – prefix for the log name</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Deferred</p>
+</dd>
+</dl>
+<p>Add log files displaying the given failure, named <code class="docutils literal notranslate"><span class="pre">&lt;logprefix&gt;err.text</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;logprefix&gt;err.html</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.addLogWithException">
+<code class="sig-name descname"><span class="pre">addLogWithException</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">why</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logprefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.addLogWithException" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>why</strong> (<em>Exception</em>) – the exception to log</p></li>
+<li><p><strong>logprefix</strong> – prefix for the log name</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Deferred</p>
+</dd>
+</dl>
+<p>Similar to <code class="docutils literal notranslate"><span class="pre">addLogWithFailure</span></code>, but for an Exception instead of a Failure.</p>
+</dd></dl>
+
+<p>Along with logs, build steps have an associated set of links that can be used to provide additional information for developers.
+Those links are added during the build with this method:</p>
+<dl class="py method">
+<dt id="buildbot.process.buildstep.BuildStep.addURL">
+<code class="sig-name descname"><span class="pre">addURL</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.BuildStep.addURL" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – URL name</p></li>
+<li><p><strong>url</strong> – the URL</p></li>
+</ul>
+</dd>
+</dl>
+<p>Add a link to the given <code class="docutils literal notranslate"><span class="pre">url</span></code>, with the given <code class="docutils literal notranslate"><span class="pre">name</span></code> to displays of this step.
+This allows a step to provide links to data that is not available in the log files.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="commandmixin">
+<h2><span class="section-number">3.10.6.2. </span>CommandMixin<a class="headerlink" href="#commandmixin" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.runCommand" title="buildbot.process.buildstep.BuildStep.runCommand"><code class="xref py py-meth docutils literal notranslate"><span class="pre">runCommand</span></code></a> method can run a <a class="reference internal" href="cls-remotecommands.html#buildbot.process.remotecommand.RemoteCommand" title="buildbot.process.remotecommand.RemoteCommand"><code class="xref py py-class docutils literal notranslate"><span class="pre">RemoteCommand</span></code></a> instance, but it’s no help in building that object or interpreting the results afterward.
+This mixin class adds some useful methods for running commands.</p>
+<p>This class can only be used in new-style steps.</p>
+<dl class="py class">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.CommandMixin">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">buildbot.process.buildstep.</span></code><code class="sig-name descname"><span class="pre">CommandMixin</span></code><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.CommandMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Some remote commands are simple enough that they can boil down to a method call.
+Most of these take an <code class="docutils literal notranslate"><span class="pre">abandonOnFailure</span></code> argument which, if true, will abandon the entire buildstep on command failure.
+This is accomplished by raising <a class="reference internal" href="#buildbot.process.buildstep.BuildStepFailed" title="buildbot.process.buildstep.BuildStepFailed"><code class="xref py py-exc docutils literal notranslate"><span class="pre">BuildStepFailed</span></code></a>.</p>
+<p>These methods all write to the <code class="docutils literal notranslate"><span class="pre">stdio</span></code> log (generally just for errors).
+They do not close the log when finished.</p>
+<dl class="py method">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.CommandMixin.runRmdir">
+<code class="sig-name descname"><span class="pre">runRmdir</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">abandonOnFailure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.CommandMixin.runRmdir" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dir</strong> – directory to remove</p></li>
+<li><p><strong>abndonOnFailure</strong> – if true, abandon step on failure</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Boolean via Deferred</p>
+</dd>
+</dl>
+<p>Remove the given directory, using the <code class="docutils literal notranslate"><span class="pre">rmdir</span></code> command.
+Returns False on failure.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.CommandMixin.runMkdir">
+<code class="sig-name descname"><span class="pre">runMkdir</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">abandonOnFailure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.CommandMixin.runMkdir" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dir</strong> – directory to create</p></li>
+<li><p><strong>abndonOnFailure</strong> – if true, abandon step on failure</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Boolean via Deferred</p>
+</dd>
+</dl>
+<p>Create the given directory and any parent directories, using the <code class="docutils literal notranslate"><span class="pre">mkdir</span></code> command.
+Returns False on failure.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.CommandMixin.pathExists">
+<code class="sig-name descname"><span class="pre">pathExists</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.CommandMixin.pathExists" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> – path to test</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Boolean via Deferred</p>
+</dd>
+</dl>
+<p>Determine if the given path exists on the worker (in any form - file, directory, or otherwise).
+This uses the <code class="docutils literal notranslate"><span class="pre">stat</span></code> command.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.CommandMixin.runGlob">
+<code class="sig-name descname"><span class="pre">runGlob</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.CommandMixin.runGlob" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> – path to test</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of filenames</p>
+</dd>
+</dl>
+<p>Get the list of files matching the given path pattern on the worker.
+This uses Python’s <code class="docutils literal notranslate"><span class="pre">glob</span></code> module.
+If the <code class="docutils literal notranslate"><span class="pre">runGlob</span></code> method fails, it aborts the step.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.CommandMixin.getFileContentFromWorker">
+<code class="sig-name descname"><span class="pre">getFileContentFromWorker</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">abandonOnFailure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.CommandMixin.getFileContentFromWorker" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> – path of the file to download from worker</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>string via deferred (content of the file)</p>
+</dd>
+</dl>
+<p>Get the content of a file on the worker.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="shellmixin">
+<h2><span class="section-number">3.10.6.3. </span>ShellMixin<a class="headerlink" href="#shellmixin" title="Permalink to this headline">¶</a></h2>
+<p>Most Buildbot steps run shell commands on the worker, and Buildbot has an impressive array of configuration parameters to control that execution.
+The <code class="docutils literal notranslate"><span class="pre">ShellMixin</span></code> mixin provides the tools to make running shell commands easy and flexible.</p>
+<p>This class can only be used in new-style steps.</p>
+<dl class="py class">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">buildbot.process.buildstep.</span></code><code class="sig-name descname"><span class="pre">ShellMixin</span></code><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>This mixin manages the following step configuration parameters, the contents of which are documented in the manual.
+Naturally, all of these are renderable.</p>
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.command">
+<code class="sig-name descname"><span class="pre">command</span></code><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.command" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.workdir">
+<code class="sig-name descname"><span class="pre">workdir</span></code><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.workdir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.env">
+<code class="sig-name descname"><span class="pre">env</span></code><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.env" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.want_stdout">
+<code class="sig-name descname"><span class="pre">want_stdout</span></code><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.want_stdout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.want_stderr">
+<code class="sig-name descname"><span class="pre">want_stderr</span></code><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.want_stderr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.usePTY">
+<code class="sig-name descname"><span class="pre">usePTY</span></code><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.usePTY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.logfiles">
+<code class="sig-name descname"><span class="pre">logfiles</span></code><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.logfiles" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.lazylogfiles">
+<code class="sig-name descname"><span class="pre">lazylogfiles</span></code><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.lazylogfiles" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.timeout">
+<code class="sig-name descname"><span class="pre">timeout</span></code><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.timeout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.maxTime">
+<code class="sig-name descname"><span class="pre">maxTime</span></code><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.maxTime" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.logEnviron">
+<code class="sig-name descname"><span class="pre">logEnviron</span></code><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.logEnviron" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.interruptSignal">
+<code class="sig-name descname"><span class="pre">interruptSignal</span></code><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.interruptSignal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.sigtermTime">
+<code class="sig-name descname"><span class="pre">sigtermTime</span></code><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.sigtermTime" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.initialStdin">
+<code class="sig-name descname"><span class="pre">initialStdin</span></code><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.initialStdin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.decodeRC">
+<code class="sig-name descname"><span class="pre">decodeRC</span></code><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.decodeRC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.setupShellMixin">
+<code class="sig-name descname"><span class="pre">setupShellMixin</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constructorArgs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prohibitArgs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.setupShellMixin" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>constructorArgs</strong> (<em>dict</em>) – constructor keyword arguments</p></li>
+<li><p><strong>prohibitArgs</strong> (<em>list</em>) – list of recognized arguments to reject</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>keyword arguments destined for <a class="reference internal" href="#buildbot.process.buildstep.BuildStep" title="buildbot.process.buildstep.BuildStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">BuildStep</span></code></a></p>
+</dd>
+</dl>
+<p>This method is intended to be called from the shell constructor, passed any keyword arguments not otherwise used by the step.
+Any attributes set on the instance already (e.g., class-level attributes) are used as defaults.
+Attributes named in <code class="docutils literal notranslate"><span class="pre">prohibitArgs</span></code> are rejected with a configuration error.</p>
+<p>The return value should be passed to the <a class="reference internal" href="#buildbot.process.buildstep.BuildStep" title="buildbot.process.buildstep.BuildStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">BuildStep</span></code></a> constructor.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.makeRemoteShellCommand">
+<code class="sig-name descname"><span class="pre">makeRemoteShellCommand</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">collectStdout=False</span></em>, <em class="sig-param"><span class="pre">collectStderr=False</span></em>, <em class="sig-param"><span class="pre">\**overrides</span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.makeRemoteShellCommand" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>collectStdout</strong> – if true, the command’s stdout will be available in <code class="docutils literal notranslate"><span class="pre">cmd.stdout</span></code> on completion</p></li>
+<li><p><strong>collectStderr</strong> – if true, the command’s stderr will be available in <code class="docutils literal notranslate"><span class="pre">cmd.stderr</span></code> on completion</p></li>
+<li><p><strong>overrides</strong> – overrides arguments that might have been passed to <a class="reference internal" href="#buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.setupShellMixin" title="buildbot.process.buildstep.buildbot.process.buildstep.ShellMixin.setupShellMixin"><code class="xref py py-meth docutils literal notranslate"><span class="pre">setupShellMixin</span></code></a></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><a class="reference internal" href="cls-remotecommands.html#buildbot.process.remotecommand.RemoteShellCommand" title="buildbot.process.remotecommand.RemoteShellCommand"><code class="xref py py-class docutils literal notranslate"><span class="pre">RemoteShellCommand</span></code></a> instance via Deferred</p>
+</dd>
+</dl>
+<p>This method constructs a <a class="reference internal" href="cls-remotecommands.html#buildbot.process.remotecommand.RemoteShellCommand" title="buildbot.process.remotecommand.RemoteShellCommand"><code class="xref py py-class docutils literal notranslate"><span class="pre">RemoteShellCommand</span></code></a> instance based on the instance attributes and any supplied overrides.
+It must be called while the step is running, as it examines the worker capabilities before creating the command.
+It takes care of just about everything:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Creating log files and associating them with the command</p></li>
+<li><p>Merging environment configuration</p></li>
+<li><p>Selecting the appropriate workdir configuration</p></li>
+</ul>
+</div></blockquote>
+<p>All that remains is to run the command with <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.runCommand" title="buildbot.process.buildstep.BuildStep.runCommand"><code class="xref py py-meth docutils literal notranslate"><span class="pre">runCommand</span></code></a>.</p>
+</dd></dl>
+
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">ShellMixin</span></code> class implements <a class="reference internal" href="#buildbot.process.buildstep.BuildStep.getResultSummary" title="buildbot.process.buildstep.BuildStep.getResultSummary"><code class="xref py py-meth docutils literal notranslate"><span class="pre">getResultSummary</span></code></a>, returning a summary of the command.
+If no command was specified or run, it falls back to the default <code class="docutils literal notranslate"><span class="pre">getResultSummary</span></code> based on <code class="docutils literal notranslate"><span class="pre">descriptionDone</span></code>.
+Subclasses can override this method to return a more appropriate status.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="exceptions">
+<h2><span class="section-number">3.10.6.4. </span>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
+<dl class="py exception">
+<dt id="buildbot.process.buildstep.BuildStepFailed">
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">buildbot.process.buildstep.</span></code><code class="sig-name descname"><span class="pre">BuildStepFailed</span></code><a class="headerlink" href="#buildbot.process.buildstep.BuildStepFailed" title="Permalink to this definition">¶</a></dt>
+<dd><p>This exception indicates that the buildstep has failed.
+It is useful as a way to skip all subsequent processing when a step goes wrong.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="cls-basescheduler.html" class="btn btn-neutral float-right" title="3.10.7. BaseScheduler" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="cls-remotecommands.html" class="btn btn-neutral float-left" title="3.10.5. RemoteCommands" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright Buildbot Team Members.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
