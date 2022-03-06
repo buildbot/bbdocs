@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2.5.7. Builder Configuration &mdash; Buildbot 3.5.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/buildbot_rtd.css" type="text/css" />
+    <link rel="shortcut icon" href="../../_static/icon.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="2.5.8. Build Factories" href="buildfactories.html" />
+    <link rel="prev" title="UpCloud" href="workers-upcloud.html" /> 
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> Buildbot
+            <img src="../../_static/full_logo.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                3.5.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../secretsmanagement.html">2.4. Secret Management</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">2.5. Configuration</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="intro.html">2.5.1. Configuring Buildbot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="global.html">2.5.2. Global Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changesources.html">2.5.3. Change Sources and Changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changesources.html#changes">2.5.4. Changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="schedulers.html">2.5.5. Schedulers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workers.html">2.5.6. Workers</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">2.5.7. Builder Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#collapsing-build-requests">2.5.7.1. Collapsing Build Requests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#prioritizing-builds">2.5.7.2. Prioritizing Builds</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#virtual-builders">2.5.7.3. Virtual Builders</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="buildfactories.html">2.5.8. Build Factories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="buildsets.html">2.5.9. Build Sets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="properties.html">2.5.10. Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="steps/index.html">2.5.11. Build Steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="interlocks.html">2.5.12. Interlocks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="report_generators/index.html">2.5.13. Report Generators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reporters/index.html">2.5.14. Reporters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www.html">2.5.15. Web Server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wwwhooks.html">2.5.16. Change Hooks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="services/index.html">2.5.17. Custom Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dbconfig.html">2.5.18. DbConfig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configurators.html">2.5.19. Configurators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="manhole.html">2.5.20. Manhole</a></li>
+<li class="toctree-l3"><a class="reference internal" href="multimaster.html">2.5.21. Multimaster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="multicodebase.html">2.5.22. Multiple-Codebase Builds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="misc/index.html">2.5.23. Miscellaneous Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tests/index.html">2.5.24. Testing Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../customization.html">2.6. Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cmdline.html">2.7. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../resources.html">2.8. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../optimization.html">2.9. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins.html">2.10. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../deploy.html">2.11. Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../upgrading/index.html">2.12. Upgrading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../indices.html">6. API Indices</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Buildbot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html"><span class="section-number">2. </span>Buildbot Manual</a> &raquo;</li>
+          <li><a href="index.html"><span class="section-number">2.5. </span>Configuration</a> &raquo;</li>
+      <li><span class="section-number">2.5.7. </span>Builder Configuration</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/manual/configuration/builders.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>Buildbot no longer supports Python 2.7 on the Buildbot master.</p>
+</div>
+<div class="section" id="builder-configuration">
+<span id="cfg-builders"></span><span id="id1"></span><h1><span class="section-number">2.5.7. </span>Builder Configuration<a class="headerlink" href="#builder-configuration" title="Permalink to this headline"></a></h1>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#collapsing-build-requests" id="id5">Collapsing Build Requests</a></p></li>
+<li><p><a class="reference internal" href="#prioritizing-builds" id="id6">Prioritizing Builds</a></p></li>
+<li><p><a class="reference internal" href="#virtual-builders" id="id7">Virtual Builders</a></p></li>
+</ul>
+</div>
+<p>The <a class="reference internal" href="#cfg-builders" title="builders"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">builders</span></code></a> configuration key is a list of objects holding the configuration of the Builders.
+For more information on the Builders’ function in Buildbot, see <a class="reference internal" href="../concepts.html#concepts-builder"><span class="std std-ref">the Concepts chapter</span></a>.
+The class definition for the builder configuration is in <code class="file docutils literal notranslate"><span class="pre">buildbot.config</span></code>.
+However, there is a simpler way to use it and it looks like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">util</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;builders&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">util</span><span class="o">.</span><span class="n">BuilderConfig</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;quick&#39;</span><span class="p">,</span> <span class="n">workernames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;bot1&#39;</span><span class="p">,</span> <span class="s1">&#39;bot2&#39;</span><span class="p">],</span> <span class="n">factory</span><span class="o">=</span><span class="n">f_quick</span><span class="p">),</span>
+    <span class="n">util</span><span class="o">.</span><span class="n">BuilderConfig</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;thorough&#39;</span><span class="p">,</span> <span class="n">workername</span><span class="o">=</span><span class="s1">&#39;bot1&#39;</span><span class="p">,</span> <span class="n">factory</span><span class="o">=</span><span class="n">f_thorough</span><span class="p">),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">BuilderConfig</span></code> takes the following keyword arguments:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">name</span></code></dt><dd><p>The name of the Builder, which is used in status reports.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">workername</span></code> <code class="docutils literal notranslate"><span class="pre">workernames</span></code></dt><dd><p>These arguments specify the worker or workers that will be used by this Builder.
+All worker names must appear in the <a class="reference internal" href="workers.html#cfg-workers" title="workers"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">workers</span></code></a> configuration parameter.
+Each worker can accommodate multiple builders.
+The <code class="docutils literal notranslate"><span class="pre">workernames</span></code> parameter can be a list of names, while <code class="docutils literal notranslate"><span class="pre">workername</span></code> can specify only one worker.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">factory</span></code></dt><dd><p>This is a <code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.process.factory.BuildFactory</span></code> instance which controls how the build is performed by defining the steps in the build.
+Full details appear in their own section, <a class="reference internal" href="buildfactories.html#build-factories"><span class="std std-ref">Build Factories</span></a>.</p>
+</dd>
+</dl>
+<p>Other optional keys may be set on each <code class="docutils literal notranslate"><span class="pre">BuilderConfig</span></code>:</p>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">builddir</span></code></dt><dd><p>Specifies the name of a subdirectory of the master’s basedir in which everything related to this builder will be stored.
+This holds build status information.
+If not set, this parameter defaults to the builder name, with some characters escaped.
+Each builder must have a unique build directory.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">workerbuilddir</span></code></dt><dd><p>Specifies the name of a subdirectory (under the worker’s configured base directory) in which everything related to this builder will be placed on the worker.
+This is where checkouts, compilations, and tests are run.
+If not set, defaults to <code class="docutils literal notranslate"><span class="pre">builddir</span></code>.
+If a worker is connected to multiple builders that share the same <code class="docutils literal notranslate"><span class="pre">workerbuilddir</span></code>, make sure the worker is set to run one build at a time or ensure this is fine to run multiple builds from the same directory simultaneously.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">tags</span></code></dt><dd><p>If provided, this is a list of strings that identifies tags for the builder.
+Status clients can limit themselves to a subset of the available tags.
+A common use for this is to add new builders to your setup (for a new module or a new worker) that do not work correctly yet and allow you to integrate them with the active builders.
+You can tag these new builders with a <code class="docutils literal notranslate"><span class="pre">test</span></code> tag, make your main status clients ignore them, and have only private status clients pick them up.
+As soon as they work, you can move them over to the active tag.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">nextWorker</span></code></dt><dd><p>If provided, this is a function that controls which worker will be assigned future jobs.
+The function is passed three arguments, the <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code> object which is assigning a new job, a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">WorkerForBuilder</span></code> objects and the <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildRequest</span></code>.
+The function should return one of the <code class="xref py py-class docutils literal notranslate"><span class="pre">WorkerForBuilder</span></code> objects, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if none of the available workers should be used.
+As an example, for each <code class="docutils literal notranslate"><span class="pre">worker</span></code> in the list, <code class="docutils literal notranslate"><span class="pre">worker.worker</span></code> will be a <code class="xref py py-class docutils literal notranslate"><span class="pre">Worker</span></code> object, and <code class="docutils literal notranslate"><span class="pre">worker.worker.workername</span></code> is the worker’s name.
+The function can optionally return a Deferred, which should fire with the same results.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">nextBuild</span></code></dt><dd><p>If provided, this is a function that controls which build request will be handled next.
+The function is passed two arguments, the <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code> object which is assigning a new job, and a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildRequest</span></code> objects of pending builds.
+The function should return one of the <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildRequest</span></code> objects, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if none of the pending builds should be started.
+This function can optionally return a Deferred which should fire with the same results.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">canStartBuild</span></code></dt><dd><p>If provided, this is a function that can veto whether a particular worker should be used for a given build request.
+The function is passed three arguments: the <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code>, a <code class="xref py py-class docutils literal notranslate"><span class="pre">Worker</span></code>, and a <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildRequest</span></code>.
+The function should return <code class="docutils literal notranslate"><span class="pre">True</span></code> if the combination is acceptable, or <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise.
+This function can optionally return a Deferred which should fire with the same results.</p>
+<p>See <a class="reference internal" href="../customization.html#canstartbuild-functions"><span class="std std-ref">canStartBuild Functions</span></a> for a concrete example.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">locks</span></code></dt><dd><p>A list of <code class="docutils literal notranslate"><span class="pre">Locks</span></code> (instances of <code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.locks.WorkerLock</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.locks.MasterLock</span></code>) that should be acquired before starting a <code class="xref py py-class docutils literal notranslate"><span class="pre">Build</span></code> from this <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code>.
+Alternatively, this could be a renderable that returns this list depending on properties related to the build that is just about to be created.
+This lets you defer picking the locks to acquire until it is known which <code class="xref py py-class docutils literal notranslate"><span class="pre">Worker</span></code> a build would get assigned to.
+The properties available to the renderable include all properties that are set to the build before its first step excluding the properties that come from the build itself and the <code class="docutils literal notranslate"><span class="pre">builddir</span></code> property that comes from worker.
+The <code class="docutils literal notranslate"><span class="pre">Locks</span></code> will be released when the build is complete.
+Note that this is a list of actual <code class="xref py py-class docutils literal notranslate"><span class="pre">Lock</span></code> instances, not names.
+Also note that all Locks must have unique names.
+See <a class="reference internal" href="interlocks.html#interlocks"><span class="std std-ref">Interlocks</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">env</span></code></dt><dd><p>A Builder may be given a dictionary of environment variables in this parameter.
+The variables are used in <a class="reference internal" href="steps/shell_command.html#step-ShellCommand" title="ShellCommand"><code class="xref bb bb-step docutils literal notranslate"><span class="pre">ShellCommand</span></code></a> steps in builds created by this builder.
+The environment variables will override anything in the worker’s environment.
+Variables passed directly to a <code class="xref py py-class docutils literal notranslate"><span class="pre">ShellCommand</span></code> will override variables of the same name passed to the Builder.</p>
+<p>For example, if you have a pool of identical workers it is often easier to manage variables like <span class="target" id="index-0"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PATH</span></code> from Buildbot rather than manually editing them in the workers’ environment.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">f</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">BuildFactory</span>
+<span class="n">f</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">ShellCommand</span><span class="p">(</span>
+              <span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;bash&#39;</span><span class="p">,</span> <span class="s1">&#39;./configure&#39;</span><span class="p">]))</span>
+<span class="n">f</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">Compile</span><span class="p">())</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;builders&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+  <span class="n">BuilderConfig</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">factory</span><span class="o">=</span><span class="n">f</span><span class="p">,</span>
+        <span class="n">workernames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;worker1&#39;</span><span class="p">,</span> <span class="s1">&#39;worker2&#39;</span><span class="p">,</span> <span class="s1">&#39;worker3&#39;</span><span class="p">,</span> <span class="s1">&#39;worker4&#39;</span><span class="p">],</span>
+        <span class="n">env</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;PATH&#39;</span><span class="p">:</span> <span class="s1">&#39;/opt/local/bin:/opt/app/bin:/usr/local/bin:/usr/bin&#39;</span><span class="p">}),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>Unlike most builder configuration arguments, this argument can contain renderables.</p>
+</dd>
+</dl>
+<dl class="simple" id="index-1">
+<dt><code class="docutils literal notranslate"><span class="pre">collapseRequests</span></code></dt><dd><p>Specifies how build requests for this builder should be collapsed.
+See <a class="reference internal" href="#collapsing-build-requests"><span class="std std-ref">Collapsing Build Requests</span></a>, below.</p>
+</dd>
+</dl>
+<dl class="simple" id="index-2">
+<dt><code class="docutils literal notranslate"><span class="pre">properties</span></code></dt><dd><p>A builder may be given a dictionary of <a class="reference internal" href="../concepts.html#build-properties"><span class="std std-ref">Build Properties</span></a> specific for this builder in this parameter.
+Those values can be used later on like other properties.
+<a class="reference internal" href="properties.html#interpolate"><span class="std std-ref">Interpolate</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">defaultProperties</span></code></dt><dd><p>Similar to the <code class="docutils literal notranslate"><span class="pre">properties</span></code> parameter.
+But <code class="docutils literal notranslate"><span class="pre">defaultProperties</span></code> will only be added to <a class="reference internal" href="../concepts.html#build-properties"><span class="std std-ref">Build Properties</span></a> if they are not already set by <a class="reference internal" href="properties.html#properties"><span class="std std-ref">another source</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">description</span></code></dt><dd><p>A builder may be given an arbitrary description, which will show up in the web status on the builder’s page.</p>
+</dd>
+</dl>
+<div class="section" id="collapsing-build-requests">
+<span id="index-3"></span><span id="id2"></span><h2><a class="toc-backref" href="#id5"><span class="section-number">2.5.7.1. </span>Collapsing Build Requests</a><a class="headerlink" href="#collapsing-build-requests" title="Permalink to this headline"></a></h2>
+<p>When more than one build request is available for a builder, Buildbot can “collapse” the requests into a single build.
+This is desirable when build requests arrive more quickly than the available workers can satisfy them, but has the drawback that separate results for each build are not available.</p>
+<p>Requests are only candidated for a merge if both requests have exactly the same <a class="reference internal" href="changesources.html#change-attr-codebase"><span class="std std-ref">codebases</span></a>.</p>
+<p>This behavior can be controlled globally, using the <a class="reference internal" href="global.html#cfg-collapseRequests" title="collapseRequests"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">collapseRequests</span></code></a> parameter, and on a per-<code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code> basis, using the <code class="docutils literal notranslate"><span class="pre">collapseRequests</span></code> argument to the <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code> configuration.
+If <code class="docutils literal notranslate"><span class="pre">collapseRequests</span></code> is given, it completely overrides the global configuration.</p>
+<p>Possible values for both <code class="docutils literal notranslate"><span class="pre">collapseRequests</span></code> configurations are:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">True</span></code></dt><dd><p>Requests will be collapsed if their sourcestamp are compatible (see below for definition of compatible).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">False</span></code></dt><dd><p>Requests will never be collapsed.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">callable(builder,</span> <span class="pre">req1,</span> <span class="pre">req2)</span></code></dt><dd><p>Requests will be collapsed if the callable returns true.
+See <a class="reference internal" href="../customization.html#collapse-request-functions"><span class="std std-ref">Collapse Request Functions</span></a> for detailed example.</p>
+</dd>
+</dl>
+<p>Sourcestamps are compatible if all of the below conditions are met:</p>
+<ul class="simple">
+<li><p>Their codebase, branch, project, and repository attributes match exactly</p></li>
+<li><p>Neither source stamp has a patch (e.g., from a try scheduler)</p></li>
+<li><p>Either both source stamps are associated with changes, or neither is associated with changes but they have matching revisions.</p></li>
+</ul>
+</div>
+<div class="section" id="prioritizing-builds">
+<span id="index-4"></span><span id="id3"></span><h2><a class="toc-backref" href="#id6"><span class="section-number">2.5.7.2. </span>Prioritizing Builds</a><a class="headerlink" href="#prioritizing-builds" title="Permalink to this headline"></a></h2>
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">BuilderConfig</span></code> parameter <code class="docutils literal notranslate"><span class="pre">nextBuild</span></code> can be used to prioritize build requests within a builder.
+Note that this is orthogonal to <a class="reference internal" href="global.html#prioritizing-builders"><span class="std std-ref">Prioritizing Builders</span></a>, which controls the order in which builders are called on to start their builds.
+The details of writing such a function are in <a class="reference internal" href="../customization.html#build-priority-functions"><span class="std std-ref">Build Priority Functions</span></a>.</p>
+<p>Such a function can be provided to the BuilderConfig as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pickNextBuild</span><span class="p">(</span><span class="n">builder</span><span class="p">,</span> <span class="n">requests</span><span class="p">):</span>
+    <span class="o">...</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;builders&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">BuilderConfig</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">factory</span><span class="o">=</span><span class="n">f</span><span class="p">,</span>
+        <span class="n">nextBuild</span><span class="o">=</span><span class="n">pickNextBuild</span><span class="p">,</span>
+        <span class="n">workernames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;worker1&#39;</span><span class="p">,</span> <span class="s1">&#39;worker2&#39;</span><span class="p">,</span> <span class="s1">&#39;worker3&#39;</span><span class="p">,</span> <span class="s1">&#39;worker4&#39;</span><span class="p">]),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="virtual-builders">
+<span id="id4"></span><h2><a class="toc-backref" href="#id7"><span class="section-number">2.5.7.3. </span>Virtual Builders</a><a class="headerlink" href="#virtual-builders" title="Permalink to this headline"></a></h2>
+<p><a class="reference internal" href="steps/trigger.html#dynamic-trigger"><span class="std std-ref">Dynamic Trigger</span></a> is a method which allows to trigger the same builder, with different parameters.
+This method is used by frameworks which store the build config along side the source code like <a class="reference external" href="https://github.com/buildbot/buildbot_travis">Buildbot_travis</a>.
+The drawback of this method is that it is difficult to extract statistics for similar builds.
+The standard dashboards are not working well due to the fact that all the builds are on the same builder.</p>
+<p>In order to overcome these drawbacks, Buildbot has the concept of virtual builder.
+If a build has the property <code class="docutils literal notranslate"><span class="pre">virtual_builder_name</span></code>, it will automatically attach to that builder instead of the original builder.
+That created virtual builder is not attached to any master and is only used for better sorting in the UI and better statistics.
+The original builder and worker configuration is still used for all other build behaviors.</p>
+<p>The virtual builder metadata is configured with the following properties:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">virtual_builder_name</span></code>: The name of the virtual builder.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">virtual_builder_description</span></code>: The description of the virtual builder.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">virtual_builder_tags</span></code>: The tags for the virtual builder.</p></li>
+</ul>
+<p>You can also use virtual builders with <a class="reference internal" href="schedulers.html#sched-SingleBranchScheduler" title="SingleBranchScheduler"><code class="xref bb bb-sched docutils literal notranslate"><span class="pre">SingleBranchScheduler</span></code></a>.
+For example if you want to automatically build all branches in your project without having to manually create a new builder each time one is added:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;schedulers&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">schedulers</span><span class="o">.</span><span class="n">SingleBranchScheduler</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;myproject-epics&#39;</span><span class="p">,</span>
+    <span class="n">change_filter</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">ChangeFilter</span><span class="p">(</span><span class="n">branch_re</span><span class="o">=</span><span class="s1">&#39;epics/.*&#39;</span><span class="p">),</span>
+    <span class="n">builderNames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;myproject-epics&#39;</span><span class="p">],</span>
+    <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;virtual_builder_name&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">Interpolate</span><span class="p">(</span><span class="s2">&quot;myproject-%(ss::branch)s&quot;</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="workers-upcloud.html" class="btn btn-neutral float-left" title="UpCloud" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="buildfactories.html" class="btn btn-neutral float-right" title="2.5.8. Build Factories" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Buildbot Team Members.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
