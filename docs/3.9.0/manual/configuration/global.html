@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2.5.2. Global Configuration &mdash; Buildbot 3.9.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/buildbot_rtd.css" type="text/css" />
+    <link rel="shortcut icon" href="../../_static/icon.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="2.5.3. Change Sources and Changes" href="changesources.html" />
+    <link rel="prev" title="2.5.1. Configuring Buildbot" href="intro.html" /> 
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Buildbot
+              <img src="../../_static/full_logo.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                3.9.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../secretsmanagement.html">2.4. Secret Management</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">2.5. Configuration</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="intro.html">2.5.1. Configuring Buildbot</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">2.5.2. Global Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#database-specification">2.5.2.1. Database Specification</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mq-specification">2.5.2.2. MQ Specification</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#multi-master-mode">2.5.2.3. Multi-master mode</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#site-definitions">2.5.2.4. Site Definitions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#log-handling">2.5.2.5. Log Handling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#data-lifetime">2.5.2.6. Data Lifetime</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#merging-build-requests">2.5.2.7. Merging Build Requests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#prioritizing-builders">2.5.2.8. Prioritizing Builders</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#setting-the-pb-port-for-workers">2.5.2.9. Setting the PB Port for Workers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#defining-global-properties">2.5.2.10. Defining Global Properties</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#manhole">2.5.2.11. Manhole</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#metrics-options">2.5.2.12. Metrics Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#statistics-service">2.5.2.13. Statistics Service</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#secretsproviders">2.5.2.14. <code class="docutils literal notranslate"><span class="pre">secretsProviders</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#buildbotnetusagedata">2.5.2.15. BuildbotNetUsageData</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#users-options">2.5.2.16. Users Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#input-validation">2.5.2.17. Input Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#revision-links">2.5.2.18. Revision Links</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#codebase-generator">2.5.2.19. Codebase Generator</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changesources.html">2.5.3. Change Sources and Changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changesources.html#changes">2.5.4. Changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="schedulers.html">2.5.5. Schedulers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workers.html">2.5.6. Workers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="builders.html">2.5.7. Builder Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="projects.html">2.5.8. Projects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="buildfactories.html">2.5.9. Build Factories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="buildsets.html">2.5.10. Build Sets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="properties.html">2.5.11. Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="steps/index.html">2.5.12. Build Steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="interlocks.html">2.5.13. Interlocks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="report_generators/index.html">2.5.14. Report Generators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reporters/index.html">2.5.15. Reporters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www.html">2.5.16. Web Server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wwwhooks.html">2.5.17. Change Hooks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="services/index.html">2.5.18. Custom Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dbconfig.html">2.5.19. DbConfig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configurators.html">2.5.20. Configurators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="manhole.html">2.5.21. Manhole</a></li>
+<li class="toctree-l3"><a class="reference internal" href="multimaster.html">2.5.22. Multimaster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="multicodebase.html">2.5.23. Multiple-Codebase Builds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="misc/index.html">2.5.24. Miscellaneous Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tests/index.html">2.5.25. Testing Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../customization.html">2.6. Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cmdline.html">2.7. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../resources.html">2.8. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../optimization.html">2.9. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins.html">2.10. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../deploy.html">2.11. Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../upgrading/index.html">2.12. Upgrading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../indices.html">6. API Indices</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Buildbot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html"><span class="section-number">2. </span>Buildbot Manual</a></li>
+          <li class="breadcrumb-item"><a href="index.html"><span class="section-number">2.5. </span>Configuration</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">2.5.2. </span>Global Configuration</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/manual/configuration/global.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>Buildbot no longer supports Python 2.7 on the Buildbot master.</p>
+</div>
+<section id="global-configuration">
+<h1><span class="section-number">2.5.2. </span>Global Configuration<a class="headerlink" href="#global-configuration" title="Permalink to this heading"></a></h1>
+<p>The keys in this section affect the operations of the buildmaster globally.</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#database-specification" id="id13">Database Specification</a></p></li>
+<li><p><a class="reference internal" href="#mq-specification" id="id14">MQ Specification</a></p></li>
+<li><p><a class="reference internal" href="#multi-master-mode" id="id15">Multi-master mode</a></p></li>
+<li><p><a class="reference internal" href="#site-definitions" id="id16">Site Definitions</a></p></li>
+<li><p><a class="reference internal" href="#log-handling" id="id17">Log Handling</a></p></li>
+<li><p><a class="reference internal" href="#data-lifetime" id="id18">Data Lifetime</a></p></li>
+<li><p><a class="reference internal" href="#merging-build-requests" id="id19">Merging Build Requests</a></p></li>
+<li><p><a class="reference internal" href="#prioritizing-builders" id="id20">Prioritizing Builders</a></p></li>
+<li><p><a class="reference internal" href="#setting-the-pb-port-for-workers" id="id21">Setting the PB Port for Workers</a></p></li>
+<li><p><a class="reference internal" href="#defining-global-properties" id="id22">Defining Global Properties</a></p></li>
+<li><p><a class="reference internal" href="#manhole" id="id23">Manhole</a></p></li>
+<li><p><a class="reference internal" href="#metrics-options" id="id24">Metrics Options</a></p></li>
+<li><p><a class="reference internal" href="#statistics-service" id="id25">Statistics Service</a></p></li>
+<li><p><a class="reference internal" href="#secretsproviders" id="id26"><code class="docutils literal notranslate"><span class="pre">secretsProviders</span></code></a></p></li>
+<li><p><a class="reference internal" href="#buildbotnetusagedata" id="id27">BuildbotNetUsageData</a></p></li>
+<li><p><a class="reference internal" href="#users-options" id="id28">Users Options</a></p></li>
+<li><p><a class="reference internal" href="#input-validation" id="id29">Input Validation</a></p></li>
+<li><p><a class="reference internal" href="#revision-links" id="id30">Revision Links</a></p></li>
+<li><p><a class="reference internal" href="#codebase-generator" id="id31">Codebase Generator</a></p></li>
+</ul>
+</nav>
+<span class="target" id="cfg-db"></span><section id="database-specification">
+<span id="cfg-db_url"></span><span id="id1"></span><h2><a class="toc-backref" href="#id13" role="doc-backlink"><span class="section-number">2.5.2.1. </span>Database Specification</a><a class="headerlink" href="#database-specification" title="Permalink to this heading"></a></h2>
+<p>Buildbot requires a connection to a database to maintain certain state information, such as tracking pending build requests.
+In the default configuration Buildbot uses a file-based SQLite database, stored in the <code class="file docutils literal notranslate"><span class="pre">state.sqlite</span></code> file of the master’s base directory.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>SQLite3 is perfectly suitable for small setups with a few users.
+However, it does not scale well with large numbers of builders, workers and users.
+If you expect your Buildbot to grow over time, it is strongly advised to use a real database server (e.g., MySQL or Postgres).</p>
+<p>A SQLite3 database may be migrated to a real database server using <code class="docutils literal notranslate"><span class="pre">buildbot</span> <span class="pre">copy-db</span></code> script.</p>
+<p>See the <a class="reference internal" href="../deploy.html#database-server"><span class="std std-ref">Using A Database Server</span></a> section for more details.</p>
+</div>
+<p>Override this configuration with the <a class="reference internal" href="#cfg-db_url" title="db_url"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">db_url</span></code></a> parameter.</p>
+<p>Buildbot accepts a database configuration in a dictionary named <code class="docutils literal notranslate"><span class="pre">db</span></code>.
+All keys are optional:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;db&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;db_url&#39;</span> <span class="p">:</span> <span class="s1">&#39;sqlite:///state.sqlite&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">db_url</span></code> key indicates the database engine to use.
+The format of this parameter is completely documented at <a class="reference external" href="http://www.sqlalchemy.org/docs/dialects/">http://www.sqlalchemy.org/docs/dialects/</a>, but is generally of the form:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;driver://[username:password@]host:port/database[?args]&quot;</span>
+</pre></div>
+</div>
+<p>This parameter can be specified directly in the configuration dictionary, as <code class="docutils literal notranslate"><span class="pre">c['db_url']</span></code>, although this method is deprecated.</p>
+<p>The following sections give additional information for particular database backends:</p>
+<section id="sqlite">
+<span id="index-0"></span><h3>SQLite<a class="headerlink" href="#sqlite" title="Permalink to this heading"></a></h3>
+<p>For sqlite databases, since there is no host and port, relative paths are specified with <code class="docutils literal notranslate"><span class="pre">sqlite:///</span></code> and absolute paths with <code class="docutils literal notranslate"><span class="pre">sqlite:////</span></code>.
+For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;db_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;sqlite:///state.sqlite&quot;</span>
+</pre></div>
+</div>
+<p>SQLite requires no special configuration.</p>
+</section>
+<section id="mysql">
+<span id="index-1"></span><h3>MySQL<a class="headerlink" href="#mysql" title="Permalink to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;db_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;mysql://username:password@example.com/database_name?max_idle=300&quot;</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">max_idle</span></code> argument for MySQL connections is unique to Buildbot and should be set to something less than the <code class="docutils literal notranslate"><span class="pre">wait_timeout</span></code> configured for your server.
+This controls the SQLAlchemy <code class="docutils literal notranslate"><span class="pre">pool_recycle</span></code> parameter, which defaults to no timeout.
+Setting this parameter ensures that connections are closed and re-opened after the configured amount of idle time.
+If you see errors such as <code class="docutils literal notranslate"><span class="pre">_mysql_exceptions.OperationalError:</span> <span class="pre">(2006,</span> <span class="pre">'MySQL</span> <span class="pre">server</span> <span class="pre">has</span> <span class="pre">gone</span> <span class="pre">away')</span></code>, this means your <code class="docutils literal notranslate"><span class="pre">max_idle</span></code> setting is probably too high.
+<code class="docutils literal notranslate"><span class="pre">show</span> <span class="pre">global</span> <span class="pre">variables</span> <span class="pre">like</span> <span class="pre">'wait_timeout';</span></code> will show what the currently configured <code class="docutils literal notranslate"><span class="pre">wait_timeout</span></code> is on your MySQL server.</p>
+<p>Buildbot requires <code class="docutils literal notranslate"><span class="pre">use_unique=True</span></code> and <code class="docutils literal notranslate"><span class="pre">charset=utf8</span></code>, and will add them automatically, so they do not need to be specified in <code class="docutils literal notranslate"><span class="pre">db_url</span></code>.</p>
+<p>MySQL defaults to the MyISAM storage engine, but this can be overridden with the <code class="docutils literal notranslate"><span class="pre">storage_engine</span></code> URL argument.</p>
+</section>
+<section id="postgres">
+<span id="index-2"></span><h3>Postgres<a class="headerlink" href="#postgres" title="Permalink to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;db_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;postgresql://username:password@hostname/dbname&quot;</span>
+</pre></div>
+</div>
+<p>PosgreSQL requires no special configuration.</p>
+</section>
+</section>
+<section id="mq-specification">
+<span id="cfg-mq"></span><span id="id2"></span><h2><a class="toc-backref" href="#id14" role="doc-backlink"><span class="section-number">2.5.2.2. </span>MQ Specification</a><a class="headerlink" href="#mq-specification" title="Permalink to this heading"></a></h2>
+<p>Buildbot uses a message-queueing system to handle communication within the master.
+Messages are used to indicate events within the master, and components that are interested in those events arrange to receive them.</p>
+<p>The message queueing implementation is configured as a dictionary in the <code class="docutils literal notranslate"><span class="pre">mq</span></code> option.
+The <code class="docutils literal notranslate"><span class="pre">type</span></code> key describes the type of MQ implementation to be used.
+Note that the implementation type cannot be changed in a reconfig.</p>
+<p>The available implementation types are described in the following sections.</p>
+<section id="simple">
+<h3>Simple<a class="headerlink" href="#simple" title="Permalink to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;mq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;type&#39;</span> <span class="p">:</span> <span class="s1">&#39;simple&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;debug&#39;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>This is the default MQ implementation.
+Similar to SQLite, it has no additional software dependencies, but does not support multi-master mode.</p>
+<p>Note that this implementation also does not support message persistence across a restart of the master.
+For example, if a change is received, but the master shuts down before the schedulers can create build requests for it, then those schedulers will not be notified of the change when the master starts again.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">debug</span></code> key, which defaults to False, can be used to enable logging of every message produced on this master.</p>
+</section>
+<section id="wamp">
+<span id="mq-wamp"></span><h3>Wamp<a class="headerlink" href="#wamp" title="Permalink to this heading"></a></h3>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>At the moment, wamp is the only message queue implementation for multimaster.
+It has been privileged as this is the only message queue that has very solid support for Twisted.
+Other more common message queue systems like <code class="docutils literal notranslate"><span class="pre">RabbitMQ</span></code> (using the <code class="docutils literal notranslate"><span class="pre">AMQP</span></code> protocol) do not have a convincing driver for twisted, and this would require to run on threads, which will add an important performance overhead.</p>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;mq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;type&#39;</span> <span class="p">:</span> <span class="s1">&#39;wamp&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;router_url&#39;</span><span class="p">:</span> <span class="s1">&#39;ws://localhost:8080/ws&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;realm&#39;</span><span class="p">:</span> <span class="s1">&#39;realm1&#39;</span><span class="p">,</span>
+    <span class="c1"># valid are: none, critical, error, warn, info, debug, trace</span>
+    <span class="s1">&#39;wamp_debug_level&#39;</span> <span class="p">:</span> <span class="s1">&#39;error&#39;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>This is a MQ implementation using the <a class="reference external" href="http://wamp.ws/">wamp</a> protocol.
+This implementation uses <a class="reference external" href="http://autobahn.ws">Python Autobahn</a> wamp client library, and is fully asynchronous (no use of threads).
+To use this implementation, you need a wamp router like <a class="reference external" href="http://crossbar.io">Crossbar</a>.</p>
+<p>Please refer to Crossbar documentation for more details, but the default Crossbar setup will just work with Buildbot, provided you use the example <code class="docutils literal notranslate"><span class="pre">mq</span></code> configuration above, and start Crossbar with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># of course, you should work in a virtualenv...</span>
+pip<span class="w"> </span>install<span class="w"> </span>crossbar
+crossbar<span class="w"> </span>init
+crossbar<span class="w"> </span>start
+</pre></div>
+</div>
+<p>The implementation does not yet support wamp authentication.
+This MQ allows buildbot to run in multi-master mode.</p>
+<p>Note that this implementation also does not support message persistence across a restart of the master.
+For example, if a change is received, but the master shuts down before the schedulers can create build requests for it, then those schedulers will not be notified of the change when the master starts again.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">router_url</span></code> (mandatory): points to your router websocket url.</dt><dd><p>Buildbot is only supporting wamp over websocket, which is a sub-protocol of http.
+SSL is supported using <code class="docutils literal notranslate"><span class="pre">wss://</span></code> instead of <code class="docutils literal notranslate"><span class="pre">ws://</span></code>.</p>
+</dd>
+</dl>
+<p><code class="docutils literal notranslate"><span class="pre">realm</span></code> (optional, defaults to <code class="docutils literal notranslate"><span class="pre">buildbot</span></code>): defines the wamp realm to use for your buildbot messages.</p>
+<p><code class="docutils literal notranslate"><span class="pre">wamp_debug_level</span></code> (optional, defaults to <code class="docutils literal notranslate"><span class="pre">error</span></code>): defines the log level of autobahn.</p>
+<p>You must use a router with very reliable connection to the master.
+If for some reason, the wamp connection is lost, then the master will stop, and should be restarted via a process manager.</p>
+</section>
+</section>
+<section id="multi-master-mode">
+<span id="cfg-multiMaster"></span><span id="id4"></span><h2><a class="toc-backref" href="#id15" role="doc-backlink"><span class="section-number">2.5.2.3. </span>Multi-master mode</a><a class="headerlink" href="#multi-master-mode" title="Permalink to this heading"></a></h2>
+<p>See <a class="reference internal" href="multimaster.html#multimaster"><span class="std std-ref">Multimaster</span></a> for details on the multi-master mode in Buildbot Nine.</p>
+<p>By default, Buildbot makes coherency checks that prevent typos in your <code class="docutils literal notranslate"><span class="pre">master.cfg</span></code>.
+It makes sure schedulers are not referencing unknown builders, and enforces there is at least one builder.</p>
+<p>In the case of an asymmetric multimaster, those coherency checks can be harmful and prevent you to implement what you want.
+For example, you might want to have one master dedicated to the UI, so that a big load generated by builds will not impact page load times.</p>
+<p>To enable multi-master mode in this configuration, you will need to set the <a class="reference internal" href="#cfg-multiMaster" title="multiMaster"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">multiMaster</span></code></a> option so that buildbot doesn’t warn about missing schedulers or builders.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Enable multiMaster mode; disables warnings about unknown builders and</span>
+<span class="c1"># schedulers</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;multiMaster&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;db&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;db_url&#39;</span> <span class="p">:</span> <span class="s1">&#39;mysql://...&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;mq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>  <span class="c1"># Need to enable multimaster aware mq. Wamp is the only option for now.</span>
+    <span class="s1">&#39;type&#39;</span> <span class="p">:</span> <span class="s1">&#39;wamp&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;router_url&#39;</span><span class="p">:</span> <span class="s1">&#39;ws://localhost:8080&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;realm&#39;</span><span class="p">:</span> <span class="s1">&#39;realm1&#39;</span><span class="p">,</span>
+    <span class="c1"># valid are: none, critical, error, warn, info, debug, trace</span>
+    <span class="s1">&#39;wamp_debug_level&#39;</span> <span class="p">:</span> <span class="s1">&#39;error&#39;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<span class="target" id="cfg-buildbotURL"></span><span class="target" id="cfg-titleURL"></span></section>
+<section id="site-definitions">
+<span id="cfg-title"></span><h2><a class="toc-backref" href="#id16" role="doc-backlink"><span class="section-number">2.5.2.4. </span>Site Definitions</a><a class="headerlink" href="#site-definitions" title="Permalink to this heading"></a></h2>
+<p>Three basic settings describe the buildmaster in status reports:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Buildbot&quot;</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;titleURL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;http://buildbot.sourceforge.net/&quot;</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#cfg-title" title="title"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">title</span></code></a> is a short string that will appear at the top of this buildbot installation’s home page (linked to the <a class="reference internal" href="#cfg-titleURL" title="titleURL"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">titleURL</span></code></a>).</p>
+<p><a class="reference internal" href="#cfg-titleURL" title="titleURL"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">titleURL</span></code></a> is a URL string that must end with a slash (<code class="docutils literal notranslate"><span class="pre">/</span></code>).
+HTML status displays will show <code class="docutils literal notranslate"><span class="pre">title</span></code> as a link to <a class="reference internal" href="#cfg-titleURL" title="titleURL"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">titleURL</span></code></a>.
+This URL is often used to provide a link from buildbot HTML pages to your project’s home page.</p>
+<p>The <a class="reference internal" href="#cfg-buildbotURL" title="buildbotURL"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">buildbotURL</span></code></a> string should point to the location where the buildbot’s internal web server is visible.
+This URL must end with a slash (<code class="docutils literal notranslate"><span class="pre">/</span></code>).</p>
+<p>When status notices are sent to users (e.g., by email or over IRC), <a class="reference internal" href="#cfg-buildbotURL" title="buildbotURL"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">buildbotURL</span></code></a> will be used to create a URL to the specific build or problem that they are being notified about.</p>
+<span class="target" id="cfg-logCompressionLimit"></span><span class="target" id="cfg-logCompressionMethod"></span><span class="target" id="cfg-logMaxSize"></span><span class="target" id="cfg-logMaxTailSize"></span></section>
+<section id="log-handling">
+<span id="log-encodings"></span><span id="cfg-logEncoding"></span><h2><a class="toc-backref" href="#id17" role="doc-backlink"><span class="section-number">2.5.2.5. </span>Log Handling</a><a class="headerlink" href="#log-handling" title="Permalink to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;logCompressionMethod&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;gz&#39;</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;logMaxSize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1024</span><span class="o">*</span><span class="mi">1024</span> <span class="c1"># 1M</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;logMaxTailSize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">32768</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;logEncoding&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;utf-8&#39;</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="#cfg-logCompressionLimit" title="logCompressionLimit"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">logCompressionLimit</span></code></a> enables compression of build logs on disk for logs that are bigger than the given size, or disables that completely if set to <code class="docutils literal notranslate"><span class="pre">False</span></code>.
+The default value is 4096, which should be a reasonable default on most file systems.
+This setting has no impact on status plugins, and merely affects the required disk space on the master for build logs.</p>
+<p>The <a class="reference internal" href="#cfg-logCompressionMethod" title="logCompressionMethod"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">logCompressionMethod</span></code></a> controls what type of compression is used for build logs.
+The default is ‘gz’, and the other valid option are ‘raw’ (no compression), ‘gz’ or ‘lz4’ (required lz4 package).</p>
+<p>Please find below some stats extracted from 50x “trial Pyflakes” runs (results may differ according to log type).</p>
+<table class="docutils align-default" id="id12">
+<caption><span class="caption-text">Space saving details</span><a class="headerlink" href="#id12" title="Permalink to this table"></a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>compression</p></th>
+<th class="head"><p>raw log size</p></th>
+<th class="head"><p>compressed log size</p></th>
+<th class="head"><p>space saving</p></th>
+<th class="head"><p>compression speed</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>bz2</p></td>
+<td><p>2.981 MB</p></td>
+<td><p>0.603 MB</p></td>
+<td><p>79.77%</p></td>
+<td><p>3.433 MB/s</p></td>
+</tr>
+<tr class="row-odd"><td><p>gz</p></td>
+<td><p>2.981 MB</p></td>
+<td><p>0.568 MB</p></td>
+<td><p>80.95%</p></td>
+<td><p>6.604 MB/s</p></td>
+</tr>
+<tr class="row-even"><td><p>lz4</p></td>
+<td><p>2.981 MB</p></td>
+<td><p>0.844 MB</p></td>
+<td><p>71.68%</p></td>
+<td><p>77.668 MB/s</p></td>
+</tr>
+</tbody>
+</table>
+<p>The <a class="reference internal" href="#cfg-logMaxSize" title="logMaxSize"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">logMaxSize</span></code></a> parameter sets an upper limit (in bytes) to how large logs from an individual build step can be.
+The default value is None, meaning no upper limit to the log size.
+Any output exceeding <a class="reference internal" href="#cfg-logMaxSize" title="logMaxSize"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">logMaxSize</span></code></a> will be truncated, and a message to this effect will be added to the log’s HEADER channel.</p>
+<p>If <a class="reference internal" href="#cfg-logMaxSize" title="logMaxSize"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">logMaxSize</span></code></a> is set, and the output from a step exceeds the maximum, the <a class="reference internal" href="#cfg-logMaxTailSize" title="logMaxTailSize"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">logMaxTailSize</span></code></a> parameter controls how much of the end of the build log will be kept.
+The effect of setting this parameter is that the log will contain the first <a class="reference internal" href="#cfg-logMaxSize" title="logMaxSize"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">logMaxSize</span></code></a> bytes and the last <a class="reference internal" href="#cfg-logMaxTailSize" title="logMaxTailSize"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">logMaxTailSize</span></code></a> bytes of output.
+Don’t set this value too high, as the the tail of the log is kept in memory.</p>
+<p>The <a class="reference internal" href="#cfg-logEncoding" title="logEncoding"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">logEncoding</span></code></a> parameter specifies the character encoding to use to decode bytestrings provided as logs.
+It defaults to <code class="docutils literal notranslate"><span class="pre">utf-8</span></code>, which should work in most cases, but can be overridden if necessary.
+In extreme cases, a callable can be specified for this parameter.
+It will be called with byte strings, and should return the corresponding Unicode string.</p>
+<p>This setting can be overridden for a single build step with the <code class="docutils literal notranslate"><span class="pre">logEncoding</span></code> step parameter.
+It can also be overridden for a single log file by passing the <code class="docutils literal notranslate"><span class="pre">logEncoding</span></code> parameter to <code class="xref py py-meth docutils literal notranslate"><span class="pre">addLog</span></code>.</p>
+</section>
+<section id="data-lifetime">
+<h2><a class="toc-backref" href="#id18" role="doc-backlink"><span class="section-number">2.5.2.6. </span>Data Lifetime</a><a class="headerlink" href="#data-lifetime" title="Permalink to this heading"></a></h2>
+<section id="horizons">
+<h3>Horizons<a class="headerlink" href="#horizons" title="Permalink to this heading"></a></h3>
+<p>Previously Buildbot implemented a global configuration for horizons.
+Now it is implemented as a utility Builder, and shall be configured via the <a class="reference internal" href="configurators.html#configurator-JanitorConfigurator" title="JanitorConfigurator"><code class="xref bb bb-configurator docutils literal notranslate"><span class="pre">JanitorConfigurator</span></code></a>.</p>
+<span class="target" id="cfg-caches"></span><span class="target" id="cfg-changeCacheSize"></span></section>
+<section id="caches">
+<span id="cfg-buildCacheSize"></span><h3>Caches<a class="headerlink" href="#caches" title="Permalink to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;caches&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;Changes&#39;</span> <span class="p">:</span> <span class="mi">100</span><span class="p">,</span>     <span class="c1"># formerly c[&#39;changeCacheSize&#39;]</span>
+    <span class="s1">&#39;Builds&#39;</span> <span class="p">:</span> <span class="mi">500</span><span class="p">,</span>      <span class="c1"># formerly c[&#39;buildCacheSize&#39;]</span>
+    <span class="s1">&#39;chdicts&#39;</span> <span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="s1">&#39;BuildRequests&#39;</span> <span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="s1">&#39;SourceStamps&#39;</span> <span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+    <span class="s1">&#39;ssdicts&#39;</span> <span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+    <span class="s1">&#39;objectids&#39;</span> <span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="s1">&#39;usdicts&#39;</span> <span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="#cfg-caches" title="caches"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">caches</span></code></a> configuration key contains the configuration for Buildbot’s in-memory caches.
+These caches keep frequently-used objects in memory to avoid unnecessary trips to the database.
+Caches are divided by object type, and each has a configurable maximum size.</p>
+<p>The default size for each cache is 1, except where noted below.
+A value of 1 allows Buildbot to make a number of optimizations without consuming much memory.
+Larger, busier installations will likely want to increase these values.</p>
+<p>The available caches are:</p>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">Changes</span></code></dt><dd><p>the number of change objects to cache in memory.
+This should be larger than the number of changes that typically arrive in the span of a few minutes, otherwise your schedulers will be reloading changes from the database every time they run.
+For distributed version control systems, like Git or Hg, several thousand changes may arrive at once, so setting this parameter to something like 10000 isn’t unreasonable.</p>
+<p>This parameter is the same as the deprecated global parameter <a class="reference internal" href="#cfg-changeCacheSize" title="changeCacheSize"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">changeCacheSize</span></code></a>.
+Its default value is 10.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">Builds</span></code></dt><dd><p>The <a class="reference internal" href="#cfg-buildCacheSize" title="buildCacheSize"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">buildCacheSize</span></code></a> parameter gives the number of builds for each builder which are cached in memory.
+This number should be larger than the number of builds required for commonly-used status displays (the waterfall or grid views), so that those displays do not miss the cache on a refresh.</p>
+<p>This parameter is the same as the deprecated global parameter <a class="reference internal" href="#cfg-buildCacheSize" title="buildCacheSize"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">buildCacheSize</span></code></a>.
+Its default value is 15.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">chdicts</span></code></dt><dd><p>The number of rows from the <code class="docutils literal notranslate"><span class="pre">changes</span></code> table to cache in memory.
+This value should be similar to the value for <code class="docutils literal notranslate"><span class="pre">Changes</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">BuildRequests</span></code></dt><dd><p>The number of BuildRequest objects kept in memory.
+This number should be higher than the typical number of outstanding build requests.
+If the master ordinarily finds jobs for BuildRequests immediately, you may set a lower value.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">SourceStamps</span></code></dt><dd><p>the number of SourceStamp objects kept in memory.
+This number should generally be similar to the number <code class="docutils literal notranslate"><span class="pre">BuildRequesets</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">ssdicts</span></code></dt><dd><p>The number of rows from the <code class="docutils literal notranslate"><span class="pre">sourcestamps</span></code> table to cache in memory.
+This value should be similar to the value for <code class="docutils literal notranslate"><span class="pre">SourceStamps</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">objectids</span></code></dt><dd><p>The number of object IDs - a means to correlate an object in the Buildbot configuration with an identity in the database–to cache.
+In this version, object IDs are not looked up often during runtime, so a relatively low value such as 10 is fine.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">usdicts</span></code></dt><dd><p>The number of rows from the <code class="docutils literal notranslate"><span class="pre">users</span></code> table to cache in memory.
+Note that for a given user there will be a row for each attribute that user has.</p>
+<p>c[‘buildCacheSize’] = 15</p>
+</dd>
+</dl>
+<span class="target" id="cfg-collapseRequests"></span></section>
+</section>
+<section id="merging-build-requests">
+<span id="index-3"></span><h2><a class="toc-backref" href="#id19" role="doc-backlink"><span class="section-number">2.5.2.7. </span>Merging Build Requests</a><a class="headerlink" href="#merging-build-requests" title="Permalink to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;collapseRequests&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<p>This is a global default value for builders’ <a class="reference internal" href="#cfg-collapseRequests" title="collapseRequests"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">collapseRequests</span></code></a> parameter, and controls the merging of build requests.</p>
+<p>This parameter can be overridden on a per-builder basis.
+See <a class="reference internal" href="builders.html#collapsing-build-requests"><span class="std std-ref">Collapsing Build Requests</span></a> for the allowed values for this parameter.</p>
+<span class="target" id="index-4"></span></section>
+<section id="prioritizing-builders">
+<span id="cfg-prioritizeBuilders"></span><span id="id5"></span><h2><a class="toc-backref" href="#id20" role="doc-backlink"><span class="section-number">2.5.2.8. </span>Prioritizing Builders</a><a class="headerlink" href="#prioritizing-builders" title="Permalink to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">prioritizeBuilders</span><span class="p">(</span><span class="n">buildmaster</span><span class="p">,</span> <span class="n">builders</span><span class="p">):</span>
+    <span class="o">...</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;prioritizeBuilders&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prioritizeBuilders</span>
+</pre></div>
+</div>
+<p>By default, buildbot will attempt to start builds on builders in order, beginning with the builder with the oldest pending request.
+Customize this behavior with the <a class="reference internal" href="#cfg-prioritizeBuilders" title="prioritizeBuilders"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">prioritizeBuilders</span></code></a> configuration key, which takes a callable.
+See <a class="reference internal" href="../customization.html#builder-priority-functions"><span class="std std-ref">Builder Priority Functions</span></a> for details on this callable.</p>
+<p>This parameter controls the order that the buildmaster can start builds, and is useful in situations where there is resource contention between builders, e.g., for a test database.
+It does not affect the order in which a builder processes the build requests in its queue.
+For that purpose, see <a class="reference internal" href="builders.html#prioritizing-builds"><span class="std std-ref">Prioritizing Builds</span></a>.</p>
+</section>
+<section id="setting-the-pb-port-for-workers">
+<span id="cfg-protocols"></span><span id="id6"></span><h2><a class="toc-backref" href="#id21" role="doc-backlink"><span class="section-number">2.5.2.9. </span>Setting the PB Port for Workers</a><a class="headerlink" href="#setting-the-pb-port-for-workers" title="Permalink to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;protocols&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;pb&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;port&quot;</span><span class="p">:</span> <span class="mi">10000</span><span class="p">}}</span>
+</pre></div>
+</div>
+<p>The buildmaster will listen on a TCP port of your choosing for connections from workers.
+It can also use this port for connections from remote Change Sources, status clients, and debug tools.
+This port should be visible to the outside world, and you’ll need to tell your worker admins about your choice.</p>
+<p>It does not matter which port you pick, as long it is externally visible; however, you should probably use something larger than 1024, since most operating systems don’t allow non-root processes to bind to low-numbered ports.
+If your buildmaster is behind a firewall or a NAT box of some sort, you may have to configure your firewall to permit inbound connections to this port.</p>
+<p><code class="docutils literal notranslate"><span class="pre">c['protocols']['pb']['port']</span></code> can also be used as a <em>connection string</em>, as defined in the <a class="reference external" href="https://twistedmatrix.com/documents/current/core/howto/endpoints.html">ConnectionStrings</a> guide.</p>
+<p>This means that you can have the buildmaster listen on a localhost-only port by doing:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;protocols&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;pb&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;port&quot;</span><span class="p">:</span> <span class="s2">&quot;tcp:10000:interface=127.0.0.1&quot;</span><span class="p">}}</span>
+</pre></div>
+</div>
+<p>This might be useful if you only run workers on the same machine, and they are all configured to contact the buildmaster at <code class="docutils literal notranslate"><span class="pre">localhost:10000</span></code>.</p>
+<p><em>connection strings</em> can also be used to configure workers connecting over TLS. The syntax is then</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;protocols&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;pb&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;port&quot;</span><span class="p">:</span>
+                         <span class="s2">&quot;ssl:9989:privateKey=master.key:certKey=master.crt&quot;</span><span class="p">}}</span>
+</pre></div>
+</div>
+<p>Please note that IPv6 addresses with : must be escaped with as well as : in paths and in paths.
+Read more about the <em>connection strings</em> format in <a class="reference external" href="https://twistedmatrix.com/documents/current/core/howto/endpoints.html">ConnectionStrings</a> documentation.</p>
+<p>See also <a class="reference internal" href="../installation/worker.html#worker-tls-config"><span class="std std-ref">Worker TLS Configuration</span></a></p>
+<span class="target" id="index-5"></span></section>
+<section id="defining-global-properties">
+<span id="cfg-properties"></span><h2><a class="toc-backref" href="#id22" role="doc-backlink"><span class="section-number">2.5.2.10. </span>Defining Global Properties</a><a class="headerlink" href="#defining-global-properties" title="Permalink to this heading"></a></h2>
+<p>The <a class="reference internal" href="#cfg-properties" title="properties"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">properties</span></code></a> configuration key defines a dictionary of properties that will be available to all builds started by the buildmaster:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;Widget-version&#39;</span> <span class="p">:</span> <span class="s1">&#39;1.2&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;release-stage&#39;</span> <span class="p">:</span> <span class="s1">&#39;alpha&#39;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<span class="target" id="index-6"></span></section>
+<section id="manhole">
+<span id="cfg-manhole"></span><h2><a class="toc-backref" href="#id23" role="doc-backlink"><span class="section-number">2.5.2.11. </span>Manhole</a><a class="headerlink" href="#manhole" title="Permalink to this heading"></a></h2>
+<p>Manhole is an interactive Python shell which allows full access to the Buildbot master instance.
+It is probably only useful for buildbot developers.</p>
+<p>See <a class="reference internal" href="manhole.html#manhole"><span class="std std-ref">documentation on Manhole implementations</span></a> for available authentication and connection methods.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">manhole</span></code> configuration key accepts a single instance of a Manhole class.
+For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot</span> <span class="kn">import</span> <span class="n">manhole</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;manhole&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manhole</span><span class="o">.</span><span class="n">PasswordManhole</span><span class="p">(</span><span class="s2">&quot;tcp:1234:interface=127.0.0.1&quot;</span><span class="p">,</span>
+                                       <span class="s2">&quot;admin&quot;</span><span class="p">,</span> <span class="s2">&quot;passwd&quot;</span><span class="p">,</span>
+                                       <span class="n">ssh_hostkey_dir</span><span class="o">=</span><span class="s2">&quot;data/ssh_host_keys&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="metrics-options">
+<span id="cfg-metrics"></span><h2><a class="toc-backref" href="#id24" role="doc-backlink"><span class="section-number">2.5.2.12. </span>Metrics Options</a><a class="headerlink" href="#metrics-options" title="Permalink to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;metrics&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">log_interval</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">periodic_interval</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#cfg-metrics" title="metrics"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">metrics</span></code></a> can be a dictionary that configures various aspects of the metrics subsystem.
+If <a class="reference internal" href="#cfg-metrics" title="metrics"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">metrics</span></code></a> is <code class="docutils literal notranslate"><span class="pre">None</span></code>, then metrics collection, logging and reporting will be disabled.</p>
+<p><code class="docutils literal notranslate"><span class="pre">log_interval</span></code> determines how often metrics should be logged to twistd.log.
+It defaults to 60s.
+If set to 0 or <code class="docutils literal notranslate"><span class="pre">None</span></code>, then logging of metrics will be disabled.
+This value can be changed via a reconfig.</p>
+<p><code class="docutils literal notranslate"><span class="pre">periodic_interval</span></code> determines how often various non-event based metrics are collected, such as memory usage, uncollectable garbage, reactor delay.
+This defaults to 10s.
+If set to 0 or <code class="docutils literal notranslate"><span class="pre">None</span></code>, then periodic collection of this data is disabled.
+This value can also be changed via a reconfig.</p>
+<p>Read more about metrics in the <a class="reference internal" href="../../developer/metrics.html#metrics"><span class="std std-ref">Metrics</span></a> section in the developer documentation.</p>
+</section>
+<section id="statistics-service">
+<span id="cfg-stats-service"></span><h2><a class="toc-backref" href="#id25" role="doc-backlink"><span class="section-number">2.5.2.13. </span>Statistics Service</a><a class="headerlink" href="#statistics-service" title="Permalink to this heading"></a></h2>
+<p>The Statistics Service (stats service for short) supports the collection of arbitrary data from within a running Buildbot instance and the export to a number of storage backends.
+Currently, only <a class="reference external" href="https://influxdata.com/time-series-platform/influxdb/">InfluxDB</a> is supported as a storage backend.
+Also, InfluxDB (or any other storage backend) is not a mandatory dependency.
+Buildbot can run without it, although <code class="xref py py-class docutils literal notranslate"><span class="pre">StatsService</span></code> will be of no use in such a case.
+At present, <code class="xref py py-class docutils literal notranslate"><span class="pre">StatsService</span></code> can keep track of build properties, build times (start, end, duration) and arbitrary data produced inside Buildbot (more on this later).</p>
+<p>Example usage:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">captures</span> <span class="o">=</span> <span class="p">[</span><span class="n">stats</span><span class="o">.</span><span class="n">CaptureProperty</span><span class="p">(</span><span class="s1">&#39;Builder1&#39;</span><span class="p">,</span> <span class="s1">&#39;tree-size-KiB&#39;</span><span class="p">),</span>
+            <span class="n">stats</span><span class="o">.</span><span class="n">CaptureBuildDuration</span><span class="p">(</span><span class="s1">&#39;Builder2&#39;</span><span class="p">)]</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;services&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;services&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">StatsService</span><span class="p">(</span>
+    <span class="n">storage_backends</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">stats</span><span class="o">.</span><span class="n">InfluxStorageService</span><span class="p">(</span><span class="s1">&#39;localhost&#39;</span><span class="p">,</span> <span class="mi">8086</span><span class="p">,</span> <span class="s1">&#39;root&#39;</span><span class="p">,</span> <span class="s1">&#39;root&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">captures</span><span class="p">)</span>
+    <span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;StatsService&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">services</span></code> configuration value should be initialized as a list and a <code class="xref py py-class docutils literal notranslate"><span class="pre">StatsService</span></code> instance should be appended to it as shown in the example above.</p>
+<section id="id7">
+<h3>Statistics Service<a class="headerlink" href="#id7" title="Permalink to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.statistics.stats_service.</span></span><span class="sig-name descname"><span class="pre">StatsService</span></span></dt>
+<dd><p>This is the main class for statistics services.
+It is initialized in the master configuration as shown in the example above.
+It takes two arguments:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">storage_backends</span></code></dt><dd><p>A list of storage backends (see <a class="reference internal" href="#storage-backends"><span class="std std-ref">Storage Backends</span></a>).
+In the example above, <code class="docutils literal notranslate"><span class="pre">stats.InfluxStorageService</span></code> is an instance of a storage backend.
+Each storage backend is an instance of subclasses of <code class="xref py py-class docutils literal notranslate"><span class="pre">statsStorageBase</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">name</span></code></dt><dd><p>The name of this service.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p><code class="xref py py-meth docutils literal notranslate"><span class="pre">yieldMetricsValue</span></code>: This method can be used to send arbitrary data for storage. (See <a class="reference internal" href="#yieldmetricsvalue"><span class="std std-ref">Using StatsService.yieldMetricsValue</span></a> for more information.)</p>
+</section>
+<section id="capture-classes">
+<span id="id8"></span><h3>Capture Classes<a class="headerlink" href="#capture-classes" title="Permalink to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.statistics.capture.</span></span><span class="sig-name descname"><span class="pre">CaptureProperty</span></span></dt>
+<dd><p>Instance of this class declares which properties must be captured and sent to the <a class="reference internal" href="#storage-backends"><span class="std std-ref">Storage Backends</span></a>.
+It takes the following arguments:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">builder_name</span></code></dt><dd><p>The name of builder in which the property is recorded.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">property_name</span></code></dt><dd><p>The name of property needed to be recorded as a statistic.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">callback=None</span></code></dt><dd><p>(Optional) A custom callback function for this class.
+This callback function should take in two arguments - <cite>build_properties</cite> (dict) and <cite>property_name</cite> (str) and return a string that will be sent for storage in the storage backends.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">regex=False</span></code></dt><dd><p>If this is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>, then the property name can be a regular expression.
+All properties matching this regular expression will be sent for storage.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.statistics.capture.</span></span><span class="sig-name descname"><span class="pre">CapturePropertyAllBuilders</span></span></dt>
+<dd><p>Instance of this class declares which properties must be captured on all builders and sent to the <a class="reference internal" href="#storage-backends"><span class="std std-ref">Storage Backends</span></a>.
+It takes the following arguments:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">property_name</span></code></dt><dd><p>The name of property needed to be recorded as a statistic.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">callback=None</span></code></dt><dd><p>(Optional) A custom callback function for this class.
+This callback function should take in two arguments - <cite>build_properties</cite> (dict) and <cite>property_name</cite> (str) and return a string that will be sent for storage in the storage backends.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">regex=False</span></code></dt><dd><p>If this is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>, then the property name can be a regular expression.
+All properties matching this regular expression will be sent for storage.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.statistics.capture.</span></span><span class="sig-name descname"><span class="pre">CaptureBuildStartTime</span></span></dt>
+<dd><p>Instance of this class declares which builders’ start times are to be captured and sent to <a class="reference internal" href="#storage-backends"><span class="std std-ref">Storage Backends</span></a>.
+It takes the following arguments:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">builder_name</span></code></dt><dd><p>The name of builder whose times are to be recorded.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">callback=None</span></code></dt><dd><p>(Optional) A custom callback function for this class.
+This callback function should take in a Python datetime object and return a string that will be sent for storage in the storage backends.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.statistics.capture.</span></span><span class="sig-name descname"><span class="pre">CaptureBuildStartTimeAllBuilders</span></span></dt>
+<dd><p>Instance of this class declares start times of all builders to be captured and sent to <a class="reference internal" href="#storage-backends"><span class="std std-ref">Storage Backends</span></a>.
+It takes the following arguments:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">callback=None</span></code></dt><dd><p>(Optional) A custom callback function for this class.
+This callback function should take in a Python datetime object and return a string that will be sent for storage in the storage backends.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.statistics.capture.</span></span><span class="sig-name descname"><span class="pre">CaptureBuildEndTime</span></span></dt>
+<dd><p>Exactly like <code class="xref py py-class docutils literal notranslate"><span class="pre">CaptureBuildStartTime</span></code> except it declares the builders whose end time is to be recorded.
+The arguments are same as <code class="xref py py-class docutils literal notranslate"><span class="pre">CaptureBuildStartTime</span></code>.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.statistics.capture.</span></span><span class="sig-name descname"><span class="pre">CaptureBuildEndTimeAllBuilders</span></span></dt>
+<dd><p>Exactly like <code class="xref py py-class docutils literal notranslate"><span class="pre">CaptureBuildStartTimeAllBuilders</span></code> except it declares all builders’ end time to be recorded.
+The arguments are same as <code class="xref py py-class docutils literal notranslate"><span class="pre">CaptureBuildStartTimeAllBuilders</span></code>.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.statistics.capture.</span></span><span class="sig-name descname"><span class="pre">CaptureBuildDuration</span></span></dt>
+<dd><p>Instance of this class declares the builders whose build durations are to be recorded.
+It takes the following arguments:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">builder_name</span></code></dt><dd><p>The name of builder whose times are to be recorded.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">report_in='seconds'</span></code></dt><dd><p>Can be one of three: <code class="docutils literal notranslate"><span class="pre">'seconds'</span></code>, <code class="docutils literal notranslate"><span class="pre">'minutes'</span></code>, or <code class="docutils literal notranslate"><span class="pre">'hours'</span></code>.
+This is the units in which the build time will be reported.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">callback=None</span></code></dt><dd><p>(Optional) A custom callback function for this class.
+This callback function should take in two Python datetime objects - a <code class="docutils literal notranslate"><span class="pre">start_time</span></code> and an <code class="docutils literal notranslate"><span class="pre">end_time</span></code> and return a string that will be sent for storage in the storage backends.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.statistics.capture.</span></span><span class="sig-name descname"><span class="pre">CaptureBuildDurationAllBuilders</span></span></dt>
+<dd><p>Instance of this class declares build durations to be recorded for all builders.
+It takes the following arguments:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">report_in='seconds'</span></code></dt><dd><p>Can be one of three: <code class="docutils literal notranslate"><span class="pre">'seconds'</span></code>, <code class="docutils literal notranslate"><span class="pre">'minutes'</span></code>, or <code class="docutils literal notranslate"><span class="pre">'hours'</span></code>.
+This is the units in which the build time will be reported.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">callback=None</span></code></dt><dd><p>(Optional) A custom callback function for this class.
+This callback function should take in two Python datetime objects - a <code class="docutils literal notranslate"><span class="pre">start_time</span></code> and an <code class="docutils literal notranslate"><span class="pre">end_time</span></code> and return a string that will be sent for storage in the storage backends.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.statistics.capture.</span></span><span class="sig-name descname"><span class="pre">CaptureData</span></span></dt>
+<dd><p>Instance of this capture class is for capturing arbitrary data that is not stored as build-data.
+Needs to be used in combination with <code class="docutils literal notranslate"><span class="pre">yieldMetricsValue</span></code> (see <a class="reference internal" href="#yieldmetricsvalue"><span class="std std-ref">Using StatsService.yieldMetricsValue</span></a>).
+Takes the following arguments:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">data_name</span></code></dt><dd><p>The name of data to be captured.
+Same as in <code class="docutils literal notranslate"><span class="pre">yieldMetricsValue</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">builder_name</span></code></dt><dd><p>The name of builder whose times are to be recorded.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">callback=None</span></code></dt><dd><p>The callback function for this class.
+This callback receives the data sent to  <code class="docutils literal notranslate"><span class="pre">yieldMetricsValue</span></code> as <code class="docutils literal notranslate"><span class="pre">post_data</span></code> (see <a class="reference internal" href="#yieldmetricsvalue"><span class="std std-ref">Using StatsService.yieldMetricsValue</span></a>).
+It must return a string that is to be sent to the storage backends for storage.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.statistics.capture.</span></span><span class="sig-name descname"><span class="pre">CaptureDataAllBuilders</span></span></dt>
+<dd><p>Instance of this capture class for capturing arbitrary data that is not stored as build-data on all builders.
+Needs to be used in combination with <code class="docutils literal notranslate"><span class="pre">yieldMetricsValue</span></code> (see <a class="reference internal" href="#yieldmetricsvalue"><span class="std std-ref">Using StatsService.yieldMetricsValue</span></a>).
+Takes the following arguments:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">data_name</span></code></dt><dd><p>The name of data to be captured.
+Same as in <code class="docutils literal notranslate"><span class="pre">yieldMetricsValue</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">callback=None</span></code></dt><dd><p>The callback function for this class.
+This callback receives the data sent to  <code class="docutils literal notranslate"><span class="pre">yieldMetricsValue</span></code> as <code class="docutils literal notranslate"><span class="pre">post_data</span></code> (see <a class="reference internal" href="#yieldmetricsvalue"><span class="std std-ref">Using StatsService.yieldMetricsValue</span></a>).
+It must return a string that is to be sent to the storage backends for storage.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="using-statsservice-yieldmetricsvalue">
+<span id="yieldmetricsvalue"></span><h3>Using <code class="docutils literal notranslate"><span class="pre">StatsService.yieldMetricsValue</span></code><a class="headerlink" href="#using-statsservice-yieldmetricsvalue" title="Permalink to this heading"></a></h3>
+<p>Advanced users can modify <code class="docutils literal notranslate"><span class="pre">BuildSteps</span></code> to use <code class="docutils literal notranslate"><span class="pre">StatsService.yieldMetricsValue</span></code> which will send arbitrary data for storage to the <code class="docutils literal notranslate"><span class="pre">StatsService</span></code>.
+It takes the following arguments:</p>
+<blockquote>
+<div><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">data_name</span></code></dt><dd><p>The name of the data being sent or storage.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">post_data</span></code></dt><dd><p>A dictionary of key value pair that is sent for storage.
+The keys will act as columns in a database and the value is stored under that column.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">buildid</span></code></dt><dd><p>The integer build id of the current build.
+Obtainable in all <code class="docutils literal notranslate"><span class="pre">BuildSteps</span></code>.</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>Along with using <code class="docutils literal notranslate"><span class="pre">yieldMetricsValue</span></code>, the user will also need to use the <code class="docutils literal notranslate"><span class="pre">CaptureData</span></code> capture class.
+As an example, we can add the following to a build step:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">yieldMetricsValue</span><span class="p">(</span><span class="s1">&#39;test_data_name&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;some_data&#39;</span><span class="p">:</span> <span class="s1">&#39;some_value&#39;</span><span class="p">},</span> <span class="n">buildid</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then, we can add in the master configuration a capture class like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">captures</span> <span class="o">=</span> <span class="p">[</span><span class="n">CaptureBuildData</span><span class="p">(</span><span class="s1">&#39;test_data_name&#39;</span><span class="p">,</span> <span class="s1">&#39;Builder1&#39;</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p>Pass this <code class="docutils literal notranslate"><span class="pre">captures</span></code> list to a storage backend (as shown in the example at the top of this section) for capturing this data.</p>
+</section>
+<section id="storage-backends">
+<span id="id9"></span><h3>Storage Backends<a class="headerlink" href="#storage-backends" title="Permalink to this heading"></a></h3>
+<p>Storage backends are responsible for storing any statistics data sent to them.
+A storage backend will generally be some sort of a database-server running on a machine.
+(<em>Note</em>: This machine may be different from the one running <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildMaster</span></code>)</p>
+<p>Currently, only <a class="reference external" href="https://influxdata.com/time-series-platform/influxdb/">InfluxDB</a> is supported as a storage backend.</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.statistics.storage_backends.influxdb_client.</span></span><span class="sig-name descname"><span class="pre">InfluxStorageService</span></span></dt>
+<dd><p>This class is a Buildbot client to the InfluxDB storage backend. <a class="reference external" href="https://influxdata.com/time-series-platform/influxdb/">InfluxDB</a> is a distributed, time series database that employs a key-value pair storage system.</p>
+<p>It requires the following arguments:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">url</span></code></dt><dd><p>The URL where the service is running.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">port</span></code></dt><dd><p>The port on which the service is listening.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">user</span></code></dt><dd><p>Username of a InfluxDB user.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">password</span></code></dt><dd><p>Password for <code class="docutils literal notranslate"><span class="pre">user</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">db</span></code></dt><dd><p>The name of database to be used.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">captures</span></code></dt><dd><p>A list of objects of <a class="reference internal" href="#capture-classes"><span class="std std-ref">Capture Classes</span></a>.
+This tells which statistics are to be stored in this storage backend.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">name=None</span></code></dt><dd><p>(Optional) The name of this storage backend.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="secretsproviders">
+<span id="cfg-secretsProviders"></span><h2><a class="toc-backref" href="#id26" role="doc-backlink"><span class="section-number">2.5.2.14. </span><code class="docutils literal notranslate"><span class="pre">secretsProviders</span></code></a><a class="headerlink" href="#secretsproviders" title="Permalink to this heading"></a></h2>
+<p>See <a class="reference internal" href="../secretsmanagement.html#secretmanagement"><span class="std std-ref">Secret Management</span></a> for details on secret concepts.</p>
+<p>Example usage:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;secretsProviders&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span> <span class="o">..</span> <span class="p">]</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">secretsProviders</span></code> is a  list of secrets storage.
+See <a class="reference internal" href="../secretsmanagement.html#secretmanagement"><span class="std std-ref">Secret Management</span></a> to configure a secret storage provider.</p>
+</section>
+<section id="buildbotnetusagedata">
+<span id="cfg-buildbotNetUsageData"></span><h2><a class="toc-backref" href="#id27" role="doc-backlink"><span class="section-number">2.5.2.15. </span>BuildbotNetUsageData</a><a class="headerlink" href="#buildbotnetusagedata" title="Permalink to this heading"></a></h2>
+<p>Since buildbot 0.9.0, buildbot has a simple feature which sends usage analysis info to buildbot.net.
+This is very important for buildbot developers to understand how the community is using the tools.
+This allows to better prioritize issues, and understand what plugins are actually being used.
+This will also be a tool to decide whether to keep support for very old tools.
+For example buildbot contains support for the venerable CVS, but we have no information whether it actually works beyond the unit tests.
+We rely on the community to test and report issues with the old features.</p>
+<p>With BuildbotNetUsageData, we can know exactly what combination of plugins are working together, how much people are customizing plugins, what versions of the main dependencies people run.</p>
+<p>We take your privacy very seriously.</p>
+<p>BuildbotNetUsageData will never send information specific to your Code or Intellectual Property.
+No repository url, shell command values, host names, ip address or custom class names.
+If it does, then this is a bug, please report.</p>
+<p>We still need to track unique number for installation.
+This is done via doing a sha1 hash of master’s hostname, installation path and fqdn.
+Using a secure hash means there is no way of knowing hostname, path and fqdn given the hash, but still there is a different hash for each master.</p>
+<p>You can see exactly what is sent in the master’s twisted.log.
+Usage data is sent every time the master is started.</p>
+<p>BuildbotNetUsageData can be configured with 4 values:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">c['buildbotNetUsageData']</span> <span class="pre">=</span> <span class="pre">None</span></code> disables the feature</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">c['buildbotNetUsageData']</span> <span class="pre">=</span> <span class="pre">'basic'</span></code> sends the basic information to buildbot including:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>versions of buildbot, python and twisted</p></li>
+<li><p>platform information (CPU, OS, distribution, python flavor (i.e CPython vs PyPy))</p></li>
+<li><p>mq and database type (mysql or sqlite?)</p></li>
+<li><p>www plugins usage</p></li>
+<li><p>Plugins usages:
+This counts the number of time each class of buildbot is used in your configuration.
+This counts workers, builders, steps, schedulers, change sources.
+If the plugin is subclassed, then it will be prefixed with a <cite>&gt;</cite></p></li>
+</ul>
+<p>example of basic report (for the metabuildbot):</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="s1">&#39;versions&#39;</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="s1">&#39;Python&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;2.7.6&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="s1">&#39;Twisted&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;15.5.0&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="s1">&#39;Buildbot&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;0.9.0rc2-176-g5fa9dbf&#39;</span>
+<span class="p">},</span>
+<span class="s1">&#39;platform&#39;</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="s1">&#39;machine&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;x86_64&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="s1">&#39;python_implementation&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;CPython&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="s1">&#39;version&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;#140-Ubuntu SMP Mon Jul&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="s1">&#39;processor&#39;</span><span class="o">:</span>
+<span class="w">    </span><span class="s1">&#39;x86_64&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="s1">&#39;distro:&#39;</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;Ubuntu&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;14.04&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;trusty&#39;</span><span class="p">)</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="s1">&#39;db&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;sqlite&#39;</span><span class="p">,</span>
+<span class="s1">&#39;mq&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;simple&#39;</span><span class="p">,</span>
+<span class="s1">&#39;plugins&#39;</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="s1">&#39;buildbot.schedulers.forcesched.ForceScheduler&#39;</span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span>
+<span class="w">    </span><span class="s1">&#39;buildbot.schedulers.triggerable.Triggerable&#39;</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span>
+<span class="w">    </span><span class="s1">&#39;buildbot.config.BuilderConfig&#39;</span><span class="o">:</span><span class="w"> </span><span class="mf">4</span><span class="p">,</span>
+<span class="w">    </span><span class="s1">&#39;buildbot.schedulers.basic.AnyBranchScheduler&#39;</span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span>
+<span class="w">    </span><span class="s1">&#39;buildbot.steps.source.git.Git&#39;</span><span class="o">:</span><span class="w"> </span><span class="mf">4</span><span class="p">,</span>
+<span class="w">    </span><span class="s1">&#39;&gt;&gt;buildbot.steps.trigger.Trigger&#39;</span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span>
+<span class="w">    </span><span class="s1">&#39;&gt;&gt;&gt;buildbot.worker.base.Worker&#39;</span><span class="o">:</span><span class="w"> </span><span class="mf">4</span><span class="p">,</span>
+<span class="w">    </span><span class="s1">&#39;buildbot.reporters.irc.IRC&#39;</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">},</span>
+<span class="s1">&#39;www_plugins&#39;</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;buildbot_travis&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;waterfall_view&#39;</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">c['buildbotNetUsageData']</span> <span class="pre">=</span> <span class="pre">'full'</span></code> sends the basic information plus additional information:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>configuration of each builders: how the steps are arranged together. for example:</p></li>
+</ul>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="s1">&#39;builders&#39;</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">[</span><span class="s1">&#39;buildbot.steps.source.git.Git&#39;</span><span class="p">,</span>
+<span class="w">         </span><span class="s1">&#39;&gt;&gt;&gt;buildbot.process.buildstep.BuildStep&#39;</span><span class="p">],</span>
+<span class="w">        </span><span class="p">[</span><span class="s1">&#39;buildbot.steps.source.git.Git&#39;</span><span class="p">,</span>
+<span class="w">         </span><span class="s1">&#39;&gt;&gt;buildbot.steps.trigger.Trigger&#39;</span><span class="p">],</span>
+<span class="w">        </span><span class="p">[</span><span class="s1">&#39;buildbot.steps.source.git.Git&#39;</span><span class="p">,</span>
+<span class="w">         </span><span class="s1">&#39;&gt;&gt;&gt;buildbot.process.buildstep.BuildStep&#39;</span><span class="p">],</span>
+<span class="w">        </span><span class="p">[</span><span class="s1">&#39;buildbot.steps.source.git.Git&#39;</span><span class="p">,</span>
+<span class="w">         </span><span class="s1">&#39;&gt;&gt;buildbot.steps.trigger.Trigger&#39;</span><span class="p">]</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">c['buildbotNetUsageData']</span> <span class="pre">=</span> <span class="pre">myCustomFunction</span></code> declares a callback to use to specify exactly what to send.</p>
+<blockquote>
+<div><p>This custom function takes the generated data from full report in the form of a dictionary, and returns a customized report as a jsonable dictionary. You can use this to filter any information you don’t want to disclose. You can also use a custom http_proxy environment variable in order to not send any data while developing your callback.</p>
+</div></blockquote>
+</li>
+</ul>
+</section>
+<section id="users-options">
+<span id="cfg-user_managers"></span><span id="id10"></span><h2><a class="toc-backref" href="#id28" role="doc-backlink"><span class="section-number">2.5.2.16. </span>Users Options</a><a class="headerlink" href="#users-options" title="Permalink to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">util</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;user_managers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;user_managers&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">CommandlineUserManager</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s2">&quot;user&quot;</span><span class="p">,</span>
+                                                      <span class="n">passwd</span><span class="o">=</span><span class="s2">&quot;userpw&quot;</span><span class="p">,</span>
+                                                      <span class="n">port</span><span class="o">=</span><span class="mi">9990</span><span class="p">))</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#cfg-user_managers" title="user_managers"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">user_managers</span></code></a> contains a list of ways to manually manage User Objects within Buildbot (see <a class="reference internal" href="../concepts.html#user-objects"><span class="std std-ref">User Objects</span></a>).
+Currently implemented is a commandline tool <cite>buildbot user</cite>, described at length in <a class="reference internal" href="../cmdline.html#cmdline-user" title="user"><code class="xref bb bb-cmdline docutils literal notranslate"><span class="pre">user</span></code></a>.
+In the future, a web client will also be able to manage User Objects and their attributes.</p>
+<p>As shown above, to enable the <cite>buildbot user</cite> tool, you must initialize a <cite>CommandlineUserManager</cite> instance in your <cite>master.cfg</cite>.
+<cite>CommandlineUserManager</cite> instances require the following arguments:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">username</span></code></dt><dd><p>This is the <cite>username</cite> that will be registered on the PB connection and need to be used when calling <cite>buildbot user</cite>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">passwd</span></code></dt><dd><p>This is the <cite>passwd</cite> that will be registered on the PB connection and need to be used when calling <cite>buildbot user</cite>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">port</span></code></dt><dd><p>The PB connection <cite>port</cite> must be different than <cite>c[‘protocols’][‘pb’][‘port’]</cite> and be specified when calling <cite>buildbot user</cite></p>
+</dd>
+</dl>
+</section>
+<section id="input-validation">
+<span id="cfg-validation"></span><span id="id11"></span><h2><a class="toc-backref" href="#id29" role="doc-backlink"><span class="section-number">2.5.2.17. </span>Input Validation</a><a class="headerlink" href="#input-validation" title="Permalink to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">re</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;validation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;branch&#39;</span> <span class="p">:</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[\w.+/~-]*$&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;revision&#39;</span> <span class="p">:</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[ \w\.\-\/]*$&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;property_name&#39;</span> <span class="p">:</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[\w\.\-\/\~:]*$&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;property_value&#39;</span> <span class="p">:</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[\w\.\-\/\~:]*$&#39;</span><span class="p">),</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>This option configures the validation applied to user inputs of various types.
+This validation is important since these values are often included in command-line arguments executed on workers.
+Allowing arbitrary input from untrusted users may raise security concerns.</p>
+<p>The keys describe the type of input validated; the values are compiled regular expressions against which the input will be matched.
+The defaults for each type of input are those given in the example, above.</p>
+</section>
+<section id="revision-links">
+<span id="cfg-revlink"></span><h2><a class="toc-backref" href="#id30" role="doc-backlink"><span class="section-number">2.5.2.18. </span>Revision Links</a><a class="headerlink" href="#revision-links" title="Permalink to this heading"></a></h2>
+<p>The <a class="reference internal" href="#cfg-revlink" title="revlink"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">revlink</span></code></a> parameter is used to create links from revision IDs in the web status to a web-view of your source control system.
+The parameter’s value must be a callable.</p>
+<p>By default, Buildbot is configured to generate revlinks for a number of open source hosting platforms (<a class="reference external" href="https://github.com">https://github.com</a>, <a class="reference external" href="https://sourceforge.net">https://sourceforge.net</a> and <a class="reference external" href="https://bitbucket.org">https://bitbucket.org</a>).</p>
+<p>The callable takes the revision id and repository argument, and should return a URL to the revision.
+Note that the revision id may not always be in the form you expect, so code defensively.
+In particular, a revision of “??” may be supplied when no other information is available.</p>
+<p>Note that <code class="xref py py-class docutils literal notranslate"><span class="pre">SourceStamp</span></code>s that are not created from version-control changes (e.g., those created by a <a class="reference internal" href="schedulers.html#sched-Nightly" title="Nightly"><code class="xref bb bb-sched docutils literal notranslate"><span class="pre">Nightly</span></code></a> or <a class="reference internal" href="schedulers.html#sched-Periodic" title="Periodic"><code class="xref bb bb-sched docutils literal notranslate"><span class="pre">Periodic</span></code></a> scheduler) may have an empty repository string if the repository is not known to the scheduler.</p>
+<section id="revision-link-helpers">
+<h3>Revision Link Helpers<a class="headerlink" href="#revision-link-helpers" title="Permalink to this heading"></a></h3>
+<p>Buildbot provides two helpers for generating revision links.
+<code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.revlinks.RevlinkMatcher</span></code> takes a list of regular expressions and a replacement text.
+The regular expressions should all have the same number of capture groups.
+The replacement text should have sed-style references to that capture groups (i.e. ‘1’ for the first capture group), and a single ‘%s’ reference for the revision ID.
+The repository given is tried against each regular expression in turn.
+The results are then substituted into the replacement text, along with the revision ID, to obtain the revision link.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">util</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;revlink&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">RevlinkMatch</span><span class="p">([</span><span class="sa">r</span><span class="s1">&#39;git://notmuchmail.org/git/(.*)&#39;</span><span class="p">],</span>
+                                  <span class="sa">r</span><span class="s1">&#39;http://git.notmuchmail.org/git/\1/commit/</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.revlinks.RevlinkMultiplexer</span></code> takes a list of revision link callables, and tries each in turn, returning the first successful match.</p>
+</section>
+</section>
+<section id="codebase-generator">
+<span id="cfg-codebaseGenerator"></span><h2><a class="toc-backref" href="#id31" role="doc-backlink"><span class="section-number">2.5.2.19. </span>Codebase Generator</a><a class="headerlink" href="#codebase-generator" title="Permalink to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">all_repositories</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="sa">r</span><span class="s1">&#39;https://hg/hg/mailsuite/mailclient&#39;</span><span class="p">:</span> <span class="s1">&#39;mailexe&#39;</span><span class="p">,</span>
+    <span class="sa">r</span><span class="s1">&#39;https://hg/hg/mailsuite/mapilib&#39;</span><span class="p">:</span> <span class="s1">&#39;mapilib&#39;</span><span class="p">,</span>
+    <span class="sa">r</span><span class="s1">&#39;https://hg/hg/mailsuite/imaplib&#39;</span><span class="p">:</span> <span class="s1">&#39;imaplib&#39;</span><span class="p">,</span>
+    <span class="sa">r</span><span class="s1">&#39;https://github.com/mailinc/mailsuite/mailclient&#39;</span><span class="p">:</span> <span class="s1">&#39;mailexe&#39;</span><span class="p">,</span>
+    <span class="sa">r</span><span class="s1">&#39;https://github.com/mailinc/mailsuite/mapilib&#39;</span><span class="p">:</span> <span class="s1">&#39;mapilib&#39;</span><span class="p">,</span>
+    <span class="sa">r</span><span class="s1">&#39;https://github.com/mailinc/mailsuite/imaplib&#39;</span><span class="p">:</span> <span class="s1">&#39;imaplib&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="k">def</span> <span class="nf">codebaseGenerator</span><span class="p">(</span><span class="n">chdict</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">all_repositories</span><span class="p">[</span><span class="n">chdict</span><span class="p">[</span><span class="s1">&#39;repository&#39;</span><span class="p">]]</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;codebaseGenerator&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">codebaseGenerator</span>
+</pre></div>
+</div>
+<p>For any incoming change, the <a class="reference internal" href="changesources.html#change-attr-codebase"><span class="std std-ref">codebase</span></a> is set to ‘’.
+This codebase value is sufficient if all changes come from the same repository (or clones).
+If changes come from different repositories, extra processing will be needed to determine the codebase for the incoming change.
+This codebase will then be a logical name for the combination of repository and or branch etc.</p>
+<p>The <cite>codebaseGenerator</cite> accepts a change dictionary as produced by the <code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.db.changes.ChangesConnectorComponent</span></code>, with a changeid equal to <cite>None</cite>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="intro.html" class="btn btn-neutral float-left" title="2.5.1. Configuring Buildbot" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="changesources.html" class="btn btn-neutral float-right" title="2.5.3. Change Sources and Changes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Buildbot Team Members.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
