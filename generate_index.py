@@ -4,7 +4,6 @@ import re
 import os
 
 from jinja2 import Environment, FileSystemLoader
-from packaging import version
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_ENVIRONMENT = Environment(
@@ -17,14 +16,26 @@ def render_template(template_filename, context):
     return TEMPLATE_ENVIRONMENT.get_template(template_filename).render(context)
 
 
+def version_part_parse(part):
+    if not part:
+        return 0
+    return int(part)
+
+
+def version_parse(version):
+    # packaging.version.parse does not parse some of the existing version numbers
+    return tuple([version_part_parse(v)
+                  for v in version.replace("post", ".").replace("p", ".").split(".")])
+
+
 def create_index_html():
     fname = "docs/index.html"
     versions = []
     for fn in os.listdir('docs'):
         m = re.match(r'^\d\..*', fn)
         if m is not None:
-            v = version.parse(fn)
-            if v > version.parse("0.8.5"):
+            v = version_parse(fn)
+            if v > version_parse("0.8.5"):
                 versions.append((v, fn))
     versions.sort(reverse=True)
     current_version = versions[0][1]
