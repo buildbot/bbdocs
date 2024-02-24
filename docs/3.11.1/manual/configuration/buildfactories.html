@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2.5.9. Build Factories &mdash; Buildbot 3.11.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d10597a4" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../_static/buildbot_rtd.css?v=915d5e18" />
+
+  
+    <link rel="shortcut icon" href="../../_static/icon.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=2d7d50ec"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="2.5.10. Build Sets" href="buildsets.html" />
+    <link rel="prev" title="2.5.8. Projects" href="projects.html" /> 
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Buildbot
+              <img src="../../_static/full_logo.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                3.11.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../secretsmanagement.html">2.4. Secret Management</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">2.5. Configuration</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="intro.html">2.5.1. Configuring Buildbot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="global.html">2.5.2. Global Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changesources.html">2.5.3. Change Sources and Changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changesources.html#changes">2.5.4. Changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="schedulers.html">2.5.5. Schedulers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workers.html">2.5.6. Workers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="builders.html">2.5.7. Builder Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="projects.html">2.5.8. Projects</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">2.5.9. Build Factories</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#defining-a-build-factory">2.5.9.1. Defining a Build Factory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dynamic-build-factories">2.5.9.2. Dynamic Build Factories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#predefined-build-factories">2.5.9.3. Predefined Build Factories</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="buildsets.html">2.5.10. Build Sets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="properties.html">2.5.11. Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="steps/index.html">2.5.12. Build Steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="interlocks.html">2.5.13. Interlocks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="report_generators/index.html">2.5.14. Report Generators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reporters/index.html">2.5.15. Reporters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www.html">2.5.16. Web Server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wwwhooks.html">2.5.17. Change Hooks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="services/index.html">2.5.18. Custom Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dbconfig.html">2.5.19. DbConfig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configurators.html">2.5.20. Configurators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="manhole.html">2.5.21. Manhole</a></li>
+<li class="toctree-l3"><a class="reference internal" href="multimaster.html">2.5.22. Multimaster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="multicodebase.html">2.5.23. Multiple-Codebase Builds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="misc/index.html">2.5.24. Miscellaneous Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tests/index.html">2.5.25. Testing Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../customization.html">2.6. Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cmdline.html">2.7. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../resources.html">2.8. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../optimization.html">2.9. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins.html">2.10. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../deploy.html">2.11. Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../upgrading/index.html">2.12. Upgrading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../indices.html">6. API Indices</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Buildbot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html"><span class="section-number">2. </span>Buildbot Manual</a></li>
+          <li class="breadcrumb-item"><a href="index.html"><span class="section-number">2.5. </span>Configuration</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">2.5.9. </span>Build Factories</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/manual/configuration/buildfactories.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="build-factories">
+<span id="id1"></span><h1><span class="section-number">2.5.9. </span>Build Factories<a class="headerlink" href="#build-factories" title="Link to this heading"></a></h1>
+<p>Each Builder is equipped with a <code class="docutils literal notranslate"><span class="pre">build</span> <span class="pre">factory</span></code>, which defines the steps used to perform a particular type of build.
+This factory is created in the configuration file, and attached to a Builder through the <code class="docutils literal notranslate"><span class="pre">factory</span></code> element of its dictionary.</p>
+<p>The steps used by these builds are defined in the next section, <a class="reference internal" href="steps/index.html#build-steps"><span class="std std-ref">Build Steps</span></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Build factories are used with builders, and are not added directly to the buildmaster configuration dictionary.</p>
+</div>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#defining-a-build-factory" id="id9">Defining a Build Factory</a></p></li>
+<li><p><a class="reference internal" href="#dynamic-build-factories" id="id10">Dynamic Build Factories</a></p></li>
+<li><p><a class="reference internal" href="#predefined-build-factories" id="id11">Predefined Build Factories</a></p></li>
+</ul>
+</nav>
+<section id="defining-a-build-factory">
+<span id="index-0"></span><span id="buildfactory"></span><h2><a class="toc-backref" href="#id9" role="doc-backlink"><span class="section-number">2.5.9.1. </span>Defining a Build Factory</a><a class="headerlink" href="#defining-a-build-factory" title="Link to this heading"></a></h2>
+<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildFactory</span></code> defines the steps that every build will follow.
+Think of it as a glorified script.
+For example, a build factory which consists of an SVN checkout followed by a <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">build</span></code> would be configured as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">util</span><span class="p">,</span> <span class="n">steps</span>
+
+<span class="n">f</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">BuildFactory</span><span class="p">()</span>
+<span class="n">f</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">steps</span><span class="o">.</span><span class="n">SVN</span><span class="p">(</span><span class="n">repourl</span><span class="o">=</span><span class="s2">&quot;http://..&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;incremental&quot;</span><span class="p">))</span>
+<span class="n">f</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">steps</span><span class="o">.</span><span class="n">Compile</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;make&quot;</span><span class="p">,</span> <span class="s2">&quot;build&quot;</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>This factory would then be attached to one builder (or several, if desired):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;builders&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+    <span class="n">BuilderConfig</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;quick&#39;</span><span class="p">,</span> <span class="n">workernames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;bot1&#39;</span><span class="p">,</span> <span class="s1">&#39;bot2&#39;</span><span class="p">],</span> <span class="n">factory</span><span class="o">=</span><span class="n">f</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>It is also possible to pass a list of steps into the <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildFactory</span></code> when it is created.
+Using <code class="xref py py-meth docutils literal notranslate"><span class="pre">addStep</span></code> is usually simpler, but there are cases where it is more convenient to create the list of steps ahead of time, perhaps using some Python tricks to generate the steps.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">steps</span><span class="p">,</span> <span class="n">util</span>
+
+<span class="n">all_steps</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">steps</span><span class="o">.</span><span class="n">CVS</span><span class="p">(</span><span class="n">cvsroot</span><span class="o">=</span><span class="n">CVSROOT</span><span class="p">,</span> <span class="n">cvsmodule</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;update&quot;</span><span class="p">),</span>
+    <span class="n">steps</span><span class="o">.</span><span class="n">Compile</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;make&quot;</span><span class="p">,</span> <span class="s2">&quot;build&quot;</span><span class="p">]),</span>
+<span class="p">]</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">BuildFactory</span><span class="p">(</span><span class="n">all_steps</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Finally, you can also add a sequence of steps all at once:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">f</span><span class="o">.</span><span class="n">addSteps</span><span class="p">(</span><span class="n">all_steps</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Link to this heading"></a></h3>
+<p>The following attributes can be set on a build factory after it is created, e.g.,</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">f</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">BuildFactory</span><span class="p">()</span>
+<span class="n">f</span><span class="o">.</span><span class="n">useProgress</span> <span class="o">=</span> <span class="kc">False</span>
+</pre></div>
+</div>
+<dl>
+<dt><code class="xref py py-attr docutils literal notranslate"><span class="pre">useProgress</span></code></dt><dd><p>(defaults to <code class="docutils literal notranslate"><span class="pre">True</span></code>): if <code class="docutils literal notranslate"><span class="pre">True</span></code>, the buildmaster keeps track of how long each step takes, so it can provide estimates of how long future builds will take.
+If builds are not expected to take a consistent amount of time (such as incremental builds in which a random set of files are recompiled or tested each time), this should be set to <code class="docutils literal notranslate"><span class="pre">False</span></code> to inhibit progress-tracking.</p>
+</dd>
+<dt><code class="xref py py-attr docutils literal notranslate"><span class="pre">workdir</span></code></dt><dd><p>(defaults to ‘build’): workdir given to every build step created by this factory as default.
+The workdir can be overridden in a build step definition.</p>
+<p>If this attribute is set to a string, that string will be used for constructing the workdir (worker base + builder builddir + workdir).
+The attribute can also be a Python callable, for more complex cases, as described in <a class="reference internal" href="../customization.html#factory-workdir-functions"><span class="std std-ref">Factory Workdir Functions</span></a>.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="dynamic-build-factories">
+<span id="dynamicbuildfactories"></span><h2><a class="toc-backref" href="#id10" role="doc-backlink"><span class="section-number">2.5.9.2. </span>Dynamic Build Factories</a><a class="headerlink" href="#dynamic-build-factories" title="Link to this heading"></a></h2>
+<p>In some cases you may not know what commands to run until after you checkout the source tree.
+For those cases, you can dynamically add steps during a build from other steps.</p>
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">Build</span></code> object provides 2 functions to do this:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">addStepsAfterCurrentStep(self,</span> <span class="pre">step_factories)</span></code></dt><dd><p>This adds the steps after the step that is currently executing.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">addStepsAfterLastStep(self,</span> <span class="pre">step_factories)</span></code></dt><dd><p>This adds the steps onto the end of the build.</p>
+</dd>
+</dl>
+<p>Both functions only accept as an argument a list of steps to add to the build.</p>
+<p>For example, let’s say you have a script checked in into your source tree called build.sh.
+When this script is called with the argument <code class="docutils literal notranslate"><span class="pre">--list-stages</span></code> it outputs a newline separated list of stage names.
+This can be used to generate at runtime a step for each stage in the build.
+Each stage is then run in this example using <code class="docutils literal notranslate"><span class="pre">./build.sh</span> <span class="pre">--run-stage</span> <span class="pre">&lt;stage</span> <span class="pre">name&gt;</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">util</span><span class="p">,</span> <span class="n">steps</span>
+<span class="kn">from</span> <span class="nn">buildbot.process</span> <span class="kn">import</span> <span class="n">buildstep</span><span class="p">,</span> <span class="n">logobserver</span>
+<span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="kn">import</span> <span class="n">defer</span>
+
+<span class="k">class</span> <span class="nc">GenerateStagesCommand</span><span class="p">(</span><span class="n">buildstep</span><span class="o">.</span><span class="n">ShellMixin</span><span class="p">,</span> <span class="n">steps</span><span class="o">.</span><span class="n">BuildStep</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setupShellMixin</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observer</span> <span class="o">=</span> <span class="n">logobserver</span><span class="o">.</span><span class="n">BufferLogObserver</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addLogObserver</span><span class="p">(</span><span class="s1">&#39;stdio&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">observer</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">extract_stages</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stdout</span><span class="p">):</span>
+        <span class="n">stages</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">stdout</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">):</span>
+            <span class="n">stage</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">stage</span><span class="p">:</span>
+                <span class="n">stages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stage</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">stages</span>
+
+    <span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># run &#39;./build.sh --list-stages&#39; to generate the list of stages</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">makeRemoteShellCommand</span><span class="p">()</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">runCommand</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+        <span class="c1"># if the command passes extract the list of stages</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">cmd</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="n">util</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
+            <span class="c1"># create a ShellCommand for each stage and add them to the build</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">addStepsAfterCurrentStep</span><span class="p">([</span>
+                <span class="n">steps</span><span class="o">.</span><span class="n">ShellCommand</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">stage</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;./build.sh&quot;</span><span class="p">,</span> <span class="s2">&quot;--run-stage&quot;</span><span class="p">,</span> <span class="n">stage</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">stage</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_stages</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observer</span><span class="o">.</span><span class="n">getStdout</span><span class="p">())</span>
+            <span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+<span class="n">f</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">BuildFactory</span><span class="p">()</span>
+<span class="n">f</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">steps</span><span class="o">.</span><span class="n">Git</span><span class="p">(</span><span class="n">repourl</span><span class="o">=</span><span class="n">repourl</span><span class="p">))</span>
+<span class="n">f</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">GenerateStagesCommand</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Generate build stages&quot;</span><span class="p">,</span>
+    <span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;./build.sh&quot;</span><span class="p">,</span> <span class="s2">&quot;--list-stages&quot;</span><span class="p">],</span>
+    <span class="n">haltOnFailure</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="predefined-build-factories">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink"><span class="section-number">2.5.9.3. </span>Predefined Build Factories</a><a class="headerlink" href="#predefined-build-factories" title="Link to this heading"></a></h2>
+<p>Buildbot includes a few predefined build factories that perform common build sequences.
+In practice, these are rarely used, as every site has slightly different requirements, but the source for these factories may provide examples for implementation of those requirements.</p>
+<section id="index-1">
+<span id="gnuautoconf"></span><span id="id2"></span><h3>GNUAutoconf<a class="headerlink" href="#index-1" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="buildbot.process.factory.GNUAutoconf">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.process.factory.</span></span><span class="sig-name descname"><span class="pre">GNUAutoconf</span></span><a class="headerlink" href="#buildbot.process.factory.GNUAutoconf" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<p><a class="reference external" href="http://www.gnu.org/software/autoconf/">GNU Autoconf</a> is a software portability tool, intended to make it possible to write programs in C (and other languages) which will run on a variety of UNIX-like systems.
+Most GNU software is built using autoconf.
+It is frequently used in combination with GNU automake.
+These tools both encourage a build process which usually looks like this:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>%<span class="w"> </span><span class="nv">CONFIG_ENV</span><span class="o">=</span>foo<span class="w"> </span>./configure<span class="w"> </span>--with-flags
+%<span class="w"> </span>make<span class="w"> </span>all
+%<span class="w"> </span>make<span class="w"> </span>check
+<span class="c1"># make install</span>
+</pre></div>
+</div>
+<p>(except, of course, from Buildbot, which always skips the <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> part).</p>
+<p>The Buildbot’s <a class="reference internal" href="#buildbot.process.factory.GNUAutoconf" title="buildbot.process.factory.GNUAutoconf"><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.process.factory.GNUAutoconf</span></code></a> factory is designed to build projects which use GNU autoconf and/or automake.
+The configuration environment variables, the configure flags, and command lines used for the compile and test are all configurable, in general the default values will be suitable.</p>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">f</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">GNUAutoconf</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="o">.</span><span class="n">SVN</span><span class="p">(</span><span class="n">repourl</span><span class="o">=</span><span class="n">URL</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;copy&quot;</span><span class="p">),</span>
+                     <span class="n">flags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;--disable-nls&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Required Arguments:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">source</span></code></dt><dd><p>This argument must be a step specification tuple that provides a BuildStep to generate the source tree.</p>
+</dd>
+</dl>
+<p>Optional Arguments:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">configure</span></code></dt><dd><p>The command used to configure the tree.
+Defaults to <strong class="command">./configure</strong>.
+Accepts either a string or a list of shell argv elements.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">configureEnv</span></code></dt><dd><p>The environment used for the initial configuration step.
+This accepts a dictionary which will be merged into the worker’s normal environment.
+This is commonly used to provide things like <code class="docutils literal notranslate"><span class="pre">CFLAGS=&quot;-O2</span> <span class="pre">-g&quot;</span></code> (to turn off debug symbols during the compile).
+Defaults to an empty dictionary.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">configureFlags</span></code></dt><dd><p>A list of flags to be appended to the argument list of the configure command.
+This is commonly used to enable or disable specific features of the autoconf-controlled package, like <code class="docutils literal notranslate"><span class="pre">[&quot;--without-x&quot;]</span></code> to disable windowing support.
+Defaults to an empty list.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">reconf</span></code></dt><dd><p>use autoreconf to generate the ./configure file, set to True to use a buildbot default autoreconf command, or define the command for the ShellCommand.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">compile</span></code></dt><dd><p>this is a shell command or list of argv values which is used to actually compile the tree.
+It defaults to <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">all</span></code>.
+If set to <code class="docutils literal notranslate"><span class="pre">None</span></code>, the compile step is skipped.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">test</span></code></dt><dd><p>this is a shell command or list of argv values which is used to run the tree’s self-tests.
+It defaults to <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">check</span></code>.
+If set to None, the test step is skipped.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">distcheck</span></code></dt><dd><p>this is a shell command or list of argv values which is used to run the packaging test.
+It defaults to <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">distcheck</span></code>.
+If set to None, the test step is skipped.</p>
+</dd>
+</dl>
+</section>
+<section id="index-2">
+<span id="basicbuildfactory"></span><span id="id3"></span><h3>BasicBuildFactory<a class="headerlink" href="#index-2" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="buildbot.process.factory.BasicBuildFactory">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.process.factory.</span></span><span class="sig-name descname"><span class="pre">BasicBuildFactory</span></span><a class="headerlink" href="#buildbot.process.factory.BasicBuildFactory" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<p>This is a subclass of <code class="xref py py-class docutils literal notranslate"><span class="pre">GNUAutoconf</span></code> which assumes the source is in CVS, and uses <code class="docutils literal notranslate"><span class="pre">mode='full'</span></code> and <code class="docutils literal notranslate"><span class="pre">method='clobber'</span></code>  to always build from a clean working copy.</p>
+</section>
+<section id="index-3">
+<span id="quickbuildfactory"></span><span id="id4"></span><h3>QuickBuildFactory<a class="headerlink" href="#index-3" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="buildbot.process.factory.QuickBuildFactory">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.process.factory.</span></span><span class="sig-name descname"><span class="pre">QuickBuildFactory</span></span><a class="headerlink" href="#buildbot.process.factory.QuickBuildFactory" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">QuickBuildFactory</span></code> class is a subclass of <code class="xref py py-class docutils literal notranslate"><span class="pre">GNUAutoconf</span></code> which assumes the source is in CVS, and uses <code class="docutils literal notranslate"><span class="pre">mode='incremental'</span></code> to get incremental updates.</p>
+<p>The difference between a <cite>full build</cite> and a <cite>quick build</cite> is that quick builds are generally done incrementally, starting with the tree where the previous build was performed.
+That simply means that the source-checkout step should be given a <code class="docutils literal notranslate"><span class="pre">mode='incremental'</span></code> flag, to do the source update in-place.</p>
+<p>In addition to that, this class sets the <code class="xref py py-attr docutils literal notranslate"><span class="pre">useProgress</span></code> flag to <code class="docutils literal notranslate"><span class="pre">False</span></code>.
+Incremental builds will (or at least the ought to) compile as few files as necessary, so they will take an unpredictable amount of time to run.
+Therefore it would be misleading to claim to predict how long the build will take.</p>
+<p>This class is probably not of use to new projects.</p>
+</section>
+<section id="index-4">
+<span id="basicsvn"></span><span id="id5"></span><h3>BasicSVN<a class="headerlink" href="#index-4" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="buildbot.process.factory.BasicSVN">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.process.factory.</span></span><span class="sig-name descname"><span class="pre">BasicSVN</span></span><a class="headerlink" href="#buildbot.process.factory.BasicSVN" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<p>This class is similar to <code class="xref py py-class docutils literal notranslate"><span class="pre">QuickBuildFactory</span></code>, but uses SVN instead of CVS.</p>
+</section>
+<section id="cpan">
+<span id="index-5"></span><span id="factory-cpan"></span><h3>CPAN<a class="headerlink" href="#cpan" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="buildbot.process.factory.CPAN">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.process.factory.</span></span><span class="sig-name descname"><span class="pre">CPAN</span></span><a class="headerlink" href="#buildbot.process.factory.CPAN" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<p>Most Perl modules available from the <a class="reference external" href="http://www.cpan.org/">CPAN</a> archive use the <code class="docutils literal notranslate"><span class="pre">MakeMaker</span></code> module to provide configuration, build, and test services.
+The standard build routine for these modules looks like:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>%<span class="w"> </span>perl<span class="w"> </span>Makefile.PL
+%<span class="w"> </span>make
+%<span class="w"> </span>make<span class="w"> </span><span class="nb">test</span>
+<span class="c1"># make install</span>
+</pre></div>
+</div>
+<p>(except again Buildbot skips the install step)</p>
+<p>Buildbot provides a <code class="xref py py-class docutils literal notranslate"><span class="pre">CPAN</span></code> factory to compile and test these projects.</p>
+<p>Arguments:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">source</span></code></dt><dd><p>(required): A step specification tuple, like that used by <code class="xref py py-class docutils literal notranslate"><span class="pre">GNUAutoconf</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">perl</span></code></dt><dd><p>A string which specifies the <strong class="command">perl</strong> executable to use.
+Defaults to just <strong class="command">perl</strong>.</p>
+</dd>
+</dl>
+</section>
+<section id="index-6">
+<span id="distutils"></span><span id="id7"></span><h3>Distutils<a class="headerlink" href="#index-6" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="buildbot.process.factory.Distutils">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.process.factory.</span></span><span class="sig-name descname"><span class="pre">Distutils</span></span><a class="headerlink" href="#buildbot.process.factory.Distutils" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<p>Most Python modules use the <code class="docutils literal notranslate"><span class="pre">distutils</span></code> package to provide configuration and build services.
+The standard build process looks like:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>%<span class="w"> </span>python<span class="w"> </span>./setup.py<span class="w"> </span>build
+%<span class="w"> </span>python<span class="w"> </span>./setup.py<span class="w"> </span>install
+</pre></div>
+</div>
+<p>Unfortunately, although Python provides a standard unit-test framework named <code class="docutils literal notranslate"><span class="pre">unittest</span></code>, to the best of my knowledge, <code class="docutils literal notranslate"><span class="pre">distutils</span></code> does not provide a standardized target to run such unit tests.
+(Please let me know if I’m wrong, and I will update this factory.)</p>
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">Distutils</span></code> factory provides support for running the build part of this process.
+It accepts the same <code class="docutils literal notranslate"><span class="pre">source=</span></code> parameter as the other build factories.</p>
+<p>Arguments:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">source</span></code></dt><dd><p>(required): A step specification tuple, like that used by <code class="xref py py-class docutils literal notranslate"><span class="pre">GNUAutoconf</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">python</span></code></dt><dd><p>A string which specifies the <strong class="command">python</strong> executable to use.
+Defaults to just <strong class="command">python</strong>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">test</span></code></dt><dd><p>Provides a shell command which runs unit tests.
+This accepts either a string or a list.
+The default value is <code class="docutils literal notranslate"><span class="pre">None</span></code>, which disables the test step (since there is no common default command to run unit tests in distutils modules).</p>
+</dd>
+</dl>
+</section>
+<section id="index-7">
+<span id="trial"></span><span id="id8"></span><h3>Trial<a class="headerlink" href="#index-7" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="buildbot.process.factory.Trial">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.process.factory.</span></span><span class="sig-name descname"><span class="pre">Trial</span></span><a class="headerlink" href="#buildbot.process.factory.Trial" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<p>Twisted provides a unit test tool named <strong class="command">trial</strong> which provides a few improvements over Python’s built-in <code class="xref py py-mod docutils literal notranslate"><span class="pre">unittest</span></code> module.
+Many Python projects which use Twisted for their networking or application services also use trial for their unit tests.
+These modules are usually built and tested with something like the following:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>%<span class="w"> </span>python<span class="w"> </span>./setup.py<span class="w"> </span>build
+%<span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>build/lib.linux-i686-2.3<span class="w"> </span>trial<span class="w"> </span>-v<span class="w"> </span>PROJECTNAME.test
+%<span class="w"> </span>python<span class="w"> </span>./setup.py<span class="w"> </span>install
+</pre></div>
+</div>
+<p>Unfortunately, the <code class="file docutils literal notranslate"><span class="pre">build/lib</span></code> directory into which the built/copied <code class="docutils literal notranslate"><span class="pre">.py</span></code> files are placed is actually architecture-dependent, and I do not yet know of a simple way to calculate its value.
+For many projects it is sufficient to import their libraries <cite>in place</cite> from the tree’s base directory (<code class="docutils literal notranslate"><span class="pre">PYTHONPATH=.</span></code>).</p>
+<p>In addition, the <code class="samp docutils literal notranslate"><em><span class="pre">PROJECTNAME</span></em></code> value where the test files are located is project-dependent: it is usually just the project’s top-level library directory, as common practice suggests the unit test files are put in the <code class="xref py py-mod docutils literal notranslate"><span class="pre">test</span></code> sub-module.
+This value cannot be guessed, the <code class="xref py py-class docutils literal notranslate"><span class="pre">Trial</span></code> class must be told where to find the test files.</p>
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">Trial</span></code> class provides support for building and testing projects which use distutils and trial.
+If the test module name is specified, trial will be invoked.
+The library path used for testing can also be set.</p>
+<p>One advantage of trial is that the Buildbot happens to know how to parse trial output, letting it identify which tests passed and which ones failed.
+The Buildbot can then provide fine-grained reports about how many tests have failed, when individual tests fail when they had been passing previously, etc.</p>
+<p>Another feature of trial is that you can give it a series of source <code class="docutils literal notranslate"><span class="pre">.py</span></code> files, and it will search them for special <code class="docutils literal notranslate"><span class="pre">test-case-name</span></code> tags that indicate which test cases provide coverage for that file.
+Trial can then run just the appropriate tests.
+This is useful for quick builds, where you want to only run the test cases that cover the changed functionality.</p>
+<p>Arguments:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">testpath</span></code></dt><dd><p>Provides a directory to add to <span class="target" id="index-8"></span><code class="xref std std-envvar docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> when running the unit tests, if tests are being run.
+Defaults to <code class="docutils literal notranslate"><span class="pre">.</span></code> to include the project files in-place.
+The generated build library is frequently architecture-dependent, but may simply be <code class="file docutils literal notranslate"><span class="pre">build/lib</span></code> for pure-Python modules.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">python</span></code></dt><dd><p>Which Python executable to use.
+This list will form the start of the <cite>argv</cite> array that will launch trial.
+If you use this, you should set <code class="docutils literal notranslate"><span class="pre">trial</span></code> to an explicit path (like <code class="file docutils literal notranslate"><span class="pre">/usr/bin/trial</span></code> or <code class="file docutils literal notranslate"><span class="pre">./bin/trial</span></code>).
+The parameter defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>, which leaves it out entirely (running <code class="docutils literal notranslate"><span class="pre">trial</span> <span class="pre">args</span></code> instead of <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">./bin/trial</span> <span class="pre">args</span></code>).
+Likely values are <code class="docutils literal notranslate"><span class="pre">['python']</span></code>, <code class="docutils literal notranslate"><span class="pre">['python2.2']</span></code>, or <code class="docutils literal notranslate"><span class="pre">['python',</span> <span class="pre">'-Wall']</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">trial</span></code></dt><dd><p>Provides the name of the <strong class="command">trial</strong> command.
+It is occasionally useful to use an alternate executable, such as <strong class="command">trial2.2</strong> which might run the tests under an older version of Python.
+Defaults to <strong class="command">trial</strong>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">trialMode</span></code></dt><dd><p>A list of arguments to pass to trial, specifically to set the reporting mode.
+This defaults to <code class="docutils literal notranslate"><span class="pre">['--reporter=bwverbose']</span></code>, which only works for Twisted-2.1.0 and later.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">trialArgs</span></code></dt><dd><p>A list of arguments to pass to trial, available to turn on any extra flags you like.
+Defaults to <code class="docutils literal notranslate"><span class="pre">[]</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">tests</span></code></dt><dd><p>Provides a module name or names which contain the unit tests for this project.
+Accepts a string, typically <code class="samp docutils literal notranslate"><em><span class="pre">PROJECTNAME</span></em><span class="pre">.test</span></code>, or a list of strings.
+Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>, indicating that no tests should be run.
+You must either set this or <code class="docutils literal notranslate"><span class="pre">testChanges</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">testChanges</span></code></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, ignore the <code class="docutils literal notranslate"><span class="pre">tests</span></code> parameter and instead ask the Build for all the files that make up the Changes going into this build.
+Pass these filenames to trial and ask it to look for test-case-name tags, running just the tests necessary to cover the changes.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">recurse</span></code></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, tells Trial (with the <code class="docutils literal notranslate"><span class="pre">--recurse</span></code> argument) to look in all subdirectories for additional test cases.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">reactor</span></code></dt><dd><p>which reactor to use, like ‘gtk’ or ‘java’.
+If not provided, the Twisted’s usual platform-dependent default is used.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">randomly</span></code></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, tells Trial (with the <code class="docutils literal notranslate"><span class="pre">--random=0</span></code> argument) to run the test cases in random order, which sometimes catches subtle inter-test dependency bugs.
+Defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd>
+</dl>
+<p>The step can also take any of the <code class="xref py py-class docutils literal notranslate"><span class="pre">ShellCommand</span></code> arguments, e.g., <code class="xref py py-attr docutils literal notranslate"><span class="pre">haltOnFailure</span></code>.</p>
+<p>Unless one of <code class="docutils literal notranslate"><span class="pre">tests</span></code> or <code class="docutils literal notranslate"><span class="pre">testChanges</span></code> are set, the step will generate an exception.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="projects.html" class="btn btn-neutral float-left" title="2.5.8. Projects" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="buildsets.html" class="btn btn-neutral float-right" title="2.5.10. Build Sets" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Buildbot Team Members.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
