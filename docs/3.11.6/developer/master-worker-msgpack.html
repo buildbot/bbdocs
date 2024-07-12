@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3.3.15. Master-Worker connection with MessagePack over WebSocket protocol &mdash; Buildbot 3.11.6 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d10597a4" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/buildbot_rtd.css?v=915d5e18" />
+
+  
+    <link rel="shortcut icon" href="../_static/icon.png"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=e6f4c021"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="3.3.16. Claiming Build Requests" href="br-claiming.html" />
+    <link rel="prev" title="3.3.14. Master-Worker API" href="master-worker.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Buildbot
+              <img src="../_static/full_logo.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                3.11.6
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/index.html">2. Buildbot Manual</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">3. Buildbot Development</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html">3.1. Development Quick-start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pull-request.html">3.2. Submitting Pull Requests</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="general.html">3.3. General Documents</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="master-overview.html">3.3.1. Master Organization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="style.html">3.3.2. Buildbot Coding Style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tests.html">3.3.3. Buildbot’s Test Suite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html">3.3.4. Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#configuration-in-angularjs">3.3.5. Configuration in AngularJS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="schedulers.html">3.3.6. Writing Schedulers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html">3.3.7. Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="results.html">3.3.8. Build Result Codes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www-server.html">3.3.9. WWW Server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www-data-module.html">3.3.10. Javascript Data Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www-base-app.html">3.3.11. Base web application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auth.html">3.3.12. Authentication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="authz.html">3.3.13. Authorization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="master-worker.html">3.3.14. Master-Worker API</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">3.3.15. Master-Worker connection with MessagePack over WebSocket protocol</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#message-key-value-pairs">3.3.15.1. Message key-value pairs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#messages-from-master-to-worker">3.3.15.2. Messages from master to worker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#messages-from-worker-to-master">3.3.15.3. Messages from worker to master</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#start-command-request-types">3.3.15.4. <code class="docutils literal notranslate"><span class="pre">start_command</span></code> request types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#contents-of-the-value-corresponding-to-args-key-in-the-dictionary-of-update-request-message">3.3.15.5. Contents of the value corresponding to <code class="docutils literal notranslate"><span class="pre">args</span></code> key in the dictionary of <code class="docutils literal notranslate"><span class="pre">update</span></code> request message</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="br-claiming.html">3.3.16. Claiming Build Requests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="encodings.html">3.3.17. String Encodings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metrics.html">3.3.18. Metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="secrets.html">3.3.19. Secrets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="secrets.html#secrets-manager">3.3.20. Secrets manager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="secrets.html#secrets-providers">3.3.21. Secrets providers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="stats-service.html">3.3.22. Statistics Service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plugins-publish.html">3.3.23. How to package Buildbot plugins</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rest.html">3.4. REST API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="raml/index.html">3.5. REST API Specification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html">3.6. Data API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="database.html">3.7. Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="database/index.html">3.8. Database connectors API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mq.html">3.9. Messaging and Queues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classes.html">3.10. Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../indices.html">6. API Indices</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Buildbot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html"><span class="section-number">3. </span>Buildbot Development</a></li>
+          <li class="breadcrumb-item"><a href="general.html"><span class="section-number">3.3. </span>General Documents</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">3.3.15. </span>Master-Worker connection with MessagePack over WebSocket protocol</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/developer/master-worker-msgpack.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="master-worker-connection-with-messagepack-over-websocket-protocol">
+<h1><span class="section-number">3.3.15. </span>Master-Worker connection with MessagePack over WebSocket protocol<a class="headerlink" href="#master-worker-connection-with-messagepack-over-websocket-protocol" title="Link to this heading"></a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is experimental protocol.</p>
+</div>
+<p>Messages between master and worker are sent using WebSocket protocol in both directions.
+Data to be sent conceptually is a dictionary and is encoded using MessagePack.
+One such encoded dictionary corresponds to one WebSocket message.</p>
+<p>Authentication happens during opening WebSocket handshake using standard HTTP Basic authentication.
+Worker credentials are sent in the value of the HTTP “Authorization” header.
+Master checks if the credentials match and if not - the connection is terminated.</p>
+<p>A WebSocket message can be either a request or a response.
+Request message is sent when one side wants another one to perform an action.
+Once the action is performed, the other side sends the response message back.
+A response message is mandatory for every request message.</p>
+<section id="message-key-value-pairs">
+<h2><span class="section-number">3.3.15.1. </span>Message key-value pairs<a class="headerlink" href="#message-key-value-pairs" title="Link to this heading"></a></h2>
+<p>This section describes a general structure of messages.
+It applies for both master and worker.</p>
+<section id="request-message">
+<span id="msgpack-request-message"></span><h3>Request message<a class="headerlink" href="#request-message" title="Link to this heading"></a></h3>
+<p>A request message must contain at least these keys: <code class="docutils literal notranslate"><span class="pre">seq_number</span></code>, <code class="docutils literal notranslate"><span class="pre">op</span></code>.
+Additional key-value pairs may be supplied depending on the request type.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Value is an integer.
+<code class="docutils literal notranslate"><span class="pre">seq_number</span></code> must be unique for every request message coming from a particular side.
+The purpose of <code class="docutils literal notranslate"><span class="pre">seq_number</span></code> value is to link the request message with response message.
+Response message will carry the same <code class="docutils literal notranslate"><span class="pre">seq_number</span></code> value as in corresponding request message.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string.
+It must not be <code class="docutils literal notranslate"><span class="pre">response</span></code>.
+Each side has a predefined set of commands that another side may invoke.
+<code class="docutils literal notranslate"><span class="pre">op</span></code> specifies the command to be invoked by requesting side.</p>
+</dd>
+</dl>
+</section>
+<section id="response-message">
+<span id="msgpack-response-message"></span><h3>Response message<a class="headerlink" href="#response-message" title="Link to this heading"></a></h3>
+<p>A response message must contain at least these keys: <code class="docutils literal notranslate"><span class="pre">seq_number</span></code>, <code class="docutils literal notranslate"><span class="pre">op</span></code>, <code class="docutils literal notranslate"><span class="pre">result</span></code>.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Value is an integer.
+It represents a number which was specified in the corresponding request message.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string, always a <code class="docutils literal notranslate"><span class="pre">response</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">result</span></code></dt><dd><p>Value is <code class="docutils literal notranslate"><span class="pre">None</span></code> when success.
+Otherwise – message of exception.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">is_exception</span></code></dt><dd><p>This key-value pair is optional.
+If request succeeded this key-value pair is absent.
+Otherwise, its value is a boolean <code class="docutils literal notranslate"><span class="pre">True</span></code> and the message of exception is specified in the value of <code class="docutils literal notranslate"><span class="pre">result</span></code>.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="messages-from-master-to-worker">
+<h2><span class="section-number">3.3.15.2. </span>Messages from master to worker<a class="headerlink" href="#messages-from-master-to-worker" title="Link to this heading"></a></h2>
+<section id="print">
+<h3>print<a class="headerlink" href="#print" title="Link to this heading"></a></h3>
+<section id="request">
+<h4>Request<a class="headerlink" href="#request" title="Link to this heading"></a></h4>
+<p>This message requests worker to print a message to its log.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section on <a class="reference internal" href="#msgpack-request-message"><span class="std std-ref">Request message</span></a> structure.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">print</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">message</span></code></dt><dd><p>Value is a string.
+It represents the string to be printed in worker’s log.</p>
+</dd>
+</dl>
+</section>
+<section id="response">
+<h4>Response<a class="headerlink" href="#response" title="Link to this heading"></a></h4>
+<p>Worker prints a message from master to its log.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section  on <a class="reference internal" href="#msgpack-response-message"><span class="std std-ref">Response message</span></a> structure.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">response</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">result</span></code></dt><dd><p>Value is <code class="docutils literal notranslate"><span class="pre">None</span></code> if log was printed successfully.
+Otherwise – message of exception.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">is_exception</span></code></dt><dd><p>This key-value pair is optional.
+If request succeeded this key-value pair is absent.
+Otherwise, its value is a boolean <code class="docutils literal notranslate"><span class="pre">True</span></code> and the message of exception is specified in the value of <code class="docutils literal notranslate"><span class="pre">result</span></code>.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="keep-alive">
+<h3>keep-alive<a class="headerlink" href="#keep-alive" title="Link to this heading"></a></h3>
+<section id="id1">
+<h4>Request<a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
+<p>Master sends this message to check if the connection is still working.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section on <a class="reference internal" href="#msgpack-request-message"><span class="std std-ref">Request message</span></a> structure.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">keepalive</span></code>.</p>
+</dd>
+</dl>
+</section>
+<section id="id2">
+<h4>Response<a class="headerlink" href="#id2" title="Link to this heading"></a></h4>
+<p>Response indicates that connection is still working.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section  on <a class="reference internal" href="#msgpack-response-message"><span class="std std-ref">Response message</span></a> structure.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">response</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">result</span></code></dt><dd><p>Value is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="get-worker-info">
+<h3>get_worker_info<a class="headerlink" href="#get-worker-info" title="Link to this heading"></a></h3>
+<section id="id3">
+<h4>Request<a class="headerlink" href="#id3" title="Link to this heading"></a></h4>
+<p>This message requests worker to collect and send the information about itself back to the master.
+Only <code class="docutils literal notranslate"><span class="pre">op</span></code> and <code class="docutils literal notranslate"><span class="pre">seq_number</span></code> values are sent, because worker does not need any additional arguments for this action.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">get_worker_info</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section on <a class="reference internal" href="#msgpack-request-message"><span class="std std-ref">Request message</span></a> structure.</p>
+</dd>
+</dl>
+</section>
+<section id="id4">
+<h4>Response<a class="headerlink" href="#id4" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">response</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section  on <a class="reference internal" href="#msgpack-response-message"><span class="std std-ref">Response message</span></a> structure.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">result</span></code></dt><dd><p>Value is a dictionary that contains data about worker.
+Otherwise – message of exception.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">is_exception</span></code></dt><dd><p>This key-value pair is optional.
+If request succeeded this key-value pair is absent.
+Otherwise, its value is a boolean <code class="docutils literal notranslate"><span class="pre">True</span></code> and the message of exception is specified in the value of <code class="docutils literal notranslate"><span class="pre">result</span></code>.</p>
+</dd>
+</dl>
+<p>Key-value pairs in <code class="docutils literal notranslate"><span class="pre">result</span></code> dictionary represent:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">environ</span></code></dt><dd><p>Value is a dict.
+It represents environment variables of the worker.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">system</span></code></dt><dd><p>Value is a string.
+It represents a name of the operating system dependent module imported.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">basedir</span></code></dt><dd><p>Value is a string.
+It represents a path to build directory.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">numcpus</span></code></dt><dd><p>Value is an integer.
+It represents a number of CPUs in the system.
+If CPUs number for the worker is not detected, number 1 is set.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">version</span></code></dt><dd><p>Value is a string.
+It represents worker version.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">worker_commands</span></code></dt><dd><p>Value is a dictionary.
+Keys of this dictionary represent the commands that worker is able to perform.
+Values represent the command version.</p>
+</dd>
+</dl>
+<p>Additionally, files in Worker ‘basedir/info’ directory are read as key-value pairs.
+Key is a name of a file and value is the content of a file.
+As a convention, there are files named ‘admin’ and ‘host’:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">admin</span></code></dt><dd><p>Value is a string.
+It specifies information about administrator responsible for this worker.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">host</span></code></dt><dd><p>Value is a string.
+It specifies the name of the host.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="set-worker-settings">
+<h3>set_worker_settings<a class="headerlink" href="#set-worker-settings" title="Link to this heading"></a></h3>
+<section id="id5">
+<h4>Request<a class="headerlink" href="#id5" title="Link to this heading"></a></h4>
+<p>Master sends this message to set worker settings.
+The settings must be sent from master before first command.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section on <a class="reference internal" href="#msgpack-request-message"><span class="std std-ref">Request message</span></a> structure.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">set_worker_settings</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">args</span></code></dt><dd><p>Value is a dictionary.
+It represents the settings needed for worker to format command output and buffer messages.
+The following settings are mandatory:</p>
+<ul class="simple">
+<li><p>“buffer_size” - the maximum size of buffer in bytes to fill before sending an update message.</p></li>
+<li><p>“buffer_timeout” - the maximum time in seconds that data can wait in buffer before update message is sent.</p></li>
+<li><p>“newline_re” - the pattern in output string, which will be replaced with newline symbol.</p></li>
+<li><p>“max_line_length” - the maximum size of command output line in bytes.</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="id6">
+<h4>Response<a class="headerlink" href="#id6" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section  on <a class="reference internal" href="#msgpack-response-message"><span class="std std-ref">Response message</span></a> structure.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">response</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">result</span></code></dt><dd><p>Value is <code class="docutils literal notranslate"><span class="pre">None</span></code> if success.
+Otherwise – message of exception.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="start-command">
+<h3>start_command<a class="headerlink" href="#start-command" title="Link to this heading"></a></h3>
+<section id="id7">
+<h4>Request<a class="headerlink" href="#id7" title="Link to this heading"></a></h4>
+<p>This message requests worker to start a specific command.
+Master does not have to wait for completion of previous commands before starting a new one, so many different commands may be running in worker simultaneously.</p>
+<p>Each start command request message has a unique <code class="docutils literal notranslate"><span class="pre">command_id</span></code> value.</p>
+<p>Worker may be sending request <code class="docutils literal notranslate"><span class="pre">update</span></code> messages to master which update master about status of started command.
+When worker sends a request <code class="docutils literal notranslate"><span class="pre">update</span></code> message about command, the message takes a <code class="docutils literal notranslate"><span class="pre">command_id</span></code> value from corresponding start command request message.
+Accordingly master can match update messages to the commands they correspond to.
+When command execution in worker is completed, worker sends a request <code class="docutils literal notranslate"><span class="pre">complete</span></code> message to master with the <code class="docutils literal notranslate"><span class="pre">command_id</span></code> value of the completed command.
+It allows master to track which command exactly was completed.</p>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">start_command</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section <a class="reference internal" href="#msgpack-request-message"><span class="std std-ref">Request message</span></a> structure.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">command_id</span></code></dt><dd><p>Value is a string value that is unique per worker connection.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">command_name</span></code></dt><dd><p>Value is a string.
+It represents a name of the command to be called.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">args</span></code></dt><dd><p>Value is a dictionary.
+It represents arguments needed to run the command and any additional information about a command.</p>
+<p>Arguments of all different commands are explained in section <a class="reference internal" href="#msgpack-request-types-message"><span class="std std-ref">start_command request types</span></a>.</p>
+</dd>
+</dl>
+</section>
+<section id="id8">
+<h4>Response<a class="headerlink" href="#id8" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">response</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section <a class="reference internal" href="#msgpack-response-message"><span class="std std-ref">Response message</span></a> structure.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">result</span></code></dt><dd><p>Value is <code class="docutils literal notranslate"><span class="pre">None</span></code> when success.
+Otherwise – message of exception.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">is_exception</span></code></dt><dd><p>This key-value pair is optional.
+If request succeeded this key-value pair is absent.
+Otherwise, its value is a boolean <code class="docutils literal notranslate"><span class="pre">True</span></code> and the message of exception is specified in the value of <code class="docutils literal notranslate"><span class="pre">result</span></code>.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="interrupt-command">
+<h3>interrupt_command<a class="headerlink" href="#interrupt-command" title="Link to this heading"></a></h3>
+<section id="id9">
+<h4>Request<a class="headerlink" href="#id9" title="Link to this heading"></a></h4>
+<p>This message requests worker to halt the specified command.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section <a class="reference internal" href="#msgpack-request-message"><span class="std std-ref">Request message</span></a></p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">interrupt_command</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">command_id</span></code></dt><dd><p>Value is a string which identifies the command to interrupt.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">why</span></code></dt><dd><p>Value is a string.
+It represents the reason of interrupting command.</p>
+</dd>
+</dl>
+</section>
+<section id="id10">
+<h4>Response<a class="headerlink" href="#id10" title="Link to this heading"></a></h4>
+<p>During this command worker may also send back additional update messages to the master.
+Update messages are explained in section <a class="reference internal" href="#msgpack-update-message"><span class="std std-ref">update</span></a>.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">response</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section <a class="reference internal" href="#msgpack-response-message"><span class="std std-ref">Response message</span></a></p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">result</span></code></dt><dd><p>Value is <code class="docutils literal notranslate"><span class="pre">None</span></code> if success.
+Otherwise – message of exception.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">is_exception</span></code></dt><dd><p>This key-value pair is optional.
+If request succeeded this key-value pair is absent.
+Otherwise, its value is a boolean <code class="docutils literal notranslate"><span class="pre">True</span></code> and the message of exception is specified in the value of <code class="docutils literal notranslate"><span class="pre">result</span></code>.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="shutdown">
+<h3>shutdown<a class="headerlink" href="#shutdown" title="Link to this heading"></a></h3>
+<section id="id11">
+<h4>Request<a class="headerlink" href="#id11" title="Link to this heading"></a></h4>
+<p>This message requests worker to shutdown itself.
+Action does not require arguments,  so only <code class="docutils literal notranslate"><span class="pre">op</span></code> and <code class="docutils literal notranslate"><span class="pre">seq_number</span></code> values are sent.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section <a class="reference internal" href="#msgpack-request-message"><span class="std std-ref">Request message</span></a></p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>The value is a string <code class="docutils literal notranslate"><span class="pre">shutdown</span></code>.</p>
+</dd>
+</dl>
+</section>
+<section id="id12">
+<h4>Response<a class="headerlink" href="#id12" title="Link to this heading"></a></h4>
+<p>Worker returns <code class="docutils literal notranslate"><span class="pre">result</span></code>: <code class="docutils literal notranslate"><span class="pre">None</span></code> without waiting for completion of shutdown.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">response</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section <a class="reference internal" href="#msgpack-response-message"><span class="std std-ref">Response message</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">result</span></code></dt><dd><p>Value is <code class="docutils literal notranslate"><span class="pre">None</span></code> if success.
+Otherwise – message of exception.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">is_exception</span></code></dt><dd><p>This key-value pair is optional.
+If request succeeded this key-value pair is absent.
+Otherwise, its value is a boolean <code class="docutils literal notranslate"><span class="pre">True</span></code> and the message of exception is specified in the value of <code class="docutils literal notranslate"><span class="pre">result</span></code>.</p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+<section id="messages-from-worker-to-master">
+<h2><span class="section-number">3.3.15.3. </span>Messages from worker to master<a class="headerlink" href="#messages-from-worker-to-master" title="Link to this heading"></a></h2>
+<section id="update">
+<span id="msgpack-update-message"></span><h3>update<a class="headerlink" href="#update" title="Link to this heading"></a></h3>
+<p>From the start of a command till its completion, worker may be updating master about the processes of commands it requested to start.
+These updates are sent in an <code class="docutils literal notranslate"><span class="pre">update</span></code> messages.</p>
+<section id="id13">
+<h4>Request<a class="headerlink" href="#id13" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section <a class="reference internal" href="#msgpack-request-message"><span class="std std-ref">Request message</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">update</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">args</span></code></dt><dd><p>Value is a list of two-element lists.
+These two elements in sub-lists represent name-value pairs: first element is the name of update and second is its value.
+The names and values are further explained in section <a class="reference internal" href="#msgpack-keys-and-values-message"><span class="std std-ref">Contents of the value corresponding to args key in the dictionary of update request message</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">command_id</span></code></dt><dd><p>Value is a string which identifies command the update refers to.</p>
+</dd>
+</dl>
+</section>
+<section id="id14">
+<h4>Response<a class="headerlink" href="#id14" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">response</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section <a class="reference internal" href="#msgpack-response-message"><span class="std std-ref">Response message</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">result</span></code></dt><dd><p>Value is <code class="docutils literal notranslate"><span class="pre">None</span></code> when master successfully acknowledges the update.
+Otherwise – message of exception.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">is_exception</span></code></dt><dd><p>This key-value pair is optional.
+If request succeeded this key-value pair is absent.
+Otherwise, its value is a boolean <code class="docutils literal notranslate"><span class="pre">True</span></code> and the message of exception is specified in the value of <code class="docutils literal notranslate"><span class="pre">result</span></code>.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="update-upload-file-write">
+<h3>update_upload_file_write<a class="headerlink" href="#update-upload-file-write" title="Link to this heading"></a></h3>
+<section id="id15">
+<h4>Request<a class="headerlink" href="#id15" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">update_upload_file_write</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">args</span></code></dt><dd><p>Contents of the chunk from the file that worker read.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">command_id</span></code></dt><dd><p>Value is a string which identifies command the update refers to.</p>
+</dd>
+</dl>
+</section>
+<section id="id16">
+<h4>Response<a class="headerlink" href="#id16" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">response</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section <a class="reference internal" href="#msgpack-response-message"><span class="std std-ref">Response message</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">result</span></code></dt><dd><p>Value is <code class="docutils literal notranslate"><span class="pre">None</span></code> when master successfully acknowledges the update.
+Otherwise – message of exception.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">is_exception</span></code></dt><dd><p>This key-value pair is optional.
+If request succeeded this key-value pair is absent.
+Otherwise, its value is a boolean <code class="docutils literal notranslate"><span class="pre">True</span></code> and the message of exception is specified in the value of <code class="docutils literal notranslate"><span class="pre">result</span></code>.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="update-upload-file-close">
+<h3>update_upload_file_close<a class="headerlink" href="#update-upload-file-close" title="Link to this heading"></a></h3>
+<p>By this command worker states that no more data will be transferred.</p>
+<section id="id17">
+<h4>Request<a class="headerlink" href="#id17" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">update_upload_file_close</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">command_id</span></code></dt><dd><p>Value is a string which identifies command the update refers to.</p>
+</dd>
+</dl>
+</section>
+<section id="id18">
+<h4>Response<a class="headerlink" href="#id18" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">response</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section <a class="reference internal" href="#msgpack-response-message"><span class="std std-ref">Response message</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">result</span></code></dt><dd><p>Value is <code class="docutils literal notranslate"><span class="pre">None</span></code> when master successfully acknowledges the update.
+Otherwise – message of exception.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">is_exception</span></code></dt><dd><p>This key-value pair is optional.
+If request succeeded this key-value pair is absent.
+Otherwise, its value is a boolean <code class="docutils literal notranslate"><span class="pre">True</span></code> and the message of exception is specified in the value of <code class="docutils literal notranslate"><span class="pre">result</span></code>.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="update-upload-file-utime">
+<h3>update_upload_file_utime<a class="headerlink" href="#update-upload-file-utime" title="Link to this heading"></a></h3>
+<section id="id19">
+<h4>Request<a class="headerlink" href="#id19" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">update_upload_file_utime</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">access_time</span></code></dt><dd><p>Value is a floating point number.
+It is a number of seconds that passed from the start of the Unix epoch (January 1, 1970, 00:00:00 (UTC)) and last access of path.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">modified_time</span></code></dt><dd><p>Value is a floating point number.
+It is a number of seconds that passed from the start of the Unix epoch (January 1, 1970, 00:00:00 (UTC)) and last modification of path.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">command_id</span></code></dt><dd><p>Value is a string which identifies command the update refers to.</p>
+</dd>
+</dl>
+</section>
+<section id="id20">
+<h4>Response<a class="headerlink" href="#id20" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">response</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section <a class="reference internal" href="#msgpack-response-message"><span class="std std-ref">Response message</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">result</span></code></dt><dd><p>Value is <code class="docutils literal notranslate"><span class="pre">None</span></code> when master successfully acknowledges the update.
+Otherwise – message of exception.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">is_exception</span></code></dt><dd><p>This key-value pair is optional.
+If request succeeded this key-value pair is absent.
+Otherwise, its value is a boolean <code class="docutils literal notranslate"><span class="pre">True</span></code> and the message of exception is specified in the value of <code class="docutils literal notranslate"><span class="pre">result</span></code>.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="update-read-file">
+<h3>update_read_file<a class="headerlink" href="#update-read-file" title="Link to this heading"></a></h3>
+<section id="id21">
+<h4>Request<a class="headerlink" href="#id21" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">update_read_file</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">length</span></code></dt><dd><p>Maximum number of bytes of data to read.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">command_id</span></code></dt><dd><p>Value is a string which identifies command the update refers to.</p>
+</dd>
+</dl>
+</section>
+<section id="id22">
+<h4>Response<a class="headerlink" href="#id22" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">response</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section <a class="reference internal" href="#msgpack-response-message"><span class="std std-ref">Response message</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">result</span></code></dt><dd><p>Value is data of length <code class="docutils literal notranslate"><span class="pre">length</span></code> that master read from its file.
+Otherwise – message of exception.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">is_exception</span></code></dt><dd><p>This key-value pair is optional.
+If request succeeded this key-value pair is absent.
+Otherwise, its value is a boolean <code class="docutils literal notranslate"><span class="pre">True</span></code> and the message of exception is specified in the value of <code class="docutils literal notranslate"><span class="pre">result</span></code>.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="update-read-file-close">
+<h3>update_read_file_close<a class="headerlink" href="#update-read-file-close" title="Link to this heading"></a></h3>
+<p>By this command worker states that no more data will be transferred.</p>
+<section id="id23">
+<h4>Request<a class="headerlink" href="#id23" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">update_read_file_close</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">command_id</span></code></dt><dd><p>Value is a string which identifies command the update refers to.</p>
+</dd>
+</dl>
+</section>
+<section id="id24">
+<h4>Response<a class="headerlink" href="#id24" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">response</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section <a class="reference internal" href="#msgpack-response-message"><span class="std std-ref">Response message</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">result</span></code></dt><dd><p>Value is <code class="docutils literal notranslate"><span class="pre">None</span></code> when master successfully acknowledges the update.
+Otherwise – message of exception.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">is_exception</span></code></dt><dd><p>This key-value pair is optional.
+If request succeeded this key-value pair is absent.
+Otherwise, its value is a boolean <code class="docutils literal notranslate"><span class="pre">True</span></code> and the message of exception is specified in the value of <code class="docutils literal notranslate"><span class="pre">result</span></code>.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="update-upload-directory-write">
+<h3>update_upload_directory_write<a class="headerlink" href="#update-upload-directory-write" title="Link to this heading"></a></h3>
+<section id="id25">
+<h4>Request<a class="headerlink" href="#id25" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">update_upload_directory_write</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">args</span></code></dt><dd><p>Contents of the chunk from the directory that worker read.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">command_id</span></code></dt><dd><p>Value is a string which identifies command the update refers to.</p>
+</dd>
+</dl>
+</section>
+<section id="id26">
+<h4>Response<a class="headerlink" href="#id26" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">response</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section <a class="reference internal" href="#msgpack-response-message"><span class="std std-ref">Response message</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">result</span></code></dt><dd><p>Value is <code class="docutils literal notranslate"><span class="pre">None</span></code> when master successfully acknowledges the update.
+Otherwise – message of exception.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">is_exception</span></code></dt><dd><p>This key-value pair is optional.
+If request succeeded this key-value pair is absent.
+Otherwise, its value is a boolean <code class="docutils literal notranslate"><span class="pre">True</span></code> and the message of exception is specified in the value of <code class="docutils literal notranslate"><span class="pre">result</span></code>.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="update-upload-directory-unpack">
+<h3>update_upload_directory_unpack<a class="headerlink" href="#update-upload-directory-unpack" title="Link to this heading"></a></h3>
+<p>By this command worker states that no more data will be transferred.</p>
+<section id="id27">
+<h4>Request<a class="headerlink" href="#id27" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">update_upload_directory_unpack</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">command_id</span></code></dt><dd><p>Value is a string which identifies command the update refers to.</p>
+</dd>
+</dl>
+</section>
+<section id="id28">
+<h4>Response<a class="headerlink" href="#id28" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">response</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section <a class="reference internal" href="#msgpack-response-message"><span class="std std-ref">Response message</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">result</span></code></dt><dd><p>Value is <code class="docutils literal notranslate"><span class="pre">None</span></code> when master successfully acknowledges the update.
+Otherwise – message of exception.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">is_exception</span></code></dt><dd><p>This key-value pair is optional.
+If request succeeded this key-value pair is absent.
+Otherwise, its value is a boolean <code class="docutils literal notranslate"><span class="pre">True</span></code> and the message of exception is specified in the value of <code class="docutils literal notranslate"><span class="pre">result</span></code>.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="complete">
+<h3>complete<a class="headerlink" href="#complete" title="Link to this heading"></a></h3>
+<p>Notifies master that the remote command has finished.</p>
+<section id="id29">
+<h4>Request<a class="headerlink" href="#id29" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section <a class="reference internal" href="#msgpack-request-message"><span class="std std-ref">Request message</span></a></p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">complete</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">args</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">None</span></code> if a command succeeded.
+A message of error as a string if command failed.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">command_id</span></code></dt><dd><p>Value is a string which identifies command to complete.</p>
+</dd>
+</dl>
+</section>
+<section id="id30">
+<h4>Response<a class="headerlink" href="#id30" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">op</span></code></dt><dd><p>Value is a string <code class="docutils literal notranslate"><span class="pre">response</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">seq_number</span></code></dt><dd><p>Described in section <a class="reference internal" href="#msgpack-response-message"><span class="std std-ref">Response message</span></a>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">result</span></code></dt><dd><p>Value is <code class="docutils literal notranslate"><span class="pre">None</span></code> when master successfully acknowledges the completion.
+Otherwise – message of exception.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">is_exception</span></code></dt><dd><p>This key-value pair is optional.
+If request succeeded this key-value pair is absent.
+Otherwise, its value is a boolean <code class="docutils literal notranslate"><span class="pre">True</span></code> and the message of exception is specified in the value of <code class="docutils literal notranslate"><span class="pre">result</span></code>.</p>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+<section id="start-command-request-types">
+<span id="msgpack-request-types-message"></span><h2><span class="section-number">3.3.15.4. </span><code class="docutils literal notranslate"><span class="pre">start_command</span></code> request types<a class="headerlink" href="#start-command-request-types" title="Link to this heading"></a></h2>
+<p>Request causes worker to start performing an action.
+There are multiple types of the request each supporting a particular type of worker action.
+The basic structure of request is the same as explained in section <a class="reference internal" href="#msgpack-request-message"><span class="std std-ref">Request message</span></a>.</p>
+<p>Values of <code class="docutils literal notranslate"><span class="pre">command_name</span></code> and <code class="docutils literal notranslate"><span class="pre">args</span></code> keys depend on the specific command within the request message dictionary.
+<code class="docutils literal notranslate"><span class="pre">command_name</span></code> is a string which defines command type.
+<code class="docutils literal notranslate"><span class="pre">args</span></code> is a dictionary which defines the arguments and other variables worker needs to perform the command successfully.
+Worker starts a program specified in the key <code class="docutils literal notranslate"><span class="pre">command_name</span></code> and sends updates to the master about ongoing command.</p>
+<p>Command names and their arguments dictionary key-value pairs are explained below.</p>
+<section id="command-name-shell">
+<h3>Command_name: <code class="docutils literal notranslate"><span class="pre">shell</span></code><a class="headerlink" href="#command-name-shell" title="Link to this heading"></a></h3>
+<p>Runs a <code class="docutils literal notranslate"><span class="pre">shell</span></code> command on the worker.</p>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">workdir</span></code></dt><dd><p>Value is a string.
+<code class="docutils literal notranslate"><span class="pre">workdir</span></code> is an absolute path and overrides the builder directory.
+The resulting path represents the worker directory to run the command in.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">env</span></code></dt><dd><p>Value is a dictionary and is optional.
+It contains key-value pairs that specify environment variables for the environment in which a new command is started.</p>
+<p>If the value is of type list, its elements are concatenated to a single string using a platform specific path separator between the elements.</p>
+<p>If this dictionary contains “PYTHONPATH” key, path separator and “$PYTHONPATH” is appended to that value.</p>
+<p>Resulting environment dictionary sent to the command is created following these rules:</p>
+<ol class="arabic simple">
+<li><p>If <code class="docutils literal notranslate"><span class="pre">env</span></code> has value for specific key and it is <code class="docutils literal notranslate"><span class="pre">None</span></code>, resulting dictionary does not have this key.</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">env</span></code> has value for specific key and it is not <code class="docutils literal notranslate"><span class="pre">None</span></code>, resulting dictionary contains this value with substitutions applied.</p></li>
+</ol>
+<p>Any matches of a pattern <code class="docutils literal notranslate"><span class="pre">${name}</span></code> in this value, where name is any number of alphanumeric characters, are substituted with the value of the same key from worker environment.</p>
+<ol class="arabic simple" start="3">
+<li><p>If a specific key from worker environment is not present in <code class="docutils literal notranslate"><span class="pre">env</span></code>, resulting dictionary contains that key-value pair from worker environment.</p></li>
+</ol>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">want_stdout</span></code></dt><dd><p>Value is a bool and is optional.
+If value is not specified, the default is <code class="docutils literal notranslate"><span class="pre">True</span></code>.
+If value is <code class="docutils literal notranslate"><span class="pre">True</span></code>, worker sends <code class="docutils literal notranslate"><span class="pre">update</span></code> log messages to master from the process <code class="docutils literal notranslate"><span class="pre">stdout</span></code> output.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">want_stderr</span></code></dt><dd><p>Value is a bool and is optional.
+If value is not specified, the default is True.
+If value is <code class="docutils literal notranslate"><span class="pre">True</span></code>, worker sends <code class="docutils literal notranslate"><span class="pre">update</span></code> log messages to the master from the process <code class="docutils literal notranslate"><span class="pre">stderr</span></code> output.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">logfiles</span></code></dt><dd><p>Value is a dictionary and is optional.
+If the value is not specified, the default is an empty dictionary.</p>
+<p>This dictionary specifies logfiles other than stdio.</p>
+<p>Keys are the logfile names.</p>
+<p>Worker reads this logfile and sends the data with the <code class="docutils literal notranslate"><span class="pre">update</span></code> message, where logfile name as a key identifies data of different logfiles.</p>
+<p>Value is a dictionary. It contains the following keys:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">filename</span></code></dt><dd><p>Value is a string. It represents the filename of the logfile, relative to worker directory where the command is run.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">follow</span></code></dt><dd><p>Value is a boolean.
+If <code class="docutils literal notranslate"><span class="pre">True</span></code> - only follow the file from its current end-of-file, rather than starting from the beginning.
+The default is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">timeout</span></code></dt><dd><p>Value is an integer and is optional.
+If value is not specified, the default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.
+It represents, how many seconds a worker should wait before killing a process after it gives no output.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">maxTime</span></code></dt><dd><p>Value is an integer and is optional.
+If value is not specified, the default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.
+It represents, how many seconds a worker should wait before killing a process.
+Even if command is still running and giving the output, <code class="docutils literal notranslate"><span class="pre">maxTime</span></code> variable sets the maximum time the command is allowed to be performing.
+If <code class="docutils literal notranslate"><span class="pre">maxTime</span></code> is set to <code class="docutils literal notranslate"><span class="pre">None</span></code>, command runs for as long as it needs unless <code class="docutils literal notranslate"><span class="pre">timeout</span></code> specifies otherwise.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">sigtermTime</span></code></dt><dd><p>Value is an integer and is optional.
+If value is not specified, the default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.
+It specifies how to abort the process.
+If <code class="docutils literal notranslate"><span class="pre">sigtermTime</span></code> is not <code class="docutils literal notranslate"><span class="pre">None</span></code> when aborting the process, worker sends a signal SIGTERM.
+After sending this signal, worker waits for <code class="docutils literal notranslate"><span class="pre">sigtermTime</span></code> seconds of time and if the process is still alive, sends the signal SIGKILL.
+If <code class="docutils literal notranslate"><span class="pre">sigtermTime</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>, worker does not wait and sends signal SIGKILL to the process immediately.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">usePTY</span></code></dt><dd><p>Value is a bool and is optional.
+If value is not specified, the default is <code class="docutils literal notranslate"><span class="pre">False</span></code>.
+<code class="docutils literal notranslate"><span class="pre">True</span></code> to use a PTY, <code class="docutils literal notranslate"><span class="pre">False</span></code> to not use a PTY.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">logEnviron</span></code></dt><dd><p>Value is a bool and is optional.
+If value is not specified, the default is <code class="docutils literal notranslate"><span class="pre">True</span></code>.
+If <code class="docutils literal notranslate"><span class="pre">True</span></code>, worker sends to master an <code class="docutils literal notranslate"><span class="pre">update</span></code> message with process environment key-value pairs at the beginning of a process.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">initial_stdin</span></code></dt><dd><p>Value is a string or <code class="docutils literal notranslate"><span class="pre">None</span></code>.
+If not <code class="docutils literal notranslate"><span class="pre">None</span></code>, the value is sent to the process as an initial stdin after process is started.
+If value is <code class="docutils literal notranslate"><span class="pre">None</span></code>, no initial stdin is sent.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">command</span></code></dt><dd><p>Value is a list of strings or a string.
+It represents the name of a program to be started and its arguments.
+If this is a string, it will be invoked via <code class="docutils literal notranslate"><span class="pre">/bin/sh</span></code> shell by calling it as <code class="docutils literal notranslate"><span class="pre">/bin/sh</span> <span class="pre">-c</span> <span class="pre">&lt;command&gt;</span></code>.
+Otherwise, it must be a list, which will be executed directly.</p>
+<p>If command succeeded, worker sends <code class="docutils literal notranslate"><span class="pre">rc</span></code> value 0 as an <code class="docutils literal notranslate"><span class="pre">update</span></code> message <code class="docutils literal notranslate"><span class="pre">args</span></code> key-value pair.
+It can also send many other <code class="docutils literal notranslate"><span class="pre">update</span></code> messages with keys such as <code class="docutils literal notranslate"><span class="pre">header</span></code>, <code class="docutils literal notranslate"><span class="pre">stdout</span></code> or <code class="docutils literal notranslate"><span class="pre">stderr</span></code> to inform about command execution.
+If command failed, it sends <code class="docutils literal notranslate"><span class="pre">rc</span></code> value with the error number.
+If command timed out, it sends <code class="docutils literal notranslate"><span class="pre">failure_reason</span></code> key.
+The value of the <code class="docutils literal notranslate"><span class="pre">failure_reason</span></code> key can be one of the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">timeout</span></code> if the command timed out due to time specified by the <code class="docutils literal notranslate"><span class="pre">maxTime</span></code> parameter being exceeded.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">timeout_without_output</span></code> if the command timed out due to time specified by the <code class="docutils literal notranslate"><span class="pre">timeout</span></code> parameter being exceeded.</p></li>
+</ul>
+</div></blockquote>
+<p>The basic structure of worker <code class="docutils literal notranslate"><span class="pre">update</span></code> message is explained in section <a class="reference internal" href="#msgpack-keys-and-values-message"><span class="std std-ref">Contents of the value corresponding to args key in the dictionary of update request message</span></a>.</p>
+</dd>
+</dl>
+</section>
+<section id="command-name-upload-file">
+<h3>Command_name: <code class="docutils literal notranslate"><span class="pre">upload_file</span></code><a class="headerlink" href="#command-name-upload-file" title="Link to this heading"></a></h3>
+<p>Worker reads the contents of its file and sends them in chunks to write into the file on masters’s side.</p>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">path</span></code></dt><dd><p>Value is a string.
+It specifies the path of the worker file to read from.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">maxsize</span></code></dt><dd><p>Value is an integer.
+Maximum number of bytes to transfer from the worker.
+The operation will fail if the file exceeds this size.
+Worker will send messages with data to master until it notices it exceeded <code class="docutils literal notranslate"><span class="pre">maxsize</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">blocksize</span></code></dt><dd><p>Value is an integer.
+Maximum size for each data block to be sent to master.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">keepstamp</span></code></dt><dd><p>Value is a bool.
+It represents whether to preserve “file modified” and “accessed” times.
+<code class="docutils literal notranslate"><span class="pre">True</span></code> is for preserving.</p>
+<p>Workers sends data to master with one or more <code class="docutils literal notranslate"><span class="pre">update_upload_file_write</span></code> messages.
+After reading the file is over, worker sends <code class="docutils literal notranslate"><span class="pre">update_upload_file_close</span></code> message.
+If <code class="docutils literal notranslate"><span class="pre">keepstamp</span></code> was <code class="docutils literal notranslate"><span class="pre">True</span></code>, workers sends <code class="docutils literal notranslate"><span class="pre">update_upload_file_utime</span></code> message.
+If command succeeded, worker sends <code class="docutils literal notranslate"><span class="pre">rc</span></code> value 0 as an <code class="docutils literal notranslate"><span class="pre">update</span></code> message <code class="docutils literal notranslate"><span class="pre">args</span></code> key-value pair.
+It can also send <code class="docutils literal notranslate"><span class="pre">update</span></code> messages with key <code class="docutils literal notranslate"><span class="pre">header</span></code> or <code class="docutils literal notranslate"><span class="pre">stderr</span></code> to inform about command execution.</p>
+<p>If command failed, worker sends <code class="docutils literal notranslate"><span class="pre">update_upload_file_close</span></code> message and the <code class="docutils literal notranslate"><span class="pre">update</span></code> message with dictionary <code class="docutils literal notranslate"><span class="pre">args</span></code> key <code class="docutils literal notranslate"><span class="pre">rc</span></code> with the error number.</p>
+<p>The basic structure of worker <code class="docutils literal notranslate"><span class="pre">update</span></code> message is explained in section <a class="reference internal" href="#msgpack-keys-and-values-message"><span class="std std-ref">Contents of the value corresponding to args key in the dictionary of update request message</span></a>.</p>
+</dd>
+</dl>
+</section>
+<section id="command-name-upload-directory">
+<h3>Command_name: <code class="docutils literal notranslate"><span class="pre">upload_directory</span></code><a class="headerlink" href="#command-name-upload-directory" title="Link to this heading"></a></h3>
+<p>Similar to <code class="docutils literal notranslate"><span class="pre">upload_file</span></code>.
+This command will upload an entire directory to the master, in the form of a tarball.</p>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">path</span></code></dt><dd><p>Value is a string.
+It specifies the path of the worker directory to upload.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">maxsize</span></code></dt><dd><p>Value is an integer.
+Maximum number of bytes to transfer from the worker.
+The operation will fail if the tarball file exceeds this size.
+Worker will send messages with data to master until it notices it exceeded <code class="docutils literal notranslate"><span class="pre">maxsize</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">blocksize</span></code></dt><dd><p>Value is an integer.
+Maximum size for each data block to be sent to master.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">compress</span></code></dt><dd><p>Compression algorithm to use – one of <code class="docutils literal notranslate"><span class="pre">None</span></code>, ‘bz2’, or ‘gz’.</p>
+<p>Worker sends data to the master with one or more <code class="docutils literal notranslate"><span class="pre">update_upload_directory_write</span></code> messages.
+After reading the directory, worker sends <code class="docutils literal notranslate"><span class="pre">update_upload_directory_unpack</span></code> with no arguments to extract the tarball and <code class="docutils literal notranslate"><span class="pre">rc</span></code> value 0 as an <code class="docutils literal notranslate"><span class="pre">update</span></code> message <code class="docutils literal notranslate"><span class="pre">args</span></code> key-value pair if the command succeeded.</p>
+<p>Otherwise, worker sends <code class="docutils literal notranslate"><span class="pre">update</span></code> message with dictionary <code class="docutils literal notranslate"><span class="pre">args</span></code> key <code class="docutils literal notranslate"><span class="pre">header</span></code> with information about the error that occurred and another <code class="docutils literal notranslate"><span class="pre">update</span></code> message with dictionary <code class="docutils literal notranslate"><span class="pre">args</span></code> key <code class="docutils literal notranslate"><span class="pre">rc</span></code> with the error number.</p>
+</dd>
+</dl>
+<p>The basic structure of worker <code class="docutils literal notranslate"><span class="pre">update</span></code> message is explained in section <a class="reference internal" href="#msgpack-keys-and-values-message"><span class="std std-ref">Contents of the value corresponding to args key in the dictionary of update request message</span></a>.</p>
+</section>
+<section id="command-name-download-file">
+<h3>Command_name: <code class="docutils literal notranslate"><span class="pre">download_file</span></code><a class="headerlink" href="#command-name-download-file" title="Link to this heading"></a></h3>
+<p>Downloads a file from master to worker.</p>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">path</span></code></dt><dd><p>Value is a string.
+It specifies the path of the worker file to create.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">maxsize</span></code></dt><dd><p>Value is an integer.
+Maximum number of bytes to transfer from the master.
+The operation will fail if the file exceeds this size.
+Worker will request data from master until it notices it exceeded <code class="docutils literal notranslate"><span class="pre">maxsize</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">blocksize</span></code></dt><dd><p>Value is an integer.
+It represents maximum size for each data block to be sent from master to worker.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">mode</span></code></dt><dd><p>Value is <code class="docutils literal notranslate"><span class="pre">None</span></code> or an integer which represents an access mode for the new file.</p>
+<p>256 - owner has read permission.</p>
+<p>128 - owner has write permission.</p>
+<p>64 - owner has execute permission.</p>
+<p>32 - group has read permission.</p>
+<p>16 - group has write permission.</p>
+<p>8 - group has execute permission.</p>
+<p>4 - others have read permission.</p>
+<p>2 - others have write permission.</p>
+<p>1 - others have execute permission.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">None</span></code>, file has default permissions.</p>
+<p>If command succeeded, worker will send <code class="docutils literal notranslate"><span class="pre">rc</span></code> value 0 as an <code class="docutils literal notranslate"><span class="pre">update</span></code> message <code class="docutils literal notranslate"><span class="pre">args</span></code> key-value pair.</p>
+<p>Otherwise, worker sends <code class="docutils literal notranslate"><span class="pre">update</span></code> message with dictionary <code class="docutils literal notranslate"><span class="pre">args</span></code> key <code class="docutils literal notranslate"><span class="pre">header</span></code> with information about the error that occurred and another <code class="docutils literal notranslate"><span class="pre">update</span></code> message with dictionary <code class="docutils literal notranslate"><span class="pre">args</span></code> key <code class="docutils literal notranslate"><span class="pre">rc</span></code> with the error number.</p>
+<p>The basic structure of worker <code class="docutils literal notranslate"><span class="pre">update</span></code> message is explained in section <a class="reference internal" href="#msgpack-keys-and-values-message"><span class="std std-ref">Contents of the value corresponding to args key in the dictionary of update request message</span></a>.</p>
+</dd>
+</dl>
+</section>
+<section id="command-name-listdir">
+<h3>Command_name: <code class="docutils literal notranslate"><span class="pre">listdir</span></code><a class="headerlink" href="#command-name-listdir" title="Link to this heading"></a></h3>
+<p>This command reads the directory and returns the list with directory contents.</p>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">path</span></code></dt><dd><p>Value is a string.
+It specifies the path of a directory to list.</p>
+<p>If command succeeded, the list containing the names of the entries in the directory given by that path is sent via <code class="docutils literal notranslate"><span class="pre">update</span></code> message in <code class="docutils literal notranslate"><span class="pre">args</span></code> key <code class="docutils literal notranslate"><span class="pre">files</span></code>.
+Worker will also send <code class="docutils literal notranslate"><span class="pre">rc</span></code> value 0 as an <code class="docutils literal notranslate"><span class="pre">update</span></code> message <code class="docutils literal notranslate"><span class="pre">args</span></code> key-value pair.
+If command failed, worker sends <code class="docutils literal notranslate"><span class="pre">update</span></code> message with dictionary <code class="docutils literal notranslate"><span class="pre">args</span></code> key <code class="docutils literal notranslate"><span class="pre">header</span></code> with information about the error that occurred and another <code class="docutils literal notranslate"><span class="pre">update</span></code> message with dictionary <code class="docutils literal notranslate"><span class="pre">args</span></code> key <code class="docutils literal notranslate"><span class="pre">rc</span></code> with the error number.</p>
+<p>The basic structure of worker <code class="docutils literal notranslate"><span class="pre">update</span></code> message is explained in section <a class="reference internal" href="#msgpack-keys-and-values-message"><span class="std std-ref">Contents of the value corresponding to args key in the dictionary of update request message</span></a>.</p>
+</dd>
+</dl>
+</section>
+<section id="command-name-mkdir">
+<h3>Command_name: <code class="docutils literal notranslate"><span class="pre">mkdir</span></code><a class="headerlink" href="#command-name-mkdir" title="Link to this heading"></a></h3>
+<p>This command will create a directory on the worker.
+It will also create any intervening directories required.</p>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">paths</span></code></dt><dd><p>Value is a list of strings.
+It specifies absolute paths of directories to create.</p>
+<p>If command succeeded, worker will send <code class="docutils literal notranslate"><span class="pre">rc</span></code> value 0 as an <code class="docutils literal notranslate"><span class="pre">update</span></code> message <code class="docutils literal notranslate"><span class="pre">args</span></code> key-value pair.</p>
+<p>Otherwise, worker sends <code class="docutils literal notranslate"><span class="pre">update</span></code> message with dictionary <code class="docutils literal notranslate"><span class="pre">args</span></code> key <code class="docutils literal notranslate"><span class="pre">header</span></code> with information about the error that occurred and another <code class="docutils literal notranslate"><span class="pre">update</span></code> message with dictionary <code class="docutils literal notranslate"><span class="pre">args</span></code> key <code class="docutils literal notranslate"><span class="pre">rc</span></code> with the error number.</p>
+<p>The basic structure of worker <code class="docutils literal notranslate"><span class="pre">update</span></code> message is explained in section <a class="reference internal" href="#msgpack-keys-and-values-message"><span class="std std-ref">Contents of the value corresponding to args key in the dictionary of update request message</span></a>.</p>
+</dd>
+</dl>
+</section>
+<section id="command-name-rmdir">
+<h3>Command_name <code class="docutils literal notranslate"><span class="pre">rmdir</span></code><a class="headerlink" href="#command-name-rmdir" title="Link to this heading"></a></h3>
+<p>This command will remove directories or files on the worker.</p>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">paths</span></code></dt><dd><p>Value is a list of strings.
+It specifies absolute paths of directories or files to remove.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">logEnviron</span></code></dt><dd><p>Value is a bool and is optional.
+If value is not specified, the default is <code class="docutils literal notranslate"><span class="pre">True</span></code>.
+If <code class="docutils literal notranslate"><span class="pre">True</span></code>, worker sends to master an <code class="docutils literal notranslate"><span class="pre">update</span></code> message with process environment key-value pairs at the beginning of a process.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">timeout</span></code></dt><dd><p>Value is an integer and is optional.
+If value is not specified, the default is 120s.
+It represents how many seconds a worker should wait before killing a process when it gives no output.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">maxTime</span></code></dt><dd><p>Value is an integer and is optional.
+If value is not specified, the default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.
+It represents, how many seconds a worker should wait before killing a process.
+Even if command is still running and giving the output, <code class="docutils literal notranslate"><span class="pre">maxTime</span></code> variable sets the maximum time the command is allowed to be performing.
+If <code class="docutils literal notranslate"><span class="pre">maxTime</span></code> is set to <code class="docutils literal notranslate"><span class="pre">None</span></code>, command runs for as long as it needs unless <code class="docutils literal notranslate"><span class="pre">timeout</span></code> specifies otherwise.</p>
+<p>If command succeeded, worker sends <code class="docutils literal notranslate"><span class="pre">rc</span></code> value 0 as an <code class="docutils literal notranslate"><span class="pre">update</span></code> message <code class="docutils literal notranslate"><span class="pre">args</span></code> key-value pair.
+It can also send many <code class="docutils literal notranslate"><span class="pre">update</span></code> messages with key <code class="docutils literal notranslate"><span class="pre">header</span></code>, <code class="docutils literal notranslate"><span class="pre">stdout</span></code> or <code class="docutils literal notranslate"><span class="pre">stderr</span></code> to inform about command execution.
+If command failed, worker changes the permissions of a directory and tries the removal once again.
+If that does not help, worker sends <code class="docutils literal notranslate"><span class="pre">rc</span></code> value with the error number.</p>
+<p>The basic structure of worker <code class="docutils literal notranslate"><span class="pre">update</span></code> message is explained in section <a class="reference internal" href="#msgpack-keys-and-values-message"><span class="std std-ref">Contents of the value corresponding to args key in the dictionary of update request message</span></a>.</p>
+</dd>
+</dl>
+</section>
+<section id="command-name-cpdir">
+<h3>Command_name: <code class="docutils literal notranslate"><span class="pre">cpdir</span></code><a class="headerlink" href="#command-name-cpdir" title="Link to this heading"></a></h3>
+<p>This command copies a directory from one place in the worker to another.</p>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">from_path</span></code></dt><dd><p>Value is a string.
+It specifies the absolute path to the source directory for the copy operation.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">to_path</span></code></dt><dd><p>Value is a string.
+It specifies the absolute path to the destination directory for the copy operation.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">logEnviron</span></code></dt><dd><p>Value is a bool.
+If <code class="docutils literal notranslate"><span class="pre">True</span></code>, worker sends to master an <code class="docutils literal notranslate"><span class="pre">update</span></code> message with process environment key-value pairs at the beginning of a process.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">timeout</span></code></dt><dd><p>Value is an integer.
+If value is not specified, the default is 120s.
+It represents, how many seconds a worker should wait before killing a process if it gives no output.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">maxTime</span></code></dt><dd><p>Value is an integer and is optional.
+If value is not specified, the default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.
+It represents, how many seconds a worker should wait before killing a process.
+Even if command is still running and giving the output, <code class="docutils literal notranslate"><span class="pre">maxTime</span></code> variable sets the maximum time the command is allowed to be performing.
+If <code class="docutils literal notranslate"><span class="pre">maxTime</span></code> is set to <code class="docutils literal notranslate"><span class="pre">None</span></code>, command runs for as long as it needs unless <code class="docutils literal notranslate"><span class="pre">timeout</span></code> specifies otherwise.</p>
+<p>If command succeeded, worker sends <code class="docutils literal notranslate"><span class="pre">rc</span></code> value 0 as an <code class="docutils literal notranslate"><span class="pre">update</span></code> message <code class="docutils literal notranslate"><span class="pre">args</span></code> key-value pair.
+It can also send many <code class="docutils literal notranslate"><span class="pre">update</span></code> messages with key <code class="docutils literal notranslate"><span class="pre">header</span></code>, <code class="docutils literal notranslate"><span class="pre">stdout</span></code> or <code class="docutils literal notranslate"><span class="pre">`stderr`</span> <span class="pre">to</span> <span class="pre">inform</span> <span class="pre">about</span> <span class="pre">command</span> <span class="pre">execution.</span>
+<span class="pre">If</span> <span class="pre">command</span> <span class="pre">failed,</span> <span class="pre">it</span> <span class="pre">sends</span> <span class="pre">``rc</span></code> value with the error number.</p>
+<p>The basic structure of worker <code class="docutils literal notranslate"><span class="pre">update</span></code> message is explained in section <a class="reference internal" href="#msgpack-keys-and-values-message"><span class="std std-ref">Contents of the value corresponding to args key in the dictionary of update request message</span></a>.</p>
+</dd>
+</dl>
+</section>
+<section id="command-name-stat">
+<h3>Command_name: <code class="docutils literal notranslate"><span class="pre">stat</span></code><a class="headerlink" href="#command-name-stat" title="Link to this heading"></a></h3>
+<p>This command returns status information about workers file or directory.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">path</span></code></dt><dd><p>Value is a string.
+It specifies the path of a file or directory to get the status of.</p>
+</dd>
+</dl>
+<p>If command succeeded, status information is sent to the master in an <code class="docutils literal notranslate"><span class="pre">update</span></code> message, where <code class="docutils literal notranslate"><span class="pre">args</span></code> has a key <code class="docutils literal notranslate"><span class="pre">stat</span></code> with a value of a tuple of these 10 elements:</p>
+<p>0 - File mode: file type and file mode bits (permissions) in Unix convention.</p>
+<p>1 - Platform dependent, but if non-zero, uniquely identifies the file for a specific device.</p>
+<p>2 - Unique ID of disc device where this file resides.</p>
+<p>3 - Number of hard links.</p>
+<p>4 - ID of the file owner.</p>
+<p>5 - Group ID of the file owner.</p>
+<p>6 - If the file is a regular file or a symbolic link, size of the file in bytes, otherwise unspecified.</p>
+<p>Timestamps depend on the platform:</p>
+<p>Unix time or the time of Windows creation, expressed in seconds.</p>
+<p>7 - time of last access in seconds.</p>
+<p>8 - time of last data modification in seconds.</p>
+<p>9 - time of last status change in seconds.</p>
+<blockquote>
+<div><p>If command succeeded, worker also sends <code class="docutils literal notranslate"><span class="pre">rc</span></code> value 0 as an <code class="docutils literal notranslate"><span class="pre">update</span></code> message <code class="docutils literal notranslate"><span class="pre">args</span></code> key-value pair.</p>
+<p>Otherwise, worker sends <code class="docutils literal notranslate"><span class="pre">update</span></code> message with dictionary <code class="docutils literal notranslate"><span class="pre">args</span></code> key <code class="docutils literal notranslate"><span class="pre">header</span></code> with information about the error that occurred and another <code class="docutils literal notranslate"><span class="pre">update</span></code> message with dictionary <code class="docutils literal notranslate"><span class="pre">args</span></code> key <code class="docutils literal notranslate"><span class="pre">rc</span></code> with the error number.</p>
+<p>The basic structure of worker <code class="docutils literal notranslate"><span class="pre">update</span></code> message is explained in section <a class="reference internal" href="#msgpack-keys-and-values-message"><span class="std std-ref">Contents of the value corresponding to args key in the dictionary of update request message</span></a>.</p>
+</div></blockquote>
+</section>
+<section id="command-name-glob">
+<h3>Command_name: <code class="docutils literal notranslate"><span class="pre">glob</span></code><a class="headerlink" href="#command-name-glob" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p>Worker sends to the master a possibly-empty list of path names that match shell-style path specification.</p>
+</div></blockquote>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">path</span></code></dt><dd><p>Value is a string.
+It specifies a shell-style path pattern.
+Path pattern can contain shell-style wildcards and must represent an absolute path.</p>
+<p>If command succeeded, the result is sent to the master in an <code class="docutils literal notranslate"><span class="pre">update</span></code> message, where <code class="docutils literal notranslate"><span class="pre">args</span></code> has a key <code class="docutils literal notranslate"><span class="pre">file</span></code> with the value of that possibly-empty path list.
+This path list may contain broken symlinks as in the shell.
+It is not specified whether path list is sorted.</p>
+<p>Worker also sends <code class="docutils literal notranslate"><span class="pre">rc</span></code> value 0 as an <code class="docutils literal notranslate"><span class="pre">update</span></code> message <code class="docutils literal notranslate"><span class="pre">args</span></code> key-value pair.</p>
+<p>Otherwise, worker sends <code class="docutils literal notranslate"><span class="pre">update</span></code> message with dictionary <code class="docutils literal notranslate"><span class="pre">args</span></code> key <code class="docutils literal notranslate"><span class="pre">header</span></code> with information about the error that occurred and another <code class="docutils literal notranslate"><span class="pre">update</span></code> message with dictionary <code class="docutils literal notranslate"><span class="pre">args</span></code> key <code class="docutils literal notranslate"><span class="pre">rc</span></code> with the error number.</p>
+<p>The basic structure of worker <code class="docutils literal notranslate"><span class="pre">update</span></code> message is explained in section <a class="reference internal" href="#msgpack-keys-and-values-message"><span class="std std-ref">Contents of the value corresponding to args key in the dictionary of update request message</span></a>.</p>
+</dd>
+</dl>
+</section>
+<section id="command-name-rmfile">
+<h3>Command_name: <code class="docutils literal notranslate"><span class="pre">rmfile</span></code><a class="headerlink" href="#command-name-rmfile" title="Link to this heading"></a></h3>
+<p>This command removes the specified file.</p>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">path</span></code></dt><dd><p>Value is a string.
+It specifies a path of a file to delete.</p>
+<p>If command succeeded, worker sends <code class="docutils literal notranslate"><span class="pre">rc</span></code> value 0 as an <code class="docutils literal notranslate"><span class="pre">update</span></code> message <code class="docutils literal notranslate"><span class="pre">args</span></code> key-value pair.</p>
+<p>Otherwise, worker sends <code class="docutils literal notranslate"><span class="pre">update</span></code> message with dictionary <code class="docutils literal notranslate"><span class="pre">args</span></code> key <code class="docutils literal notranslate"><span class="pre">header</span></code> with information about the error that occurred and another <code class="docutils literal notranslate"><span class="pre">update</span></code> message with dictionary <code class="docutils literal notranslate"><span class="pre">args</span></code> key <code class="docutils literal notranslate"><span class="pre">rc</span></code> with the error number.</p>
+<p>The basic structure of worker <code class="docutils literal notranslate"><span class="pre">update</span></code> message is explained in section <a class="reference internal" href="#msgpack-keys-and-values-message"><span class="std std-ref">Contents of the value corresponding to args key in the dictionary of update request message</span></a>.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="contents-of-the-value-corresponding-to-args-key-in-the-dictionary-of-update-request-message">
+<span id="msgpack-keys-and-values-message"></span><h2><span class="section-number">3.3.15.5. </span>Contents of the value corresponding to <code class="docutils literal notranslate"><span class="pre">args</span></code> key in the dictionary of <code class="docutils literal notranslate"><span class="pre">update</span></code> request message<a class="headerlink" href="#contents-of-the-value-corresponding-to-args-key-in-the-dictionary-of-update-request-message" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">args</span></code> key-value pair describes information that the request message sends to master.
+The value is a list of lists.
+Each sub-list contains a name-value pair and represents a single update.
+First element in a list represents the name of update (see below) and second element represents its value.
+Commands may have their own update names so only common ones are described here.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">stdout</span></code></dt><dd><p>Value is a standard output of a process as a string.
+Some of the commands that master requests worker to start, may initiate processes which output a result as a standard output and this result is saved in the value of <code class="docutils literal notranslate"><span class="pre">stdout</span></code>.
+The value satisfies the requirements described in a section below.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">rc</span></code></dt><dd><p>Value is an integer.
+It represents an exit code of a process.
+0 if the process exit was successful.
+Any other number represents a failure.</p>
+</dd>
+</dl>
+<p><code class="docutils literal notranslate"><span class="pre">failure_reason</span></code></p>
+<blockquote>
+<div><p>Value is a string and describes additional scenarios when a process failed.
+The value of the <code class="docutils literal notranslate"><span class="pre">failure_reason</span></code> key can be one of the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">timeout</span></code> if the command timed out due to time specified by the <code class="docutils literal notranslate"><span class="pre">maxTime</span></code> parameter being exceeded.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">timeout_without_output</span></code> if the command timed out due to time specified by the <code class="docutils literal notranslate"><span class="pre">timeout</span></code> parameter being exceeded.</p></li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">header</span></code></dt><dd><p>Value is a string of a header.
+It represents additional information about how the command worked.
+For example, information may include the command name and arguments, working directory and environment or various errors or warnings of a process or other information that may be useful for debugging.
+The value satisfies the requirements described in a section below.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">files</span></code></dt><dd><p>Value is a list of strings.</p>
+<ol class="arabic simple">
+<li><p>If the <code class="docutils literal notranslate"><span class="pre">update</span></code> message was a response to master request message <code class="docutils literal notranslate"><span class="pre">start_command</span></code> with a key value pair <code class="docutils literal notranslate"><span class="pre">command_name</span></code> and <code class="docutils literal notranslate"><span class="pre">glob</span></code>, then strings in this list represent path names that matched pathname given by the master.</p></li>
+<li><p>If the <code class="docutils literal notranslate"><span class="pre">update</span></code> message was a response to master request message <code class="docutils literal notranslate"><span class="pre">start_command</span></code> with a key value pair <code class="docutils literal notranslate"><span class="pre">command_name</span></code> and <code class="docutils literal notranslate"><span class="pre">listdir</span></code>, then strings in this list represent the names of the entries in the directory given by path, which master sent as an argument.</p></li>
+</ol>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">stderr</span></code></dt><dd><p>Value is a standard error of a process as a string.
+Some of the commands that master requests worker to start may initiate processes which can output a result as a standard error and this result is saved in the value of <code class="docutils literal notranslate"><span class="pre">stderr</span></code>.
+The value satisfies the requirements described in a section below.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">log</span></code></dt><dd><p>Value is a list where the first element represents the name of the log and the second element is a list, representing the contents of the file.
+The composition of this second element is described in the section below.
+This message is used to transfer the contents of the file that master requested worker to read.
+This file is identified by the name of the log.
+The same value is sent by master as the key of dictionary represented by <code class="docutils literal notranslate"><span class="pre">logfile</span></code> key within <code class="docutils literal notranslate"><span class="pre">args</span></code> dictionary of <code class="docutils literal notranslate"><span class="pre">StartCommand</span></code> command.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">elapsed</span></code></dt><dd><p>Value is an integer.
+It represents how much time has passed between the start of a command and the completion in seconds.</p>
+</dd>
+</dl>
+<section id="requirements-for-content-lists-of-stdout-stderr-header-and-log">
+<h3>Requirements for content lists of <code class="docutils literal notranslate"><span class="pre">stdout</span></code>, <code class="docutils literal notranslate"><span class="pre">stderr</span></code>, <code class="docutils literal notranslate"><span class="pre">header</span></code> and <code class="docutils literal notranslate"><span class="pre">log</span></code><a class="headerlink" href="#requirements-for-content-lists-of-stdout-stderr-header-and-log" title="Link to this heading"></a></h3>
+<p>The lists that represents the contents of the output or a file consist of three elements.</p>
+<p>First element is a string with the content, which must be processed using the following algorithm:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Each value may contain one or more lines (characters with a terminating <code class="docutils literal notranslate"><span class="pre">\n</span></code> character).</dt><dd><p>Each line is not longer than internal <code class="docutils literal notranslate"><span class="pre">maxsize</span></code> value on worker side.
+Longer lines are split into multiple lines where each except the last line contains exactly <code class="docutils literal notranslate"><span class="pre">maxsize</span></code> characters and the last line may contain less.</p>
+</dd>
+</dl>
+</li>
+<li><p>The lines are run through an internal worker cleanup regex.</p></li>
+</ul>
+<p>Second element is a list of indexes, representing the positions of newline characters in the string of first tuple element.</p>
+<p>Third element is a list of numbers, representing at what time each line was received as an output while processing the command.</p>
+<p>The number of elements in both lists is always the same.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="master-worker.html" class="btn btn-neutral float-left" title="3.3.14. Master-Worker API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="br-claiming.html" class="btn btn-neutral float-right" title="3.3.16. Claiming Build Requests" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Buildbot Team Members.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
