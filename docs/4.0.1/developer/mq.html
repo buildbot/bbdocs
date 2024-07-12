@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3.9. Messaging and Queues &mdash; Buildbot 4.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d10597a4" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/buildbot_rtd.css?v=915d5e18" />
+
+  
+    <link rel="shortcut icon" href="../_static/icon.png"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=977c7dfd"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="3.10. Classes" href="classes.html" />
+    <link rel="prev" title="3.8.15. Workers connector" href="database/workers.html" /> 
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Buildbot
+              <img src="../_static/full_logo.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                4.0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/index.html">2. Buildbot Manual</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">3. Buildbot Development</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html">3.1. Development Quick-start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pull-request.html">3.2. Submitting Pull Requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="general.html">3.3. General Documents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rest.html">3.4. REST API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="raml/index.html">3.5. REST API Specification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html">3.6. Data API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="database.html">3.7. Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="database/index.html">3.8. Database connectors API</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">3.9. Messaging and Queues</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">3.9.1. Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#connector-api">3.9.2. Connector API</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#buildbot.mq.base.MQConnector"><code class="docutils literal notranslate"><span class="pre">MQConnector</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#buildbot.mq.base.QueueRef"><code class="docutils literal notranslate"><span class="pre">QueueRef</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#implementations">3.9.2.1. Implementations</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#queue-schema">3.9.3. Queue Schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#message-schema">3.9.4. Message Schema</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#routing-keys">3.9.4.1. Routing Keys</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#body-format">3.9.4.2. Body Format</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#cautions">3.9.4.3. Cautions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#schema-changes">3.9.4.4. Schema Changes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="classes.html">3.10. Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../indices.html">6. API Indices</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Buildbot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html"><span class="section-number">3. </span>Buildbot Development</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">3.9. </span>Messaging and Queues</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/developer/mq.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="messaging-and-queues">
+<span id="id1"></span><h1><span class="section-number">3.9. </span>Messaging and Queues<a class="headerlink" href="#messaging-and-queues" title="Link to this heading"></a></h1>
+<p>Buildbot uses a message-queueing structure to handle asynchronous notifications in a distributed fashion.
+This avoids, for the most part, the need for each master to poll the database, allowing masters to react to events as they happen.</p>
+<section id="overview">
+<h2><span class="section-number">3.9.1. </span>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>Buildbot is structured as a hybrid state- and event-based application, which will probably offend adherents of either pattern.
+In particular, the most current state is stored in the <a class="reference internal" href="database.html"><span class="doc">Database</span></a>, while any changes to the state are announced in the form of a message.
+The content of the messages is sufficient to reconstruct the updated state, allowing external processes to represent “live” state without polling the database.</p>
+<p>This split nature immediately brings to light the problem of synchronizing the two interfaces.
+Queueing systems can introduce queueing delays as messages propagate.
+Likewise, database systems may introduce a delay between committed modifications and the modified data appearing in queries; for example, with MySQL master/slave replication, there can be several seconds’ delay before a slave is updated.</p>
+<p>Buildbot’s MQ connector simply relays messages, and makes no attempt to coordinate the timing of those messages with the corresponding database updates.
+It is up to higher layers to apply such coordination.</p>
+</section>
+<section id="connector-api">
+<h2><span class="section-number">3.9.2. </span>Connector API<a class="headerlink" href="#connector-api" title="Link to this heading"></a></h2>
+<p>All access to the queueing infrastructure is mediated by an MQ connector.
+The connector’s API is defined below.
+The connector itself is always available as <code class="docutils literal notranslate"><span class="pre">master.mq</span></code>, where <code class="docutils literal notranslate"><span class="pre">master</span></code> is the current <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildMaster</span></code> instance.</p>
+<p id="module-buildbot.mq.base">The connector API is quite simple.
+It is loosely based on AMQP, although simplified because there is only one exchange (see <a class="reference internal" href="#queue-schema"><span class="std std-ref">Queue Schema</span></a>).</p>
+<p>All messages include a “routing key”, which is a tuple of <em>7-bit ascii</em> strings describing the content of the message.
+By convention, the first element of the tuple gives the type of the data in the message.
+The last element of the tuple describes the event represented by the message.
+The remaining elements of the tuple describe attributes of the data in the message that may be useful for filtering; for example, buildsets may usefully be filtered on buildsetids.
+The topics and associated message types are described below in <a class="reference internal" href="#message-schema"><span class="std std-ref">Message Schema</span></a>.</p>
+<p>Filters are also specified with tuples.
+For a filter to match a routing key, it must have the same length, and each element of the filter that is not None must match the corresponding routing key element exactly.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="buildbot.mq.base.MQConnector">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.mq.base.</span></span><span class="sig-name descname"><span class="pre">MQConnector</span></span><a class="headerlink" href="#buildbot.mq.base.MQConnector" title="Link to this definition"></a></dt>
+<dd><p>This is an abstract parent class for MQ connectors, and defines the interface.
+It should not be instantiated directly.
+It is a subclass of <a class="reference internal" href="utils.html#buildbot.util.service.AsyncService" title="buildbot.util.service.AsyncService"><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.util.service.AsyncService</span></code></a>, and subclasses can override service methods to start and stop the connector.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="buildbot.mq.base.MQConnector.produce">
+<span class="sig-name descname"><span class="pre">produce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">routing_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.mq.base.MQConnector.produce" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>routing_key</strong> (<em>tuple</em>) – the routing key for this message</p></li>
+<li><p><strong>data</strong> – JSON-serializable body of the message</p></li>
+</ul>
+</dd>
+</dl>
+<p>This method produces a new message and queues it for delivery to any associated consumers.</p>
+<p>The routing key and data should match one of the formats given in <a class="reference internal" href="#message-schema"><span class="std std-ref">Message Schema</span></a>.</p>
+<p>The method returns immediately; the caller will not receive any indication of a failure to transmit the message, although errors will be displayed in <code class="docutils literal notranslate"><span class="pre">twistd.log</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="buildbot.mq.base.MQConnector.startConsuming">
+<span class="sig-name descname"><span class="pre">startConsuming</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">callback</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter</span></span></em><span class="optional">[</span>, <em class="sig-param"><span class="n"><span class="pre">persistent_name=name</span></span></em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.mq.base.MQConnector.startConsuming" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>callback</strong> – callable to invoke for matching messages</p></li>
+<li><p><strong>filter</strong> (<em>tuple</em>) – filter for routing keys of interest</p></li>
+<li><p><strong>persistent_name</strong> – persistent name for this consumer</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a <a class="reference internal" href="#buildbot.mq.base.QueueRef" title="buildbot.mq.base.QueueRef"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueueRef</span></code></a> instance via Deferred</p>
+</dd>
+</dl>
+<p>This method will begin consuming messages matching the filter, invoking <code class="docutils literal notranslate"><span class="pre">callback</span></code> for each message.
+See above for the format of the filter.</p>
+<p>The callback will be invoked with two arguments: the message’s routing key and the message body, as a Python data structure.
+It may return a Deferred, but no special processing other than error handling will be applied to that Deferred.
+In particular, note that the callback may be invoked a second time before the Deferred from the first invocation fires.</p>
+<p>A message is considered delivered as soon as the callback is invoked - there is no support for acknowledgements or re-queueing unhandled messages.</p>
+<p>Note that the timing of messages is implementation-dependent.
+It is not guaranteed that messages sent before the <a class="reference internal" href="#buildbot.mq.base.MQConnector.startConsuming" title="buildbot.mq.base.MQConnector.startConsuming"><code class="xref py py-meth docutils literal notranslate"><span class="pre">startConsuming</span></code></a> method completes will be received.
+In fact, because the registration process may not be immediate, even messages sent after the method completes may not be received.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">persistent_name</span></code> is given, then the consumer is assumed to be persistent, and consumption can be resumed with the given name.
+Messages that arrive when no consumer is active are queued and will be delivered when a consumer becomes active.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="buildbot.mq.base.MQConnector.waitUntilEvent">
+<span class="sig-name descname"><span class="pre">waitUntilEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_callback</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.mq.base.MQConnector.waitUntilEvent" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filter</strong> (<em>tuple</em>) – filter for routing keys of interest</p></li>
+<li><p><strong>check_callback</strong> (<em>function</em>) – a callback which check if the event has already happened</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a Deferred that fires when the event has been received and contains a (routing_key, value) tuple representing the event</p>
+</dd>
+</dl>
+<p>This method is a helper which returns a deferred that fires when a certain event has occurred.
+This is useful for waiting the end of a build or disconnection of a worker.
+You shall make sure when using this method that this event will happen in the future, and take care of race conditions.
+For this reason, the caller must provide a check_callback that will check if the event has already occurred.
+The whole race-condition-free process is:</p>
+<ul class="simple">
+<li><p>Register to event</p></li>
+<li><p>Check if it has already happened</p></li>
+<li><p>If not, wait for the event</p></li>
+<li><p>Unregister from event</p></li>
+</ul>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="buildbot.mq.base.QueueRef">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.mq.base.</span></span><span class="sig-name descname"><span class="pre">QueueRef</span></span><a class="headerlink" href="#buildbot.mq.base.QueueRef" title="Link to this definition"></a></dt>
+<dd><p>The <a class="reference internal" href="#buildbot.mq.base.QueueRef" title="buildbot.mq.base.QueueRef"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueueRef</span></code></a> returned (via Deferred) from <a class="reference internal" href="#buildbot.mq.base.MQConnector.startConsuming" title="buildbot.mq.base.MQConnector.startConsuming"><code class="xref py py-meth docutils literal notranslate"><span class="pre">startConsuming</span></code></a> can be used to stop consuming messages when they are no longer needed.
+Users should be <em>very</em> careful to ensure that consumption is terminated in all cases.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="buildbot.mq.base.QueueRef.stopConsuming">
+<span class="sig-name descname"><span class="pre">stopConsuming</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#buildbot.mq.base.QueueRef.stopConsuming" title="Link to this definition"></a></dt>
+<dd><p>Stop invoking the <code class="docutils literal notranslate"><span class="pre">callback</span></code> passed to <a class="reference internal" href="#buildbot.mq.base.MQConnector.startConsuming" title="buildbot.mq.base.MQConnector.startConsuming"><code class="xref py py-meth docutils literal notranslate"><span class="pre">startConsuming</span></code></a>.
+This method can be called multiple times for the same <a class="reference internal" href="#buildbot.mq.base.QueueRef" title="buildbot.mq.base.QueueRef"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueueRef</span></code></a> instance without harm.</p>
+<p>This method potentially returns a Deferred.</p>
+<p>After the first call to this method has returned, the callback will not be invoked.</p>
+</dd></dl>
+
+</dd></dl>
+
+<section id="implementations">
+<h3><span class="section-number">3.9.2.1. </span>Implementations<a class="headerlink" href="#implementations" title="Link to this heading"></a></h3>
+<p>Several concrete implementations of the MQ connector exist.
+The simplest is intended for cases where only one master exists, similar to the SQLite database support.
+The remainder use various existing queueing applications to support distributed communications.</p>
+<section id="module-buildbot.mq.simple">
+<span id="simple"></span><h4>Simple<a class="headerlink" href="#module-buildbot.mq.simple" title="Link to this heading"></a></h4>
+<dl class="py class">
+<dt class="sig sig-object py" id="buildbot.mq.simple.SimpleMQ">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.mq.simple.</span></span><span class="sig-name descname"><span class="pre">SimpleMQ</span></span><a class="headerlink" href="#buildbot.mq.simple.SimpleMQ" title="Link to this definition"></a></dt>
+<dd><p>The <a class="reference internal" href="#buildbot.mq.simple.SimpleMQ" title="buildbot.mq.simple.SimpleMQ"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleMQ</span></code></a> class implements a local equivalent of a message-queueing server.
+It is intended for Buildbot installations with only one master.</p>
+</dd></dl>
+
+</section>
+<section id="module-buildbot.mq.wamp">
+<span id="wamp"></span><h4>Wamp<a class="headerlink" href="#module-buildbot.mq.wamp" title="Link to this heading"></a></h4>
+<dl class="py class">
+<dt class="sig sig-object py" id="buildbot.mq.wamp.WampMQ">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.mq.wamp.</span></span><span class="sig-name descname"><span class="pre">WampMQ</span></span><a class="headerlink" href="#buildbot.mq.wamp.WampMQ" title="Link to this definition"></a></dt>
+<dd><p>The <a class="reference internal" href="#buildbot.mq.wamp.WampMQ" title="buildbot.mq.wamp.WampMQ"><code class="xref py py-class docutils literal notranslate"><span class="pre">WampMQ</span></code></a> class implements message-queueing using a wamp router.
+This class translates the semantics of the Buildbot MQ API to the semantics of the wamp messaging system.
+The message route is translated to a wamp topic by joining with dot and prefixing with the Buildbot namespace.
+Here is an example message that is sent via wamp:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">topic</span> <span class="o">=</span> <span class="s2">&quot;org.buildbot.mq.builds.1.new&quot;</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;builderid&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="s1">&#39;buildid&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s1">&#39;buildrequestid&#39;</span><span class="p">:</span> <span class="mi">13</span><span class="p">,</span>
+    <span class="s1">&#39;workerid&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+    <span class="s1">&#39;complete&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s1">&#39;complete_at&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s1">&#39;masterid&#39;</span><span class="p">:</span> <span class="mi">824</span><span class="p">,</span>
+    <span class="s1">&#39;number&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s1">&#39;results&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s1">&#39;started_at&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s1">&#39;locks_acquired_at&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s1">&#39;state_string&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s1">&#39;created&#39;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class" id="module-buildbot.wamp.connector">
+<dt class="sig sig-object py" id="buildbot.wamp.connector.WampConnector">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">buildbot.wamp.connector.</span></span><span class="sig-name descname"><span class="pre">WampConnector</span></span><a class="headerlink" href="#buildbot.wamp.connector.WampConnector" title="Link to this definition"></a></dt>
+<dd><p>The <a class="reference internal" href="#buildbot.wamp.connector.WampConnector" title="buildbot.wamp.connector.WampConnector"><code class="xref py py-class docutils literal notranslate"><span class="pre">WampConnector</span></code></a> class implements a Buildbot service for wamp.
+It is managed outside of the mq module as this protocol can also be reused as a worker protocol.
+The connector supports queueing of requests until the wamp connection is created but does not support disconnection and reconnection.
+Reconnection will be supported as part of a next release of AutobahnPython (<a class="reference external" href="https://github.com/crossbario/autobahn-python/issues/295">https://github.com/crossbario/autobahn-python/issues/295</a>).
+There is a chicken and egg problem at the Buildbot initialization phases, so the produce messages are actually not sent with deferred.</p>
+</dd></dl>
+
+</section>
+</section>
+</section>
+<section id="queue-schema">
+<span id="id2"></span><h2><span class="section-number">3.9.3. </span>Queue Schema<a class="headerlink" href="#queue-schema" title="Link to this heading"></a></h2>
+<p>Buildbot uses a particularly simple architecture: in AMQP terms, all messages are sent to a single topic exchange, and consumers define anonymous queues bound to that exchange.</p>
+<p>In future versions of Buildbot, some components (e.g., schedulers) may use durable queues to ensure that messages are not lost when one or more masters are disconnected.</p>
+</section>
+<section id="message-schema">
+<span id="id3"></span><h2><span class="section-number">3.9.4. </span>Message Schema<a class="headerlink" href="#message-schema" title="Link to this heading"></a></h2>
+<p>This section describes the general structure messages.
+The specific routing keys and content of each message are described in the relevant sub-sections of <a class="reference internal" href="data.html#data-api"><span class="std std-ref">Data API</span></a>.</p>
+<section id="routing-keys">
+<h3><span class="section-number">3.9.4.1. </span>Routing Keys<a class="headerlink" href="#routing-keys" title="Link to this heading"></a></h3>
+<p>Routing keys are a sequence of strings, usually written with dot separators.
+Routing keys are represented with variables when one or more of the words in the key are defined by the content of the message.
+For example, <code class="docutils literal notranslate"><span class="pre">buildset.$bsid</span></code> describes routing keys such as <code class="docutils literal notranslate"><span class="pre">buildset.1984</span></code>, where 1984 is the ID of the buildset described by the message body.
+Internally, keys are represented as tuples of strings.</p>
+</section>
+<section id="body-format">
+<h3><span class="section-number">3.9.4.2. </span>Body Format<a class="headerlink" href="#body-format" title="Link to this heading"></a></h3>
+<p>Message bodies are encoded in JSON.
+The top level of each message is an object (a dictionary).</p>
+<p>Most simple Python types - strings, numbers, lists, and dictionaries - are mapped directly to the corresponding JSON types.
+Timestamps are represented as seconds since the UNIX epoch in message bodies.</p>
+</section>
+<section id="cautions">
+<h3><span class="section-number">3.9.4.3. </span>Cautions<a class="headerlink" href="#cautions" title="Link to this heading"></a></h3>
+<p>Message ordering is generally maintained by the backend implementations, but this should not be depended on.
+That is, messages originating from the same master are <em>usually</em> delivered to consumers in the order they were produced.
+Thus, for example, a consumer can expect to see a build request claimed before it is completed.
+That said, consumers should be resilient to messages delivered out of order, at the very least by scheduling a “reload” from state stored in the database when messages arrive in an invalid order.</p>
+<p>Unit tests should be used to ensure this resiliency.</p>
+<p>Some related messages are sent at approximately the same time.
+Due to the non-blocking nature of message delivery, consumers should <em>not</em> assume that subsequent messages in a sequence remain queued.
+For example, upon receipt of a <code class="docutils literal notranslate"><span class="pre">buildset.$bsid.new</span></code> message, it is already too late to try to subscribe to the associated build requests messages, as they may already have been consumed.</p>
+</section>
+<section id="schema-changes">
+<h3><span class="section-number">3.9.4.4. </span>Schema Changes<a class="headerlink" href="#schema-changes" title="Link to this heading"></a></h3>
+<p>Future versions of Buildbot may add keys to messages, or add new messages.
+Consumers should expect unknown keys and, if using wildcard topics, unknown messages.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="database/workers.html" class="btn btn-neutral float-left" title="3.8.15. Workers connector" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="classes.html" class="btn btn-neutral float-right" title="3.10. Classes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Buildbot Team Members.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
