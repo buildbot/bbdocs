@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3.3.6. Writing Schedulers &mdash; Buildbot 3.11.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d10597a4" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/buildbot_rtd.css?v=915d5e18" />
+
+  
+    <link rel="shortcut icon" href="../_static/icon.png"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=428c4438"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="3.3.7. Utilities" href="utils.html" />
+    <link rel="prev" title="3.3.4. Configuration" href="config.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Buildbot
+              <img src="../_static/full_logo.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                3.11.7
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/index.html">2. Buildbot Manual</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">3. Buildbot Development</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html">3.1. Development Quick-start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pull-request.html">3.2. Submitting Pull Requests</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="general.html">3.3. General Documents</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="master-overview.html">3.3.1. Master Organization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="style.html">3.3.2. Buildbot Coding Style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tests.html">3.3.3. Buildbot’s Test Suite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html">3.3.4. Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#configuration-in-angularjs">3.3.5. Configuration in AngularJS</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">3.3.6. Writing Schedulers</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#api-stability">3.3.6.1. API Stability</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#implementing-a-scheduler">3.3.6.2. Implementing A Scheduler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#consuming-changes">3.3.6.3. Consuming Changes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#adding-buildsets">3.3.6.4. Adding Buildsets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#handling-reconfiguration">3.3.6.5. Handling Reconfiguration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#becoming-active-and-inactive">3.3.6.6. Becoming Active and Inactive</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#keeping-state">3.3.6.7. Keeping State</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html">3.3.7. Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="results.html">3.3.8. Build Result Codes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www-server.html">3.3.9. WWW Server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www-data-module.html">3.3.10. Javascript Data Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www-base-app.html">3.3.11. Base web application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auth.html">3.3.12. Authentication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="authz.html">3.3.13. Authorization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="master-worker.html">3.3.14. Master-Worker API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="master-worker-msgpack.html">3.3.15. Master-Worker connection with MessagePack over WebSocket protocol</a></li>
+<li class="toctree-l3"><a class="reference internal" href="br-claiming.html">3.3.16. Claiming Build Requests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="encodings.html">3.3.17. String Encodings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metrics.html">3.3.18. Metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="secrets.html">3.3.19. Secrets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="secrets.html#secrets-manager">3.3.20. Secrets manager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="secrets.html#secrets-providers">3.3.21. Secrets providers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="stats-service.html">3.3.22. Statistics Service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plugins-publish.html">3.3.23. How to package Buildbot plugins</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rest.html">3.4. REST API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="raml/index.html">3.5. REST API Specification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html">3.6. Data API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="database.html">3.7. Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="database/index.html">3.8. Database connectors API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mq.html">3.9. Messaging and Queues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classes.html">3.10. Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../indices.html">6. API Indices</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Buildbot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html"><span class="section-number">3. </span>Buildbot Development</a></li>
+          <li class="breadcrumb-item"><a href="general.html"><span class="section-number">3.3. </span>General Documents</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">3.3.6. </span>Writing Schedulers</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/developer/schedulers.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="writing-schedulers">
+<span id="id1"></span><h1><span class="section-number">3.3.6. </span>Writing Schedulers<a class="headerlink" href="#writing-schedulers" title="Link to this heading"></a></h1>
+<p>Buildbot schedulers are the process objects responsible for requesting builds.</p>
+<p>Schedulers are free to decide when to request builds, and to define the parameters of the builds.
+Many schedulers (e.g., <a class="reference internal" href="../manual/configuration/schedulers.html#sched-SingleBranchScheduler" title="SingleBranchScheduler"><code class="xref bb bb-sched docutils literal notranslate"><span class="pre">SingleBranchScheduler</span></code></a>) request builds in response to changes from change sources.
+Others, such as <a class="reference internal" href="../manual/configuration/schedulers.html#sched-Nightly" title="Nightly"><code class="xref bb bb-sched docutils literal notranslate"><span class="pre">Nightly</span></code></a>, request builds at specific times.
+Still others, like <a class="reference internal" href="../manual/configuration/schedulers.html#sched-ForceScheduler" title="ForceScheduler"><code class="xref bb bb-sched docutils literal notranslate"><span class="pre">ForceScheduler</span></code></a>, <a class="reference internal" href="../manual/configuration/schedulers.html#sched-Try_Jobdir" title="Try_Jobdir"><code class="xref bb bb-sched docutils literal notranslate"><span class="pre">Try_Jobdir</span></code></a>, or <a class="reference internal" href="../manual/configuration/schedulers.html#sched-Triggerable" title="Triggerable"><code class="xref bb bb-sched docutils literal notranslate"><span class="pre">Triggerable</span></code></a>, respond to external inputs.</p>
+<p>Each scheduler has a unique name, and within a Buildbot cluster, can be active on at most one master.
+If a scheduler is configured on multiple masters, it will be inactive on all but one master.
+This provides a form of non-revertive failover for schedulers: if an active scheduler’s master fails, an inactive instance of that scheduler on another master will become active.</p>
+<section id="api-stability">
+<h2><span class="section-number">3.3.6.1. </span>API Stability<a class="headerlink" href="#api-stability" title="Link to this heading"></a></h2>
+<p>Until Buildbot reaches version 1.0.0, API stability is not guaranteed.
+The instructions in this document may change incompatibly until that time.</p>
+</section>
+<section id="implementing-a-scheduler">
+<h2><span class="section-number">3.3.6.2. </span>Implementing A Scheduler<a class="headerlink" href="#implementing-a-scheduler" title="Link to this heading"></a></h2>
+<p>A scheduler is a subclass of <a class="reference internal" href="cls-basescheduler.html#buildbot.schedulers.base.BaseScheduler" title="buildbot.schedulers.base.BaseScheduler"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseScheduler</span></code></a>.</p>
+<p>The constructor’s arguments form the scheduler’s configuration.
+The first two arguments, <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">builderNames</span></code>, are positional.
+The remaining arguments are keyword arguments, and the subclass’s constructor should accept <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> to pass them to the parent class, along with the positional arguments.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyScheduler</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">BaseScheduler</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">builderNames</span><span class="p">,</span> <span class="n">arg1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">arg2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">builderNames</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arg1</span> <span class="o">=</span> <span class="n">arg1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arg2</span> <span class="o">=</span> <span class="n">arg2</span>
+</pre></div>
+</div>
+<p>Schedulers are Twisted services, so they can implement <code class="docutils literal notranslate"><span class="pre">startService</span></code> and <code class="docutils literal notranslate"><span class="pre">stopService</span></code>.
+However, it is more common for scheduler subclasses to override <code class="docutils literal notranslate"><span class="pre">startActivity</span></code> and <code class="docutils literal notranslate"><span class="pre">stopActivity</span></code> instead.
+See below.</p>
+</section>
+<section id="consuming-changes">
+<h2><span class="section-number">3.3.6.3. </span>Consuming Changes<a class="headerlink" href="#consuming-changes" title="Link to this heading"></a></h2>
+<p>A scheduler that needs to be notified of new changes should call <a class="reference internal" href="cls-basescheduler.html#buildbot.schedulers.base.BaseScheduler.startConsumingChanges" title="buildbot.schedulers.base.BaseScheduler.startConsumingChanges"><code class="xref py py-meth docutils literal notranslate"><span class="pre">startConsumingChanges</span></code></a> when it becomes active.
+Change consumption will automatically stop when the scheduler becomes inactive.</p>
+<p>Once consumption has started, the <a class="reference internal" href="cls-basescheduler.html#buildbot.schedulers.base.BaseScheduler.gotChange" title="buildbot.schedulers.base.BaseScheduler.gotChange"><code class="xref py py-meth docutils literal notranslate"><span class="pre">gotChange</span></code></a> method is invoked for each new change.
+The scheduler is free to do whatever it likes in this method.</p>
+</section>
+<section id="adding-buildsets">
+<h2><span class="section-number">3.3.6.4. </span>Adding Buildsets<a class="headerlink" href="#adding-buildsets" title="Link to this heading"></a></h2>
+<p>To add a new buildset, subclasses should call one of the parent-class methods with the prefix <code class="docutils literal notranslate"><span class="pre">addBuildsetFor</span></code>.
+These methods call <code class="xref py py-meth docutils literal notranslate"><span class="pre">addBuildset</span></code> after applying behaviors common to all schedulers.</p>
+<p>Any of these methods can be called at any time.</p>
+</section>
+<section id="handling-reconfiguration">
+<h2><span class="section-number">3.3.6.5. </span>Handling Reconfiguration<a class="headerlink" href="#handling-reconfiguration" title="Link to this heading"></a></h2>
+<p>When the configuration for a scheduler changes, Buildbot deactivates, stops and removes the old scheduler, then adds, starts, and maybe activates the new scheduler.
+Buildbot determines whether a scheduler has changed by subclassing <a class="reference internal" href="utils.html#buildbot.util.ComparableMixin" title="buildbot.util.ComparableMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">ComparableMixin</span></code></a>.
+See the documentation for class for an explanation of the <code class="docutils literal notranslate"><span class="pre">compare_attrs</span></code> attribute.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In a future version, schedulers will be converted to handle reconfiguration as reconfigurable services, and will no longer require <code class="docutils literal notranslate"><span class="pre">compare_attrs</span></code> to be set.</p>
+</div>
+</section>
+<section id="becoming-active-and-inactive">
+<h2><span class="section-number">3.3.6.6. </span>Becoming Active and Inactive<a class="headerlink" href="#becoming-active-and-inactive" title="Link to this heading"></a></h2>
+<p>An inactive scheduler should not do anything that might interfere with an active scheduler of the same name.</p>
+<p>Simple schedulers can consult the <a class="reference internal" href="cls-basescheduler.html#buildbot.schedulers.base.BaseScheduler.active" title="buildbot.schedulers.base.BaseScheduler.active"><code class="xref py py-attr docutils literal notranslate"><span class="pre">active</span></code></a> attribute to determine whether the scheduler is active.</p>
+<p>Most schedulers, however, will implement the <code class="docutils literal notranslate"><span class="pre">activate</span></code> method to begin any processing expected of an active scheduler.
+That may involve calling <a class="reference internal" href="cls-basescheduler.html#buildbot.schedulers.base.BaseScheduler.startConsumingChanges" title="buildbot.schedulers.base.BaseScheduler.startConsumingChanges"><code class="xref py py-meth docutils literal notranslate"><span class="pre">startConsumingChanges</span></code></a>, beginning a <code class="docutils literal notranslate"><span class="pre">LoopingCall</span></code>, or subscribing to messages.</p>
+<p>Any processing begun by the <code class="docutils literal notranslate"><span class="pre">activate</span></code> method, or by an active scheduler, should be stopped by the <code class="docutils literal notranslate"><span class="pre">deactivate</span></code> method.
+The <code class="docutils literal notranslate"><span class="pre">deactivate</span></code> method’s Deferred should not fire until such processing has completely stopped.
+Schedulers must up-call the parent class’s <code class="docutils literal notranslate"><span class="pre">activate</span></code> and <code class="docutils literal notranslate"><span class="pre">deactivate</span></code> methods!</p>
+</section>
+<section id="keeping-state">
+<h2><span class="section-number">3.3.6.7. </span>Keeping State<a class="headerlink" href="#keeping-state" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="cls-basescheduler.html#buildbot.schedulers.base.BaseScheduler" title="buildbot.schedulers.base.BaseScheduler"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseScheduler</span></code></a> class provides <a class="reference internal" href="cls-basescheduler.html#buildbot.schedulers.base.BaseScheduler.getState" title="buildbot.schedulers.base.BaseScheduler.getState"><code class="xref py py-meth docutils literal notranslate"><span class="pre">getState</span></code></a> and <a class="reference internal" href="cls-basescheduler.html#buildbot.schedulers.base.BaseScheduler.setState" title="buildbot.schedulers.base.BaseScheduler.setState"><code class="xref py py-meth docutils literal notranslate"><span class="pre">setState</span></code></a> methods to get and set state values for the scheduler.
+Active scheduler instances should use these functions to store persistent scheduler state, such that if they fail or become inactive, other instances can pick up where they left off.
+A scheduler can cache its state locally, only calling <code class="docutils literal notranslate"><span class="pre">getState</span></code> when it first becomes active.
+However, it is best to keep the state as up-to-date as possible, by calling <code class="docutils literal notranslate"><span class="pre">setState</span></code> any time the state changes.
+This prevents loss of state from an unexpected master failure.</p>
+<p>Note that the state-related methods do not use locks of any sort.
+It is up to the caller to ensure that no race conditions exist between getting and setting state.
+Generally, it is sufficient to rely on there being only one running instance of a scheduler, and cache state in memory.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="config.html" class="btn btn-neutral float-left" title="3.3.4. Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="utils.html" class="btn btn-neutral float-right" title="3.3.7. Utilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Buildbot Team Members.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

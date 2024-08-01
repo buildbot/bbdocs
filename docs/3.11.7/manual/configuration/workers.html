@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2.5.6. Workers &mdash; Buildbot 3.11.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d10597a4" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../_static/buildbot_rtd.css?v=915d5e18" />
+
+  
+    <link rel="shortcut icon" href="../../_static/icon.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=428c4438"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Amazon Web Services Elastic Compute Cloud (“AWS EC2”)" href="workers-ec2.html" />
+    <link rel="prev" title="2.5.5. Schedulers" href="schedulers.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Buildbot
+              <img src="../../_static/full_logo.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                3.11.7
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../secretsmanagement.html">2.4. Secret Management</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">2.5. Configuration</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="intro.html">2.5.1. Configuring Buildbot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="global.html">2.5.2. Global Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changesources.html">2.5.3. Change Sources and Changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changesources.html#changes">2.5.4. Changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="schedulers.html">2.5.5. Schedulers</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">2.5.6. Workers</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#defining-workers">2.5.6.1. Defining Workers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#worker-options">2.5.6.2. Worker Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#local-workers">2.5.6.3. Local Workers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#latent-workers">2.5.6.4. Latent Workers</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="builders.html">2.5.7. Builder Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="projects.html">2.5.8. Projects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="buildfactories.html">2.5.9. Build Factories</a></li>
+<li class="toctree-l3"><a class="reference internal" href="buildsets.html">2.5.10. Build Sets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="properties.html">2.5.11. Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="steps/index.html">2.5.12. Build Steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="interlocks.html">2.5.13. Interlocks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="report_generators/index.html">2.5.14. Report Generators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reporters/index.html">2.5.15. Reporters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www.html">2.5.16. Web Server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wwwhooks.html">2.5.17. Change Hooks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="services/index.html">2.5.18. Custom Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dbconfig.html">2.5.19. DbConfig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configurators.html">2.5.20. Configurators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="manhole.html">2.5.21. Manhole</a></li>
+<li class="toctree-l3"><a class="reference internal" href="multimaster.html">2.5.22. Multimaster</a></li>
+<li class="toctree-l3"><a class="reference internal" href="multicodebase.html">2.5.23. Multiple-Codebase Builds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="misc/index.html">2.5.24. Miscellaneous Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tests/index.html">2.5.25. Testing Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../customization.html">2.6. Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cmdline.html">2.7. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../resources.html">2.8. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../optimization.html">2.9. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins.html">2.10. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../deploy.html">2.11. Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../upgrading/index.html">2.12. Upgrading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../indices.html">6. API Indices</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Buildbot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html"><span class="section-number">2. </span>Buildbot Manual</a></li>
+          <li class="breadcrumb-item"><a href="index.html"><span class="section-number">2.5. </span>Configuration</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">2.5.6. </span>Workers</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/manual/configuration/workers.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="cfg-workers">
+<span id="workers"></span><span id="id1"></span><h1><span class="section-number">2.5.6. </span>Workers<a class="headerlink" href="#cfg-workers" title="Link to this heading"></a></h1>
+<p>The <a class="reference internal" href="#cfg-workers" title="workers"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">workers</span></code></a> configuration key specifies a list of known workers.
+In the common case, each worker is defined by an instance of the <a class="reference internal" href="../../developer/cls-worker.html#buildbot.worker.Worker" title="buildbot.worker.Worker"><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.worker.Worker</span></code></a> class.
+It represents a standard, manually started machine that will try to connect to the Buildbot master as a worker.
+Buildbot also supports “on-demand”, or latent, workers, which allow Buildbot to dynamically start and stop worker instances.</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#defining-workers" id="id6">Defining Workers</a></p></li>
+<li><p><a class="reference internal" href="#worker-options" id="id7">Worker Options</a></p></li>
+<li><p><a class="reference internal" href="#local-workers" id="id8">Local Workers</a></p></li>
+<li><p><a class="reference internal" href="#latent-workers" id="id9">Latent Workers</a></p></li>
+</ul>
+</nav>
+<section id="defining-workers">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink"><span class="section-number">2.5.6.1. </span>Defining Workers</a><a class="headerlink" href="#defining-workers" title="Link to this heading"></a></h2>
+<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">Worker</span></code> instance is created with a <code class="docutils literal notranslate"><span class="pre">workername</span></code> and a <code class="docutils literal notranslate"><span class="pre">workerpassword</span></code>.
+These are the same two values that need to be provided to the worker administrator when they create the worker.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">workername</span></code> must be unique, of course.
+The password exists to prevent evildoers from interfering with Buildbot by inserting their own (broken) workers into the system and thus displacing the real ones.
+Password may be a <a class="reference internal" href="../secretsmanagement.html#secret"><span class="std std-ref">Secret</span></a>.</p>
+<p>Workers with an unrecognized <code class="docutils literal notranslate"><span class="pre">workername</span></code> or a non-matching password will be rejected when they attempt to connect, and a message describing the problem will be written to the log file (see <a class="reference internal" href="../installation/misc.html#logfiles"><span class="std std-ref">Logfiles</span></a>).</p>
+<p>A configuration for two workers would look like:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">worker</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">Worker</span><span class="p">(</span><span class="s1">&#39;bot-solaris&#39;</span><span class="p">,</span> <span class="s1">&#39;solarispasswd&#39;</span><span class="p">),</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">Worker</span><span class="p">(</span><span class="s1">&#39;bot-bsd&#39;</span><span class="p">,</span> <span class="s1">&#39;bsdpasswd&#39;</span><span class="p">),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="worker-options">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink"><span class="section-number">2.5.6.2. </span>Worker Options</a><a class="headerlink" href="#worker-options" title="Link to this heading"></a></h2>
+<section id="properties">
+<h3>Properties<a class="headerlink" href="#properties" title="Link to this heading"></a></h3>
+<p id="index-0"><code class="xref py py-class docutils literal notranslate"><span class="pre">Worker</span></code> objects can also be created with an optional <code class="docutils literal notranslate"><span class="pre">properties</span></code> argument, a dictionary specifying properties that will be available to any builds performed on this worker.
+For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">Worker</span><span class="p">(</span><span class="s1">&#39;bot-solaris&#39;</span><span class="p">,</span> <span class="s1">&#39;solarispasswd&#39;</span><span class="p">,</span>
+                  <span class="n">properties</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;os&#39;</span><span class="p">:</span> <span class="s1">&#39;solaris&#39;</span><span class="p">}),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">Worker</span></code> properties have priority over other sources (<code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Scheduler</span></code>, etc.).
+You may use the <code class="docutils literal notranslate"><span class="pre">defaultProperties</span></code> parameter that will only be added to <a class="reference internal" href="../concepts.html#build-properties"><span class="std std-ref">Build Properties</span></a> if they are not already set by <a class="reference internal" href="properties.html#properties"><span class="std std-ref">another source</span></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">Worker</span><span class="p">(</span><span class="s1">&#39;fast-bot&#39;</span><span class="p">,</span> <span class="s1">&#39;fast-passwd&#39;</span><span class="p">,</span>
+                  <span class="n">defaultProperties</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;parallel_make&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">}),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">Worker</span></code> collects and exposes <code class="docutils literal notranslate"><span class="pre">/etc/os-release</span></code> fields for <a class="reference internal" href="properties.html#interpolate-dictstyle"><span class="std std-ref">interpolation</span></a>.
+These can be used to determine details about the running operating system, such as distribution and version.
+See <a class="reference external" href="https://www.linux.org/docs/man5/os-release.html">https://www.linux.org/docs/man5/os-release.html</a> for details on possible fields.
+Each field is imported with <code class="docutils literal notranslate"><span class="pre">os_</span></code> prefix and in lower case. <code class="docutils literal notranslate"><span class="pre">os_id</span></code>, <code class="docutils literal notranslate"><span class="pre">os_id_like</span></code>, <code class="docutils literal notranslate"><span class="pre">os_version_id</span></code> and <code class="docutils literal notranslate"><span class="pre">os_version_codename</span></code> are always set, but can be null.</p>
+</section>
+<section id="limiting-concurrency">
+<h3>Limiting Concurrency<a class="headerlink" href="#limiting-concurrency" title="Link to this heading"></a></h3>
+<p id="index-1">The <code class="xref py py-class docutils literal notranslate"><span class="pre">Worker</span></code> constructor can also take an optional <code class="docutils literal notranslate"><span class="pre">max_builds</span></code> parameter to limit the number of builds that it will execute simultaneously:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">Worker</span><span class="p">(</span><span class="s1">&#39;bot-linux&#39;</span><span class="p">,</span> <span class="s1">&#39;linuxpassword&#39;</span><span class="p">,</span>
+                  <span class="n">max_builds</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In <a class="reference internal" href="../../developer/master-worker.html#worker-for-builders"><span class="std std-ref">Worker For Builders</span></a> concept only one build from the same builder would run on the worker.</p>
+</div>
+</section>
+<section id="master-worker-tcp-keepalive">
+<h3>Master-Worker TCP Keepalive<a class="headerlink" href="#master-worker-tcp-keepalive" title="Link to this heading"></a></h3>
+<p>By default, the buildmaster sends a simple, non-blocking message to each worker every hour.
+These keepalives ensure that traffic is flowing over the underlying TCP connection, allowing the system’s network stack to detect any problems before a build is started.</p>
+<p>The interval can be modified by specifying the interval in seconds using the <code class="docutils literal notranslate"><span class="pre">keepalive_interval</span></code> parameter of <code class="xref py py-class docutils literal notranslate"><span class="pre">Worker</span></code> (defaults to 3600):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">Worker</span><span class="p">(</span><span class="s1">&#39;bot-linux&#39;</span><span class="p">,</span> <span class="s1">&#39;linuxpasswd&#39;</span><span class="p">,</span>
+                  <span class="n">keepalive_interval</span><span class="o">=</span><span class="mi">3600</span><span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>The interval can be set to <code class="docutils literal notranslate"><span class="pre">None</span></code> to disable this functionality altogether.</p>
+</section>
+<section id="when-workers-go-missing">
+<span id="id2"></span><h3>When Workers Go Missing<a class="headerlink" href="#when-workers-go-missing" title="Link to this heading"></a></h3>
+<p>Sometimes, the workers go away.
+One very common reason for this is when the worker process is started once (manually) and left running, but then later the machine reboots and the process is not automatically restarted.</p>
+<p>If you’d like to have the administrator of the worker (or other people) be notified by email when the worker has been missing for too long, just add the <code class="docutils literal notranslate"><span class="pre">notify_on_missing=</span></code> argument to the <code class="xref py py-class docutils literal notranslate"><span class="pre">Worker</span></code> definition.
+This value can be a single email address, or a list of addresses:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">Worker</span><span class="p">(</span><span class="s1">&#39;bot-solaris&#39;</span><span class="p">,</span> <span class="s1">&#39;solarispasswd&#39;</span><span class="p">,</span>
+                  <span class="n">notify_on_missing</span><span class="o">=</span><span class="s1">&#39;bob@example.com&#39;</span><span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>By default, this will send an email when the worker has been disconnected for more than one hour.
+Only one email per connection-loss event will be sent.
+To change the timeout, use <code class="docutils literal notranslate"><span class="pre">missing_timeout=</span></code> and give it a number of seconds (the default is 3600).</p>
+<p>You can have the buildmaster send an email to multiple recipients by providing a list of addresses instead of a single one:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">Worker</span><span class="p">(</span><span class="s1">&#39;bot-solaris&#39;</span><span class="p">,</span> <span class="s1">&#39;solarispasswd&#39;</span><span class="p">,</span>
+                  <span class="n">notify_on_missing</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;bob@example.com&#39;</span><span class="p">,</span> <span class="s1">&#39;alice@example.org&#39;</span><span class="p">],</span>
+                  <span class="n">missing_timeout</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>  <span class="c1"># notify after 5 minutes</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>The email sent this way will use a <code class="xref py py-class docutils literal notranslate"><span class="pre">MailNotifier</span></code> (see <a class="reference internal" href="reporters/mail_notifier.html#reporter-MailNotifier" title="MailNotifier"><code class="xref bb bb-reporter docutils literal notranslate"><span class="pre">MailNotifier</span></code></a>) status target, if one is configured.
+This provides a way for you to control the <em>from</em> address of the email, as well as the relayhost (aka <em>smarthost</em>) to use as an SMTP server.
+If no <code class="xref py py-class docutils literal notranslate"><span class="pre">MailNotifier</span></code> is configured on this buildmaster, the worker-missing emails will be sent using a default configuration.</p>
+<p>Note that if you want to have a <code class="xref py py-class docutils literal notranslate"><span class="pre">MailNotifier</span></code> for worker-missing emails but not for regular build emails, just create one with <code class="docutils literal notranslate"><span class="pre">builders=[]</span></code>, as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">status</span><span class="p">,</span> <span class="n">worker</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">MailNotifier</span><span class="p">(</span><span class="n">fromaddr</span><span class="o">=</span><span class="s1">&#39;buildbot@localhost&#39;</span><span class="p">,</span> <span class="n">builders</span><span class="o">=</span><span class="p">[],</span>
+                        <span class="n">relayhost</span><span class="o">=</span><span class="s1">&#39;smtp.example.org&#39;</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;reporters&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">Worker</span><span class="p">(</span><span class="s1">&#39;bot-solaris&#39;</span><span class="p">,</span> <span class="s1">&#39;solarispasswd&#39;</span><span class="p">,</span>
+                  <span class="n">notify_on_missing</span><span class="o">=</span><span class="s1">&#39;bob@example.com&#39;</span><span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="workers-states">
+<span id="worker-states"></span><h3>Workers States<a class="headerlink" href="#workers-states" title="Link to this heading"></a></h3>
+<p>There are some times when a worker misbehaves because of issues with its configuration.
+In those cases, you may want to pause the worker, or maybe completely shut it down.</p>
+<p>There are three actions that you may take (in the worker’s web page <em>Actions</em> dialog):</p>
+<ul class="simple">
+<li><p><em>Pause</em>: If a worker is paused, it won’t accept new builds. The action of pausing a worker will not affect any ongoing build.</p></li>
+<li><p><em>Graceful Shutdown</em>: If a worker is in graceful shutdown mode, it won’t accept new builds, but will finish the current builds.
+When all of its build are finished, the <strong class="command">buildbot-worker</strong> process will terminate.</p></li>
+<li><p><em>Force Shutdown</em>: If a worker is in force shutdown mode, it will terminate immediately, and the build it was currently doing will be put to retry state.</p></li>
+</ul>
+<p>Those actions will put the worker in either of two states:</p>
+<ul class="simple">
+<li><p><em>paused</em>: the worker is paused if it is connected but doesn’t accept new builds.</p></li>
+<li><p><em>graceful</em>: the worker is graceful if it doesn’t accept new builds, and will shutdown when builds are finished.</p></li>
+</ul>
+<p>A worker might not be able to accept a job for a period of time if buildbot detects a misbehavior.
+This is called the <em>quarantine timer</em>.</p>
+<p>Quarantine timer is an exponential back-off mechanism for workers.
+This prevents a misbehaving worker from eating the build queue by quickly finishing builds in <code class="docutils literal notranslate"><span class="pre">EXCEPTION</span></code> state.
+When misbehavior is detected, the timer will pause the worker for 10 seconds, and then the time will double with each misbehavior detection until the worker finishes a build.</p>
+<p>The first case of misbehavior is for a latent worker to not start properly.
+The second case of misbehavior is for a build to end with an <code class="docutils literal notranslate"><span class="pre">EXCEPTION</span></code> status.</p>
+<p>Pausing and unpausing a worker will force it to leave quarantine immediately. The quarantine timeout will not be reset until the worker finishes a build.</p>
+<p>Worker states are stored in the database, can be queried via <a class="reference internal" href="../../developer/rest.html#rest-api"><span class="std std-ref">REST API</span></a>, and are visible in the UI’s workers page.</p>
+</section>
+</section>
+<section id="local-workers">
+<span id="index-2"></span><span id="id3"></span><h2><a class="toc-backref" href="#id8" role="doc-backlink"><span class="section-number">2.5.6.3. </span>Local Workers</a><a class="headerlink" href="#local-workers" title="Link to this heading"></a></h2>
+<p>For smaller setups, you may want to just run the workers on the same machine as the master.
+To simplify the maintenance, you may even want to run them in the same process.</p>
+<p>This is what LocalWorker is for.
+Instead of configuring a <code class="docutils literal notranslate"><span class="pre">worker.Worker</span></code>, you have to configure a <code class="docutils literal notranslate"><span class="pre">worker.LocalWorker</span></code>.
+As the worker is running on the same process, password is not necessary.
+You can run as many local workers as your machine’s CPU and memory allows.</p>
+<p>A configuration for two workers would look like:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">worker</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">LocalWorker</span><span class="p">(</span><span class="s1">&#39;bot1&#39;</span><span class="p">),</span>
+    <span class="n">worker</span><span class="o">.</span><span class="n">LocalWorker</span><span class="p">(</span><span class="s1">&#39;bot2&#39;</span><span class="p">),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>In order to use local workers you need to have <code class="docutils literal notranslate"><span class="pre">buildbot-worker</span></code> package installed.</p>
+</section>
+<section id="latent-workers">
+<span id="index-3"></span><span id="id4"></span><h2><a class="toc-backref" href="#id9" role="doc-backlink"><span class="section-number">2.5.6.4. </span>Latent Workers</a><a class="headerlink" href="#latent-workers" title="Link to this heading"></a></h2>
+<p>The standard Buildbot model has workers started manually.
+The previous section described how to configure the master for this approach.</p>
+<p>Another approach is to let the Buildbot master start workers when builds are ready, on-demand.
+Thanks to services such as Amazon Web Services’ Elastic Compute Cloud (“AWS EC2”), this is relatively easy to set up, and can be very useful for some situations.</p>
+<p>The workers that are started on-demand are called “latent” workers.
+You can find the list of <a class="reference internal" href="#supported-latent-workers"><span class="std std-ref">Supported Latent Workers</span></a> below.</p>
+<section id="common-options">
+<span id="common-latent-workers-options"></span><h3>Common Options<a class="headerlink" href="#common-options" title="Link to this heading"></a></h3>
+<p>The following options are available for all latent workers.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">build_wait_timeout</span></code></dt><dd><p>This option allows you to specify how long a latent worker should wait after a build for another build before it shuts down.
+It defaults to 10 minutes.
+If this is set to 0, then the worker will be shut down immediately.
+If it is less than 0, it will be shut down only when shutting down master.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">check_instance_interval</span></code></dt><dd><p>This option controls the interval that the health checks run during worker startup.
+The health checks speed up the detection of irrecoverably crashed worker (e.g. due to an issue with Docker image in the case of Docker workers).
+Without such checks build would continue waiting for the worker to connect until <code class="docutils literal notranslate"><span class="pre">missing_timeout</span></code> time elapses.
+The value of the option defaults to 10 seconds.</p>
+</dd>
+</dl>
+</section>
+<section id="supported-latent-workers">
+<span id="id5"></span><h3>Supported Latent Workers<a class="headerlink" href="#supported-latent-workers" title="Link to this heading"></a></h3>
+<p>As of time of writing, Buildbot supports the following latent workers:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="workers-ec2.html">Amazon Web Services Elastic Compute Cloud (“AWS EC2”)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workers-libvirt.html">Libvirt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workers-openstack.html">OpenStack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workers-docker.html">Docker latent worker</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workers-docker.html#marathon-latent-worker">Marathon latent worker</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workers-docker.html#kubernetes-latent-worker">Kubernetes latent worker</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workers-upcloud.html">UpCloud</a></li>
+</ul>
+</div>
+</section>
+<section id="dangers-with-latent-workers">
+<h3>Dangers with Latent Workers<a class="headerlink" href="#dangers-with-latent-workers" title="Link to this heading"></a></h3>
+<p>Any latent worker that interacts with a for-fee service, such as the <a class="reference internal" href="workers-ec2.html#buildbot.worker.ec2.EC2LatentWorker" title="buildbot.worker.ec2.EC2LatentWorker"><code class="xref py py-class docutils literal notranslate"><span class="pre">EC2LatentWorker</span></code></a>, brings significant risks.
+As already identified, the configuration will need access to account information that, if obtained by a criminal, can be used to charge services to your account.
+Also, bugs in the Buildbot software may lead to unnecessary charges.
+In particular, if the master neglects to shut down an instance for some reason, a virtual machine may be running unnecessarily, charging against your account.
+Manual and/or automatic (e.g. Nagios with a plugin using a library like boto) double-checking may be appropriate.</p>
+<p>A comparatively trivial note is that currently if two instances try to attach to the same latent worker, it is likely that the system will become confused.
+This should not occur, unless, for instance, you configure a normal worker to connect with the authentication of a latent buildbot.
+If this situation does occurs, stop all attached instances and restart the master.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="schedulers.html" class="btn btn-neutral float-left" title="2.5.5. Schedulers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="workers-ec2.html" class="btn btn-neutral float-right" title="Amazon Web Services Elastic Compute Cloud (“AWS EC2”)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Buildbot Team Members.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
