@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3.3.14. Master-Worker API &mdash; Buildbot 3.11.8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d10597a4" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/buildbot_rtd.css?v=915d5e18" />
+
+  
+    <link rel="shortcut icon" href="../_static/icon.png"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=aa96e7fa"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="3.3.15. Master-Worker connection with MessagePack over WebSocket protocol" href="master-worker-msgpack.html" />
+    <link rel="prev" title="3.3.13. Authorization" href="authz.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Buildbot
+              <img src="../_static/full_logo.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                3.11.8
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/index.html">2. Buildbot Manual</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">3. Buildbot Development</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html">3.1. Development Quick-start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pull-request.html">3.2. Submitting Pull Requests</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="general.html">3.3. General Documents</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="master-overview.html">3.3.1. Master Organization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="style.html">3.3.2. Buildbot Coding Style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tests.html">3.3.3. Buildbot’s Test Suite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html">3.3.4. Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#configuration-in-angularjs">3.3.5. Configuration in AngularJS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="schedulers.html">3.3.6. Writing Schedulers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utils.html">3.3.7. Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="results.html">3.3.8. Build Result Codes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www-server.html">3.3.9. WWW Server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www-data-module.html">3.3.10. Javascript Data Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="www-base-app.html">3.3.11. Base web application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auth.html">3.3.12. Authentication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="authz.html">3.3.13. Authorization</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">3.3.14. Master-Worker API</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#connection">3.3.14.1. Connection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#workers">3.3.14.2. Workers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#setup">3.3.14.3. Setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pinging">3.3.14.4. Pinging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#building">3.3.14.5. Building</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#worker-for-builders">3.3.14.6. Worker For Builders</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#commands">3.3.14.7. Commands</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#updates">3.3.14.8. Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="master-worker-msgpack.html">3.3.15. Master-Worker connection with MessagePack over WebSocket protocol</a></li>
+<li class="toctree-l3"><a class="reference internal" href="br-claiming.html">3.3.16. Claiming Build Requests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="encodings.html">3.3.17. String Encodings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="metrics.html">3.3.18. Metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="secrets.html">3.3.19. Secrets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="secrets.html#secrets-manager">3.3.20. Secrets manager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="secrets.html#secrets-providers">3.3.21. Secrets providers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="stats-service.html">3.3.22. Statistics Service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plugins-publish.html">3.3.23. How to package Buildbot plugins</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rest.html">3.4. REST API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="raml/index.html">3.5. REST API Specification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html">3.6. Data API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="database.html">3.7. Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="database/index.html">3.8. Database connectors API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mq.html">3.9. Messaging and Queues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classes.html">3.10. Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../indices.html">6. API Indices</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Buildbot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html"><span class="section-number">3. </span>Buildbot Development</a></li>
+          <li class="breadcrumb-item"><a href="general.html"><span class="section-number">3.3. </span>General Documents</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">3.3.14. </span>Master-Worker API</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/developer/master-worker.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="master-worker-api">
+<h1><span class="section-number">3.3.14. </span>Master-Worker API<a class="headerlink" href="#master-worker-api" title="Link to this heading"></a></h1>
+<p>This section describes the master-worker interface.
+It covers the communication protocol of the “classic” remote Worker.
+Notice there are other types of workers which behave a bit differently, such as <a class="reference internal" href="../manual/configuration/workers.html#local-workers"><span class="std std-ref">Local Worker</span></a> and <a class="reference internal" href="../manual/configuration/workers.html#latent-workers"><span class="std std-ref">Latent Worker</span></a>.</p>
+<section id="connection">
+<h2><span class="section-number">3.3.14.1. </span>Connection<a class="headerlink" href="#connection" title="Link to this heading"></a></h2>
+<p>The interface is based on Twisted’s Perspective Broker, which operates over TCP connections.</p>
+<p>The worker connects to the master, using the parameters supplied to <strong class="command">buildbot-worker create-worker</strong>.
+It uses a reconnecting process with an exponential backoff, and will automatically reconnect on disconnection.</p>
+<p>Once connected, the worker authenticates with the Twisted Cred (newcred) mechanism, using the username and password supplied to <strong class="command">buildbot-worker create-worker</strong>.
+The <em>mind</em> behind the worker is the worker bot instance (class <code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot_worker.pb.BotPb</span></code>).</p>
+<p>On the master side, the realm is implemented by <code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.pbmanager.Dispatcher</span></code>, which examines the username of incoming avatar requests.
+There are special cases for <code class="docutils literal notranslate"><span class="pre">change</span></code> and <code class="docutils literal notranslate"><span class="pre">debug</span></code>, which are not discussed here.
+For all other usernames, the botmaster is consulted, and if a worker with that name is configured, its <a class="reference internal" href="cls-worker.html#buildbot.worker.Worker" title="buildbot.worker.Worker"><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.worker.Worker</span></code></a> instance is returned as the perspective.</p>
+</section>
+<section id="workers">
+<h2><span class="section-number">3.3.14.2. </span>Workers<a class="headerlink" href="#workers" title="Link to this heading"></a></h2>
+<p>At this point, the master-side Worker object has a pointer to the remote
+worker-side Bot object in its <code class="docutils literal notranslate"><span class="pre">self.worker</span></code>, and the worker-side Bot object has
+a reference to the master-side Worker object in its <code class="docutils literal notranslate"><span class="pre">self.perspective</span></code>.</p>
+<section id="bot-methods">
+<h3>Bot methods<a class="headerlink" href="#bot-methods" title="Link to this heading"></a></h3>
+<p>The worker-side Bot object has the following remote methods:</p>
+<dl>
+<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">remote_getCommands</span></code></dt><dd><p>Returns a dictionary for all commands the worker recognizes: the key of the dictionary is the command name and the command version is the value.</p>
+</dd>
+<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">remote_setBuilderList</span></code></dt><dd><p>Given a list of builders and their build directories, ensures that
+those builders, and only those builders, are running.  This can be
+called after the initial connection is established, with a new
+list, to add or remove builders.</p>
+<p>This method returns a dictionary of <code class="xref py py-class docutils literal notranslate"><span class="pre">WorkerForBuilder</span></code> objects - see below.</p>
+</dd>
+<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">remote_print</span></code></dt><dd><p>Adds a message to the worker logfile.</p>
+</dd>
+<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">remote_getWorkerInfo</span></code></dt><dd><p>Returns a dictionary with the contents of the worker’s <code class="file docutils literal notranslate"><span class="pre">info/</span></code> directory (i.e. file name is used as key and file contents as the value).
+This dictionary also contains the following keys:</p>
+<p><code class="docutils literal notranslate"><span class="pre">environ</span></code></p>
+<blockquote>
+<div><p>copy of the workers environment</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">system</span></code></p>
+<blockquote>
+<div><p>OS the worker is running (extracted from Python’s <code class="docutils literal notranslate"><span class="pre">os.name</span></code>)</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">basedir</span></code></p>
+<blockquote>
+<div><p>base directory where the worker is running</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">numcpus</span></code></p>
+<blockquote>
+<div><p>number of CPUs on the worker, either as configured or as detected (since <code class="docutils literal notranslate"><span class="pre">buildbot-worker</span></code> version 0.9.0)</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">version</span></code></p>
+<blockquote>
+<div><p>worker’s version (same as the result of <code class="xref py py-meth docutils literal notranslate"><span class="pre">remote_getVersion</span></code> call)</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">worker_commands</span></code></p>
+<blockquote>
+<div><p>worker supported commands (same as the result of <code class="xref py py-meth docutils literal notranslate"><span class="pre">remote_getCommands</span></code> call)</p>
+</div></blockquote>
+</dd>
+<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">remote_getVersion</span></code></dt><dd><p>Returns the worker’s version.</p>
+</dd>
+<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">remote_shutdown</span></code></dt><dd><p>Shuts down the worker cleanly.</p>
+</dd>
+</dl>
+</section>
+<section id="worker-methods">
+<h3>Worker methods<a class="headerlink" href="#worker-methods" title="Link to this heading"></a></h3>
+<p>The master-side object has the following method:</p>
+<dl class="simple">
+<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">perspective_keepalive</span></code></dt><dd><p>Does nothing - used to keep traffic flowing over the TCP connection</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="setup">
+<h2><span class="section-number">3.3.14.3. </span>Setup<a class="headerlink" href="#setup" title="Link to this heading"></a></h2>
+<p>After the initial connection and trading of a mind (<code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot_worker.pb.BotPb</span></code>) for an avatar
+(Worker), the master calls the Bot’s <code class="xref py py-meth docutils literal notranslate"><span class="pre">setBuilderList</span></code> method to set
+up the proper builders on the worker side.  This method returns a
+reference to each of the new worker-side <code class="xref py py-class docutils literal notranslate"><span class="pre">WorkerForBuilderPb</span></code>
+objects, described below.  Each of these is handed to the corresponding
+master-side <code class="xref py py-class docutils literal notranslate"><span class="pre">WorkerForBuilder</span></code> object.</p>
+<p>This immediately calls the remote <code class="xref py py-meth docutils literal notranslate"><span class="pre">setMaster</span></code> method, and then the <code class="xref py py-meth docutils literal notranslate"><span class="pre">print</span></code> method.</p>
+</section>
+<section id="pinging">
+<h2><span class="section-number">3.3.14.4. </span>Pinging<a class="headerlink" href="#pinging" title="Link to this heading"></a></h2>
+<p>To ping a remote Worker, the master calls its <code class="xref py py-meth docutils literal notranslate"><span class="pre">print</span></code> method.</p>
+</section>
+<section id="building">
+<h2><span class="section-number">3.3.14.5. </span>Building<a class="headerlink" href="#building" title="Link to this heading"></a></h2>
+<p>When a build starts, the master calls the worker’s <code class="xref py py-meth docutils literal notranslate"><span class="pre">startBuild</span></code> method.
+Each BuildStep instance will subsequently call the <code class="xref py py-meth docutils literal notranslate"><span class="pre">startCommand</span></code> method,
+passing a reference to itself as the <code class="docutils literal notranslate"><span class="pre">stepRef</span></code> parameter.  The
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">startCommand</span></code> method returns immediately, and the end of the command is
+signalled with a call to a method on the master-side BuildStep object.</p>
+</section>
+<section id="worker-for-builders">
+<span id="id1"></span><h2><span class="section-number">3.3.14.6. </span>Worker For Builders<a class="headerlink" href="#worker-for-builders" title="Link to this heading"></a></h2>
+<p>Each worker has a set of builders which can run on it.  These are
+represented by distinct classes on the master and worker, just like the
+Worker and Bot objects described above.</p>
+<p>On the worker side, builders are represented as instances of the
+<code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot_worker.pb.WorkerForBuilderPb</span></code> class.  On the master side, they are
+represented by the <code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.process.workerforbuilder.WorkerForBuilder</span></code> class.
+The identical names are a source of confusion.  The following will refer to
+these as the worker-side and master-side Worker For Builder classes.  Each object
+keeps a reference to its opposite in <code class="docutils literal notranslate"><span class="pre">self.remote</span></code>.</p>
+<section id="worker-side-workerforbuilderpb-methods">
+<h3>Worker-Side <code class="xref py py-class docutils literal notranslate"><span class="pre">WorkerForBuilderPb</span></code> Methods<a class="headerlink" href="#worker-side-workerforbuilderpb-methods" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">remote_setMaster</span></code></dt><dd><p>Provides a reference to the master-side Worker For Builder</p>
+</dd>
+<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">remote_print</span></code></dt><dd><p>Adds a message to the worker logfile; used to check round-trip connectivity</p>
+</dd>
+<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">remote_startBuild</span></code></dt><dd><p>Indicates that a build is about to start, and that any subsequent
+commands are part of that build</p>
+</dd>
+<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">remote_startCommand</span></code></dt><dd><p>Invokes a command on the worker side</p>
+</dd>
+<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">remote_interruptCommand</span></code></dt><dd><p>Interrupts the currently-running command</p>
+</dd>
+</dl>
+</section>
+<section id="master-side-workerforbuilder-methods">
+<h3>Master-side <code class="xref py py-class docutils literal notranslate"><span class="pre">WorkerForBuilder</span></code> Methods<a class="headerlink" href="#master-side-workerforbuilder-methods" title="Link to this heading"></a></h3>
+<p>The master side does not have any remotely-callable methods.</p>
+</section>
+</section>
+<section id="commands">
+<h2><span class="section-number">3.3.14.7. </span>Commands<a class="headerlink" href="#commands" title="Link to this heading"></a></h2>
+<p>The actual work done by the worker is represented on the master side by a
+<a class="reference internal" href="cls-remotecommands.html#buildbot.process.remotecommand.RemoteCommand" title="buildbot.process.remotecommand.RemoteCommand"><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.process.remotecommand.RemoteCommand</span></code></a> instance.</p>
+<p>The command instance keeps a reference to the worker-side
+<code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot_worker.pb.WorkerForBuilderPb</span></code>, and calls methods like
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">remote_startCommand</span></code> to start new commands.
+Once that method is called, the <code class="xref py py-class docutils literal notranslate"><span class="pre">WorkerForBuilderPb</span></code> instance
+keeps a reference to the command, and calls the following methods on it:</p>
+<section id="master-side-remotecommand-methods">
+<h3>Master-Side RemoteCommand Methods<a class="headerlink" href="#master-side-remotecommand-methods" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt><a class="reference internal" href="cls-remotecommands.html#buildbot.process.remotecommand.RemoteCommand.remote_update" title="buildbot.process.remotecommand.RemoteCommand.remote_update"><code class="xref py py-meth docutils literal notranslate"><span class="pre">remote_update</span></code></a></dt><dd><p>Update information about the running command.  See below for the format.</p>
+</dd>
+<dt><a class="reference internal" href="cls-remotecommands.html#buildbot.process.remotecommand.RemoteCommand.remote_complete" title="buildbot.process.remotecommand.RemoteCommand.remote_complete"><code class="xref py py-meth docutils literal notranslate"><span class="pre">remote_complete</span></code></a></dt><dd><p>Signal that the command is complete, either successfully or with a Twisted failure.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="updates">
+<span id="master-worker-updates"></span><h2><span class="section-number">3.3.14.8. </span>Updates<a class="headerlink" href="#updates" title="Link to this heading"></a></h2>
+<p>Updates from the worker, sent via
+<a class="reference internal" href="cls-remotecommands.html#buildbot.process.remotecommand.RemoteCommand.remote_update" title="buildbot.process.remotecommand.RemoteCommand.remote_update"><code class="xref py py-meth docutils literal notranslate"><span class="pre">remote_update</span></code></a>, are a list of
+individual update elements.  Each update element is, in turn, a list of the
+form <code class="docutils literal notranslate"><span class="pre">[data,</span> <span class="pre">0]</span></code>, where the 0 is present for historical reasons.  The data is
+a dictionary, with keys describing the contents.  The updates are handled by
+<a class="reference internal" href="cls-remotecommands.html#buildbot.process.remotecommand.RemoteCommand.remote_update" title="buildbot.process.remotecommand.RemoteCommand.remote_update"><code class="xref py py-meth docutils literal notranslate"><span class="pre">remote_update</span></code></a>.</p>
+<p>Updates with different keys can be combined into a single dictionary or
+delivered sequentially as list elements, at the worker’s option.</p>
+<p>To summarize, an <code class="docutils literal notranslate"><span class="pre">updates</span></code> parameter to
+<a class="reference internal" href="cls-remotecommands.html#buildbot.process.remotecommand.RemoteCommand.remote_update" title="buildbot.process.remotecommand.RemoteCommand.remote_update"><code class="xref py py-meth docutils literal notranslate"><span class="pre">remote_update</span></code></a> might look like
+this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+    <span class="p">[</span> <span class="p">{</span> <span class="s1">&#39;header&#39;</span> <span class="p">:</span> <span class="s1">&#39;running command..&#39;</span> <span class="p">},</span> <span class="mi">0</span> <span class="p">],</span>
+    <span class="p">[</span> <span class="p">{</span> <span class="s1">&#39;stdout&#39;</span> <span class="p">:</span> <span class="s1">&#39;abcd&#39;</span><span class="p">,</span> <span class="s1">&#39;stderr&#39;</span> <span class="p">:</span> <span class="s1">&#39;local modifications&#39;</span> <span class="p">},</span> <span class="mi">0</span> <span class="p">],</span>
+    <span class="p">[</span> <span class="p">{</span> <span class="s1">&#39;log&#39;</span> <span class="p">:</span> <span class="p">(</span> <span class="s1">&#39;cmd.log&#39;</span><span class="p">,</span> <span class="s1">&#39;cmd invoked at 12:33 pm</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="p">)</span> <span class="p">},</span> <span class="mi">0</span> <span class="p">],</span>
+    <span class="p">[</span> <span class="p">{</span> <span class="s1">&#39;rc&#39;</span> <span class="p">:</span> <span class="mi">0</span> <span class="p">},</span> <span class="mi">0</span> <span class="p">],</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<section id="defined-commands">
+<h3>Defined Commands<a class="headerlink" href="#defined-commands" title="Link to this heading"></a></h3>
+<p>The following commands are defined on the workers.</p>
+<section id="shell">
+<span id="shell-command-args"></span><h4>shell<a class="headerlink" href="#shell" title="Link to this heading"></a></h4>
+<p>Runs a shell command on the worker.  This command takes the following arguments:</p>
+<p><code class="docutils literal notranslate"><span class="pre">command</span></code></p>
+<blockquote>
+<div><p>The command to run.  If this is a string, it will be passed to the system
+shell as a string.  Otherwise, it must be a list, which will be
+executed directly.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">workdir</span></code></p>
+<blockquote>
+<div><p>The directory in which to run the command, relative to the builder dir.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">env</span></code></p>
+<blockquote>
+<div><p>A dictionary of environment variables to augment or replace the
+existing environment on the worker.  In this dictionary, <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>
+is treated specially: it should be a list of path components, rather
+than a string, and will be prepended to the existing Python path.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">initial_stdin</span></code></p>
+<blockquote>
+<div><p>A string which will be written to the command’s standard input before
+it is closed.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">want_stdout</span></code></p>
+<blockquote>
+<div><p>If false, then no updates will be sent for stdout.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">want_stderr</span></code></p>
+<blockquote>
+<div><p>If false, then no updates will be sent for stderr.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">usePTY</span></code></p>
+<blockquote>
+<div><p>If true, the command should be run with a PTY (POSIX only).  This
+defaults to False.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">not_really</span></code></p>
+<blockquote>
+<div><p>If true, skip execution and return an update with rc=0.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">timeout</span></code></p>
+<blockquote>
+<div><p>Maximum time without output before the command is killed.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">maxTime</span></code></p>
+<blockquote>
+<div><p>Maximum overall time from the start before the command is killed.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">logfiles</span></code></p>
+<blockquote>
+<div><p>A dictionary specifying logfiles other than stdio.  Keys are the logfile
+names, and values give the workdir-relative filename of the logfile.  Alternately,
+a value can be a dictionary; in this case, the dictionary must have a <code class="docutils literal notranslate"><span class="pre">filename</span></code>
+key specifying the filename, and can also have the following keys:</p>
+<p><code class="docutils literal notranslate"><span class="pre">follow</span></code></p>
+<blockquote>
+<div><p>Only follow the file from its current end-of-file, rather that starting
+from the beginning.</p>
+</div></blockquote>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">logEnviron</span></code></p>
+<blockquote>
+<div><p>If false, the command’s environment will not be logged.</p>
+</div></blockquote>
+<p>The <code class="docutils literal notranslate"><span class="pre">shell</span></code> command sends the following updates:</p>
+<p><code class="docutils literal notranslate"><span class="pre">stdout</span></code></p>
+<blockquote>
+<div><p>The data is a bytestring which represents a continuation of the stdout
+stream.  Note that the bytestring boundaries are not necessarily aligned
+with newlines.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">stderr</span></code></p>
+<blockquote>
+<div><p>Similar to <code class="docutils literal notranslate"><span class="pre">stdout</span></code>, but for the error stream.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">header</span></code></p>
+<blockquote>
+<div><p>Similar to <code class="docutils literal notranslate"><span class="pre">stdout</span></code>, but containing data for a stream of
+Buildbot-specific metadata.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">rc</span></code></p>
+<blockquote>
+<div><p>The exit status of the command, where – in keeping with UNIX tradition –
+0 indicates success and any nonzero value is considered a failure.  No
+further updates should be sent after an <code class="docutils literal notranslate"><span class="pre">rc</span></code>.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">failure_reason</span></code></p>
+<blockquote>
+<div><p>Value is a string and describes additional scenarios when a process failed.
+The value of the <code class="docutils literal notranslate"><span class="pre">failure_reason</span></code> key can be one of the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">timeout</span></code> if the command timed out due to time specified by the <code class="docutils literal notranslate"><span class="pre">maxTime</span></code> parameter being exceeded.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">timeout_without_output</span></code> if the command timed out due to time specified by the <code class="docutils literal notranslate"><span class="pre">timeout</span></code> parameter being exceeded.</p></li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">log</span></code></p>
+<blockquote>
+<div><p>This update contains data for a logfile other than stdio.  The data
+associated with the update is a tuple of the log name and the data for that
+log.  Note that non-stdio logs do not distinguish output, error, and header
+streams.</p>
+</div></blockquote>
+</section>
+<section id="uploadfile">
+<h4>uploadFile<a class="headerlink" href="#uploadfile" title="Link to this heading"></a></h4>
+<p>Upload a file from the worker to the master.  The arguments are</p>
+<p><code class="docutils literal notranslate"><span class="pre">workdir</span></code></p>
+<blockquote>
+<div><p>Base directory for the filename, relative to the builder’s basedir.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">workersrc</span></code></p>
+<blockquote>
+<div><p>Name of the filename to read from, relative to the workdir.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">writer</span></code></p>
+<blockquote>
+<div><p>A remote reference to a writer object, described below.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">maxsize</span></code></p>
+<blockquote>
+<div><p>Maximum size, in bytes, of the file to write.  The operation will fail if
+the file exceeds this size.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">blocksize</span></code></p>
+<blockquote>
+<div><p>The block size with which to transfer the file.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">keepstamp</span></code></p>
+<blockquote>
+<div><p>If true, preserve the file modified and accessed times.</p>
+</div></blockquote>
+<p>The worker calls a few remote methods on the writer object.  First, the
+<code class="docutils literal notranslate"><span class="pre">write</span></code> method is called with a bytestring containing data, until all of the
+data has been transmitted.  Then, the worker calls the writer’s <code class="docutils literal notranslate"><span class="pre">close</span></code>,
+followed (if <code class="docutils literal notranslate"><span class="pre">keepstamp</span></code> is true) by a call to <code class="docutils literal notranslate"><span class="pre">upload(atime,</span> <span class="pre">mtime)</span></code>.</p>
+<p>This command sends <code class="docutils literal notranslate"><span class="pre">rc</span></code> and <code class="docutils literal notranslate"><span class="pre">stderr</span></code> updates, as defined for the <code class="docutils literal notranslate"><span class="pre">shell</span></code>
+command.</p>
+</section>
+<section id="uploaddirectory">
+<h4>uploadDirectory<a class="headerlink" href="#uploaddirectory" title="Link to this heading"></a></h4>
+<p>Similar to <code class="docutils literal notranslate"><span class="pre">uploadFile</span></code>, this command will upload an entire directory to the
+master, in the form of a tarball.  It takes the following arguments:</p>
+<p><code class="docutils literal notranslate"><span class="pre">workdir</span></code>
+<code class="docutils literal notranslate"><span class="pre">workersrc</span></code>
+<code class="docutils literal notranslate"><span class="pre">writer</span></code>
+<code class="docutils literal notranslate"><span class="pre">maxsize</span></code>
+<code class="docutils literal notranslate"><span class="pre">blocksize</span></code></p>
+<blockquote>
+<div><p>See <code class="docutils literal notranslate"><span class="pre">uploadFile</span></code> for these arguments.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">compress</span></code></p>
+<blockquote>
+<div><p>Compression algorithm to use – one of <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">'bz2'</span></code>, or <code class="docutils literal notranslate"><span class="pre">'gz'</span></code>.</p>
+</div></blockquote>
+<p>The writer object is treated similarly to the <code class="docutils literal notranslate"><span class="pre">uploadFile</span></code> command, but after
+the file is closed, the worker calls the master’s <code class="docutils literal notranslate"><span class="pre">unpack</span></code> method with no
+arguments to extract the tarball.</p>
+<p>This command sends <code class="docutils literal notranslate"><span class="pre">rc</span></code> and <code class="docutils literal notranslate"><span class="pre">stderr</span></code> updates, as defined for the <code class="docutils literal notranslate"><span class="pre">shell</span></code>
+command.</p>
+</section>
+<section id="downloadfile">
+<h4>downloadFile<a class="headerlink" href="#downloadfile" title="Link to this heading"></a></h4>
+<p>This command will download a file from the master to the worker.  It takes the
+following arguments:</p>
+<p><code class="docutils literal notranslate"><span class="pre">workdir</span></code></p>
+<blockquote>
+<div><p>Base directory for the destination filename, relative to the builder basedir.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">workerdest</span></code></p>
+<blockquote>
+<div><p>Filename to write to, relative to the workdir.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">reader</span></code></p>
+<blockquote>
+<div><p>A remote reference to a reader object, described below.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">maxsize</span></code></p>
+<blockquote>
+<div><p>Maximum size of the file.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">blocksize</span></code></p>
+<blockquote>
+<div><p>The block size with which to transfer the file.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">mode</span></code></p>
+<blockquote>
+<div><p>Access mode for the new file.</p>
+</div></blockquote>
+<p>The reader object’s <code class="docutils literal notranslate"><span class="pre">read(maxsize)</span></code> method will be called with a maximum
+size, which will return no more than that number of bytes as a bytestring.  At
+EOF, it will return an empty string.  Once EOF is received, the worker will call
+the remote <code class="docutils literal notranslate"><span class="pre">close</span></code> method.</p>
+<p>This command sends <code class="docutils literal notranslate"><span class="pre">rc</span></code> and <code class="docutils literal notranslate"><span class="pre">stderr</span></code> updates, as defined for the <code class="docutils literal notranslate"><span class="pre">shell</span></code>
+command.</p>
+</section>
+<section id="mkdir">
+<h4>mkdir<a class="headerlink" href="#mkdir" title="Link to this heading"></a></h4>
+<p>This command will create a directory on the worker.  It will also create any
+intervening directories required.  It takes the following argument:</p>
+<p><code class="docutils literal notranslate"><span class="pre">dir</span></code></p>
+<blockquote>
+<div><p>Directory to create.</p>
+</div></blockquote>
+<p>The <code class="docutils literal notranslate"><span class="pre">mkdir</span></code> command produces the same updates as <code class="docutils literal notranslate"><span class="pre">shell</span></code>.</p>
+</section>
+<section id="rmdir">
+<h4>rmdir<a class="headerlink" href="#rmdir" title="Link to this heading"></a></h4>
+<p>This command will remove a directory or file on the worker.  It takes the following arguments:</p>
+<p><code class="docutils literal notranslate"><span class="pre">dir</span></code></p>
+<blockquote>
+<div><p>Directory to remove.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">timeout</span></code>
+<code class="docutils literal notranslate"><span class="pre">maxTime</span></code></p>
+<blockquote>
+<div><p>See <code class="docutils literal notranslate"><span class="pre">shell</span></code> above.</p>
+</div></blockquote>
+<p>The <code class="docutils literal notranslate"><span class="pre">rmdir</span></code> command produces the same updates as <code class="docutils literal notranslate"><span class="pre">shell</span></code>.</p>
+</section>
+<section id="cpdir">
+<h4>cpdir<a class="headerlink" href="#cpdir" title="Link to this heading"></a></h4>
+<p>This command will copy a directory from one place to another place on the worker.  It takes the following
+arguments:</p>
+<p><code class="docutils literal notranslate"><span class="pre">fromdir</span></code></p>
+<blockquote>
+<div><p>Source directory for the copy operation, relative to the builder’s basedir.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">todir</span></code></p>
+<blockquote>
+<div><p>Destination directory for the copy operation, relative to the builder’s basedir.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">timeout</span></code>
+<code class="docutils literal notranslate"><span class="pre">maxTime</span></code></p>
+<blockquote>
+<div><p>See <code class="docutils literal notranslate"><span class="pre">shell</span></code> above.</p>
+</div></blockquote>
+<p>The <code class="docutils literal notranslate"><span class="pre">cpdir</span></code> command produces the same updates as <code class="docutils literal notranslate"><span class="pre">shell</span></code>.</p>
+</section>
+<section id="stat">
+<h4>stat<a class="headerlink" href="#stat" title="Link to this heading"></a></h4>
+<p>This command returns status information about a file or directory.  It takes a
+single parameter, <code class="docutils literal notranslate"><span class="pre">file</span></code>, specifying the filename relative to the builder’s
+basedir.</p>
+<p>It produces two status updates:</p>
+<p><code class="docutils literal notranslate"><span class="pre">stat</span></code></p>
+<blockquote>
+<div><p>The return value from Python’s <code class="docutils literal notranslate"><span class="pre">os.stat</span></code>.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">rc</span></code></p>
+<blockquote>
+<div><p>0 if the file is found, otherwise 1.</p>
+</div></blockquote>
+</section>
+<section id="glob">
+<h4>glob<a class="headerlink" href="#glob" title="Link to this heading"></a></h4>
+<p>This command finds all pathnames matching a specified pattern that uses shell-style wildcards.
+It takes a single parameter, <code class="docutils literal notranslate"><span class="pre">path</span></code>, specifying the pattern to pass to Python’s
+<code class="docutils literal notranslate"><span class="pre">glob.glob</span></code> function.</p>
+<p>It produces two status updates:</p>
+<p><code class="docutils literal notranslate"><span class="pre">files</span></code></p>
+<blockquote>
+<div><p>The list of matching files returned from <code class="docutils literal notranslate"><span class="pre">glob.glob</span></code></p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">rc</span></code></p>
+<blockquote>
+<div><p>0 if the <code class="docutils literal notranslate"><span class="pre">glob.glob</span></code> does not raise exception, otherwise 1.</p>
+</div></blockquote>
+</section>
+<section id="listdir">
+<h4>listdir<a class="headerlink" href="#listdir" title="Link to this heading"></a></h4>
+<p>This command reads the directory and returns the list with directory contents. It
+takes a single parameter, <code class="docutils literal notranslate"><span class="pre">dir</span></code>, specifying the directory relative to the builder’s basedir.</p>
+<p>It produces two status updates:</p>
+<p><code class="docutils literal notranslate"><span class="pre">files</span></code></p>
+<blockquote>
+<div><p>The list of files in the directory returned from <code class="docutils literal notranslate"><span class="pre">os.listdir</span></code></p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">rc</span></code></p>
+<blockquote>
+<div><p>0 if the <code class="docutils literal notranslate"><span class="pre">os.listdir</span></code> does not raise exception, otherwise 1.</p>
+</div></blockquote>
+</section>
+<section id="rmfile">
+<h4>rmfile<a class="headerlink" href="#rmfile" title="Link to this heading"></a></h4>
+<p>This command removes the file in the worker base directory.
+It takes a single parameter, <code class="docutils literal notranslate"><span class="pre">path</span></code>, specifying the file path relative to the builder’s basedir.</p>
+<p>It produces one status update:</p>
+<p><code class="docutils literal notranslate"><span class="pre">rc</span></code></p>
+<blockquote>
+<div><p>0 if the <code class="docutils literal notranslate"><span class="pre">os.remove</span></code> does not raise exception, otherwise the corresponding errno.</p>
+</div></blockquote>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="authz.html" class="btn btn-neutral float-left" title="3.3.13. Authorization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="master-worker-msgpack.html" class="btn btn-neutral float-right" title="3.3.15. Master-Worker connection with MessagePack over WebSocket protocol" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Buildbot Team Members.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
