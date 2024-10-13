@@ -1,0 +1,332 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2.12.6. Upgrading to Buildbot 4.0 &mdash; Buildbot 4.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d10597a4" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=7ab3649f" />
+      <link rel="stylesheet" type="text/css" href="../../_static/buildbot_rtd.css?v=915d5e18" />
+
+  
+    <link rel="shortcut icon" href="../../_static/icon.png"/>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=42d1b3bd"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="2.12.7. Upgrading to Buildbot 3.0" href="3.0-upgrade.html" />
+    <link rel="prev" title="2.12.1. Upgrading to Buildbot 5.0 (not released)" href="5.0-upgrade.html" /> 
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Buildbot
+              <img src="../../_static/full_logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../secretsmanagement.html">2.4. Secret Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration/index.html">2.5. Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../customization.html">2.6. Customization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cmdline.html">2.7. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../resources.html">2.8. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../optimization.html">2.9. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins.html">2.10. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../deploy.html">2.11. Deployment</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">2.12. Upgrading</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="5.0-upgrade.html">2.12.1. Upgrading to Buildbot 5.0 (not released)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="5.0-upgrade.html#testing-support">2.12.2. Testing support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="5.0-upgrade.html#http-service">2.12.3. HTTP service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="5.0-upgrade.html#database-connectors">2.12.4. Database connectors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="5.0-upgrade.html#reporters">2.12.5. Reporters</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">2.12.6. Upgrading to Buildbot 4.0</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#web-frontend">2.12.6.1. Web frontend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#gerritchangesource-and-gerriteventlogpoller">2.12.6.2. GerritChangeSource and GerritEventLogPoller</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#build-status-generators">2.12.6.3. Build status generators</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#message-formatters">2.12.6.4. Message formatters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#gerritstatuspush">2.12.6.5. GerritStatusPush</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#buildbot-util-croniter">2.12.6.6. buildbot.util.croniter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#endpoint-attributes">2.12.6.7. Endpoint attributes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#changes-to-buildstep-attributes">2.12.6.8. Changes to BuildStep attributes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="3.0-upgrade.html">2.12.7. Upgrading to Buildbot 3.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2.0-upgrade.html">2.12.8. Upgrading to Buildbot 2.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="1.0-upgrade.html">2.12.9. Upgrading to Buildbot 1.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="0.9-upgrade.html">2.12.10. Upgrading to Buildbot 0.9.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="0.9-new-style-steps.html">2.12.11. New-Style Build Steps in Buildbot 0.9.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="0.9-worker-transition.html">2.12.12. Transition to “worker” terminology in BuildBot 0.9.0</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../indices.html">6. API Indices</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Buildbot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html"><span class="section-number">2. </span>Buildbot Manual</a></li>
+          <li class="breadcrumb-item"><a href="index.html"><span class="section-number">2.12. </span>Upgrading</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">2.12.6. </span>Upgrading to Buildbot 4.0</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/manual/upgrading/4.0-upgrade.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="upgrading-to-buildbot-4-0">
+<span id="upgrading"></span><h1><span class="section-number">2.12.6. </span>Upgrading to Buildbot 4.0<a class="headerlink" href="#upgrading-to-buildbot-4-0" title="Link to this heading"></a></h1>
+<p>Upgrading a Buildbot instance from 3.x to 4.0 may require some work to achieve.</p>
+<p>The recommended upgrade procedure is as follows:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Upgrade to the last released BuildBot version in 3.x series.</p></li>
+<li><p>Remove usage of the deprecated APIs.
+All usages of deprecated APIs threw a deprecation warning at the point of use.
+If the code does not emit deprecation warnings, it’s in a good shape in this regard.
+You may need to run the master on a real workload in order to force all deprecated code paths to be exercised.</p></li>
+<li><p>Upgrade to the latest Buildbot 4.0.x release.</p></li>
+<li><p>(Optional) Upgrade to newest Buildbot 4.x.
+The newest point release will contain bug fixes and functionality improvements.</p></li>
+</ul>
+</div></blockquote>
+<section id="web-frontend">
+<h2><span class="section-number">2.12.6.1. </span>Web frontend<a class="headerlink" href="#web-frontend" title="Link to this heading"></a></h2>
+<p>Buildbot 4.0 replaces the AngularJS-based web frontend with a new React-based one.
+In simple Buildbot installations there is nothing that needs to be done except to install compatible versions of any www plugins that are used.
+The following plugins are maintained as part of Buildbot and can be upgraded seamlessly by just installing new, compatible version:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">buildbot-www</span></code> (main web frontend)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">buildbot-console-view</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">buildbot-grid-view</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">buildbot-waterfall-view</span></code></p></li>
+</ul>
+</div></blockquote>
+<section id="custom-plugins">
+<h3>Custom plugins<a class="headerlink" href="#custom-plugins" title="Link to this heading"></a></h3>
+<p>If the Buildbot installation uses plugins that are developed outside Buildbot, these will need to be rewritten to use the new Buildbot plugin APIs that expect the plugin to be written in React.
+In such case the best approach is to rewrite any custom plugins into React while still using Buildbot 3.x and convert to 4.x once everything is ready.</p>
+<p>More specifically, the recommended approach is as follows:</p>
+<blockquote>
+<div><ul>
+<li><p>Upgrade to the last released BuildBot version in 3.x series.</p></li>
+<li><p>Prepare the development environment</p>
+<blockquote>
+<div><ul>
+<li><p>Install <code class="docutils literal notranslate"><span class="pre">buildbot-www-react</span></code> with the same version.</p></li>
+<li><p>Install any Buildbot plugins that already have a version that is compatible with React.
+For example <code class="docutils literal notranslate"><span class="pre">buildbot-console-view</span></code> has a React equivalent <code class="docutils literal notranslate"><span class="pre">buildbot-react-console-view</span></code>.</p></li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">'base_react':</span> <span class="pre">{}</span></code> key-value pair to the www plugin dictionary.
+For example, in the default installation the configuration would look like this:
+<code class="docutils literal notranslate"><span class="pre">c['www']</span> <span class="pre">=</span> <span class="pre">{port:</span> <span class="pre">8080,</span> <span class="pre">plugins={'base_react':</span> <span class="pre">{}}}</span></code>.</p>
+<p>Other enabled plugins will need their keys in the dictionary changed.
+For example, the compatibility Buildbot plugins will have the following names:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">console_view</span></code> as <code class="docutils literal notranslate"><span class="pre">react_console_view</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">grid_view</span></code> as <code class="docutils literal notranslate"><span class="pre">react_grid_view</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">waterfall_view</span></code> as <code class="docutils literal notranslate"><span class="pre">react_waterfall_view</span></code></p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Rewrite any custom Buildbot plugins into React and new Buildbot plugin APIs in the development environment.</p></li>
+<li><p>Replace the production setup with what was tested in the development environment section above.</p></li>
+<li><p>Upgrade to Buildbot 4.x series</p></li>
+<li><p>Buildbot plugins with the word <code class="docutils literal notranslate"><span class="pre">react</span></code> in the name are temporarily used for migration testing. After a successful migration
+to Buildbot 4.x, you should replace them with plugins without the word <code class="docutils literal notranslate"><span class="pre">react</span></code> in the plugin name.</p>
+<blockquote>
+<div><ul>
+<li><p>Uninstall migration plugins</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>pip uninstall buildbot-www-react buildbot-react-console-view buildbot-react-grid-view buildbot-react-waterfall-view  buildbot-react-wsgi-dashboards
+</pre></div>
+</div>
+</li>
+<li><p>Install production plugins</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>pip install buildbot-www buildbot-console-view buildbot-grid-view buildbot-waterfall-view buildbot-react-wsgi-dashboards
+</pre></div>
+</div>
+</li>
+<li><p>Update the www plugin dictionary</p>
+<p>Only update the ones you use in your installation.</p>
+<p>Replace:</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="mi">8010</span><span class="p">,</span>
+    <span class="n">plugins</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="s1">&#39;base_react&#39;</span><span class="p">:</span> <span class="p">{},</span> <span class="n">react_console_view</span><span class="o">=</span><span class="p">{},</span> <span class="n">react_grid_view</span><span class="o">=</span><span class="p">{},</span> <span class="n">react_waterfall_view</span><span class="o">=</span><span class="p">{},</span> <span class="n">react_wsgi_dashboards</span><span class="o">=</span><span class="p">{}))</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>With:</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="mi">8010</span><span class="p">,</span>
+    <span class="n">plugins</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">console_view</span><span class="o">=</span><span class="p">{},</span> <span class="n">grid_view</span><span class="o">=</span><span class="p">{},</span> <span class="n">waterfall_view</span><span class="o">=</span><span class="p">{},</span> <span class="n">wsgi_dashboards</span><span class="o">=</span><span class="p">{}))</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</section>
+</section>
+<section id="gerritchangesource-and-gerriteventlogpoller">
+<h2><span class="section-number">2.12.6.2. </span>GerritChangeSource and GerritEventLogPoller<a class="headerlink" href="#gerritchangesource-and-gerriteventlogpoller" title="Link to this heading"></a></h2>
+<p>Events between <code class="docutils literal notranslate"><span class="pre">GerritChangeSource</span></code> and <code class="docutils literal notranslate"><span class="pre">GerritEventLogPoller</span></code> are no longer deduplicated.
+The equivalent is setting <code class="docutils literal notranslate"><span class="pre">GerritChangeSource</span></code> with both SSH and HTTP APIs. The <code class="docutils literal notranslate"><span class="pre">http_url</span></code>
+should be set to <code class="docutils literal notranslate"><span class="pre">baseURL</span></code> of argument <code class="docutils literal notranslate"><span class="pre">GerritEventLogPoller</span></code> without the <code class="docutils literal notranslate"><span class="pre">/a</span></code> suffix included.
+<code class="docutils literal notranslate"><span class="pre">http_auth</span></code> should be set to <code class="docutils literal notranslate"><span class="pre">auth</span></code> argument of <code class="docutils literal notranslate"><span class="pre">GerritEventLogPoller</span></code>.</p>
+</section>
+<section id="build-status-generators">
+<h2><span class="section-number">2.12.6.3. </span>Build status generators<a class="headerlink" href="#build-status-generators" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">subject</span></code> argument of <code class="docutils literal notranslate"><span class="pre">BuildStatusGenerator</span></code> and <code class="docutils literal notranslate"><span class="pre">BuildSetStatusGenerator</span></code> has been removed.
+The equivalent is setting the <code class="docutils literal notranslate"><span class="pre">subject</span></code> argument of the message formatter.</p>
+</section>
+<section id="message-formatters">
+<h2><span class="section-number">2.12.6.4. </span>Message formatters<a class="headerlink" href="#message-formatters" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">wantLogs</span></code> argument to message formatters has been removed.
+The equivalent is setting both <code class="docutils literal notranslate"><span class="pre">want_logs</span></code> and <code class="docutils literal notranslate"><span class="pre">want_logs_content</span></code> to the previous value of <code class="docutils literal notranslate"><span class="pre">wantLogs</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">wantSteps</span></code> and <code class="docutils literal notranslate"><span class="pre">wantProperties</span></code> arguments have been renamed to <code class="docutils literal notranslate"><span class="pre">want_steps</span></code> and <code class="docutils literal notranslate"><span class="pre">want_properties</span></code> respectively.</p>
+</section>
+<section id="gerritstatuspush">
+<h2><span class="section-number">2.12.6.5. </span>GerritStatusPush<a class="headerlink" href="#gerritstatuspush" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">reviewCB</span></code>, <code class="docutils literal notranslate"><span class="pre">reviewArg</span></code>, <code class="docutils literal notranslate"><span class="pre">startCB</span></code>, <code class="docutils literal notranslate"><span class="pre">startArg</span></code>, <code class="docutils literal notranslate"><span class="pre">summaryCB</span></code>, <code class="docutils literal notranslate"><span class="pre">summaryArg</span></code>,
+<code class="docutils literal notranslate"><span class="pre">builders</span></code> , <code class="docutils literal notranslate"><span class="pre">wantSteps</span></code>, <code class="docutils literal notranslate"><span class="pre">wantLogs</span></code> arguments of <code class="docutils literal notranslate"><span class="pre">GerritStatusPush</span></code> have been deprecated.
+The upgrade strategy is as follows:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">reviewCB</span></code>, <code class="docutils literal notranslate"><span class="pre">reviewArg</span></code>, <code class="docutils literal notranslate"><span class="pre">startCB</span></code>, <code class="docutils literal notranslate"><span class="pre">startArg</span></code>:
+Use <a class="reference internal" href="../configuration/report_generators/build_start_end.html#reportgen-BuildStartEndStatusGenerator" title="BuildStartEndStatusGenerator"><code class="xref bb bb-reportgen docutils literal notranslate"><span class="pre">BuildStartEndStatusGenerator</span></code></a> report generator (<code class="docutils literal notranslate"><span class="pre">generators</span></code> argument).
+Depending on <code class="docutils literal notranslate"><span class="pre">reviewCB</span></code> complexity, use <a class="reference internal" href="../configuration/report_generators/formatter.html#messageformatter"><span class="std std-ref">MessageFormatter</span></a> or
+<a class="reference internal" href="../configuration/report_generators/formatter_function_raw.html#messageformatterfunctionraw"><span class="std std-ref">MessageFormatterFunctionRaw</span></a> message formatters. To override default handling of
+<code class="docutils literal notranslate"><span class="pre">Verified</span></code> and <code class="docutils literal notranslate"><span class="pre">Reviewed</span></code> labels, adjust extra information emitted by message formatter.
+E.g. <code class="docutils literal notranslate"><span class="pre">{&quot;labels&quot;:</span> <span class="pre">{&quot;Verified&quot;:</span> <span class="pre">1}}</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">summaryCB</span></code>, <code class="docutils literal notranslate"><span class="pre">summaryArg</span></code>:
+Use <a class="reference internal" href="../configuration/report_generators/buildset.html#reportgen-BuildSetStatusGenerator" title="BuildSetStatusGenerator"><code class="xref bb bb-reportgen docutils literal notranslate"><span class="pre">BuildSetStatusGenerator</span></code></a> or <a class="reference internal" href="../configuration/report_generators/buildset_combined.html#reportgen-BuildSetCombinedStatusGenerator" title="BuildSetCombinedStatusGenerator"><code class="xref bb bb-reportgen docutils literal notranslate"><span class="pre">BuildSetCombinedStatusGenerator</span></code></a>
+report generator  (<code class="docutils literal notranslate"><span class="pre">generators</span></code> argument). Depending on <code class="docutils literal notranslate"><span class="pre">summaryCB</span></code> complexity,
+use <a class="reference internal" href="../configuration/report_generators/formatter.html#messageformatter"><span class="std std-ref">MessageFormatter</span></a> or <a class="reference internal" href="../configuration/report_generators/formatter_function_raw.html#messageformatterfunctionraw"><span class="std std-ref">MessageFormatterFunctionRaw</span></a> message formatters.
+To override default handling of <code class="docutils literal notranslate"><span class="pre">Verified</span></code> and <code class="docutils literal notranslate"><span class="pre">Reviewed</span></code> labels, adjust extra
+information emitted by message formatter. E.g. <code class="docutils literal notranslate"><span class="pre">{&quot;labels&quot;:</span> <span class="pre">{&quot;Verified&quot;:</span> <span class="pre">1}}</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">builders</span></code> - use <code class="docutils literal notranslate"><span class="pre">builders</span></code> argument of replacement report generator</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wantSteps</span></code> - use <code class="docutils literal notranslate"><span class="pre">want_steps</span></code> argument of replacement message formatter.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wantLogs</span></code> - use <code class="docutils literal notranslate"><span class="pre">want_logs</span></code> argument of replacement message formatter</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="buildbot-util-croniter">
+<h2><span class="section-number">2.12.6.6. </span>buildbot.util.croniter<a class="headerlink" href="#buildbot-util-croniter" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">buildbot.util.croniter</span></code> module has been removed.
+The replacement is <code class="docutils literal notranslate"><span class="pre">croniter</span></code> package from Pypi.</p>
+<p>Migration to <code class="docutils literal notranslate"><span class="pre">croniter</span></code> involves ensuring that the input times are passed as time-aware <code class="docutils literal notranslate"><span class="pre">datetime</span></code> objects.</p>
+<p>The original <code class="docutils literal notranslate"><span class="pre">buildbot.util.croniter</span></code> code always assumed the input time is in the current timezone.
+The <code class="docutils literal notranslate"><span class="pre">croniter</span></code> package assumes the input time is in UTC timezone.</p>
+</section>
+<section id="endpoint-attributes">
+<h2><span class="section-number">2.12.6.7. </span>Endpoint attributes<a class="headerlink" href="#endpoint-attributes" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">buildbot.data.base.Endpoint</span></code> no longer provides <code class="docutils literal notranslate"><span class="pre">isRaw</span></code> and <code class="docutils literal notranslate"><span class="pre">isCollection</span></code> attributes.
+The equivalent in Buildbot 4.x is setting the <code class="docutils literal notranslate"><span class="pre">kind</span></code> attribute to <code class="docutils literal notranslate"><span class="pre">EndpointKind.RAW</span></code> and <code class="docutils literal notranslate"><span class="pre">EndpointKind.COLLECTION</span></code> respectively.</p>
+</section>
+<section id="changes-to-buildstep-attributes">
+<h2><span class="section-number">2.12.6.8. </span>Changes to BuildStep attributes<a class="headerlink" href="#changes-to-buildstep-attributes" title="Link to this heading"></a></h2>
+<p>BuildBot no longer supports changing <code class="docutils literal notranslate"><span class="pre">BuildStep</span></code> attributes after a step is created during configuration.
+Changing attributes of BuildStep instances that are not yet part of any build is most likely an error.
+This is because such instances are only being used to configure a builder as a source to create real steps from.
+In this scenario any attribute changes are ignored as far as build configuration is concerned.</p>
+<p>For customizing BuildStep after an instance has already been created <cite>set_step_arg(name, value)</cite> function has been added.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="5.0-upgrade.html" class="btn btn-neutral float-left" title="2.12.1. Upgrading to Buildbot 5.0 (not released)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="3.0-upgrade.html" class="btn btn-neutral float-right" title="2.12.7. Upgrading to Buildbot 3.0" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Buildbot Team Members.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
