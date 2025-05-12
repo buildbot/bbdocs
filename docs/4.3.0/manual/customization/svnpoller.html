@@ -1,0 +1,330 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2.6.5. Customizing SVNPoller &mdash; Buildbot 4.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d10597a4" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/buildbot_rtd.css?v=915d5e18" />
+
+  
+    <link rel="shortcut icon" href="../../_static/icon.png"/>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=a17b270f"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="2.6.6. Writing Change Sources" href="changesources.html" />
+    <link rel="prev" title="2.6.4. canStartBuild Functions" href="canstartbuild.html" /> 
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Buildbot
+              <img src="../../_static/full_logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../secretsmanagement.html">2.4. Secret Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration/index.html">2.5. Configuration</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">2.6. Customization</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="programmatic.html">2.6.1. Programmatic Configuration Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="collapse-requests.html">2.6.2. Collapse Request Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="priorities.html">2.6.3. Priorities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="canstartbuild.html">2.6.4. <code class="docutils literal notranslate"><span class="pre">canStartBuild</span></code> Functions</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">2.6.5. Customizing SVNPoller</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#project-branchname-filepath-repositories">2.6.5.1. <code class="samp docutils literal notranslate"><em><span class="pre">PROJECT</span></em><span class="pre">/</span><em><span class="pre">BRANCHNAME</span></em><span class="pre">/</span><em><span class="pre">FILEPATH</span></em></code> repositories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#branchname-project-filepath-repositories">2.6.5.2. <code class="samp docutils literal notranslate"><em><span class="pre">BRANCHNAME</span></em><span class="pre">/</span><em><span class="pre">PROJECT</span></em><span class="pre">/</span><em><span class="pre">FILEPATH</span></em></code> repositories</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="changesources.html">2.6.6. Writing Change Sources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="latent-workers.html">2.6.7. Writing a New Latent Worker Implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="buildclasses.html">2.6.8. Custom Build Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workdir.html">2.6.9. Factory Workdir Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="buildsteps.html">2.6.10. Writing New BuildSteps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dashboards.html">2.6.11. Writing Dashboards with Flask or Bottle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="example.html">2.6.12. A Somewhat Whimsical Example (or “It’s now customized, how do I deploy it?”)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../cmdline.html">2.7. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../resources.html">2.8. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../optimization.html">2.9. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins.html">2.10. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../deploy.html">2.11. Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../upgrading/index.html">2.12. Upgrading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../indices.html">6. API Indices</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Buildbot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html"><span class="section-number">2. </span>Buildbot Manual</a></li>
+          <li class="breadcrumb-item"><a href="index.html"><span class="section-number">2.6. </span>Customization</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">2.6.5. </span>Customizing SVNPoller</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/manual/customization/svnpoller.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="customizing-svnpoller">
+<span id="id1"></span><h1><span class="section-number">2.6.5. </span>Customizing SVNPoller<a class="headerlink" href="#customizing-svnpoller" title="Link to this heading"></a></h1>
+<p>Each source file that is tracked by a Subversion repository has a fully-qualified SVN URL in the
+following form: <code class="samp docutils literal notranslate"><span class="pre">(</span><em><span class="pre">REPOURL</span></em><span class="pre">)(</span><em><span class="pre">PROJECT-plus-BRANCH</span></em><span class="pre">)(</span><em><span class="pre">FILEPATH</span></em><span class="pre">)</span></code>. When you create the
+<a class="reference internal" href="../configuration/changesources.html#chsrc-SVNPoller" title="SVNPoller"><code class="xref bb bb-chsrc docutils literal notranslate"><span class="pre">SVNPoller</span></code></a>, you give it a <code class="docutils literal notranslate"><span class="pre">repourl</span></code> value that includes all of the <code class="samp docutils literal notranslate"><em><span class="pre">REPOURL</span></em></code>
+and possibly some portion of the <code class="samp docutils literal notranslate"><em><span class="pre">PROJECT-plus-BRANCH</span></em></code> string. The <a class="reference internal" href="../configuration/changesources.html#chsrc-SVNPoller" title="SVNPoller"><code class="xref bb bb-chsrc docutils literal notranslate"><span class="pre">SVNPoller</span></code></a> is
+responsible for producing Changes that contain a branch name and a <code class="samp docutils literal notranslate"><em><span class="pre">FILEPATH</span></em></code> (which is
+relative to the top of a checked-out tree). The details of how these strings are split up depend
+upon how your repository names its branches.</p>
+<section id="project-branchname-filepath-repositories">
+<h2><span class="section-number">2.6.5.1. </span><code class="samp docutils literal notranslate"><em><span class="pre">PROJECT</span></em><span class="pre">/</span><em><span class="pre">BRANCHNAME</span></em><span class="pre">/</span><em><span class="pre">FILEPATH</span></em></code> repositories<a class="headerlink" href="#project-branchname-filepath-repositories" title="Link to this heading"></a></h2>
+<p>One common layout is to have all the various projects that share a repository get a single
+top-level directory each, with <code class="docutils literal notranslate"><span class="pre">branches</span></code>, <code class="docutils literal notranslate"><span class="pre">tags</span></code>, and <code class="docutils literal notranslate"><span class="pre">trunk</span></code> subdirectories:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>amanda/trunk
+      /branches/3_2
+               /3_3
+      /tags/3_2_1
+           /3_2_2
+           /3_3_0
+</pre></div>
+</div>
+<p>To set up a <a class="reference internal" href="../configuration/changesources.html#chsrc-SVNPoller" title="SVNPoller"><code class="xref bb bb-chsrc docutils literal notranslate"><span class="pre">SVNPoller</span></code></a> that watches the Amanda trunk (and nothing else), we would use
+the following, using the default <code class="docutils literal notranslate"><span class="pre">split_file</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">SVNPoller</span><span class="p">(</span>
+   <span class="n">repourl</span><span class="o">=</span><span class="s2">&quot;https://svn.amanda.sourceforge.net/svnroot/amanda/amanda/trunk&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In this case, every Change that our <a class="reference internal" href="../configuration/changesources.html#chsrc-SVNPoller" title="SVNPoller"><code class="xref bb bb-chsrc docutils literal notranslate"><span class="pre">SVNPoller</span></code></a> produces will have its branch attribute
+set to <code class="docutils literal notranslate"><span class="pre">None</span></code>, to indicate that the Change is on the trunk. No other sub-projects or branches
+will be tracked.</p>
+<p>If we want our ChangeSource to follow multiple branches, we have to do two things. First we have to
+change our <code class="docutils literal notranslate"><span class="pre">repourl=</span></code> argument to watch more than just <code class="docutils literal notranslate"><span class="pre">amanda/trunk</span></code>. We will set it to
+<code class="docutils literal notranslate"><span class="pre">amanda</span></code> so that we’ll see both the trunk and all the branches. Second, we have to tell
+<a class="reference internal" href="../configuration/changesources.html#chsrc-SVNPoller" title="SVNPoller"><code class="xref bb bb-chsrc docutils literal notranslate"><span class="pre">SVNPoller</span></code></a> how to split the <code class="samp docutils literal notranslate"><span class="pre">(</span><em><span class="pre">PROJECT-plus-BRANCH</span></em><span class="pre">)(</span><em><span class="pre">FILEPATH</span></em><span class="pre">)</span></code> strings it gets
+from the repository out into <code class="samp docutils literal notranslate"><span class="pre">(</span><em><span class="pre">BRANCH</span></em><span class="pre">)</span></code> and <code class="samp docutils literal notranslate"><span class="pre">(</span><em><span class="pre">FILEPATH</span></em><span class="pre">)</span></code>.</p>
+<p>We do the latter by providing a <code class="docutils literal notranslate"><span class="pre">split_file</span></code> function. This function is responsible for splitting
+something like <code class="docutils literal notranslate"><span class="pre">branches/3_3/common-src/amanda.h</span></code> into <code class="docutils literal notranslate"><span class="pre">branch='branches/3_3'</span></code> and
+<code class="docutils literal notranslate"><span class="pre">filepath='common-src/amanda.h'</span></code>. The function is always given a string that names a file
+relative to the subdirectory pointed to by the <a class="reference internal" href="../configuration/changesources.html#chsrc-SVNPoller" title="SVNPoller"><code class="xref bb bb-chsrc docutils literal notranslate"><span class="pre">SVNPoller</span></code></a>'s <code class="docutils literal notranslate"><span class="pre">repourl=</span></code> argument. It
+is expected to return a dictionary with at least the <code class="docutils literal notranslate"><span class="pre">path</span></code> key. The splitter may optionally set
+<code class="docutils literal notranslate"><span class="pre">branch</span></code>, <code class="docutils literal notranslate"><span class="pre">project</span></code> and <code class="docutils literal notranslate"><span class="pre">repository</span></code>. For backwards compatibility it may return a tuple of
+<code class="docutils literal notranslate"><span class="pre">(branchname,</span> <span class="pre">path)</span></code>. It may also return <code class="docutils literal notranslate"><span class="pre">None</span></code> to indicate that the file is of no interest.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The function should return <code class="docutils literal notranslate"><span class="pre">branches/3_3</span></code> rather than just <code class="docutils literal notranslate"><span class="pre">3_3</span></code> because the SVN checkout
+step, will append the branch name to the <code class="docutils literal notranslate"><span class="pre">baseURL</span></code>, which requires that we keep the
+<code class="docutils literal notranslate"><span class="pre">branches</span></code> component in there. Other VC schemes use a different approach towards branches and
+may not require this artifact.</p>
+</div>
+<p>If your repository uses this same <code class="docutils literal notranslate"><span class="pre">{PROJECT}/{BRANCH}/{FILEPATH}</span></code> naming scheme, the following
+function will work:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">split_file_branches</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">pieces</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pieces</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">pieces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;trunk&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pieces</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">pieces</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">pieces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;branches&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pieces</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]),</span>
+                <span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pieces</span><span class="p">[</span><span class="mi">2</span><span class="p">:]))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+</pre></div>
+</div>
+<p>In fact, this is the definition of the provided <code class="docutils literal notranslate"><span class="pre">split_file_branches</span></code> function.
+So to have our Twisted-watching <a class="reference internal" href="../configuration/changesources.html#chsrc-SVNPoller" title="SVNPoller"><code class="xref bb bb-chsrc docutils literal notranslate"><span class="pre">SVNPoller</span></code></a> follow multiple branches, we would use this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span><span class="p">,</span> <span class="n">util</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">SVNPoller</span><span class="p">(</span><span class="s2">&quot;svn://svn.twistedmatrix.com/svn/Twisted&quot;</span><span class="p">,</span>
+                                       <span class="n">split_file</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">svn</span><span class="o">.</span><span class="n">split_file_branches</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Changes for all sorts of branches (with names like <code class="docutils literal notranslate"><span class="pre">&quot;branches/1.5.x&quot;</span></code>, and <code class="docutils literal notranslate"><span class="pre">None</span></code> to indicate
+the trunk) will be delivered to the Schedulers. Each Scheduler is then free to use or ignore each
+branch as it sees fit.</p>
+<p>If you have multiple projects in the same repository your split function can attach a project name
+to the Change to help the Scheduler filter out unwanted changes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">util</span>
+<span class="k">def</span> <span class="nf">split_file_projects_branches</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">project</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">svn</span><span class="o">.</span><span class="n">split_file_branches</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="n">project</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
+        <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">info</span><span class="p">[</span><span class="s1">&#39;branch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">info</span>
+    <span class="k">return</span> <span class="n">f</span>
+</pre></div>
+</div>
+<p>Again, this is provided by default.
+To use it you would do this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span><span class="p">,</span> <span class="n">util</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">SVNPoller</span><span class="p">(</span>
+   <span class="n">repourl</span><span class="o">=</span><span class="s2">&quot;https://svn.amanda.sourceforge.net/svnroot/amanda/&quot;</span><span class="p">,</span>
+   <span class="n">split_file</span><span class="o">=</span><span class="n">util</span><span class="o">.</span><span class="n">svn</span><span class="o">.</span><span class="n">split_file_projects_branches</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note here that we are monitoring at the root of the repository, and that within that repository is
+a <code class="docutils literal notranslate"><span class="pre">amanda</span></code> subdirectory which in turn has <code class="docutils literal notranslate"><span class="pre">trunk</span></code> and <code class="docutils literal notranslate"><span class="pre">branches</span></code>. It is that <code class="docutils literal notranslate"><span class="pre">amanda</span></code>
+subdirectory whose name becomes the <code class="docutils literal notranslate"><span class="pre">project</span></code> field of the Change.</p>
+</section>
+<section id="branchname-project-filepath-repositories">
+<h2><span class="section-number">2.6.5.2. </span><code class="samp docutils literal notranslate"><em><span class="pre">BRANCHNAME</span></em><span class="pre">/</span><em><span class="pre">PROJECT</span></em><span class="pre">/</span><em><span class="pre">FILEPATH</span></em></code> repositories<a class="headerlink" href="#branchname-project-filepath-repositories" title="Link to this heading"></a></h2>
+<p>Another common way to organize a Subversion repository is to put the branch name at the top, and
+the projects underneath. This is especially frequent when there are a number of related
+sub-projects that all get released in a group.</p>
+<p>For example, <code class="docutils literal notranslate"><span class="pre">Divmod.org</span></code> hosts a project named <cite>Nevow</cite> as well as one named <cite>Quotient</cite>. In a
+checked-out Nevow tree there is a directory named <cite>formless</cite> that contains a Python source file
+named <code class="file docutils literal notranslate"><span class="pre">webform.py</span></code>. This repository is accessible via webdav (and thus uses an <cite>http:</cite>
+scheme) through the divmod.org hostname. There are many branches in this repository, and they use a
+<code class="docutils literal notranslate"><span class="pre">({BRANCHNAME})/({PROJECT})</span></code> naming policy.</p>
+<p>The fully-qualified SVN URL for the trunk version of <code class="file docutils literal notranslate"><span class="pre">webform.py</span></code> is
+<code class="docutils literal notranslate"><span class="pre">http://divmod.org/svn/Divmod/trunk/Nevow/formless/webform.py</span></code>. The 1.5.x branch version of this
+file would have a URL of <code class="docutils literal notranslate"><span class="pre">http://divmod.org/svn/Divmod/branches/1.5.x/Nevow/formless/webform.py</span></code>.
+The whole Nevow trunk would be checked out with <code class="docutils literal notranslate"><span class="pre">http://divmod.org/svn/Divmod/trunk/Nevow</span></code>, while
+the Quotient trunk would be checked out using <code class="docutils literal notranslate"><span class="pre">http://divmod.org/svn/Divmod/trunk/Quotient</span></code>.</p>
+<p>Now suppose we want to have an <a class="reference internal" href="../configuration/changesources.html#chsrc-SVNPoller" title="SVNPoller"><code class="xref bb bb-chsrc docutils literal notranslate"><span class="pre">SVNPoller</span></code></a> that only cares about the Nevow trunk. This
+case looks just like the <code class="samp docutils literal notranslate"><em><span class="pre">PROJECT</span></em><span class="pre">/</span><em><span class="pre">BRANCH</span></em></code> layout described earlier:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">SVNPoller</span><span class="p">(</span><span class="s2">&quot;http://divmod.org/svn/Divmod/trunk/Nevow&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>But what happens when we want to track multiple Nevow branches? We have to point our <code class="docutils literal notranslate"><span class="pre">repourl=</span></code>
+high enough to see all those branches, but we also don’t want to include Quotient changes (since
+we’re only building Nevow). To accomplish this, we must rely upon the <code class="docutils literal notranslate"><span class="pre">split_file</span></code> function to
+help us tell the difference between files that belong to Nevow and those that belong to Quotient,
+as well as figuring out which branch each one is on.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">changes</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;change_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">changes</span><span class="o">.</span><span class="n">SVNPoller</span><span class="p">(</span><span class="s2">&quot;http://divmod.org/svn/Divmod&quot;</span><span class="p">,</span>
+                                       <span class="n">split_file</span><span class="o">=</span><span class="n">my_file_splitter</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">my_file_splitter</span></code> function will be called with repository-relative pathnames like:</p>
+<dl class="simple">
+<dt><code class="file docutils literal notranslate"><span class="pre">trunk/Nevow/formless/webform.py</span></code></dt><dd><p>This is a Nevow file, on the trunk.
+We want the Change that includes this to see a filename of <code class="file docutils literal notranslate"><span class="pre">formless/webform.py</span></code>, and a branch of <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+<dt><code class="file docutils literal notranslate"><span class="pre">branches/1.5.x/Nevow/formless/webform.py</span></code></dt><dd><p>This is a Nevow file, on a branch.
+We want to get <code class="docutils literal notranslate"><span class="pre">branch='branches/1.5.x'</span></code> and <code class="docutils literal notranslate"><span class="pre">filename='formless/webform.py'</span></code>.</p>
+</dd>
+<dt><code class="file docutils literal notranslate"><span class="pre">trunk/Quotient/setup.py</span></code></dt><dd><p>This is a Quotient file, so we want to ignore it by having <code class="xref py py-meth docutils literal notranslate"><span class="pre">my_file_splitter</span></code> return <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt><code class="file docutils literal notranslate"><span class="pre">branches/1.5.x/Quotient/setup.py</span></code></dt><dd><p>This is also a Quotient file, which should be ignored.</p>
+</dd>
+</dl>
+<p>The following definition for <code class="xref py py-meth docutils literal notranslate"><span class="pre">my_file_splitter</span></code> will do the job:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">my_file_splitter</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">pieces</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pieces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;trunk&#39;</span><span class="p">:</span>
+        <span class="n">branch</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">pieces</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># remove &#39;trunk&#39;</span>
+    <span class="k">elif</span> <span class="n">pieces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;branches&#39;</span><span class="p">:</span>
+        <span class="n">pieces</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># remove &#39;branches&#39;</span>
+        <span class="c1"># grab branch name</span>
+        <span class="n">branch</span> <span class="o">=</span> <span class="s1">&#39;branches/&#39;</span> <span class="o">+</span> <span class="n">pieces</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span> <span class="c1"># something weird</span>
+    <span class="n">projectname</span> <span class="o">=</span> <span class="n">pieces</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">projectname</span> <span class="o">!=</span> <span class="s1">&#39;Nevow&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span> <span class="c1"># wrong project</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;branch&quot;</span><span class="p">:</span> <span class="n">branch</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pieces</span><span class="p">)}</span>
+</pre></div>
+</div>
+<p>If you later decide you want to get changes for Quotient as well you could replace the last 3 lines with simply:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">return</span> <span class="p">{</span><span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="n">projectname</span><span class="p">,</span> <span class="s2">&quot;branch&quot;</span><span class="p">:</span> <span class="n">branch</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pieces</span><span class="p">)}</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="canstartbuild.html" class="btn btn-neutral float-left" title="2.6.4. canStartBuild Functions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="changesources.html" class="btn btn-neutral float-right" title="2.6.6. Writing Change Sources" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Buildbot Team Members.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

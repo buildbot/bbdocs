@@ -1,0 +1,278 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2.6.3. Priorities &mdash; Buildbot 4.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d10597a4" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/buildbot_rtd.css?v=915d5e18" />
+
+  
+    <link rel="shortcut icon" href="../../_static/icon.png"/>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=a17b270f"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="2.6.4. canStartBuild Functions" href="canstartbuild.html" />
+    <link rel="prev" title="2.6.2. Collapse Request Functions" href="collapse-requests.html" /> 
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Buildbot
+              <img src="../../_static/full_logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../secretsmanagement.html">2.4. Secret Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration/index.html">2.5. Configuration</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">2.6. Customization</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="programmatic.html">2.6.1. Programmatic Configuration Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="collapse-requests.html">2.6.2. Collapse Request Functions</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">2.6.3. Priorities</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#builder-priority-functions">2.6.3.1. Builder Priority Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#build-priority-functions">2.6.3.2. Build Priority Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler-priority-functions">2.6.3.3. Scheduler Priority Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="canstartbuild.html">2.6.4. <code class="docutils literal notranslate"><span class="pre">canStartBuild</span></code> Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="svnpoller.html">2.6.5. Customizing SVNPoller</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changesources.html">2.6.6. Writing Change Sources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="latent-workers.html">2.6.7. Writing a New Latent Worker Implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="buildclasses.html">2.6.8. Custom Build Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workdir.html">2.6.9. Factory Workdir Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="buildsteps.html">2.6.10. Writing New BuildSteps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dashboards.html">2.6.11. Writing Dashboards with Flask or Bottle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="example.html">2.6.12. A Somewhat Whimsical Example (or “It’s now customized, how do I deploy it?”)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../cmdline.html">2.7. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../resources.html">2.8. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../optimization.html">2.9. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins.html">2.10. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../deploy.html">2.11. Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../upgrading/index.html">2.12. Upgrading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../indices.html">6. API Indices</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Buildbot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html"><span class="section-number">2. </span>Buildbot Manual</a></li>
+          <li class="breadcrumb-item"><a href="index.html"><span class="section-number">2.6. </span>Customization</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">2.6.3. </span>Priorities</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/manual/customization/priorities.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="priorities">
+<span id="id1"></span><h1><span class="section-number">2.6.3. </span>Priorities<a class="headerlink" href="#priorities" title="Link to this heading"></a></h1>
+<p>This section describes various priority functions that can be used to control the order in which builds are processed.</p>
+<section id="builder-priority-functions">
+<span id="id2"></span><h2><span class="section-number">2.6.3.1. </span>Builder Priority Functions<a class="headerlink" href="#builder-priority-functions" title="Link to this heading"></a></h2>
+<p id="index-0">The <a class="reference internal" href="../configuration/global.html#cfg-prioritizeBuilders" title="prioritizeBuilders"><code class="xref bb bb-cfg docutils literal notranslate"><span class="pre">prioritizeBuilders</span></code></a> configuration key specifies a function which is called with two
+arguments: a <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildMaster</span></code> and a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code> objects. It should return a list
+of the same <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code> objects, in the desired order. It may also remove items from the list
+if builds should not be started on those builders. If necessary, this function can return its
+results via a Deferred (it is called with <code class="docutils literal notranslate"><span class="pre">maybeDeferred</span></code>).</p>
+<p>A simple <code class="docutils literal notranslate"><span class="pre">prioritizeBuilders</span></code> implementation might look like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">prioritizeBuilders</span><span class="p">(</span><span class="n">buildmaster</span><span class="p">,</span> <span class="n">builders</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Prioritize builders. &#39;finalRelease&#39; builds have the highest</span>
+<span class="sd">    priority, so they should be built before running tests, or</span>
+<span class="sd">    creating builds.&quot;&quot;&quot;</span>
+    <span class="n">builderPriorities</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;finalRelease&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;test&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;build&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">builders</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">b</span><span class="p">:</span> <span class="n">builderPriorities</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">builders</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;prioritizeBuilders&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prioritizeBuilders</span>
+</pre></div>
+</div>
+<p>If the change frequency is higher than the turn-around of the builders,
+the following approach might be helpful:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.util.async_sort</span> <span class="kn">import</span> <span class="n">async_sort</span>
+<span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="kn">import</span> <span class="n">defer</span>
+
+<span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">prioritizeBuilders</span><span class="p">(</span><span class="n">buildmaster</span><span class="p">,</span> <span class="n">builders</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Prioritize builders. First, prioritize inactive builders.</span>
+<span class="sd">    Second, consider the last time a job was completed (no job is infinite past).</span>
+<span class="sd">    Third, consider the time the oldest request has been queued.</span>
+<span class="sd">    This provides a simple round-robin scheme that works with collapsed builds.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">isBuilding</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">building</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">bool</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">old_building</span><span class="p">)</span>
+
+    <span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+    <span class="k">def</span> <span class="nf">key</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+        <span class="n">newest_complete_time</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">b</span><span class="o">.</span><span class="n">getNewestCompleteTime</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">newest_complete_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">newest_complete_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">min</span>
+
+        <span class="n">oldest_request_time</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">b</span><span class="o">.</span><span class="n">getOldestRequestTime</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">oldest_request_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">oldest_request_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">min</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">isBuilding</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="n">newest_complete_time</span><span class="p">,</span> <span class="n">oldest_request_time</span><span class="p">)</span>
+
+    <span class="k">yield</span> <span class="n">async_sort</span><span class="p">(</span><span class="n">builders</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">builders</span>
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;prioritizeBuilders&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prioritizeBuilders</span>
+</pre></div>
+</div>
+</section>
+<section id="build-priority-functions">
+<span id="index-1"></span><span id="id3"></span><h2><span class="section-number">2.6.3.2. </span>Build Priority Functions<a class="headerlink" href="#build-priority-functions" title="Link to this heading"></a></h2>
+<p>When a builder has multiple pending build requests, it uses a <code class="docutils literal notranslate"><span class="pre">nextBuild</span></code> function to decide
+which build it should start first. This function is given two parameters: the <code class="xref py py-class docutils literal notranslate"><span class="pre">Builder</span></code>, and
+a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildRequest</span></code> objects representing pending build requests.</p>
+<p>A simple function to prioritize release builds over other builds might look like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">nextBuild</span><span class="p">(</span><span class="n">bldr</span><span class="p">,</span> <span class="n">requests</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">requests</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">branch</span> <span class="o">==</span> <span class="s1">&#39;release&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">r</span>
+    <span class="k">return</span> <span class="n">requests</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>If some non-immediate result must be calculated, the <code class="docutils literal notranslate"><span class="pre">nextBuild</span></code> function can also return a Deferred:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">nextBuild</span><span class="p">(</span><span class="n">bldr</span><span class="p">,</span> <span class="n">requests</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">get_request_priorities</span><span class="p">(</span><span class="n">requests</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">pick</span><span class="p">(</span><span class="n">priorities</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">requests</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">priorities</span><span class="p">,</span> <span class="n">requests</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">d</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="n">pick</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">d</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">nextBuild</span></code> function is passed as parameter to <code class="xref py py-class docutils literal notranslate"><span class="pre">BuilderConfig</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">...</span> <span class="n">BuilderConfig</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">nextBuild</span><span class="o">=</span><span class="n">nextBuild</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span> <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="scheduler-priority-functions">
+<span id="index-2"></span><span id="id4"></span><h2><span class="section-number">2.6.3.3. </span>Scheduler Priority Functions<a class="headerlink" href="#scheduler-priority-functions" title="Link to this heading"></a></h2>
+<p>When a <code class="xref py py-class docutils literal notranslate"><span class="pre">Scheduler</span></code> is creating a a new <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildRequest</span></code> from a (list of)
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Change</span></code> (s),it is possible to set the <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildRequest</span></code> priority. This can either be an
+integer or a function, which receives a list of builder names and a dictionary of <code class="xref py py-class docutils literal notranslate"><span class="pre">Change</span></code>,
+grouped by their codebase.</p>
+<p>A simple implementation might look like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">scheduler_priority</span><span class="p">(</span><span class="n">builderNames</span><span class="p">,</span> <span class="n">changesByCodebase</span><span class="p">):</span>
+     <span class="n">priority</span> <span class="o">=</span> <span class="mi">0</span>
+
+     <span class="k">for</span> <span class="n">codebase</span><span class="p">,</span> <span class="n">changes</span> <span class="ow">in</span> <span class="n">changesByCodebase</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+         <span class="k">for</span> <span class="n">chg</span> <span class="ow">in</span> <span class="n">changes</span><span class="p">:</span>
+             <span class="k">if</span> <span class="n">chg</span><span class="p">[</span><span class="s2">&quot;branch&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;dev/&quot;</span><span class="p">):</span>
+                     <span class="n">priority</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">priority</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+             <span class="k">elif</span> <span class="n">chg</span><span class="p">[</span><span class="s2">&quot;branch&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;bugfix/&quot;</span><span class="p">):</span>
+                     <span class="n">priority</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">priority</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+             <span class="k">elif</span> <span class="n">chg</span><span class="p">[</span><span class="s2">&quot;branch&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;main&quot;</span><span class="p">:</span>
+                     <span class="n">priority</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">priority</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+
+     <span class="k">return</span> <span class="n">priority</span>
+</pre></div>
+</div>
+<p>The priority function/integer can be passed as a parameter to <code class="xref py py-class docutils literal notranslate"><span class="pre">Scheduler</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">...</span> <span class="n">schedulers</span><span class="o">.</span><span class="n">SingleBranchScheduler</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="n">scheduler_priority</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span> <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="collapse-requests.html" class="btn btn-neutral float-left" title="2.6.2. Collapse Request Functions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="canstartbuild.html" class="btn btn-neutral float-right" title="2.6.4. canStartBuild Functions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Buildbot Team Members.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

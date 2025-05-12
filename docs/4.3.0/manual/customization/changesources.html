@@ -1,0 +1,205 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2.6.6. Writing Change Sources &mdash; Buildbot 4.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d10597a4" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/buildbot_rtd.css?v=915d5e18" />
+
+  
+    <link rel="shortcut icon" href="../../_static/icon.png"/>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=a17b270f"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="2.6.7. Writing a New Latent Worker Implementation" href="latent-workers.html" />
+    <link rel="prev" title="2.6.5. Customizing SVNPoller" href="svnpoller.html" /> 
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Buildbot
+              <img src="../../_static/full_logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../secretsmanagement.html">2.4. Secret Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration/index.html">2.5. Configuration</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">2.6. Customization</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="programmatic.html">2.6.1. Programmatic Configuration Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="collapse-requests.html">2.6.2. Collapse Request Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="priorities.html">2.6.3. Priorities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="canstartbuild.html">2.6.4. <code class="docutils literal notranslate"><span class="pre">canStartBuild</span></code> Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="svnpoller.html">2.6.5. Customizing SVNPoller</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">2.6.6. Writing Change Sources</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#writing-a-notification-based-change-source">2.6.6.1. Writing a Notification-based Change Source</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#writing-a-change-poller">2.6.6.2. Writing a Change Poller</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="latent-workers.html">2.6.7. Writing a New Latent Worker Implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="buildclasses.html">2.6.8. Custom Build Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workdir.html">2.6.9. Factory Workdir Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="buildsteps.html">2.6.10. Writing New BuildSteps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dashboards.html">2.6.11. Writing Dashboards with Flask or Bottle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="example.html">2.6.12. A Somewhat Whimsical Example (or “It’s now customized, how do I deploy it?”)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../cmdline.html">2.7. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../resources.html">2.8. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../optimization.html">2.9. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins.html">2.10. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../deploy.html">2.11. Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../upgrading/index.html">2.12. Upgrading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../indices.html">6. API Indices</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Buildbot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html"><span class="section-number">2. </span>Buildbot Manual</a></li>
+          <li class="breadcrumb-item"><a href="index.html"><span class="section-number">2.6. </span>Customization</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">2.6.6. </span>Writing Change Sources</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/manual/customization/changesources.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="writing-change-sources">
+<span id="id1"></span><h1><span class="section-number">2.6.6. </span>Writing Change Sources<a class="headerlink" href="#writing-change-sources" title="Link to this heading"></a></h1>
+<p>For some version-control systems, making Buildbot aware of new changes can be a challenge. If the
+pre-supplied classes in <a class="reference internal" href="../configuration/changesources.html#change-sources"><span class="std std-ref">Change Sources and Changes</span></a> are not sufficient, then you will need to write your
+own.</p>
+<p>There are three approaches, one of which is not even a change source. The first option is to write
+a change source that exposes some service to which the version control system can “push” changes.
+This can be more complicated, since it requires implementing a new service, but delivers changes to
+Buildbot immediately on commit.</p>
+<p>The second option is often preferable to the first: implement a notification service in an external
+process (perhaps one that is started directly by the version control system, or by an email server)
+and delivers changes to Buildbot via <a class="reference internal" href="../configuration/changesources.html#pbchangesource"><span class="std std-ref">PBChangeSource</span></a>. This section does not describe this
+particular approach, since it requires no customization within the buildmaster process.</p>
+<p>The third option is to write a change source which polls for changes - repeatedly connecting to an
+external service to check for new changes. This works well in many cases, but can produce a high
+load on the version control system if polling is too frequent, and can take too long to notice
+changes if the polling is not frequent enough.</p>
+<section id="writing-a-notification-based-change-source">
+<h2><span class="section-number">2.6.6.1. </span>Writing a Notification-based Change Source<a class="headerlink" href="#writing-a-notification-based-change-source" title="Link to this heading"></a></h2>
+<p>A custom change source must implement <code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.interfaces.IChangeSource</span></code>.</p>
+<p>The easiest way to do this is to subclass <a class="reference internal" href="../../developer/cls-changesources.html#buildbot.changes.base.ChangeSource" title="buildbot.changes.base.ChangeSource"><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.changes.base.ChangeSource</span></code></a>, implementing
+the <code class="xref py py-meth docutils literal notranslate"><span class="pre">describe</span></code> method to describe the instance. <code class="xref py py-class docutils literal notranslate"><span class="pre">ChangeSource</span></code> is a Twisted service,
+so you will need to implement the <code class="xref py py-meth docutils literal notranslate"><span class="pre">startService</span></code> and <code class="xref py py-meth docutils literal notranslate"><span class="pre">stopService</span></code> methods to control
+the means by which your change source receives notifications.</p>
+<p>When the class does receive a change, it should call <code class="docutils literal notranslate"><span class="pre">self.master.data.updates.addChange(..)</span></code> to
+submit it to the buildmaster. This method shares the same parameters as
+<code class="docutils literal notranslate"><span class="pre">master.db.changes.addChange</span></code>, so consult the API documentation for that function for details on
+the available arguments.</p>
+<p>You will probably also want to set <code class="docutils literal notranslate"><span class="pre">compare_attrs</span></code> to the list of object attributes which
+Buildbot will use to compare one change source to another when reconfiguring. During
+reconfiguration, if the new change source is different from the old, then the old will be stopped
+and the new started.</p>
+</section>
+<section id="writing-a-change-poller">
+<h2><span class="section-number">2.6.6.2. </span>Writing a Change Poller<a class="headerlink" href="#writing-a-change-poller" title="Link to this heading"></a></h2>
+<p>Polling is a very common means of seeking changes, so Buildbot supplies a utility parent class to
+make it easier. A poller should subclass
+<a class="reference internal" href="../../developer/cls-changesources.html#buildbot.changes.base.ReconfigurablePollingChangeSource" title="buildbot.changes.base.ReconfigurablePollingChangeSource"><code class="xref py py-class docutils literal notranslate"><span class="pre">buildbot.changes.base.ReconfigurablePollingChangeSource</span></code></a>, which is a subclass of
+<a class="reference internal" href="../../developer/cls-changesources.html#buildbot.changes.base.ChangeSource" title="buildbot.changes.base.ChangeSource"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChangeSource</span></code></a>. This subclass implements the <code class="xref py py-meth docutils literal notranslate"><span class="pre">Service</span></code> methods,
+and calls the <code class="xref py py-meth docutils literal notranslate"><span class="pre">poll</span></code> method according to the <code class="docutils literal notranslate"><span class="pre">pollInterval</span></code> and <code class="docutils literal notranslate"><span class="pre">pollAtLaunch</span></code> options.
+The <code class="docutils literal notranslate"><span class="pre">poll</span></code> method should return a Deferred to signal its completion.</p>
+<p>Aside from the service methods, the other concerns in the previous section apply here, too.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="svnpoller.html" class="btn btn-neutral float-left" title="2.6.5. Customizing SVNPoller" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="latent-workers.html" class="btn btn-neutral float-right" title="2.6.7. Writing a New Latent Worker Implementation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Buildbot Team Members.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,268 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2.6.11. Writing Dashboards with Flask or Bottle &mdash; Buildbot 4.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d10597a4" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/buildbot_rtd.css?v=915d5e18" />
+
+  
+    <link rel="shortcut icon" href="../../_static/icon.png"/>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=a17b270f"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="2.6.12. A Somewhat Whimsical Example (or “It’s now customized, how do I deploy it?”)" href="example.html" />
+    <link rel="prev" title="2.6.10. Writing New BuildSteps" href="buildsteps.html" /> 
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Buildbot
+              <img src="../../_static/full_logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../secretsmanagement.html">2.4. Secret Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration/index.html">2.5. Configuration</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">2.6. Customization</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="programmatic.html">2.6.1. Programmatic Configuration Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="collapse-requests.html">2.6.2. Collapse Request Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="priorities.html">2.6.3. Priorities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="canstartbuild.html">2.6.4. <code class="docutils literal notranslate"><span class="pre">canStartBuild</span></code> Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="svnpoller.html">2.6.5. Customizing SVNPoller</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changesources.html">2.6.6. Writing Change Sources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="latent-workers.html">2.6.7. Writing a New Latent Worker Implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="buildclasses.html">2.6.8. Custom Build Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workdir.html">2.6.9. Factory Workdir Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="buildsteps.html">2.6.10. Writing New BuildSteps</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">2.6.11. Writing Dashboards with Flask or Bottle</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#buildbot_api.dataGet"><code class="docutils literal notranslate"><span class="pre">buildbot_api.dataGet</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="example.html">2.6.12. A Somewhat Whimsical Example (or “It’s now customized, how do I deploy it?”)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../cmdline.html">2.7. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../resources.html">2.8. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../optimization.html">2.9. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins.html">2.10. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../deploy.html">2.11. Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../upgrading/index.html">2.12. Upgrading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../indices.html">6. API Indices</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Buildbot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html"><span class="section-number">2. </span>Buildbot Manual</a></li>
+          <li class="breadcrumb-item"><a href="index.html"><span class="section-number">2.6. </span>Customization</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">2.6.11. </span>Writing Dashboards with Flask or Bottle</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/manual/customization/dashboards.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="writing-dashboards-with-flask-or-bottle">
+<span id="buildbot-wsgi-dashboards"></span><h1><span class="section-number">2.6.11. </span>Writing Dashboards with <a class="reference external" href="http://flask.pocoo.org/">Flask</a> or <a class="reference external" href="https://bottlepy.org/docs/dev/">Bottle</a><a class="headerlink" href="#writing-dashboards-with-flask-or-bottle" title="Link to this heading"></a></h1>
+<p>Buildbot UI is written in Javascript.
+This allows it to be reactive and real time, but comes at a price of a fair complexity.</p>
+<p>There is a Buildbot plugin which allows to write a server side generated dashboard, and integrate it in the UI.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">buildbot_wsgi_dashboards</span> <span class="n">flask</span>
+</pre></div>
+</div>
+<p>This plugin can use any WSGI compatible web framework, <a class="reference external" href="http://flask.pocoo.org/">Flask</a> is a very common one, <a class="reference external" href="https://bottlepy.org/docs/dev/">Bottle</a> is
+another popular option.</p>
+<p>The application needs to implement a <code class="docutils literal notranslate"><span class="pre">/index.html</span></code> route, which will render the html code representing the dashboard.</p>
+<p>The application framework runs in a thread outside of Twisted. No need to worry about Twisted and asynchronous code.
+You can use <a class="reference external" href="https://requests.readthedocs.io/en/master/">python-requests</a> or any library from the python ecosystem to access other servers.</p>
+<p>You could use HTTP in order to access Buildbot <a class="reference internal" href="../../developer/rest.html#rest-api"><span class="std std-ref">REST API</span></a>, but you can also use the
+<a class="reference internal" href="../../developer/data.html#data-api"><span class="std std-ref">Data API</span></a>, via the provided synchronous wrapper.</p>
+<blockquote>
+<div><dl class="py method">
+<dt class="sig sig-object py" id="buildbot_api.dataGet">
+<span class="sig-prename descclassname"><span class="pre">buildbot_api.</span></span><span class="sig-name descname"><span class="pre">dataGet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#buildbot_api.dataGet" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>tuple</em>) – A tuple of path elements representing the API path to fetch.
+Numbers can be passed as strings or integers.</p></li>
+<li><p><strong>filters</strong> – result spec filters</p></li>
+<li><p><strong>fields</strong> – result spec fields</p></li>
+<li><p><strong>order</strong> – result spec order</p></li>
+<li><p><strong>limit</strong> – result spec limit</p></li>
+<li><p><strong>offset</strong> – result spec offset</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="../../developer/data.html#buildbot.data.exceptions.InvalidPathError" title="buildbot.data.exceptions.InvalidPathError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">InvalidPathError</span></code></a></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a resource or list, or None</p>
+</dd>
+</dl>
+<p>This is a blocking wrapper to master.data.get as described in <a class="reference internal" href="../../developer/data.html#data-api"><span class="std std-ref">Data API</span></a>. The
+available paths are described in the <a class="reference internal" href="../../developer/rest.html#rest-api"><span class="std std-ref">REST API</span></a>, as well as the nature of return
+values depending on the kind of data that is fetched. Path can be either the REST path e.g.
+<code class="docutils literal notranslate"><span class="pre">&quot;builders/2/builds/4&quot;</span></code> or tuple e.g. <code class="docutils literal notranslate"><span class="pre">(&quot;builders&quot;,</span> <span class="pre">2,</span> <span class="pre">&quot;builds&quot;,</span> <span class="pre">4)</span></code>. The latter form
+being more convenient if some path parts are coming from variables. The <a class="reference internal" href="../../developer/data.html#data-api"><span class="std std-ref">Data API</span></a> and
+<a class="reference internal" href="../../developer/rest.html#rest-api"><span class="std std-ref">REST API</span></a> are functionally equivalent except:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../../developer/data.html#data-api"><span class="std std-ref">Data API</span></a> does not have HTTP connection overhead.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">buildbot_api.dataGet</span></code> is accessible via the WSGI application object passed to
+<code class="docutils literal notranslate"><span class="pre">wsgi_dashboards</span></code> plugin (as per the example).</p>
+</dd></dl>
+
+</div></blockquote>
+<p>That html code output of the server runs inside React application.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>It will use the CSS of the React application (including the <a class="reference external" href="http://getbootstrap.com/css/">Bootstrap</a> CSS base).
+You can use custom style-sheet with a standard <code class="docutils literal notranslate"><span class="pre">style</span></code> tag within your html.
+Custom CSS will be shared with the whole Buildbot application once your dashboard is loaded.
+So you should make sure your custom CSS rules only apply to your dashboard (e.g. by having a
+specific class for your dashboard’s main div)</p></li>
+<li><p>It has full access to the application JS context.</p></li>
+</ul>
+</div></blockquote>
+<p>The WSGI plugin can be registered as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dashboardapp</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">root_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+<span class="c1"># this allows to work on the template without having to restart Buildbot</span>
+<span class="n">dashboardapp</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;TEMPLATES_AUTO_RELOAD&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="nd">@dashboardapp</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/index.html&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="c1"># This code fetches build data from the data api, and give it to the</span>
+    <span class="n">builders</span> <span class="o">=</span> <span class="n">dashboardapp</span><span class="o">.</span><span class="n">buildbot_api</span><span class="o">.</span><span class="n">dataGet</span><span class="p">(</span><span class="s2">&quot;/builders&quot;</span><span class="p">)</span>
+    <span class="n">builds</span> <span class="o">=</span> <span class="n">dashboardapp</span><span class="o">.</span><span class="n">buildbot_api</span><span class="o">.</span><span class="n">dataGet</span><span class="p">(</span><span class="s2">&quot;/builds&quot;</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+
+    <span class="c1"># properties are actually not used in the template example, but this is</span>
+    <span class="c1"># how you get more properties</span>
+    <span class="k">for</span> <span class="n">build</span> <span class="ow">in</span> <span class="n">builds</span><span class="p">:</span>
+        <span class="n">build</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dashboardapp</span><span class="o">.</span><span class="n">buildbot_api</span><span class="o">.</span><span class="n">dataGet</span><span class="p">(</span>
+            <span class="p">(</span><span class="s2">&quot;builds&quot;</span><span class="p">,</span> <span class="n">build</span><span class="p">[</span><span class="s1">&#39;buildid&#39;</span><span class="p">],</span> <span class="s2">&quot;properties&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="n">graph_data</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="mi">200</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="mi">300</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">},</span>
+    <span class="p">]</span>
+
+    <span class="c1"># dashboard.html is a template inside the template directory</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;dashboard.html&#39;</span><span class="p">,</span> <span class="n">builders</span><span class="o">=</span><span class="n">builders</span><span class="p">,</span> <span class="n">builds</span><span class="o">=</span><span class="n">builds</span><span class="p">,</span>
+                           <span class="n">graph_data</span><span class="o">=</span><span class="n">graph_data</span><span class="p">)</span>
+
+
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;www&#39;</span><span class="p">][</span><span class="s1">&#39;plugins&#39;</span><span class="p">][</span><span class="s1">&#39;wsgi_dashboards&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;dashboard&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;caption&#39;</span><span class="p">:</span> <span class="s1">&#39;Test Dashboard&#39;</span><span class="p">,</span>  <span class="c1"># Text shown in the menu</span>
+        <span class="s1">&#39;app&#39;</span><span class="p">:</span> <span class="n">dashboardapp</span><span class="p">,</span>
+        <span class="c1"># Priority of the menu item in the menu (lower is higher in the menu)</span>
+        <span class="s1">&#39;order&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="c1"># An icon from https://react-icons.github.io/react-icons/icons/fa/</span>
+        <span class="s1">&#39;icon&#39;</span><span class="p">:</span> <span class="s1">&#39;FaChartArea&#39;</span>
+    <span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="buildsteps.html" class="btn btn-neutral float-left" title="2.6.10. Writing New BuildSteps" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="example.html" class="btn btn-neutral float-right" title="2.6.12. A Somewhat Whimsical Example (or “It’s now customized, how do I deploy it?”)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Buildbot Team Members.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

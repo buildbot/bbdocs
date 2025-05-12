@@ -1,0 +1,634 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2.6.10. Writing New BuildSteps &mdash; Buildbot 4.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d10597a4" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/buildbot_rtd.css?v=915d5e18" />
+
+  
+    <link rel="shortcut icon" href="../../_static/icon.png"/>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=a17b270f"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="2.6.11. Writing Dashboards with Flask or Bottle" href="dashboards.html" />
+    <link rel="prev" title="2.6.9. Factory Workdir Functions" href="workdir.html" /> 
+<!-- GA-TRACKING-START -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try{
+var pageTracker = _gat._getTracker("UA-12313843-4");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+<!-- GA-TRACKING-END -->
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Buildbot
+              <img src="../../_static/full_logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">1. Buildbot Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">2. Buildbot Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../introduction.html">2.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation/index.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../concepts.html">2.3. Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../secretsmanagement.html">2.4. Secret Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration/index.html">2.5. Configuration</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">2.6. Customization</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="programmatic.html">2.6.1. Programmatic Configuration Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="collapse-requests.html">2.6.2. Collapse Request Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="priorities.html">2.6.3. Priorities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="canstartbuild.html">2.6.4. <code class="docutils literal notranslate"><span class="pre">canStartBuild</span></code> Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="svnpoller.html">2.6.5. Customizing SVNPoller</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changesources.html">2.6.6. Writing Change Sources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="latent-workers.html">2.6.7. Writing a New Latent Worker Implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="buildclasses.html">2.6.8. Custom Build Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workdir.html">2.6.9. Factory Workdir Functions</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">2.6.10. Writing New BuildSteps</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#writing-buildstep-constructors">2.6.10.1. Writing BuildStep Constructors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-execution-process">2.6.10.2. Step Execution Process</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#running-commands">2.6.10.3. Running Commands</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#updating-status-strings">2.6.10.4. Updating Status Strings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#about-logfiles">2.6.10.5. About Logfiles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#writing-log-files">2.6.10.6. Writing Log Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#reading-logfiles">2.6.10.7. Reading Logfiles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#adding-logobservers">2.6.10.8. Adding LogObservers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#using-properties">2.6.10.9. Using Properties</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#using-statistics">2.6.10.10. Using Statistics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#buildstep-urls">2.6.10.11. BuildStep URLs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#discovering-files">2.6.10.12. Discovering files</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dashboards.html">2.6.11. Writing Dashboards with Flask or Bottle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="example.html">2.6.12. A Somewhat Whimsical Example (or “It’s now customized, how do I deploy it?”)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../cmdline.html">2.7. Command-line Tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../resources.html">2.8. Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../optimization.html">2.9. Optimization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins.html">2.10. Plugin Infrastructure in Buildbot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../deploy.html">2.11. Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../upgrading/index.html">2.12. Upgrading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">3. Buildbot Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html">4. Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relnotes/index.html#older-release-notes">5. Older Release Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../indices.html">6. API Indices</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Buildbot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html"><span class="section-number">2. </span>Buildbot Manual</a></li>
+          <li class="breadcrumb-item"><a href="index.html"><span class="section-number">2.6. </span>Customization</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">2.6.10. </span>Writing New BuildSteps</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/manual/customization/buildsteps.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="writing-new-buildsteps">
+<span id="id1"></span><h1><span class="section-number">2.6.10. </span>Writing New BuildSteps<a class="headerlink" href="#writing-new-buildsteps" title="Link to this heading"></a></h1>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The API of writing custom build steps has changed significantly in Buildbot-0.9.0.
+See <a class="reference internal" href="../upgrading/0.9-new-style-steps.html#new-style-build-steps"><span class="std std-ref">New-Style Build Steps in Buildbot 0.9.0</span></a> for details about what has changed since pre 0.9.0 releases.
+This section documents new-style steps.</p>
+</div>
+<p>While it is a good idea to keep your build process self-contained in the source code tree,
+sometimes it is convenient to put more intelligence into your Buildbot configuration. One way to do
+this is to write a custom <a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep" title="buildbot.process.buildstep.BuildStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">BuildStep</span></code></a>. Once written, this Step
+can be used in the <code class="file docutils literal notranslate"><span class="pre">master.cfg</span></code> file.</p>
+<p>The best reason for writing a custom <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildStep</span></code> is to better parse the results of the
+command being run. For example, a <a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep" title="buildbot.process.buildstep.BuildStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">BuildStep</span></code></a> that knows about
+JUnit could look at the logfiles to determine which tests had been run, how many passed and how
+many failed, and then report more detailed information than a simple <code class="docutils literal notranslate"><span class="pre">rc==0</span></code> -based <cite>good/bad</cite>
+decision.</p>
+<p>Buildbot has acquired a large fleet of build steps, and sports a number of knobs and hooks to make
+steps easier to write. This section may seem a bit overwhelming, but most custom steps will only
+need to apply one or two of the techniques outlined here.</p>
+<p>For complete documentation of the build step interfaces, see <a class="reference internal" href="../../developer/cls-buildsteps.html"><span class="doc">BuildSteps</span></a>.</p>
+<section id="writing-buildstep-constructors">
+<span id="id2"></span><h2><span class="section-number">2.6.10.1. </span>Writing BuildStep Constructors<a class="headerlink" href="#writing-buildstep-constructors" title="Link to this heading"></a></h2>
+<p>Build steps act as their own factories, so their constructors are a bit more complex than
+necessary. The configuration file instantiates a <a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep" title="buildbot.process.buildstep.BuildStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">BuildStep</span></code></a>
+object, but the step configuration must be re-used for multiple builds, so Buildbot needs some way
+to create more steps.</p>
+<p>Consider the use of a <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildStep</span></code> in <code class="file docutils literal notranslate"><span class="pre">master.cfg</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">f</span><span class="o">.</span><span class="n">addStep</span><span class="p">(</span><span class="n">MyStep</span><span class="p">(</span><span class="n">someopt</span><span class="o">=</span><span class="s2">&quot;stuff&quot;</span><span class="p">,</span> <span class="n">anotheropt</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>This creates a single instance of class <code class="docutils literal notranslate"><span class="pre">MyStep</span></code>. However, Buildbot needs a new object each time
+the step is executed. An instance of <a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep" title="buildbot.process.buildstep.BuildStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">BuildStep</span></code></a> remembers how
+it was constructed, and can create copies of itself. When writing a new step class, then, keep in
+mind that you cannot do anything “interesting” in the constructor – limit yourself to checking and
+storing arguments.</p>
+<p>It is customary to call the parent class’s constructor with all otherwise-unspecified keyword arguments.
+Keep a <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> argument on the end of your options, and pass that up to the parent class’s constructor.</p>
+<p>The whole thing looks like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Frobnify</span><span class="p">(</span><span class="n">BuildStep</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">frob_what</span><span class="o">=</span><span class="s2">&quot;frobee&quot;</span><span class="p">,</span>
+            <span class="n">frob_how_many</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">frob_how</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="c1"># check</span>
+        <span class="k">if</span> <span class="n">frob_how_many</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Frobnify argument how_many is required&quot;</span><span class="p">)</span>
+
+        <span class="c1"># override a parent option</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;parentOpt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;xyz&#39;</span>
+
+        <span class="c1"># call parent</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># set Frobnify attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frob_what</span> <span class="o">=</span> <span class="n">frob_what</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frob_how_many</span> <span class="o">=</span> <span class="n">how_many</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frob_how</span> <span class="o">=</span> <span class="n">frob_how</span>
+
+<span class="k">class</span> <span class="nc">FastFrobnify</span><span class="p">(</span><span class="n">Frobnify</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">speed</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">speed</span> <span class="o">=</span> <span class="n">speed</span>
+</pre></div>
+</div>
+</section>
+<section id="step-execution-process">
+<h2><span class="section-number">2.6.10.2. </span>Step Execution Process<a class="headerlink" href="#step-execution-process" title="Link to this heading"></a></h2>
+<p>A step’s execution occurs in its <a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.run" title="buildbot.process.buildstep.BuildStep.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">run</span></code></a> method. When
+this method returns (more accurately, when the Deferred it returns fires), the step is complete.
+The method’s result must be an integer, giving the result of the step. Any other output from the
+step (logfiles, status strings, URLs, etc.) is the responsibility of the <code class="docutils literal notranslate"><span class="pre">run</span></code> method.</p>
+<p>The <a class="reference internal" href="../configuration/steps/shell_command.html#step-ShellCommand" title="ShellCommand"><code class="xref bb bb-step docutils literal notranslate"><span class="pre">ShellCommand</span></code></a> class implements this <code class="docutils literal notranslate"><span class="pre">run</span></code> method, and in most cases steps
+subclassing <code class="docutils literal notranslate"><span class="pre">ShellCommand</span></code> simply implement some of the subsidiary methods that its <code class="docutils literal notranslate"><span class="pre">run</span></code>
+method calls.</p>
+</section>
+<section id="running-commands">
+<h2><span class="section-number">2.6.10.3. </span>Running Commands<a class="headerlink" href="#running-commands" title="Link to this heading"></a></h2>
+<p>To spawn a command in the worker, create a <a class="reference internal" href="../../developer/cls-remotecommands.html#buildbot.process.remotecommand.RemoteCommand" title="buildbot.process.remotecommand.RemoteCommand"><code class="xref py py-class docutils literal notranslate"><span class="pre">RemoteCommand</span></code></a>
+instance in your step’s <code class="docutils literal notranslate"><span class="pre">run</span></code> method and run it with
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">runCommand</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cmd</span> <span class="o">=</span> <span class="n">RemoteCommand</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+<span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runCommand</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">CommandMixin</span></code> class offers a simple interface to several
+common worker-side commands.</p>
+<p>For the much more common task of running a shell command on the worker, use
+<code class="xref py py-class docutils literal notranslate"><span class="pre">ShellMixin</span></code>. This class provides a method to handle the
+myriad constructor arguments related to shell commands, as well as a method to create new
+<a class="reference internal" href="../../developer/cls-remotecommands.html#buildbot.process.remotecommand.RemoteCommand" title="buildbot.process.remotecommand.RemoteCommand"><code class="xref py py-class docutils literal notranslate"><span class="pre">RemoteCommand</span></code></a> instances. This mixin is the recommended
+method of implementing custom shell-based steps. For simple steps that don’t involve much logic the
+<cite>:bb:step:`ShellCommand</cite> is recommended.</p>
+<p>A simple example of a step using the shell mixin is:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">RunCleanup</span><span class="p">(</span><span class="n">buildstep</span><span class="o">.</span><span class="n">ShellMixin</span><span class="p">,</span> <span class="n">buildstep</span><span class="o">.</span><span class="n">BuildStep</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cleanupScript</span><span class="o">=</span><span class="s1">&#39;./cleanup.sh&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cleanupScript</span> <span class="o">=</span> <span class="n">cleanupScript</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setupShellMixin</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">prohibitArgs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;command&#39;</span><span class="p">])</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">makeRemoteShellCommand</span><span class="p">(</span>
+                <span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cleanupScript</span><span class="p">])</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">runCommand</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cmd</span><span class="o">.</span><span class="n">didFail</span><span class="p">():</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">makeRemoteShellCommand</span><span class="p">(</span>
+                    <span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cleanupScript</span><span class="p">,</span> <span class="s1">&#39;--force&#39;</span><span class="p">],</span>
+                    <span class="n">logEnviron</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">runCommand</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cmd</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+
+<span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="n">RemoteCommand</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">addLog</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">)</span>
+    <span class="n">cmd</span><span class="o">.</span><span class="n">useLog</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">closeWhenFinished</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">runCommand</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="updating-status-strings">
+<h2><span class="section-number">2.6.10.4. </span>Updating Status Strings<a class="headerlink" href="#updating-status-strings" title="Link to this heading"></a></h2>
+<p>Each step can summarize its current status in a very short string.
+For example, a compile step might display the file being compiled.
+This information can be helpful to users eager to see their build finish.</p>
+<p>Similarly, a build has a set of short strings collected from its steps summarizing the overall
+state of the build. Useful information here might include the number of tests run, but probably not
+the results of a <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">clean</span></code> step.</p>
+<p>As a step runs, Buildbot calls its
+<a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.getCurrentSummary" title="buildbot.process.buildstep.BuildStep.getCurrentSummary"><code class="xref py py-meth docutils literal notranslate"><span class="pre">getCurrentSummary</span></code></a> method as necessary to get the
+step’s current status. “As necessary” is determined by calls to
+<a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.updateSummary" title="buildbot.process.buildstep.BuildStep.updateSummary"><code class="xref py py-meth docutils literal notranslate"><span class="pre">buildbot.process.buildstep.BuildStep.updateSummary</span></code></a>. Your step should call this method
+every time the status summary may have changed. Buildbot will take care of rate-limiting summary
+updates.</p>
+<p>When the step is complete, Buildbot calls its
+<a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.getResultSummary" title="buildbot.process.buildstep.BuildStep.getResultSummary"><code class="xref py py-meth docutils literal notranslate"><span class="pre">getResultSummary</span></code></a> method to get a final summary of
+the step along with a summary for the build.</p>
+</section>
+<section id="about-logfiles">
+<h2><span class="section-number">2.6.10.5. </span>About Logfiles<a class="headerlink" href="#about-logfiles" title="Link to this heading"></a></h2>
+<p>Each BuildStep has a collection of log files. Each one has a short name, like <cite>stdio</cite> or
+<cite>warnings</cite>. Each log file contains an arbitrary amount of text, usually the contents of some output
+file generated during a build or test step, or a record of everything that was printed to
+<code class="file docutils literal notranslate"><span class="pre">stdout</span></code>/<code class="file docutils literal notranslate"><span class="pre">stderr</span></code> during the execution of some command.</p>
+<p>Each can contain multiple <cite>channels</cite>, generally limited to three basic ones: stdout, stderr, and
+<cite>headers</cite>. For example, when a shell command runs, it writes a few lines to the headers channel to
+indicate the exact argv strings being run, which directory the command is being executed in, and
+the contents of the current environment variables. Then, as the command runs, it adds a lot of
+<code class="file docutils literal notranslate"><span class="pre">stdout</span></code> and <code class="file docutils literal notranslate"><span class="pre">stderr</span></code> messages. When the command finishes, a final <cite>header</cite> line is
+added with the exit code of the process.</p>
+<p>Status display plugins can format these different channels in different ways. For example, the web
+page shows log files as text/html, with header lines in blue text, stdout in black, and stderr in
+red. A different URL is available which provides a text/plain format, in which stdout and stderr
+are collapsed together, and header lines are stripped completely. This latter option makes it easy
+to save the results to a file and run <strong class="command">grep</strong> or whatever against the output.</p>
+</section>
+<section id="writing-log-files">
+<h2><span class="section-number">2.6.10.6. </span>Writing Log Files<a class="headerlink" href="#writing-log-files" title="Link to this heading"></a></h2>
+<p>Most commonly, logfiles come from commands run on the worker. Internally, these are configured by
+supplying the <a class="reference internal" href="../../developer/cls-remotecommands.html#buildbot.process.remotecommand.RemoteCommand" title="buildbot.process.remotecommand.RemoteCommand"><code class="xref py py-class docutils literal notranslate"><span class="pre">RemoteCommand</span></code></a> instance with log files via
+the <code class="xref py py-meth docutils literal notranslate"><span class="pre">useLog</span></code> method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">addLog</span><span class="p">(</span><span class="s1">&#39;stdio&#39;</span><span class="p">)</span>
+    <span class="n">cmd</span><span class="o">.</span><span class="n">useLog</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">closeWhenFinished</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;stdio&#39;</span><span class="p">)</span>
+    <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">runCommand</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The name passed to <code class="xref py py-meth docutils literal notranslate"><span class="pre">useLog</span></code> must match that
+configured in the command. In this case, <code class="docutils literal notranslate"><span class="pre">stdio</span></code> is the default.</p>
+<p>If the log file was already added by another part of the step, it can be retrieved with
+<a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.getLog" title="buildbot.process.buildstep.BuildStep.getLog"><code class="xref py py-meth docutils literal notranslate"><span class="pre">getLog</span></code></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">stdioLog</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getLog</span><span class="p">(</span><span class="s1">&#39;stdio&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Less frequently, some master-side processing produces a log file. If this log file is short and
+easily stored in memory, this is as simple as a call to
+<a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.addCompleteLog" title="buildbot.process.buildstep.BuildStep.addCompleteLog"><code class="xref py py-meth docutils literal notranslate"><span class="pre">addCompleteLog</span></code></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="sa">u</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+                         <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lint_results</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+    <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">addCompleteLog</span><span class="p">(</span><span class="s1">&#39;summary&#39;</span><span class="p">,</span> <span class="n">summary</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that the log contents must be a unicode string.</p>
+<p>Longer logfiles can be constructed line-by-line using the <code class="docutils literal notranslate"><span class="pre">add</span></code> methods of the log file:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">updates</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">addLog</span><span class="p">(</span><span class="s1">&#39;updates&#39;</span><span class="p">)</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="o">...</span>
+        <span class="k">yield</span> <span class="n">updates</span><span class="o">.</span><span class="n">addStdout</span><span class="p">(</span><span class="n">some_update</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Again, note that the log input must be a unicode string.</p>
+<p>Finally, <a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.addHTMLLog" title="buildbot.process.buildstep.BuildStep.addHTMLLog"><code class="xref py py-meth docutils literal notranslate"><span class="pre">addHTMLLog</span></code></a> is similar to
+<a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.addCompleteLog" title="buildbot.process.buildstep.BuildStep.addCompleteLog"><code class="xref py py-meth docutils literal notranslate"><span class="pre">addCompleteLog</span></code></a>, but the resulting log will be tagged
+as containing HTML. The web UI will display the contents of the log using the browser.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">logfiles=</span></code> argument to <a class="reference internal" href="../configuration/steps/shell_command.html#step-ShellCommand" title="ShellCommand"><code class="xref bb bb-step docutils literal notranslate"><span class="pre">ShellCommand</span></code></a> and its subclasses creates new log files and
+fills them in realtime by asking the worker to watch an actual file on disk. The worker will look
+for additions in the target file and report them back to the <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildStep</span></code>. These additions
+will be added to the log file by calling <code class="xref py py-meth docutils literal notranslate"><span class="pre">addStdout</span></code>.</p>
+<p>All log files can be used as the source of a <a class="reference internal" href="../../developer/cls-logobserver.html#buildbot.process.logobserver.LogObserver" title="buildbot.process.logobserver.LogObserver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogObserver</span></code></a>
+just like the normal <code class="file docutils literal notranslate"><span class="pre">stdio</span></code> <code class="xref py py-class docutils literal notranslate"><span class="pre">LogFile</span></code>. In fact, it’s possible for one
+<a class="reference internal" href="../../developer/cls-logobserver.html#buildbot.process.logobserver.LogObserver" title="buildbot.process.logobserver.LogObserver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogObserver</span></code></a> to observe a logfile created by another.</p>
+</section>
+<section id="reading-logfiles">
+<h2><span class="section-number">2.6.10.7. </span>Reading Logfiles<a class="headerlink" href="#reading-logfiles" title="Link to this heading"></a></h2>
+<p>For the most part, Buildbot tries to avoid loading the contents of a log file into memory as a
+single string. For large log files on a busy master, this behavior can quickly consume a great deal
+of memory.</p>
+<p>Instead, steps should implement a <a class="reference internal" href="../../developer/cls-logobserver.html#buildbot.process.logobserver.LogObserver" title="buildbot.process.logobserver.LogObserver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogObserver</span></code></a> to examine log
+files one chunk or line at a time.</p>
+<p>For commands which only produce a small quantity of output,
+<a class="reference internal" href="../../developer/cls-remotecommands.html#buildbot.process.remotecommand.RemoteCommand" title="buildbot.process.remotecommand.RemoteCommand"><code class="xref py py-class docutils literal notranslate"><span class="pre">RemoteCommand</span></code></a> will collect the command’s stdout into its
+<a class="reference internal" href="../../developer/cls-remotecommands.html#buildbot.process.remotecommand.RemoteCommand.stdout" title="buildbot.process.remotecommand.RemoteCommand.stdout"><code class="xref py py-attr docutils literal notranslate"><span class="pre">stdout</span></code></a> attribute if given the
+<code class="docutils literal notranslate"><span class="pre">collectStdout=True</span></code> constructor argument.</p>
+</section>
+<section id="adding-logobservers">
+<span id="id3"></span><h2><span class="section-number">2.6.10.8. </span>Adding LogObservers<a class="headerlink" href="#adding-logobservers" title="Link to this heading"></a></h2>
+<p>Most shell commands emit messages to stdout or stderr as they operate, especially if you ask them
+nicely with a option <cite>–verbose</cite> flag of some sort. They may also write text to a log file while
+they run. Your <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildStep</span></code> can watch this output as it arrives, to keep track of how much
+progress the command has made or to process log output for later summarization.</p>
+<p>To accomplish this, you will need to attach a <a class="reference internal" href="../../developer/cls-logobserver.html#buildbot.process.logobserver.LogObserver" title="buildbot.process.logobserver.LogObserver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogObserver</span></code></a> to
+the log. This observer is given all text as it is emitted from the command, and has the opportunity
+to parse that output incrementally.</p>
+<p>There are a number of pre-built <a class="reference internal" href="../../developer/cls-logobserver.html#buildbot.process.logobserver.LogObserver" title="buildbot.process.logobserver.LogObserver"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogObserver</span></code></a> classes that you
+can choose from (defined in <a class="reference internal" href="../../developer/cls-buildsteps.html#module-buildbot.process.buildstep" title="buildbot.process.buildstep"><code class="xref py py-mod docutils literal notranslate"><span class="pre">buildbot.process.buildstep</span></code></a>, and of course you can subclass them
+to add further customization. The <code class="xref py py-class docutils literal notranslate"><span class="pre">LogLineObserver</span></code> class handles the grunt work of
+buffering and scanning for end-of-line delimiters, allowing your parser to operate on complete
+<code class="file docutils literal notranslate"><span class="pre">stdout</span></code>/<code class="file docutils literal notranslate"><span class="pre">stderr</span></code> lines.</p>
+<p>For example, let’s take a look at the <code class="xref py py-class docutils literal notranslate"><span class="pre">TrialTestCaseCounter</span></code>, which is used by the
+<a class="reference internal" href="../configuration/steps/trial.html#step-Trial" title="Trial"><code class="xref bb bb-step docutils literal notranslate"><span class="pre">Trial</span></code></a> step to count test cases as they are run. As Trial executes, it emits lines like
+the following:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>buildbot.test.test_config.ConfigTest.testDebugPassword ... [OK]
+buildbot.test.test_config.ConfigTest.testEmpty ... [OK]
+buildbot.test.test_config.ConfigTest.testIRC ... [FAIL]
+buildbot.test.test_config.ConfigTest.testLocks ... [OK]
+</pre></div>
+</div>
+<p>When the tests are finished, trial emits a long line of <cite>======</cite> and then some lines which
+summarize the tests that failed. We want to avoid parsing these trailing lines, because their
+format is less well-defined than the <cite>[OK]</cite> lines.</p>
+<p>A simple version of the parser for this output looks like this.
+The full version is in <a class="extlink-src reference external" href="https://github.com/buildbot/buildbot/tree/master/master/buildbot/steps/python_twisted.py">master/buildbot/steps/python_twisted.py</a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">util</span>
+
+<span class="k">class</span> <span class="nc">TrialTestCaseCounter</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">LogLineObserver</span><span class="p">):</span>
+    <span class="n">_line_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^([\w\.]+) \.\.\. \[([^\]]+)\]$&#39;</span><span class="p">)</span>
+    <span class="n">numTests</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">finished</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">outLineReceived</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">40</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">return</span>
+
+        <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_line_re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+            <span class="n">testname</span><span class="p">,</span> <span class="n">result</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">numTests</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="o">.</span><span class="n">setProgress</span><span class="p">(</span><span class="s1">&#39;tests&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">numTests</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This parser only pays attention to stdout, since that’s where trial writes the progress lines. It
+has a mode flag named <code class="docutils literal notranslate"><span class="pre">finished</span></code> to ignore everything after the <code class="docutils literal notranslate"><span class="pre">====</span></code> marker, and a
+scary-looking regular expression to match each line while hopefully ignoring other messages that
+might get displayed as the test runs.</p>
+<p>Each time it identifies that a test has been completed, it increments its counter and delivers the
+new progress value to the step with <code class="docutils literal notranslate"><span class="pre">self.step.setProgress</span></code>. This helps Buildbot to determine the
+ETA for the step.</p>
+<p>To connect this parser into the <a class="reference internal" href="../configuration/steps/trial.html#step-Trial" title="Trial"><code class="xref bb bb-step docutils literal notranslate"><span class="pre">Trial</span></code></a> build step, <code class="docutils literal notranslate"><span class="pre">Trial.__init__</span></code> ends with the following clause:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># this counter will feed Progress along the &#39;test cases&#39; metric</span>
+<span class="n">counter</span> <span class="o">=</span> <span class="n">TrialTestCaseCounter</span><span class="p">()</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">addLogObserver</span><span class="p">(</span><span class="s1">&#39;stdio&#39;</span><span class="p">,</span> <span class="n">counter</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">progressMetrics</span> <span class="o">+=</span> <span class="p">(</span><span class="s1">&#39;tests&#39;</span><span class="p">,)</span>
+</pre></div>
+</div>
+<p>This creates a <code class="xref py py-class docutils literal notranslate"><span class="pre">TrialTestCaseCounter</span></code> and tells the step that the counter wants to watch the
+<code class="file docutils literal notranslate"><span class="pre">stdio</span></code> log. The observer is automatically given a reference to the step in its <code class="xref py py-attr docutils literal notranslate"><span class="pre">step</span></code>
+attribute.</p>
+</section>
+<section id="using-properties">
+<h2><span class="section-number">2.6.10.9. </span>Using Properties<a class="headerlink" href="#using-properties" title="Link to this heading"></a></h2>
+<p>In custom <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildSteps</span></code>, you can get and set the build properties with the
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">getProperty</span></code> and <code class="xref py py-meth docutils literal notranslate"><span class="pre">setProperty</span></code> methods. Each takes a string for the name of the
+property, and returns or accepts an arbitrary JSON-able (lists, dicts, strings, and numbers)
+object. For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MakeTarball</span><span class="p">(</span><span class="n">buildstep</span><span class="o">.</span><span class="n">ShellMixin</span><span class="p">,</span> <span class="n">buildstep</span><span class="o">.</span><span class="n">BuildStep</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setupShellMixin</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s2">&quot;os&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;win&quot;</span><span class="p">:</span>
+            <span class="c1"># windows-only command</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">makeRemoteShellCommand</span><span class="p">(</span><span class="n">commad</span><span class="o">=</span><span class="p">[</span> <span class="o">...</span> <span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># equivalent for other systems</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">makeRemoteShellCommand</span><span class="p">(</span><span class="n">commad</span><span class="o">=</span><span class="p">[</span> <span class="o">...</span> <span class="p">])</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">runCommand</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cmd</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Remember that properties set in a step may not be available until the next step begins. In
+particular, any <code class="xref py py-class docutils literal notranslate"><span class="pre">Property</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">Interpolate</span></code> instances for the current step are
+interpolated before the step starts, so they cannot use the value of any properties determined in
+that step.</p>
+</section>
+<section id="using-statistics">
+<span id="index-0"></span><h2><span class="section-number">2.6.10.10. </span>Using Statistics<a class="headerlink" href="#using-statistics" title="Link to this heading"></a></h2>
+<p>Statistics can be generated for each step, and then summarized across all steps in a build. For
+example, a test step might set its <code class="docutils literal notranslate"><span class="pre">warnings</span></code> statistic to the number of warnings observed. The
+build could then sum the <code class="docutils literal notranslate"><span class="pre">warnings</span></code> on all steps to get a total number of warnings.</p>
+<p>Statistics are set and retrieved with the
+<a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.setStatistic" title="buildbot.process.buildstep.BuildStep.setStatistic"><code class="xref py py-meth docutils literal notranslate"><span class="pre">setStatistic</span></code></a> and
+<a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.getStatistic" title="buildbot.process.buildstep.BuildStep.getStatistic"><code class="xref py py-meth docutils literal notranslate"><span class="pre">getStatistic</span></code></a> methods. The
+<a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.hasStatistic" title="buildbot.process.buildstep.BuildStep.hasStatistic"><code class="xref py py-meth docutils literal notranslate"><span class="pre">hasStatistic</span></code></a> method determines whether a statistic
+exists.</p>
+<p>The Build method <a class="reference internal" href="../../developer/cls-build.html#buildbot.process.build.Build.getSummaryStatistic" title="buildbot.process.build.Build.getSummaryStatistic"><code class="xref py py-meth docutils literal notranslate"><span class="pre">getSummaryStatistic</span></code></a> can be used to
+aggregate over all steps in a Build.</p>
+</section>
+<section id="buildstep-urls">
+<h2><span class="section-number">2.6.10.11. </span>BuildStep URLs<a class="headerlink" href="#buildstep-urls" title="Link to this heading"></a></h2>
+<p>Each BuildStep has a collection of <cite>links</cite>. Each has a name and a target URL. The web display
+displays clickable links for each link, making them a useful way to point to extra information
+about a step. For example, a step that uploads a build result to an external service might include
+a link to the uploaded file.</p>
+<p>To set one of these links, the <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildStep</span></code> should call the
+<a class="reference internal" href="../../developer/cls-buildsteps.html#buildbot.process.buildstep.BuildStep.addURL" title="buildbot.process.buildstep.BuildStep.addURL"><code class="xref py py-meth docutils literal notranslate"><span class="pre">addURL</span></code></a> method with the name of the link and the
+target URL. Multiple URLs can be set. For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="o">...</span> <span class="c1"># create and upload report to coverage server</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://coverage.example.com/reports/</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">reportname</span>
+    <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">addURL</span><span class="p">(</span><span class="s1">&#39;coverage&#39;</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This also works from log observers, which is helpful for instance if the build output points to an
+external page such as a detailed log file. The following example parses output of <em>poudriere</em>, a
+tool for building packages on the FreeBSD operating system.</p>
+<p>Example output:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[00:00:00] Creating the reference jail... done
+...
+[00:00:01] Logs: /usr/local/poudriere/data/logs/bulk/103amd64-2018Q4/2018-10-03_05h47m30s
+...
+... build log without details (those are in the above logs directory) ...
+</pre></div>
+</div>
+<p>Log observer implementation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">BuildmasterConfig</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">c</span><span class="p">[</span><span class="s1">&#39;titleURL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;https://my-buildbot.example.com/&#39;</span>
+<span class="c1"># ...</span>
+<span class="k">class</span> <span class="nc">PoudriereLogLinkObserver</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">LogLineObserver</span><span class="p">):</span>
+    <span class="n">_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+        <span class="sa">r</span><span class="s1">&#39;Logs: /usr/local/poudriere/data/logs/bulk/([-_/0-9A-Za-z]+)$&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">outLineReceived</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+        <span class="c1"># Short-circuit if URL already found</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regex</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="c1"># Let&#39;s assume local directory /usr/local/poudriere/data/logs/bulk</span>
+            <span class="c1"># is available as https://my-buildbot.example.com/poudriere/logs</span>
+            <span class="n">poudriere_ui_url</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s1">&#39;titleURL&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;poudriere/logs/&#39;</span> <span class="o">+</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="c1"># Add URLs for build overview page and for per-package log files</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="o">.</span><span class="n">addURL</span><span class="p">(</span><span class="s1">&#39;Poudriere build web interface&#39;</span><span class="p">,</span> <span class="n">poudriere_ui_url</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="o">.</span><span class="n">addURL</span><span class="p">(</span><span class="s1">&#39;Poudriere logs&#39;</span><span class="p">,</span> <span class="n">poudriere_ui_url</span> <span class="o">+</span> <span class="s1">&#39;/logs/&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="discovering-files">
+<h2><span class="section-number">2.6.10.12. </span>Discovering files<a class="headerlink" href="#discovering-files" title="Link to this heading"></a></h2>
+<p>When implementing a <code class="xref py py-class docutils literal notranslate"><span class="pre">BuildStep</span></code> it may be necessary to know about files that are created
+during the build. There are a few worker commands that can be used to find files on the worker and
+test for the existence (and type) of files and directories.</p>
+<p>The worker provides the following file-discovery related commands:</p>
+<ul class="simple">
+<li><p><cite>stat</cite> calls <code class="xref py py-func docutils literal notranslate"><span class="pre">os.stat</span></code> for a file in the worker’s build directory.
+This can be used to check if a known file exists and whether it is a regular file, directory or symbolic link.</p></li>
+<li><p><cite>listdir</cite> calls <code class="xref py py-func docutils literal notranslate"><span class="pre">os.listdir</span></code> for a directory on the worker.
+It can be used to obtain a list of files that are present in a directory on the worker.</p></li>
+<li><p><cite>glob</cite> calls <code class="xref py py-func docutils literal notranslate"><span class="pre">glob.glob</span></code> on the worker, with a given shell-style pattern containing wildcards.</p></li>
+</ul>
+<p>For example, we could use stat to check if a given path exists and contains <code class="docutils literal notranslate"><span class="pre">*.pyc</span></code> files. If the
+path does not exist (or anything fails) we mark the step as failed; if the path exists but is not a
+directory, we mark the step as having “warnings”.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">buildbot.plugins</span> <span class="kn">import</span> <span class="n">steps</span><span class="p">,</span> <span class="n">util</span>
+<span class="kn">from</span> <span class="nn">buildbot.process</span> <span class="kn">import</span> <span class="n">remotecommand</span>
+<span class="kn">from</span> <span class="nn">buildbot.interfaces</span> <span class="kn">import</span> <span class="n">WorkerSetupError</span>
+<span class="kn">import</span> <span class="nn">stat</span>
+
+<span class="k">class</span> <span class="nc">MyBuildStep</span><span class="p">(</span><span class="n">steps</span><span class="o">.</span><span class="n">BuildStep</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dirname</span> <span class="o">=</span> <span class="n">dirname</span>
+
+    <span class="nd">@defer</span><span class="o">.</span><span class="n">inlineCallbacks</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># make sure the worker knows about stat</span>
+        <span class="n">workerver</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workerVersion</span><span class="p">(</span><span class="s1">&#39;stat&#39;</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">workerVersion</span><span class="p">(</span><span class="s1">&#39;glob&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">workerver</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">WorkerSetupError</span><span class="p">(</span><span class="s1">&#39;need stat and glob&#39;</span><span class="p">)</span>
+
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">remotecommand</span><span class="o">.</span><span class="n">RemoteCommand</span><span class="p">(</span><span class="s1">&#39;stat&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;file&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dirname</span><span class="p">})</span>
+
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">runCommand</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">cmd</span><span class="o">.</span><span class="n">didFail</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;File not found.&quot;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">util</span><span class="o">.</span><span class="n">FAILURE</span>
+
+        <span class="n">s</span> <span class="o">=</span> <span class="n">cmd</span><span class="o">.</span><span class="n">updates</span><span class="p">[</span><span class="s2">&quot;stat&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">stat</span><span class="o">.</span><span class="n">S_ISDIR</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">stat</span><span class="o">.</span><span class="n">ST_MODE</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&#39;tis not a directory&quot;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">util</span><span class="o">.</span><span class="n">WARNINGS</span>
+
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">remotecommand</span><span class="o">.</span><span class="n">RemoteCommand</span><span class="p">(</span><span class="s1">&#39;glob&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dirname</span> <span class="o">+</span> <span class="s1">&#39;/*.pyc&#39;</span><span class="p">})</span>
+
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">runCommand</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">cmd</span><span class="o">.</span><span class="n">didFail</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Glob failed.&quot;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">util</span><span class="o">.</span><span class="n">FAILURE</span>
+
+        <span class="n">files</span> <span class="o">=</span> <span class="n">cmd</span><span class="o">.</span><span class="n">updates</span><span class="p">[</span><span class="s2">&quot;files&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Found pycs&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">files</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;No pycs found&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">util</span><span class="o">.</span><span class="n">SUCCESS</span>
+</pre></div>
+</div>
+<p>For more information on the available commands, see <a class="reference internal" href="../../developer/master-worker.html"><span class="doc">Master-Worker API</span></a>.</p>
+<div class="admonition-todo admonition" id="id4">
+<p class="admonition-title">Todo</p>
+<p>Step Progress
+BuildStepFailed</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="workdir.html" class="btn btn-neutral float-left" title="2.6.9. Factory Workdir Functions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="dashboards.html" class="btn btn-neutral float-right" title="2.6.11. Writing Dashboards with Flask or Bottle" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Buildbot Team Members.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
