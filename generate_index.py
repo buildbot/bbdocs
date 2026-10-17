@@ -3,6 +3,7 @@
 import re
 import os
 
+import packaging.version
 from jinja2 import Environment, FileSystemLoader
 
 PATH = os.path.dirname(os.path.abspath(__file__))
@@ -22,10 +23,14 @@ def version_part_parse(part):
     return int(part)
 
 
-def version_parse(version):
+def version_parse(version) -> packaging.version.Version:
+    try:
+        return packaging.version.parse(version)
+    except packaging.version.InvalidVersion:
+        pass
     # packaging.version.parse does not parse some of the existing version numbers
-    return tuple([version_part_parse(v)
-                  for v in version.replace("post", ".").replace("p", ".").split(".")])
+    version = version.replace("p", "post")
+    return packaging.version.parse(version)
 
 
 def create_index_html():
@@ -35,6 +40,8 @@ def create_index_html():
         m = re.match(r'^\d\..*', fn)
         if m is not None:
             v = version_parse(fn)
+            if v.is_prerelease or v.is_devrelease:
+                continue
             if v > version_parse("0.8.5"):
                 versions.append((v, fn))
     versions.sort(reverse=True)
